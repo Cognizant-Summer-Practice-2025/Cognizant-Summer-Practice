@@ -1,0 +1,24 @@
+name: .NET CI
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Restore dependencies
+        run: dotnet restore Backend.Tests/Backend.Tests.csproj
+        working-directory: ./backend
+      - name: Build
+        run: dotnet build Backend.Tests/Backend.Tests.csproj --no-restore
+        working-directory: ./backend
+      - name: Test
+        run: dotnet test Backend.Tests/Backend.Tests.csproj --no-build --verbosity normal
+        working-directory: ./backend
