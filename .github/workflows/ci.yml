@@ -16,6 +16,18 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore Backend.Tests/Backend.Tests.csproj
         working-directory: ./backend
+      - name: Build User Service
+        run: dotnet build backend-user/backend-user.csproj --no-restore
+        working-directory: ./backend
+      - name: Build Messages Service
+        run: dotnet build backend-messages/backend-messages.csproj --no-restore
+        working-directory: ./backend
+      - name: Build Portfolio Service
+        run: dotnet build backend-portfolio/backend-portfolio.csproj --no-restore
+        working-directory: ./backend
+      - name: Build AI Service
+        run: dotnet build backend-AI/backend-AI.csproj --no-restore
+        working-directory: ./backend
       - name: Build
         run: dotnet build Backend.Tests/Backend.Tests.csproj --no-restore
         working-directory: ./backend
