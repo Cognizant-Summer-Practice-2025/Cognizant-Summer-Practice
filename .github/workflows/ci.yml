@@ -13,7 +13,19 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restore dependencies
+      - name: Restore User Service dependencies
+        run: dotnet restore backend-user/backend-user.csproj
+        working-directory: ./backend
+      - name: Restore Messages Service dependencies
+        run: dotnet restore backend-messages/backend-messages.csproj
+        working-directory: ./backend
+      - name: Restore Portfolio Service dependencies
+        run: dotnet restore backend-portfolio/backend-portfolio.csproj
+        working-directory: ./backend
+      - name: Restore AI Service dependencies
+        run: dotnet restore backend-AI/backend-AI.csproj
+        working-directory: ./backend
+      - name: Restore Test dependencies
         run: dotnet restore Backend.Tests/Backend.Tests.csproj
         working-directory: ./backend
       - name: Build User Service
