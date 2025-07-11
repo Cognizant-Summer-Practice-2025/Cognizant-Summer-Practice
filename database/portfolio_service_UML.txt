@@ -1,0 +1,187 @@
+@startuml Portfolio_Service_Schema
+
+!define PRIMARY_KEY(x) <b><color:#b8861b><&key></color> x</b>
+!define FOREIGN_KEY(x) <color:#aaaaaa><&arrow-right></color> x
+!define UNIQUE(x) <color:#green><&check></color> x
+!define EXTERNAL_REF(x) <color:#red><&warning></color> x
+
+' === PORTFOLIO SERVICE TABLES ===
+entity "portfolios" as portfolios {
+  PRIMARY_KEY(id) : UUID
+  --
+  EXTERNAL_REF(user_id) : UUID
+  FOREIGN_KEY(template_id) : UUID
+  title : VARCHAR
+  bio : TEXT
+  location : VARCHAR
+  website_url : TEXT
+  phone : VARCHAR
+  visibility : ENUM
+  view_count : INTEGER
+  like_count : INTEGER
+  is_featured : BOOLEAN
+  is_published : BOOLEAN
+  published_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP
+}
+
+entity "portfolio_templates" as templates {
+  PRIMARY_KEY(id) : UUID
+  --
+  name : VARCHAR
+  description : TEXT
+  preview_image_url : TEXT
+  css_config : JSONB
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "projects" as projects {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  title : VARCHAR
+  description : TEXT
+  image_url : TEXT
+  demo_url : TEXT
+  github_url : TEXT
+  technologies : TEXT[]
+  featured : BOOLEAN
+  sort_order : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP
+}
+
+entity "experience" as experience {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  job_title : VARCHAR
+  company_name : VARCHAR
+  company_url : TEXT
+  location : VARCHAR
+  employment_type : ENUM
+  start_date : DATE
+  end_date : DATE
+  is_current : BOOLEAN
+  description : TEXT
+  achievements : TEXT[]
+  skills_used : TEXT[]
+  sort_order : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP
+}
+
+entity "skills" as skills {
+  PRIMARY_KEY(id) : UUID
+  --
+  UNIQUE(name) : VARCHAR
+  category : ENUM
+  icon_url : TEXT
+  color : VARCHAR
+  usage_count : INTEGER
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "portfolio_skills" as portfolio_skills {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  FOREIGN_KEY(skill_id) : UUID
+  proficiency_level : ENUM
+  years_experience : INTEGER
+  is_featured : BOOLEAN
+  sort_order : INTEGER
+  created_at : TIMESTAMP
+}
+
+entity "blog_posts" as blog_posts {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  title : VARCHAR
+  UNIQUE(slug) : VARCHAR
+  excerpt : TEXT
+  content : TEXT
+  featured_image_url : TEXT
+  reading_time_minutes : INTEGER
+  view_count : INTEGER
+  like_count : INTEGER
+  is_published : BOOLEAN
+  published_at : TIMESTAMP
+  seo_title : VARCHAR
+  seo_description : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP
+}
+
+entity "blog_post_tags" as blog_tags {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(blog_post_id) : UUID
+  tag_name : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "portfolio_views" as views {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  EXTERNAL_REF(viewer_id) : UUID
+  ip_address : INET
+  user_agent : TEXT
+  referrer_url : TEXT
+  viewed_at : TIMESTAMP
+}
+
+entity "portfolio_likes" as likes {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  EXTERNAL_REF(user_id) : UUID
+  created_at : TIMESTAMP
+}
+
+entity "bookmarks" as bookmarks {
+  PRIMARY_KEY(id) : UUID
+  --
+  EXTERNAL_REF(user_id) : UUID
+  FOREIGN_KEY(portfolio_id) : UUID
+  collection_name : VARCHAR
+  notes : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "search_queries" as searches {
+  PRIMARY_KEY(id) : UUID
+  --
+  EXTERNAL_REF(user_id) : UUID
+  FOREIGN_KEY(clicked_portfolio_id) : UUID
+  query_text : TEXT
+  filters_applied : JSONB
+  results_count : INTEGER
+  session_id : VARCHAR
+  created_at : TIMESTAMP
+}
+
+' Portfolio service relationships
+portfolios ||--o{ projects : "contains"
+portfolios ||--o{ experience : "includes"
+portfolios ||--o{ blog_posts : "has"
+portfolios }o--|| templates : "uses"
+portfolios ||--o{ portfolio_skills : "has"
+skills ||--o{ portfolio_skills : "used_in"
+blog_posts ||--o{ blog_tags : "tagged_with"
+portfolios ||--o{ views : "receives"
+portfolios ||--o{ likes : "gets"
+portfolios ||--o{ bookmarks : "bookmarked_as"
+portfolios ||--o{ searches : "found_in"
+
+@enduml

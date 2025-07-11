@@ -1,0 +1,120 @@
+@startuml User_Service_Schema
+
+!define PRIMARY_KEY(x) <b><color:#b8861b><&key></color> x</b>
+!define FOREIGN_KEY(x) <color:#aaaaaa><&arrow-right></color> x
+!define UNIQUE(x) <color:#green><&check></color> x
+!define EXTERNAL_REF(x) <color:#red><&warning></color> x
+
+' === USER SERVICE TABLES ===
+entity "users" as users {
+  PRIMARY_KEY(id) : UUID
+  --
+  UNIQUE(email) : VARCHAR
+  username : VARCHAR
+  first_name : VARCHAR
+  last_name : VARCHAR
+  avatar_url : TEXT
+  is_active : BOOLEAN
+  is_admin : BOOLEAN
+  email_verified : BOOLEAN
+  last_login_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+  deleted_at : TIMESTAMP
+}
+
+entity "oauth_providers" as oauth {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(user_id) : UUID
+  provider : ENUM
+  provider_id : VARCHAR
+  provider_email : VARCHAR
+  access_token : TEXT
+  refresh_token : TEXT
+  token_expires_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "user_settings" as settings {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(user_id) : UUID
+  email_notifications : BOOLEAN
+  browser_notifications : BOOLEAN
+  marketing_emails : BOOLEAN
+  profile_visibility : ENUM
+  show_email : BOOLEAN
+  show_phone : BOOLEAN
+  allow_messages : BOOLEAN
+  language : VARCHAR
+  timezone : VARCHAR
+  theme : ENUM
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "newsletters" as newsletters {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(user_id) : UUID
+  type : VARCHAR
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "user_analytics" as analytics {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(user_id) : UUID
+  session_id : VARCHAR
+  event_type : VARCHAR
+  event_data : JSONB
+  ip_address : INET
+  user_agent : TEXT
+  referrer_url : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "admin_actions" as admin_actions {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(admin_id) : UUID
+  target_service : VARCHAR
+  target_type : ENUM
+  target_id : UUID
+  action_type : ENUM
+  reason : TEXT
+  notes : TEXT
+  created_at : TIMESTAMP
+}
+
+entity "user_reports" as reports {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(reporter_id) : UUID
+  FOREIGN_KEY(resolved_by) : UUID
+  reported_service : VARCHAR
+  reported_type : ENUM
+  reported_id : UUID
+  report_type : ENUM
+  description : TEXT
+  status : ENUM
+  admin_notes : TEXT
+  resolved_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+' User service relationships
+users ||--o{ oauth : "has"
+users ||--|| settings : "has"
+users ||--o{ newsletters : "subscribes_to"
+users ||--o{ analytics : "generates"
+users ||--o{ admin_actions : "performs"
+users ||--o{ reports : "files"
+users ||--o{ reports : "resolves"
+
+@enduml
