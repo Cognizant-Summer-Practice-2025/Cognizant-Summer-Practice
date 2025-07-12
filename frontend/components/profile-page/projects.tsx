@@ -23,43 +23,43 @@ export default function Projects() {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-8 w-full min-h-[600px]">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Projects</h1>
-      <p className="text-gray-600 mb-8">Manage your portfolio projects</p>
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px]">
+      <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Projects</h1>
+      <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Manage your portfolio projects</p>
       
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Add Project Button */}
         <div>
-          <Button className="px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-center items-center gap-2">
+          <Button className="w-full sm:w-auto px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-center items-center gap-2">
             <Plus className="w-[14px] h-[14px]" />
             Add Project
           </Button>
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-6">
           {projects.map((project) => (
             <div
               key={project.id}
               className="p-[1px] bg-white overflow-hidden rounded-lg border border-[#E2E8F0] flex flex-col justify-start items-start"
             >
               <img
-                className="w-full h-[200px] object-cover"
+                className="w-full h-[150px] sm:h-[200px] object-cover"
                 src={project.image}
                 alt={project.title}
               />
-              <div className="w-full pt-[23px] pb-6 px-6 flex flex-col justify-start items-start gap-2">
+              <div className="w-full pt-4 sm:pt-[23px] pb-4 sm:pb-6 px-4 sm:px-6 flex flex-col justify-start items-start gap-2">
                 <div className="w-full pb-[0.8px] flex flex-col justify-start items-start">
-                  <h3 className="w-full text-[#020817] text-lg font-semibold font-['Inter'] leading-[28.8px]">
+                  <h3 className="w-full text-[#020817] text-base sm:text-lg font-semibold font-['Inter'] leading-tight sm:leading-[28.8px]">
                     {project.title}
                   </h3>
                 </div>
                 <div className="w-full flex flex-col justify-start items-start">
-                  <p className="w-full text-[#64748B] text-sm font-normal font-['Inter'] leading-[19.6px]">
+                  <p className="w-full text-[#64748B] text-xs sm:text-sm font-normal font-['Inter'] leading-relaxed sm:leading-[19.6px]">
                     {project.description}
                   </p>
                 </div>
-                <div className="w-full pt-2 flex justify-start items-start gap-2 flex-wrap">
+                <div className="w-full pt-2 flex justify-start items-start gap-1 sm:gap-2 flex-wrap">
                   {project.technologies.map((tech, index) => (
                     <div
                       key={index}
@@ -71,16 +71,16 @@ export default function Projects() {
                     </div>
                   ))}
                 </div>
-                <div className="w-full pt-2 flex justify-start items-start gap-2">
+                <div className="w-full pt-2 flex flex-col sm:flex-row justify-start items-start gap-2">
                   <Button
                     variant="outline"
-                    className="px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal"
+                    className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal"
                   >
                     Edit
                   </Button>
                   <Button
                     variant="outline"
-                    className="px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal"
+                    className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal"
                   >
                     Delete
                   </Button>

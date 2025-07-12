@@ -21,41 +21,41 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
   return (
     <div className="w-full h-full p-6 bg-white border-r border-[#E2E8F0] flex flex-col justify-start items-start gap-6">
       {/* Profile Card */}
-      <div className="self-stretch h-[296px] rounded-lg border border-[#E2E8F0] flex flex-col justify-between items-center p-6">
+      <div className="self-stretch h-[296px] lg:h-[296px] md:h-[250px] sm:h-[220px] rounded-lg border border-[#E2E8F0] flex flex-col justify-between items-center p-4 sm:p-6">
         <div className="flex flex-col items-center">
           {/* Profile Picture */}
           <img 
-            className="w-20 h-20 rounded-full mb-4" 
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mb-3 sm:mb-4" 
             src="https://placehold.co/80x80" 
             alt="Profile"
           />
           
           {/* Name */}
-          <div className="text-center text-[#020817] text-[40px] font-bold font-['Inter'] leading-[48px] mb-2">
+          <div className="text-center text-[#020817] text-2xl sm:text-3xl lg:text-[40px] font-bold font-['Inter'] leading-tight mb-1 sm:mb-2">
             John Doe
           </div>
           
           {/* Title */}
-          <div className="text-center text-[#64748B] text-xl font-medium font-['Inter'] leading-8">
+          <div className="text-center text-[#64748B] text-sm sm:text-lg lg:text-xl font-medium font-['Inter'] leading-tight">
             Full Stack Developer
           </div>
         </div>
         
         {/* Stats */}
-        <div className="flex justify-center items-start gap-8 mb-2">
+        <div className="flex justify-center items-start gap-4 sm:gap-6 lg:gap-8 mb-2">
           <div className="flex flex-col justify-start items-center">
-            <div className="text-center text-[#020817] text-2xl font-semibold font-['Inter'] leading-6">
+            <div className="text-center text-[#020817] text-lg sm:text-xl lg:text-2xl font-semibold font-['Inter'] leading-6">
               1,234
             </div>
-            <div className="text-center text-[#64748B] text-sm font-medium font-['Inter'] leading-[22.4px]">
+            <div className="text-center text-[#64748B] text-xs sm:text-sm font-medium font-['Inter'] leading-[22.4px]">
               Views
             </div>
           </div>
           <div className="flex flex-col justify-start items-center">
-            <div className="text-center text-[#020817] text-2xl font-semibold font-['Inter'] leading-6">
+            <div className="text-center text-[#020817] text-lg sm:text-xl lg:text-2xl font-semibold font-['Inter'] leading-6">
               49
             </div>
-            <div className="text-center text-[#64748B] text-sm font-medium font-['Inter'] leading-[22.4px]">
+            <div className="text-center text-[#64748B] text-xs sm:text-sm font-medium font-['Inter'] leading-[22.4px]">
               Likes
             </div>
           </div>

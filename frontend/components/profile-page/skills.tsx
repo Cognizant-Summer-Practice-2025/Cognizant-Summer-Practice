@@ -32,14 +32,14 @@ export default function Skills() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-8 w-full min-h-[600px]">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Skills</h1>
-      <p className="text-gray-600 mb-8">Add and manage your technical skills</p>
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px]">
+      <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Skills</h1>
+      <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Add and manage your technical skills</p>
       
-      <div className="w-full max-w-[600px] space-y-6">
+      <div className="w-full max-w-[800px] space-y-4 sm:space-y-6">
         {/* Add Skill Section */}
-        <div className="flex justify-start items-start gap-3">
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row justify-start items-start gap-3">
+          <div className="flex-1 w-full">
             <Input
               type="text"
               placeholder="Add a skill..."
@@ -51,21 +51,21 @@ export default function Skills() {
           </div>
           <Button
             onClick={addSkill}
-            className="px-4 py-3 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg"
+            className="w-full sm:w-auto px-4 py-3 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg"
           >
             Add
           </Button>
         </div>
 
         {/* Skills Display */}
-        <div className="flex justify-start items-start gap-3 flex-wrap">
+        <div className="flex justify-start items-start gap-2 sm:gap-3 flex-wrap">
           {skills.map((skill, index) => (
             <div
               key={index}
               className="py-2 px-3 bg-[#F1F5F9] rounded-lg flex justify-start items-center gap-2"
             >
               <div className="flex flex-col justify-start items-start">
-                <span className="text-[#020817] text-sm font-normal font-['Inter'] leading-[22.4px]">
+                <span className="text-[#020817] text-xs sm:text-sm font-normal font-['Inter'] leading-[22.4px]">
                   {skill}
                 </span>
               </div>
