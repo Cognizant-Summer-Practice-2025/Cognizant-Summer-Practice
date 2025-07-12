@@ -8,7 +8,7 @@ interface ProfileSidebarProps {
   onTabChange?: (tab: string) => void;
 }
 
-export default function ProfileSidebar({ activeTab = 'projects', onTabChange }: ProfileSidebarProps) {
+export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }: ProfileSidebarProps) {
   const menuItems = [
     { id: 'basic-info', label: 'Basic Info', icon: User },
     { id: 'projects', label: 'Projects', icon: Folder },
@@ -64,7 +64,7 @@ export default function ProfileSidebar({ activeTab = 'projects', onTabChange }: 
         </div>
       </div>
       
-      {/* Navigation Menu */}
+      {/* Menu */}
       <div className="self-stretch flex flex-col justify-start items-start gap-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
