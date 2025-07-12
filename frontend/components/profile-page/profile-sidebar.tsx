@@ -21,30 +21,28 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
   return (
     <div className="w-full h-full p-6 bg-white border-r border-[#E2E8F0] flex flex-col justify-start items-start gap-6">
       {/* Profile Card */}
-      <div className="self-stretch h-[296px] relative rounded-lg border border-[#E2E8F0]">
-        {/* Profile Picture */}
-        <img 
-          className="w-20 h-20 absolute left-[95.5px] top-[25px] rounded-full" 
-          src="https://placehold.co/80x80" 
-          alt="Profile"
-        />
-        
-        {/* Name */}
-        <div className="w-[221px] absolute left-[25px] top-[121px] flex flex-col justify-start items-center">
-          <div className="text-center text-[#020817] text-[40px] font-bold font-['Inter'] leading-[48px]">
+      <div className="self-stretch h-[296px] rounded-lg border border-[#E2E8F0] flex flex-col justify-between items-center p-6">
+        <div className="flex flex-col items-center">
+          {/* Profile Picture */}
+          <img 
+            className="w-20 h-20 rounded-full mb-4" 
+            src="https://placehold.co/80x80" 
+            alt="Profile"
+          />
+          
+          {/* Name */}
+          <div className="text-center text-[#020817] text-[40px] font-bold font-['Inter'] leading-[48px] mb-2">
             John Doe
           </div>
-        </div>
-        
-        {/* Title */}
-        <div className="w-[221px] absolute left-[25px] top-[177px] flex flex-col justify-start items-center">
+          
+          {/* Title */}
           <div className="text-center text-[#64748B] text-xl font-medium font-['Inter'] leading-8">
             Full Stack Developer
           </div>
         </div>
         
         {/* Stats */}
-        <div className="w-[221px] absolute left-[25px] top-[225px] flex justify-center items-start gap-8">
+        <div className="flex justify-center items-start gap-8 mb-2">
           <div className="flex flex-col justify-start items-center">
             <div className="text-center text-[#020817] text-2xl font-semibold font-['Inter'] leading-6">
               1,234
