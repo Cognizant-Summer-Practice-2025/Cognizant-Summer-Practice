@@ -3,10 +3,9 @@ namespace backend_user.Models
     public enum OAuthProviderType
     {
         Google,
-        Facebook,
         GitHub,
-        Microsoft,
-        Apple
+        LinkedIn,
+        Facebook
     }
 
     public enum ReportedType

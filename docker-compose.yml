@@ -1,0 +1,49 @@
+services:
+  user-db:
+    build:
+      context: ./database/user-db
+      dockerfile: Dockerfile
+    container_name: user_postgresql
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - cognizant_network
+
+  messages-db:
+    build:
+      context: ./database/messages-db
+      dockerfile: Dockerfile
+    container_name: messages_postgresql
+    ports:
+      - "5433:5432"
+    volumes:
+      - messages_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - cognizant_network
+
+  portfolio-db:
+    build:
+      context: ./database/portfolio-db
+      dockerfile: Dockerfile
+    container_name: portfolio_postgresql
+    ports:
+      - "5434:5432"
+    volumes:
+      - portfolio_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - cognizant_network
+
+
+volumes:
+  user_db_data:
+  messages_db_data:
+  portfolio_db_data:
+
+networks:
+  cognizant_network:
+    driver: bridge 
