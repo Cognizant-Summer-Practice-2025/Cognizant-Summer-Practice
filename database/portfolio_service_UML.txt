@@ -1,0 +1,112 @@
+@startuml Portfolio_Service_Schema
+
+!define PRIMARY_KEY(x) <b><color:#b8861b><&key></color> x</b>
+!define FOREIGN_KEY(x) <color:#aaaaaa><&arrow-right></color> x
+!define EXTERNAL_REF(x) <color:#red><&warning></color> x
+
+' === CONFIGURABLE SECTION ORDERING SCHEMA ===
+entity "portfolios" as portfolios {
+  PRIMARY_KEY(id) : UUID
+  --
+  EXTERNAL_REF(user_id) : UUID
+  FOREIGN_KEY(template_id) : UUID
+  title : VARCHAR
+  bio : TEXT
+  custom_config : JSONB
+  custom_sections : JSONB
+  view_count : INTEGER
+  like_count : INTEGER
+  visibility : ENUM
+  is_published : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "portfolio_templates" as templates {
+  PRIMARY_KEY(id) : UUID
+  --
+  name : VARCHAR
+  description : TEXT
+  component_name : VARCHAR
+  preview_image_url : TEXT
+  default_config : JSONB
+  default_sections : JSONB
+  customizable_options : JSONB
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "projects" as projects {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  title : VARCHAR
+  description : TEXT
+  image_url : TEXT
+  demo_url : TEXT
+  github_url : TEXT
+  technologies : TEXT[]
+  featured : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "experience" as experience {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  job_title : VARCHAR
+  company_name : VARCHAR
+  start_date : DATE
+  end_date : DATE
+  is_current : BOOLEAN
+  description : TEXT
+  skills_used : TEXT[]
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "skills" as skills {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  name : VARCHAR
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "blog_posts" as blog_posts {
+  PRIMARY_KEY(id) : UUID
+  --
+  FOREIGN_KEY(portfolio_id) : UUID
+  title : VARCHAR
+  excerpt : TEXT
+  content : TEXT
+  featured_image_url : TEXT
+  tags : TEXT[]
+  is_published : BOOLEAN
+  published_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "bookmarks" as bookmarks {
+  PRIMARY_KEY(id) : UUID
+  --
+  EXTERNAL_REF(user_id) : UUID
+  FOREIGN_KEY(portfolio_id) : UUID
+  collection_name : VARCHAR
+  notes : TEXT
+  created_at : TIMESTAMP
+}
+
+' Configurable section ordering relationships
+portfolios }o--|| templates : "uses"
+portfolios ||--o{ projects : "showcases"
+portfolios ||--o{ experience : "includes"
+portfolios ||--o{ skills : "has"
+portfolios ||--o{ blog_posts : "writes"
+portfolios ||--o{ bookmarks : "bookmarked_as"
+
+@enduml
