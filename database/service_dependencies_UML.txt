@@ -1,0 +1,53 @@
+@startuml Service_Dependencies_Simple
+
+!theme plain
+
+' === SERVICES ===
+component [User Service] as US
+component [Portfolio Service] as PS  
+component [Messages Service] as MS
+
+' === DIRECT DEPENDENCIES ===
+PS --> US : **Synchronous Calls**\n• Validate user_id\n• Get user profile\n• Check permissions
+
+MS --> US : **Synchronous Calls**\n• Validate participants\n• Get user details\n• Cache user data
+
+' === OPTIONAL DEPENDENCIES ===
+PS ..> MS : **Optional Calls**\n• Create conversation\n• Send notifications
+MS ..> PS : **Optional Calls**\n• Get portfolio context\n• Portfolio mentions
+
+' === EVENT BUS ===
+queue EventBus
+
+US --> EventBus : **Events Published:**\n• user.created\n• user.updated\n• user.deleted\n• user.settings.changed
+
+PS --> EventBus : **Events Published:**\n• portfolio.created\n• portfolio.published\n• portfolio.viewed\n• portfolio.liked
+
+MS --> EventBus : **Events Published:**\n• message.sent\n• message.read\n• conversation.created
+
+EventBus --> US : **Events Consumed:**\n• portfolio.activity\n• message.activity
+EventBus --> PS : **Events Consumed:**\n• user.updated\n• user.deleted
+EventBus --> MS : **Events Consumed:**\n• user.updated\n• user.deleted
+
+note right of US
+  **User Service**
+  • Authentication hub
+  • Identity provider
+  • Central user management
+end note
+
+note right of PS
+  **Portfolio Service** 
+  • Business domain logic
+  • Content management
+  • Search functionality
+end note
+
+note right of MS
+  **Messages Service**
+  • Real-time communication
+  • Independent of other domains
+  • WebSocket connections
+end note
+
+@enduml
