@@ -19,14 +19,12 @@ export default function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-
-
   return (
     <>
       <header className="w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 relative z-40">
-        <div className="w-full max-w-[1280px] h-16 relative mx-auto">
+        <div className="w-full max-w-[1280px] h-16 mx-auto flex items-center justify-between relative">
           {/* Mobile Menu Button */}
-          <div className="absolute left-0 top-4 flex lg:hidden">
+          <div className="flex lg:hidden">
             <button
               onClick={toggleMobileMenu}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -40,27 +38,25 @@ export default function Header() {
           </div>
 
           {/* Logo */}
-          <div className="absolute left-12 lg:left-6 top-4 flex flex-col justify-start items-start">
+          <div className="flex items-center ml-2 lg:ml-0">
             <Link href="/" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
               GoalKeeper
             </Link>
           </div>
 
           {/* Search Bar - Hidden on mobile */}
-          <div className="hidden lg:block absolute left-[368.88px] top-[15px] w-[464px] max-w-[464px] px-8">
-            <div className="w-full max-w-[400px] relative flex flex-col justify-start items-start">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-                <Input
-                  placeholder="Search portfolios, skills, or names..."
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+          <div className="hidden lg:flex flex-1 mx-8 max-w-[464px]">
+            <div className="w-full relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+              <Input
+                placeholder="Search portfolios, skills, or names..."
+                className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
           </div>
 
           {/* Right side items - Hidden on mobile */}
-          <div className="hidden lg:flex absolute right-0 top-4 justify-start items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             {/* Message Icon */}
             <div className="p-2 rounded-lg flex flex-col justify-center items-center">
               <div className="flex justify-center items-start">
@@ -101,7 +97,7 @@ export default function Header() {
           </div>
 
           {/* Mobile Profile Picture - Only on mobile */}
-          <div className="lg:hidden absolute right-4 top-4">
+          <div className="lg:hidden">
             <img
               className="w-8 h-8 rounded-2xl"
               src="https://placehold.co/32x32"
@@ -113,10 +109,10 @@ export default function Header() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={toggleMobileMenu}
-        />
+        ></div>
       )}
 
       {/* Mobile Menu */}
@@ -176,4 +172,4 @@ export default function Header() {
       </div>
     </>
   );
-} 
+}

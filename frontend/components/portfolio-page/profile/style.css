@@ -1,32 +1,30 @@
 .profile-container {
-  width: 1136px;
-  left: 32px;
-  top: 32px;
-  position: absolute;
+  max-width: 1136px;
+  width: 100%;
+  margin: 32px auto 0 auto;
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
   gap: 32px;
+  padding: 0 32px;
+  box-sizing: border-box;
 }
 
 .profile-image {
   width: 144px;
   height: 144px;
-  border-radius: 75px;
+  border-radius: 50%;
   box-shadow: 0px 8px 32px 0px rgba(2, 8, 23, 0.10);
   border: 4px solid white;
   object-fit: cover;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.profile-image:hover {
-  transform: scale(1.05);
-  box-shadow: 0px 12px 40px 0px rgba(2, 8, 23, 0.15);
-}
-
 .profile-info {
-  min-width: 600px;
+  width: 100%;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -34,8 +32,9 @@
   gap: 8px;
 }
 
-.profile-name-container {
-  align-self: stretch;
+.profile-name-container,
+.profile-title-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -44,33 +43,23 @@
 
 .profile-name {
   text-align: center;
-  justify-content: center;
   color: #1e40af;
-  font-size: 36px;
+  font-size: 2.25rem;
   font-weight: 700;
   font-family: 'Inter', sans-serif;
   line-height: 64px;
   margin: 0;
   transition: color 0.3s ease;
-}
-
-.profile-name:hover {
-  color: #3b82f6;
-}
-
-.profile-title-container {
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .profile-title {
   text-align: center;
-  justify-content: center;
   color: #6b7280;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   font-family: 'Inter', sans-serif;
   line-height: 32px;
@@ -89,9 +78,8 @@
 
 .profile-description {
   text-align: center;
-  justify-content: center;
   color: #6b7280;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 400;
   font-family: 'Inter', sans-serif;
   line-height: 24px;
@@ -100,58 +88,67 @@
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .profile-container {
-    width: 100%;
-    left: 16px;
     padding: 0 16px;
     gap: 24px;
   }
-  
-  .profile-info {
-    min-width: auto;
-    width: 100%;
+  .profile-info,
+  .profile-description-container {
+    max-width: 90vw;
   }
-  
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    gap: 20px;
+    padding: 0 8px;
+  }
+  .profile-image {
+    width: 120px;
+    height: 120px;
+  }
   .profile-name {
-    font-size: 28px;
-    line-height: 48px;
+    font-size: 1.75rem;
+    line-height: 2.5rem;
   }
-  
   .profile-title {
-    font-size: 18px;
-    line-height: 28px;
+    font-size: 1.125rem;
+    line-height: 2rem;
   }
-  
   .profile-description {
-    font-size: 14px;
-    line-height: 22px;
-  }
-  
-  .profile-description br {
-    display: none;
+    font-size: 0.95rem;
+    line-height: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
+  .profile-container {
+    gap: 16px;
+    padding: 0 4vw;
+  }
   .profile-image {
-    width: 120px;
-    height: 120px;
-    border-radius: 60px;
+    width: 80px;
+    height: 80px;
   }
-  
   .profile-name {
-    font-size: 24px;
-    line-height: 40px;
+    font-size: 1.25rem;
+    line-height: 2rem;
   }
-  
   .profile-title {
-    font-size: 16px;
-    line-height: 24px;
+    font-size: 1rem;
+    line-height: 1.5rem;
   }
-  
-  .profile-description-container {
-    max-width: 100%;
+  .profile-description-container,
+  .profile-info {
+    max-width: 100vw;
+    width: 100vw;
+    padding: 0;
+  }
+  .profile-description {
+    font-size: 0.9rem;
+    line-height: 1.3rem;
+    padding: 0 2vw;
   }
 }
 
@@ -194,24 +191,6 @@
   animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
-/* Additional styling for better visual hierarchy */
-.profile-name {
-  background: linear-gradient(135deg, #1e40af, #3b82f6);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-}
-
-/* Fallback for browsers that don't support background-clip */
-@supports not (background-clip: text) {
-  .profile-name {
-    color: #1e40af;
-    background: none;
-    -webkit-text-fill-color: initial;
-  }
-}
-
 /* Focus states for accessibility */
 .profile-image:focus {
   outline: 3px solid #3b82f6;
@@ -225,13 +204,12 @@
     width: 100%;
     left: auto;
     top: auto;
+    padding: 0;
   }
-  
   .profile-image {
     box-shadow: none;
     border: 2px solid #000;
   }
-  
   .profile-name,
   .profile-title,
   .profile-description {
