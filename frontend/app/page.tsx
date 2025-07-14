@@ -1,8 +1,15 @@
 import React from 'react'
-
-const page = () => {
+import { getServerSession } from 'next-auth'
+import { authOptions } from './api/auth/[...nextauth]/route'
+import Header  from '@/components/header'
+const page = async () => {
+  const session = await getServerSession(authOptions)
+  console.log(session);
   return (
-    <div>page</div>
+    <>
+      <Header />
+      <div>page</div>
+    </>
   )
 }
 

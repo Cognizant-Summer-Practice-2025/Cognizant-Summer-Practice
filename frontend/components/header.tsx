@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,9 +17,27 @@ import {
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
+  const router = useRouter();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogin = () => {
+    router.push('/login');
+  };
+
+  const handleSignOut = async () => {
+    try {
+      console.log('Attempting to sign out...');
+      await signOut({ 
+        callbackUrl: '/',
+        redirect: true 
+      });
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
 
@@ -74,40 +95,61 @@ export default function Header() {
               Publish
             </Button>
 
-            {/* Profile  */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <img
-                  className="w-8 h-8 rounded-2xl cursor-pointer hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all"
-                  src="https://placehold.co/32x32"
-                  alt="Profile"
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48" align="end">
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-                  <User className="w-4 h-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-                  <LogOut className="w-4 h-4" />
-                  Disconnect
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Profile or Login */}
+            {session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Image
+                    className="w-8 h-8 rounded-2xl cursor-pointer hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all"
+                    src={session.user?.image || "https://placehold.co/32x32"}
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="end">
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => router.push('/profile')}
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Disconnect
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                onClick={handleLogin}
+                className="px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg"
+              >
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile Profile Picture - Only on mobile */}
-          <div className="lg:hidden absolute right-4 top-4">
-            <img
-              className="w-8 h-8 rounded-2xl"
-              src="https://placehold.co/32x32"
-              alt="Profile"
-            />
-          </div>
+          {session && (
+            <div className="lg:hidden absolute right-4 top-4">
+              <Image
+                className="w-8 h-8 rounded-2xl"
+                src={session.user?.image || "https://placehold.co/32x32"}
+                alt="Profile"
+                width={32}
+                height={32}
+              />
+            </div>
+          )}
         </div>
       </header>
 
@@ -148,29 +190,48 @@ export default function Header() {
 
           {/* Bottom Section */}
           <div className="border-t border-[#E2E8F0] p-4">
-            <div className="space-y-1">
+            {session ? (
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push('/profile');
+                  }}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">Profile</span>
+                </button>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="text-sm">Settings</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm">Disconnect</span>
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleLogin();
+                }}
+                className="w-full px-3 py-2 rounded-lg flex items-center justify-center gap-3 text-[#2563EB] hover:bg-blue-50 text-left font-medium"
               >
                 <User className="w-4 h-4" />
-                <span className="text-sm">Profile</span>
+                <span className="text-sm">Login</span>
               </button>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="text-sm">Settings</span>
-              </button>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm">Disconnect</span>
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </div>
