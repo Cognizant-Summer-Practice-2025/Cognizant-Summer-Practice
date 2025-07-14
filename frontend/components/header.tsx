@@ -67,14 +67,6 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Search Bar - Hidden on mobile */}
-          <div className="hidden lg:flex flex-1 mx-8 max-w-[464px]">
-            <div className="w-full relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-              <Input
-                placeholder="Search portfolios, skills, or names..."
-                className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
           {/* Search Bar - Progressive sizing and positioning */}
           <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 top-[15px]">
             <div className="relative">
