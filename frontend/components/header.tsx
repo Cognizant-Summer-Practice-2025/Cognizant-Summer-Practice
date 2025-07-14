@@ -44,10 +44,10 @@ export default function Header() {
 
   return (
     <>
-      <header className="w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 relative z-40">
-        <div className="w-full max-w-[1280px] h-16 relative mx-auto">
+      <header className="fixed top-0 left-0 right-0 w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 z-50">
+        <div className="w-full max-w-[1280px] h-16 mx-auto flex items-center justify-between relative">
           {/* Mobile Menu Button */}
-          <div className="absolute left-0 top-4 flex lg:hidden">
+          <div className="flex lg:hidden">
             <button
               onClick={toggleMobileMenu}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -61,8 +61,8 @@ export default function Header() {
           </div>
 
           {/* Logo */}
-          <div className="absolute left-12 lg:left-4 xl:left-6 top-4 flex flex-col justify-start items-start">
-            <Link href="/" className="text-[#020817] text-lg lg:text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
+          <div className="flex items-center ml-2 lg:ml-0">
+            <Link href="/" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
               GoalKeeper
             </Link>
           </div>
@@ -95,9 +95,9 @@ export default function Header() {
           </div>
 
           {/* Right side items - Hidden on mobile */}
-          <div className="hidden lg:flex absolute right-0 top-4 justify-start items-center gap-2 xl:gap-4">
-            {/* Message Icon - Hidden on smaller desktop screens */}
-            <div className="hidden xl:flex p-2 rounded-lg flex-col justify-center items-center">
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Message Icon */}
+            <div className="p-2 rounded-lg flex flex-col justify-center items-center">
               <div className="flex justify-center items-start">
                 <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B]" />
               </div>
@@ -173,10 +173,10 @@ export default function Header() {
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+        <div
+          className="fixed inset-0 z-30 lg:hidden"
           onClick={toggleMobileMenu}
-        />
+        ></div>
       )}
 
       {/* Mobile Menu */}
@@ -261,4 +261,4 @@ export default function Header() {
       </div>
     </>
   );
-} 
+}

@@ -1,0 +1,147 @@
+.portfolio-container {
+  position: relative;
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 32px;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.portfolio-content,
+.portfolio-wrapper,
+.portfolio-main {
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+  background-color: white;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.portfolio-content,
+.portfolio-wrapper {
+  padding: 64px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.portfolio-wrapper {
+  padding: 0 32px;
+}
+
+/* Convert absolute positioning to relative flow for responsive design */
+.portfolio-main {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  min-height: auto;
+  height: auto;
+}
+
+/* Override absolute positioning for all child components */
+.portfolio-main > * {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Tablet and smaller desktop */
+@media (max-width: 1024px) {
+  .portfolio-container {
+    padding-top: 24px;
+  }
+  
+  .portfolio-content,
+  .portfolio-wrapper {
+    padding: 48px 0;
+  }
+  
+  .portfolio-wrapper {
+    padding: 0 24px;
+  }
+  
+  .portfolio-main {
+    gap: 40px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .portfolio-content,
+  .portfolio-wrapper,
+  .portfolio-main {
+    max-width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .portfolio-wrapper {
+    padding: 0 16px;
+  }
+  
+  .portfolio-main {
+    gap: 32px;
+  }
+}
+
+/* Mobile large */
+@media (max-width: 768px) {
+  .portfolio-container {
+    padding-top: 16px;
+  }
+  
+  .portfolio-content,
+  .portfolio-wrapper {
+    padding: 32px 0;
+  }
+  
+  .portfolio-main {
+    gap: 24px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .portfolio-content,
+  .portfolio-wrapper,
+  .portfolio-main {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  
+  .portfolio-content {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+  
+  .portfolio-wrapper {
+    padding: 0 8px;
+  }
+  
+  .portfolio-main {
+    gap: 20px;
+  }
+}
+
+/* Mobile small */
+@media (max-width: 480px) {
+  .portfolio-container {
+    padding-top: 8px;
+  }
+  
+  .portfolio-content {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  
+  .portfolio-main {
+    gap: 16px;
+  }
+}
