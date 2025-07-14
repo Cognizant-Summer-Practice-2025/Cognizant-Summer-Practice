@@ -1,0 +1,7 @@
+@media (max-width: 1920px) {
+    .messages-container {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0;
+    }
+}

@@ -21,7 +21,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 relative z-40">
+      <header className="fixed top-0 left-0 right-0 w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 z-50">
         <div className="w-full max-w-[1280px] h-16 mx-auto flex items-center justify-between relative">
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden">
@@ -110,7 +110,7 @@ export default function Header() {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          className="fixed inset-0 z-30 lg:hidden"
           onClick={toggleMobileMenu}
         ></div>
       )}
