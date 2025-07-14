@@ -61,38 +61,53 @@ export default function Header() {
           </div>
 
           {/* Logo */}
-          <div className="absolute left-12 lg:left-6 top-4 flex flex-col justify-start items-start">
-            <Link href="/" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
+          <div className="absolute left-12 lg:left-4 xl:left-6 top-4 flex flex-col justify-start items-start">
+            <Link href="/" className="text-[#020817] text-lg lg:text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
               GoalKeeper
             </Link>
           </div>
 
-          {/* Search Bar - Hidden on mobile */}
-          <div className="hidden lg:block absolute left-[368.88px] top-[15px] w-[464px] max-w-[464px] px-8">
-            <div className="w-full max-w-[400px] relative flex flex-col justify-start items-start">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-                <Input
-                  placeholder="Search portfolios, skills, or names..."
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+          {/* Search Bar - Progressive sizing and positioning */}
+          <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 top-[15px]">
+            <div className="relative">
+              {/* Large screens - Full search bar */}
+              <div className="hidden xl:block w-[400px] 2xl:w-[464px]">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+                  <Input
+                    placeholder="Search portfolios, skills, or names..."
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              
+              {/* Medium screens - Compact search bar */}
+              <div className="block xl:hidden w-[200px] lg:w-[250px]">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+                  <Input
+                    placeholder="Search..."
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Right side items - Hidden on mobile */}
-          <div className="hidden lg:flex absolute right-0 top-4 justify-start items-center gap-4">
-            {/* Message Icon */}
-            <div className="p-2 rounded-lg flex flex-col justify-center items-center">
+          <div className="hidden lg:flex absolute right-0 top-4 justify-start items-center gap-2 xl:gap-4">
+            {/* Message Icon - Hidden on smaller desktop screens */}
+            <div className="hidden xl:flex p-2 rounded-lg flex-col justify-center items-center">
               <div className="flex justify-center items-start">
                 <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B]" />
               </div>
             </div>
 
             {/* Publish Button */}
-            <Button className="px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-start items-center gap-2">
+            <Button className="px-3 xl:px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-start items-center gap-1 xl:gap-2">
               <Plus className="w-[14px] h-[14px]" />
-              Publish
+              <span className="hidden lg:inline">Publish</span>
+              <span className="lg:hidden">+</span>
             </Button>
 
             {/* Profile or Login */}
