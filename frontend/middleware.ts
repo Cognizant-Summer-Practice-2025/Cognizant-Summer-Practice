@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedRoutes = ["/profile"];
+const protectedRoutes = ["/profile", "/publish"];
 
 export default async function middleware(request: NextRequest) {
     const token = await getToken({ 
@@ -21,5 +21,5 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/profile/:path*"]
+    matcher: ["/profile/:path*", "/publish/:path*"]
 }; 
