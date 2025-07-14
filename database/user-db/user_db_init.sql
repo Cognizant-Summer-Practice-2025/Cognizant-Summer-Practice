@@ -11,14 +11,13 @@ CREATE TABLE users (
     username VARCHAR(100) UNIQUE NOT NULL,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
+    professional_title VARCHAR(200),
+    bio TEXT,
+    location VARCHAR(100),
     avatar_url TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    last_login_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMP
+    last_login_at TIMESTAMP
 );
 
 -- OAuth Providers table

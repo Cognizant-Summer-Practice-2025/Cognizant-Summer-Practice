@@ -13,14 +13,13 @@ entity "users" as users {
   username : VARCHAR
   first_name : VARCHAR
   last_name : VARCHAR
+  professional_title : VARCHAR
+  bio : TEXT
+  location : VARCHAR
   avatar_url : TEXT
   is_active : BOOLEAN
   is_admin : BOOLEAN
-  email_verified : BOOLEAN
   last_login_at : TIMESTAMP
-  created_at : TIMESTAMP
-  updated_at : TIMESTAMP
-  deleted_at : TIMESTAMP
 }
 
 entity "oauth_providers" as oauth {

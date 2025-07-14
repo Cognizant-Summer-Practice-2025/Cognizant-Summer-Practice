@@ -19,6 +19,14 @@ namespace backend_user.DTO
         [StringLength(100)]
         public string? LastName { get; set; }
 
+        [StringLength(200)]
+        public string? ProfessionalTitle { get; set; }
+
+        public string? Bio { get; set; }
+
+        [StringLength(100)]
+        public string? Location { get; set; }
+
         public string? AvatarUrl { get; set; }
     }
 
@@ -29,6 +37,14 @@ namespace backend_user.DTO
 
         [StringLength(100)]
         public string? LastName { get; set; }
+
+        [StringLength(200)]
+        public string? ProfessionalTitle { get; set; }
+
+        public string? Bio { get; set; }
+
+        [StringLength(100)]
+        public string? Location { get; set; }
 
         public string? AvatarUrl { get; set; }
     }
@@ -41,13 +57,13 @@ namespace backend_user.DTO
         public string Username { get; set; } = string.Empty;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? ProfessionalTitle { get; set; }
+        public string? Bio { get; set; }
+        public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
         public bool IsActive { get; set; }
         public bool IsAdmin { get; set; }
-        public bool EmailVerified { get; set; }
         public DateTime? LastLoginAt { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 
     public class UserSummaryDto
@@ -56,6 +72,8 @@ namespace backend_user.DTO
         public string Username { get; set; } = string.Empty;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? ProfessionalTitle { get; set; }
+        public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
         public bool IsActive { get; set; }
     }
@@ -66,7 +84,9 @@ namespace backend_user.DTO
         public string Username { get; set; } = string.Empty;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? ProfessionalTitle { get; set; }
+        public string? Bio { get; set; }
+        public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
-        public DateTime CreatedAt { get; set; }
     }
 } 

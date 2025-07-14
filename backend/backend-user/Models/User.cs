@@ -24,6 +24,14 @@ namespace backend_user.Models
         [StringLength(100)]
         public string? LastName { get; set; }
 
+        [StringLength(200)]
+        public string? ProfessionalTitle { get; set; }
+
+        public string? Bio { get; set; }
+
+        [StringLength(100)]
+        public string? Location { get; set; }
+
         public string? AvatarUrl { get; set; }
 
         [Required]
@@ -32,16 +40,7 @@ namespace backend_user.Models
         [Required]
         public bool IsAdmin { get; set; } = false;
 
-        [Required]
-        public bool EmailVerified { get; set; } = false;
-
         public DateTime? LastLoginAt { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        public DateTime? DeletedAt { get; set; }
 
         // Navigation properties
         public virtual ICollection<OAuthProvider> OAuthProviders { get; set; } = new List<OAuthProvider>();
