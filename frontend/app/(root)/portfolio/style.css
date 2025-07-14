@@ -1,0 +1,40 @@
+.portfolio-container {
+  position: relative;
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Changed from center to flex-start */
+  padding-top: 32px; /* Add some padding if needed */
+}
+
+.portfolio-content {
+  width: 100%;
+  max-width: 1200px;
+  padding: 64px 0;
+  position: relative;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 0 auto;
+}
+
+.portfolio-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 32px;
+  position: relative;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.portfolio-main {
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+}

@@ -1,0 +1,242 @@
+.profile-container {
+  width: 1136px;
+  left: 32px;
+  top: 32px;
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 32px;
+}
+
+.profile-image {
+  width: 144px;
+  height: 144px;
+  border-radius: 75px;
+  box-shadow: 0px 8px 32px 0px rgba(2, 8, 23, 0.10);
+  border: 4px solid white;
+  object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 12px 40px 0px rgba(2, 8, 23, 0.15);
+}
+
+.profile-info {
+  min-width: 600px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.profile-name-container {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.profile-name {
+  text-align: center;
+  justify-content: center;
+  color: #1e40af;
+  font-size: 36px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  line-height: 64px;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.profile-name:hover {
+  color: #3b82f6;
+}
+
+.profile-title-container {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.profile-title {
+  text-align: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  line-height: 32px;
+  margin: 0;
+}
+
+.profile-description-container {
+  width: 100%;
+  max-width: 600px;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.profile-description {
+  text-align: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  line-height: 24px;
+  margin: 0;
+  max-width: 600px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .profile-container {
+    width: 100%;
+    left: 16px;
+    padding: 0 16px;
+    gap: 24px;
+  }
+  
+  .profile-info {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .profile-name {
+    font-size: 28px;
+    line-height: 48px;
+  }
+  
+  .profile-title {
+    font-size: 18px;
+    line-height: 28px;
+  }
+  
+  .profile-description {
+    font-size: 14px;
+    line-height: 22px;
+  }
+  
+  .profile-description br {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 60px;
+  }
+  
+  .profile-name {
+    font-size: 24px;
+    line-height: 40px;
+  }
+  
+  .profile-title {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  
+  .profile-description-container {
+    max-width: 100%;
+  }
+}
+
+/* Animation for profile appearing */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.profile-image {
+  animation: fadeInScale 0.8s ease-out;
+}
+
+.profile-name-container {
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.profile-title-container {
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.profile-description-container {
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+/* Additional styling for better visual hierarchy */
+.profile-name {
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not (background-clip: text) {
+  .profile-name {
+    color: #1e40af;
+    background: none;
+    -webkit-text-fill-color: initial;
+  }
+}
+
+/* Focus states for accessibility */
+.profile-image:focus {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .profile-container {
+    position: static;
+    width: 100%;
+    left: auto;
+    top: auto;
+  }
+  
+  .profile-image {
+    box-shadow: none;
+    border: 2px solid #000;
+  }
+  
+  .profile-name,
+  .profile-title,
+  .profile-description {
+    color: #000 !important;
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
+  }
+}

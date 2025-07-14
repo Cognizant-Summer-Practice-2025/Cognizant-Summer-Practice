@@ -1,0 +1,106 @@
+.quotes-section {
+  width: 1136px;
+  left: 32px;
+  top: 791.97px;
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.quote-card {
+  align-self: stretch;
+  padding-left: 36px;
+  padding-right: 32px;
+  padding-top: 32px;
+  padding-bottom: 32px;
+  background-color: white;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+  border-right: 1px solid #e5e5e5;
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quote-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quote-text-container {
+  align-self: stretch;
+  padding-bottom: 0.80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.quote-text {
+  align-self: stretch;
+  text-align: center;
+  color: #1e40af;
+  font-size: 18px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  line-height: 28px;
+  font-style: italic;
+}
+
+.quote-author {
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  line-height: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .quotes-section {
+    width: 100%;
+    left: 16px;
+    padding: 0 16px;
+  }
+  
+  .quote-card {
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+  
+  .quote-text {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+/* Animation for quotes appearing */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.quote-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.quote-card:nth-child(2) {
+  animation-delay: 0.2s;
+}

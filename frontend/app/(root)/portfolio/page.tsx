@@ -1,40 +1,34 @@
 "use client";
 
-import React, { useState } from 'react';
-import PortfolioInfo from '@/components/portfolio-page/portfolio-info';
-import PortfolioStats from '@/components/portfolio-page/portfolio-stats';
-import PortfolioTabs from '@/components/portfolio-page/portfolio-tabs';
-import ProjectsList from '@/components/portfolio-page/projects-list';
-import SkillsList from '@/components/portfolio-page/skills-list';
-import BlogList from '@/components/portfolio-page/blog-list';
-import SocialLinks from '@/components/portfolio-page/social-links';
+import React from 'react';
+
+import ProfileSection from '@/components/portfolio-page/profile/profile';
+import StatsSection from '@/components/portfolio-page/stats/stats';
+import ContactSection from '@/components/portfolio-page/contacts/contacts';
+import QuotesSection from '@/components/portfolio-page/quotes/quotes';
+import ExperienceSection from '@/components/portfolio-page/experience/experience';
+import TabsSection from '@/components/portfolio-page/tabs/tabs';
+import SocialLinksSection from '@/components/portfolio-page/social-links/social-links';
+import './style.css';
+
 
 const PortfolioPage = () => {
-  const [activeTab, setActiveTab] = useState('projects');
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'projects':
-        return <ProjectsList />;
-      case 'skills':
-        return <SkillsList />;
-      case 'blog':
-        return <BlogList />;
-      default:
-        return <ProjectsList />;
-    }
-  };
-
   return (
-      <div className="h-full p-4 sm:p-6 lg:p-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto h-full flex flex-col items-start">
-          <PortfolioInfo />
-          <PortfolioStats />
-          <PortfolioTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-          {renderTabContent()}
-          <SocialLinks />
+    <div className="portfolio-container">
+      <div className="portfolio-content">
+        <div className="portfolio-wrapper">
+          <div className="portfolio-main">
+            <ProfileSection />
+            <StatsSection />
+            <ContactSection />
+            <QuotesSection />
+            <ExperienceSection />
+            <TabsSection />
+            <SocialLinksSection />
+          </div>
         </div>
       </div>
+    </div>
   );
 };
 
