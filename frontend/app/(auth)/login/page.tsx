@@ -21,6 +21,10 @@ const LoginPage = () => {
     await signIn('github', { callbackUrl: '/profile' });
   };
 
+  const handleGoogleSignIn = async () => {
+    await signIn('google', { callbackUrl: '/profile' });
+  };
+
   return (
     <div className="w-[400px] max-w-[400px] flex flex-col gap-8">
       {/* Header Section */}
@@ -40,6 +44,7 @@ const LoginPage = () => {
       {/* Social Login Buttons */}
       <div className="flex flex-col gap-4">
         <Button
+          onClick={handleGoogleSignIn}
           variant="outline"
           className="w-full py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-center gap-4 hover:bg-gray-50"
         >
