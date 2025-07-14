@@ -1,8 +1,26 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (session) {
+      router.push('/profile');
+    }
+  }, [session, router]);
+
+  const handleGitHubSignIn = async () => {
+    await signIn('github', { callbackUrl: '/profile' });
+  };
+
   return (
     <div className="w-[400px] max-w-[400px] flex flex-col gap-8">
       {/* Header Section */}
@@ -36,6 +54,7 @@ const LoginPage = () => {
         </Button>
 
         <Button
+          onClick={handleGitHubSignIn}
           variant="outline"
           className="w-full py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-center gap-4 hover:bg-gray-50"
         >
