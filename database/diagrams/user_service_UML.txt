@@ -1,5 +1,7 @@
 @startuml User_Service_Schema
 
+title User Service Database Schema
+
 !define PRIMARY_KEY(x) <b><color:#b8861b><&key></color> x</b>
 !define FOREIGN_KEY(x) <color:#aaaaaa><&arrow-right></color> x
 !define UNIQUE(x) <color:#green><&check></color> x
@@ -22,11 +24,12 @@ entity "users" as users {
   last_login_at : TIMESTAMP
 }
 
+
 entity "oauth_providers" as oauth {
   PRIMARY_KEY(id) : UUID
   --
   FOREIGN_KEY(user_id) : UUID
-  provider : ENUM
+  provider : INTEGER
   provider_id : VARCHAR
   provider_email : VARCHAR
   access_token : TEXT
@@ -34,6 +37,10 @@ entity "oauth_providers" as oauth {
   token_expires_at : TIMESTAMP
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
+  --
+  note: provider enum values
+  0=Google, 1=GitHub, 
+  2=LinkedIn, 3=Facebook
 }
 
 entity "newsletters" as newsletters {
@@ -65,22 +72,31 @@ entity "user_reports" as reports {
   FOREIGN_KEY(reporter_id) : UUID
   FOREIGN_KEY(resolved_by) : UUID
   reported_service : VARCHAR
-  reported_type : ENUM
+  reported_type : INTEGER
   reported_id : UUID
-  report_type : ENUM
+  report_type : INTEGER
   description : TEXT
-  status : ENUM
+  status : INTEGER
   admin_notes : TEXT
   resolved_at : TIMESTAMP
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
+  --
+  note: enum values
+  reported_type: 0=User, 1=Portfolio, 
+  2=Message, 3=BlogPost, 4=Comment
+  report_type: 0=Spam, 1=Harassment,
+  2=InappropriateContent, 3=FakeProfile,
+  4=Copyright, 5=Other
+  status: 0=Pending, 1=UnderReview,
+  2=Resolved, 3=Dismissed
 }
 
-' User service relationships
-users ||--o{ oauth : "has"
-users ||--o{ newsletters : "subscribes_to"
+' === RELATIONSHIPS ===
+users ||--o{ oauth : "has OAuth accounts"
+users ||--o{ newsletters : "subscribes to"
 users ||--o{ analytics : "generates"
-users ||--o{ reports : "files"
-users ||--o{ reports : "resolves"
+users ||--o{ reports : "files (as reporter)"
+users ||--o{ reports : "resolves (as admin)"
 
 @enduml
