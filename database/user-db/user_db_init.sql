@@ -1,8 +1,8 @@
--- Create ENUMs for User Service
-CREATE TYPE oauth_provider_type AS ENUM ('Google', 'GitHub', 'LinkedIn', 'Facebook');
-CREATE TYPE reported_type AS ENUM ('User', 'Portfolio', 'Message', 'BlogPost', 'Comment');
-CREATE TYPE report_type AS ENUM ('Spam', 'Harassment', 'InappropriateContent', 'FakeProfile', 'Copyright', 'Other');
-CREATE TYPE report_status AS ENUM ('Pending', 'UnderReview', 'Resolved', 'Dismissed');
+-- Enum values stored as integers for Entity Framework compatibility
+-- oauth_provider_type: 0=Google, 1=GitHub, 2=LinkedIn, 3=Facebook
+-- reported_type: 0=User, 1=Portfolio, 2=Message, 3=BlogPost, 4=Comment
+-- report_type: 0=Spam, 1=Harassment, 2=InappropriateContent, 3=FakeProfile, 4=Copyright, 5=Other
+-- report_status: 0=Pending, 1=UnderReview, 2=Resolved, 3=Dismissed
 
 -- Users table
 CREATE TABLE users (
@@ -24,7 +24,7 @@ CREATE TABLE users (
 CREATE TABLE oauth_providers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider oauth_provider_type NOT NULL,
+    provider INTEGER NOT NULL,
     provider_id VARCHAR(255) NOT NULL,
     provider_email VARCHAR(255) NOT NULL,
     access_token TEXT NOT NULL,
@@ -65,11 +65,11 @@ CREATE TABLE user_reports (
     reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
     reported_service VARCHAR(50) NOT NULL,
-    reported_type reported_type NOT NULL,
+    reported_type INTEGER NOT NULL,
     reported_id UUID NOT NULL,
-    report_type report_type NOT NULL,
+    report_type INTEGER NOT NULL,
     description TEXT NOT NULL,
-    status report_status NOT NULL DEFAULT 'Pending',
+    status INTEGER NOT NULL DEFAULT 0,
     admin_notes TEXT,
     resolved_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),

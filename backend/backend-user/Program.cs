@@ -1,11 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using backend_user.Data;
 using backend_user.Repositories;
+using backend_user.Models;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddOpenApi();
 
 // Add CORS
@@ -20,13 +26,23 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add PostgreSQL
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
+dataSourceBuilder.MapEnum<OAuthProviderType>("oauth_provider_type");
+dataSourceBuilder.MapEnum<ReportedType>("reported_type");
+dataSourceBuilder.MapEnum<ReportType>("report_type");
+dataSourceBuilder.MapEnum<ReportStatus>("report_status");
+var dataSource = dataSourceBuilder.Build();
+
 builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(dataSource)
            .UseSnakeCaseNamingConvention());
 
 // Add Repository services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IOAuthProviderRepository, OAuthProviderRepository>();
+
+// Register data source for disposal
+builder.Services.AddSingleton(dataSource);
 
 var app = builder.Build();
 

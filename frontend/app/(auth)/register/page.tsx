@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import RegistrationModal from '@/components/auth/registration-modal';
-import { registerUser } from '@/lib/api';
+import { registerOAuthUser } from '@/lib/api';
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -13,17 +13,22 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get user info from URL params
+  // Get user info and OAuth data from URL params
   const userEmail = searchParams.get('email') || '';
   const userName = searchParams.get('name') || '';
   const userImage = searchParams.get('image') || '';
+  const provider = searchParams.get('provider') || '';
+  const providerId = searchParams.get('providerId') || '';
+  const accessToken = searchParams.get('accessToken') || '';
+  const refreshToken = searchParams.get('refreshToken') || '';
+  const tokenExpiresAt = searchParams.get('tokenExpiresAt') || '';
 
-  // Redirect if no email provided
+  // Redirect if no email or OAuth data provided
   useEffect(() => {
-    if (!userEmail) {
+    if (!userEmail || !provider || !providerId) {
       router.push('/login');
     }
-  }, [userEmail, router]);
+  }, [userEmail, provider, providerId, router]);
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -41,22 +46,48 @@ const RegisterPage = () => {
     setError(null);
 
     try {
-      // Register the user
-      await registerUser({
+      // Map provider name to match backend enum
+      const providerMapping: { [key: string]: 'Google' | 'GitHub' | 'Facebook' | 'LinkedIn' } = {
+        'google': 'Google',
+        'github': 'GitHub', 
+        'facebook': 'Facebook',
+        'linkedin': 'LinkedIn'
+      };
+      
+      const providerType = providerMapping[provider.toLowerCase()];
+      if (!providerType) {
+        throw new Error(`Unsupported OAuth provider: ${provider}`);
+      }
+
+      // Validate required OAuth fields
+      if (!providerId) {
+        throw new Error('Missing OAuth provider ID');
+      }
+      if (!accessToken) {
+        throw new Error('Missing OAuth access token');
+      }
+
+      // Register the user with OAuth provider
+      await registerOAuthUser({
         email: userEmail,
         firstName: userData.firstName,
         lastName: userData.lastName,
         professionalTitle: userData.professionalTitle,
         bio: userData.bio,
         location: userData.location,
-        avatarUrl: userImage,
+        profileImage: userImage,
+        provider: providerType,
+        providerId: providerId,
+        providerEmail: userEmail,
+        accessToken: accessToken,
+        refreshToken: refreshToken || undefined,
+        tokenExpiresAt: tokenExpiresAt || undefined,
       });
 
       // Close modal
       setIsModalOpen(false);
       
-      // Now sign in the user (this should work since user is created)
-      await signIn('google', { 
+      await signIn(provider, { 
         callbackUrl: '/profile',
         redirect: true 
       });
@@ -68,7 +99,7 @@ const RegisterPage = () => {
     }
   };
 
-  if (!userEmail) {
+  if (!userEmail || !provider || !providerId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
