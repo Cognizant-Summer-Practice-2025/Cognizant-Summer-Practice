@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
-import { checkUserExists, checkUserOAuthProvider, updateOAuthProvider, addOAuthProvider } from "@/lib/api"
+import { checkUserExists, checkUserOAuthProvider, updateOAuthProvider, addOAuthProvider, getUserByEmail } from "@/lib/api"
 
 export const authOptions = {
   providers: [
@@ -18,7 +18,7 @@ export const authOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async signIn({ user, account, profile }: any) {
+    async signIn({ user, account }: any) {
       try {
         if (user.email) {
           const { exists, user: existingUser } = await checkUserExists(user.email);
@@ -47,7 +47,7 @@ export const authOptions = {
             
             const providerType = providerMapping[account.provider.toLowerCase()];
             if (!providerType) {
-              console.alert(`Unsupported OAuth provider: ${account.provider}`);
+              console.error(`Unsupported OAuth provider: ${account.provider}`);
               return false;
             }
 
@@ -107,6 +107,12 @@ export const authOptions = {
         session.providerId = token.providerId;
         session.accessToken = token.accessToken;
       }
+      
+      // Add full user data to session if available in token
+      if (token.userData) {
+        session.userData = token.userData;
+      }
+      
       return session;
     },
     async jwt({ token, user, account }: any) {
@@ -118,6 +124,19 @@ export const authOptions = {
         token.refreshToken = account.refresh_token;
         token.tokenExpiresAt = account.expires_at;
       }
+      
+      // Fetch and store full user data in token
+      if (user?.email && !token.userData) {
+        try {
+          const userData = await getUserByEmail(user.email);
+          if (userData) {
+            token.userData = userData;
+          }
+        } catch (error) {
+          console.error('Error fetching user data for token:', error);
+        }
+      }
+      
       return token;
     },
   },

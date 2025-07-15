@@ -17,9 +17,17 @@ This ensures the image is available locally and avoids authentication issues dur
 
 Bring up all services in the background (detached mode):
 
+For Linux / macOS
+
 ```sh
 podman compose up -d
 ```
+For Windows:
+
+```sh
+python -m podman_compose up -d
+```
+
 
 - This will build and start all containers defined in `docker-compose.yml`.
 
