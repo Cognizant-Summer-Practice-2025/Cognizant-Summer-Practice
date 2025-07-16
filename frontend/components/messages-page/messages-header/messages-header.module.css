@@ -1,0 +1,29 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #f0f2f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.header-options {
+  display: flex;
+  align-items: center;
+}
+
+.header-option {
+  margin-left: 16px;
+  cursor: pointer;
+  color: #007bff;
+}
+
+.header-option:hover {
+  text-decoration: underline;
+}
