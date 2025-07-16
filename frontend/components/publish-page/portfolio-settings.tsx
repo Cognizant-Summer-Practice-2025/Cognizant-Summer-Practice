@@ -4,11 +4,24 @@ import { useState } from "react"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PORTFOLIO_TEMPLATES } from "@/lib/templates"
+import { ComponentOrdering } from "@/components/ui/component-ordering"
+import { ComponentConfig } from "@/lib/interfaces"
 
 export function PortfolioSettings() {
   const [isPublic, setIsPublic] = useState(true)
-  const [template, setTemplate] = useState("modern")
+  const [template, setTemplate] = useState("gabriel-barzu")
   const [customCSS, setCustomCSS] = useState("")
+  
+  // Mock component configuration - in real app, this would come from API
+  const [components, setComponents] = useState<ComponentConfig[]>([
+    { id: '1', type: 'about', order: 1, isVisible: true },
+    { id: '2', type: 'experience', order: 2, isVisible: true },
+    { id: '3', type: 'projects', order: 3, isVisible: true },
+    { id: '4', type: 'skills', order: 4, isVisible: true },
+    { id: '5', type: 'blog_posts', order: 5, isVisible: false },
+    { id: '6', type: 'contact', order: 6, isVisible: true }
+  ])
 
   return (
     <div className="w-full pb-6 md:pb-8 flex flex-col gap-4 md:gap-6">
@@ -50,9 +63,11 @@ export function PortfolioSettings() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="modern">Modern</SelectItem>
-              <SelectItem value="classic">Classic</SelectItem>
-              <SelectItem value="minimal">Minimal</SelectItem>
+              {PORTFOLIO_TEMPLATES.map((templateOption) => (
+                <SelectItem key={templateOption.id} value={templateOption.id}>
+                  {templateOption.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -70,6 +85,12 @@ export function PortfolioSettings() {
           />
         </div>
       </div>
+      
+      {/* Portfolio Sections Ordering */}
+      <ComponentOrdering 
+        components={components}
+        onComponentsChange={setComponents}
+      />
     </div>
   )
 } 

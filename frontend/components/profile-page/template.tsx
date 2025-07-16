@@ -1,37 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { PORTFOLIO_TEMPLATES } from "@/lib/templates";
+import { TemplateConfig } from "@/lib/interfaces";
 
-interface Template {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-}
-
-const templates: Template[] = [
-  {
-    id: "modern",
-    name: "Modern",
-    description: "Clean and minimal design",
-    image: "/placeholder-modern.jpg"
-  },
-  {
-    id: "creative", 
-    name: "Creative",
-    description: "Bold and artistic layout",
-    image: "/placeholder-creative.jpg"
-  },
-  {
-    id: "professional",
-    name: "Professional", 
-    description: "Corporate and structured",
-    image: "/placeholder-professional.jpg"
-  }
-];
+const templates: TemplateConfig[] = PORTFOLIO_TEMPLATES;
 
 export default function Template() {
-  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [selectedTemplate, setSelectedTemplate] = useState("gabriel-barzu");
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] overflow-hidden">
@@ -60,9 +36,19 @@ export default function Template() {
               <div className="bg-white rounded-lg overflow-hidden flex flex-col h-full">
                 {/* Template Image */}
                 <div className="relative h-[120px] sm:h-[150px] bg-gray-100 flex items-center justify-center">
-                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <span className="text-gray-500 text-xs sm:text-sm">Template Preview</span>
-                  </div>
+                  <img 
+                    src={template.previewImage} 
+                    alt={template.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center';
+                      fallback.innerHTML = `<span class="text-gray-500 text-xs sm:text-sm">${template.name} Preview</span>`;
+                      target.parentElement!.appendChild(fallback);
+                    }}
+                  />
                 </div>
                 
                 {/* Template Info */}

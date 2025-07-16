@@ -2,12 +2,24 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { ComponentConfig } from "@/lib/interfaces";
+import { ComponentOrdering } from "@/components/ui/component-ordering";
 
 export default function Settings() {
   const [portfolioVisibility, setPortfolioVisibility] = useState("Public");
   const [allowMessages, setAllowMessages] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
+  
+  // Mock component configuration - in real app, this would come from API
+  const [components, setComponents] = useState<ComponentConfig[]>([
+    { id: '1', type: 'about', order: 1, isVisible: true },
+    { id: '2', type: 'experience', order: 2, isVisible: true },
+    { id: '3', type: 'projects', order: 3, isVisible: true },
+    { id: '4', type: 'skills', order: 4, isVisible: true },
+    { id: '5', type: 'blog_posts', order: 5, isVisible: false },
+    { id: '6', type: 'contact', order: 6, isVisible: true }
+  ]);
 
   const visibilityOptions = ["Public", "Private", "Friends Only"];
 
@@ -138,6 +150,12 @@ export default function Settings() {
               </div>
             </div>
           </div>
+
+          {/* Portfolio Sections */}
+          <ComponentOrdering 
+            components={components}
+            onComponentsChange={setComponents}
+          />
 
           {/* Delete Section */}
           <div className="border border-[rgba(239,68,68,0.3)] rounded-lg p-4 sm:p-6">

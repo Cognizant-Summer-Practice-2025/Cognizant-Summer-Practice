@@ -68,6 +68,9 @@ CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
+    category VARCHAR,
+    proficiency_level INTEGER,
+    display_order INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

@@ -72,6 +72,9 @@ entity "skills" as skills {
   --
   FOREIGN_KEY(portfolio_id) : UUID
   name : VARCHAR
+  category : VARCHAR
+  proficiency_level : INTEGER
+  display_order : INTEGER
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
 }
