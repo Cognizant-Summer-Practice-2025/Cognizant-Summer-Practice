@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Avatar, Button, Input } from "antd";
-import { SendOutlined, PlusOutlined } from "@ant-design/icons";
+import { SendOutlined} from "@ant-design/icons";
+import ChatHeader from "../chat-header/chat-header";
 import "./style.css";
 
 interface Message {
@@ -59,6 +60,7 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact }) => {
   return (
     <div className="chat-container">
       {/* Messages Area */}
+      <ChatHeader selectedContact={selectedContact} />
       <div className="messages-area">
         {messages.map((message, index) => (
           <div

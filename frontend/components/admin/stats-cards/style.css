@@ -1,0 +1,48 @@
+.stats-section {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-value {
+  color: #1f2937;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 51.2px;
+}
+
+.stat-title {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #3b82f6;
+  font-size: 20px;
+}

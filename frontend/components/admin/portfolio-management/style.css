@@ -1,0 +1,63 @@
+.portfolio-header > div {
+  padding: 16px;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.col-portfolio { width: 384px; }
+.col-owner { width: 176px; }
+.col-created { width: 160px; }
+.col-views { width: 112px; }
+.col-p-status { width: 176px; }
+.col-p-actions { width: 192px; }
+
+.portfolio-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portfolio-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+.portfolio-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.portfolio-title {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.portfolio-description {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.status-badge.under-review {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.moderate-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  border: none;
+}
+
+.col-p-actions {
+  display: flex;
+  gap: 8px;
+}

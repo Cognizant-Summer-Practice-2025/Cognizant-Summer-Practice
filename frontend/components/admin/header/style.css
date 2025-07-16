@@ -1,0 +1,78 @@
+.admin-header {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  padding: 0 320px 1px;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.admin-header-content {
+  width: 100%;
+  height: 64px;
+  max-width: 1280px;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-logo h2 {
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-item {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  padding: 1px 0 1.59px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-item.active {
+  color: #3b82f6;
+}
+
+.nav-item:hover {
+  color: #3b82f6;
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-site-btn {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: black;
+  font-size: 14px;
+}
+
+.admin-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+}

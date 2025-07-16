@@ -1,0 +1,180 @@
+.management-section {
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header h2 {
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 40px;
+  margin: 0;
+}
+
+.section-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.export-btn {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: black;
+  font-size: 14px;
+}
+
+.add-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 14px;
+  border: none;
+}
+
+.table-container {
+  padding: 1px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table-header > div {
+  padding: 16px;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.col-user { width: 288px; }
+.col-email { width: 256px; }
+.col-joined { width: 176px; }
+.col-portfolio { width: 208px; }
+.col-status { width: 160px; }
+.col-actions { width: 144px; }
+
+.table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-row {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table-row > div {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.col-email,
+.col-joined {
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.col-portfolio,
+.col-status {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.col-actions {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar,
+.user-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+.user-avatar-placeholder {
+  background: #e5e7eb;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-role {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-badge.published,
+.status-badge.active {
+  background: #f0f9ff;
+  color: #22c55e;
+}
+
+.status-badge.draft {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.status-badge.suspended {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.col-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.delete-btn {
+  color: #ef4444;
+}

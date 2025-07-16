@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   flex: 1; 
-  padding-top: 8vh;
+  min-height: 80vh; /* Ensures the chat container takes at least 80% of the viewport height */
+  padding-top: 4rem;
   background: white;
   position: relative;
 }

@@ -1,11 +1,12 @@
 .messages-sidebar {
   width: 350px;
-  height: 100%;
+  height: 100vh; /* Change from 100% to 100vh to occupy full viewport height */
   background: white;
   border-right: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
   padding-right: 1px;
+  /* Remove flex: 1 as it's not needed here */
 }
 
 .sidebar-header {
@@ -14,6 +15,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .sidebar-title {
@@ -55,6 +57,7 @@
 .contacts-list {
   flex: 1;
   overflow-y: auto;
+  min-height: 0; /* Important for flex containers with overflow */
 }
 
 .contact-item {
@@ -75,7 +78,7 @@
 
 .contact-item-active {
   background: rgba(37, 99, 235, 0.10);
-  border-right: 3px solid #E2E8F0;
+  border-right: 3px solid #2563EB; /* Changed to blue to match active state */
 }
 
 .contact-avatar-container {
@@ -146,10 +149,29 @@
   line-height: 19.2px;
 }
 
+/* Custom scrollbar for contacts list */
+.contacts-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contacts-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.contacts-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.contacts-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 @media (max-width: 768px) {
   .messages-sidebar {
     width: 100%;
-    max-height: 300px;
+    max-height: none; /* Remove max-height restriction */
+    height: 100vh; /* Ensure full height on mobile too */
   }
   
   .contact-item {
