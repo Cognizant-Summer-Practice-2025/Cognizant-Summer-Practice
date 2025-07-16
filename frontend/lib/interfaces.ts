@@ -194,7 +194,7 @@ export interface UserPortfolio {
   title?: string;
   bio?: string;
   isPublished: boolean;
-  visibility: 'public' | 'private' | 'unlisted';
+  visibility: 0 | 1 | 2; // 0=public, 1=private, 2=unlisted
   viewCount: number;
   likeCount: number;
   customConfig?: Record<string, unknown>;

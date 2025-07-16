@@ -1,5 +1,5 @@
--- Create ENUMs for Portfolio Service
-CREATE TYPE visibility_type AS ENUM ('Public', 'Private', 'Unlisted');
+-- Enum values stored as integers for Entity Framework compatibility
+-- visibility: 0=Public, 1=Private, 2=Unlisted
 
 -- Portfolio Templates table
 CREATE TABLE portfolio_templates (
@@ -27,7 +27,7 @@ CREATE TABLE portfolios (
     custom_sections JSONB DEFAULT '[]',
     view_count INTEGER NOT NULL DEFAULT 0,
     like_count INTEGER NOT NULL DEFAULT 0,
-    visibility visibility_type NOT NULL DEFAULT 'Public',
+    visibility INTEGER NOT NULL DEFAULT 0,
     is_published BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()

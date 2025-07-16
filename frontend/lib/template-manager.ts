@@ -114,7 +114,7 @@ export function createMockPortfolioData(userId: string): PortfolioDataFromDB {
       title: 'My Portfolio',
       bio: 'Welcome to my professional portfolio',
       isPublished: true,
-      visibility: 'public',
+      visibility: 0, // 0=public
       viewCount: 1250,
       likeCount: 89,
       customConfig: {},

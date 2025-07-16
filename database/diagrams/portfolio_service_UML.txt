@@ -16,10 +16,13 @@ entity "portfolios" as portfolios {
   custom_sections : JSONB
   view_count : INTEGER
   like_count : INTEGER
-  visibility : ENUM
+  visibility : INTEGER
   is_published : BOOLEAN
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
+  --
+  note: visibility enum values
+  0=Public, 1=Private, 2=Unlisted
 }
 
 entity "portfolio_templates" as templates {

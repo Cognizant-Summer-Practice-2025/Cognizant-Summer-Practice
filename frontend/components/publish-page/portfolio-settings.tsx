@@ -9,7 +9,7 @@ import { ComponentOrdering } from "@/components/ui/component-ordering"
 import { ComponentConfig } from "@/lib/interfaces"
 
 export function PortfolioSettings() {
-  const [isPublic, setIsPublic] = useState(true)
+  const [visibility, setVisibility] = useState(0) // 0=Public, 1=Private, 2=Unlisted
   const [template, setTemplate] = useState("gabriel-barzu")
   const [customCSS, setCustomCSS] = useState("")
   
@@ -41,14 +41,14 @@ export function PortfolioSettings() {
           </div>
           
           <button
-            onClick={() => setIsPublic(!isPublic)}
+            onClick={() => setVisibility(visibility === 0 ? 1 : 0)}
             className={`w-11 h-6 rounded-full relative transition-all flex-shrink-0 ${
-              isPublic ? "bg-blue-600" : "bg-slate-300"
+              visibility === 0 ? "bg-blue-600" : "bg-slate-300"
             }`}
           >
             <div
               className={`w-4.5 h-4.5 bg-white rounded-full absolute top-0.75 transition-all ${
-                isPublic ? "left-5.75" : "left-0.75"
+                visibility === 0 ? "left-5.75" : "left-0.75"
               }`}
             />
           </button>

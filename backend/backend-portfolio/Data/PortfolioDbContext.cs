@@ -37,7 +37,7 @@ namespace backend_portfolio.Data
                 entity.HasOne(e => e.Template)
                     .WithMany(t => t.Portfolios)
                     .HasForeignKey(e => e.TemplateId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // PortfolioTemplate configuration

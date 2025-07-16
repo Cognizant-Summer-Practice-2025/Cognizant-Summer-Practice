@@ -6,7 +6,7 @@ import { ComponentConfig } from "@/lib/interfaces";
 import { ComponentOrdering } from "@/components/ui/component-ordering";
 
 export default function Settings() {
-  const [portfolioVisibility, setPortfolioVisibility] = useState("Public");
+  const [portfolioVisibility, setPortfolioVisibility] = useState(0); // 0=Public, 1=Private, 2=Unlisted
   const [allowMessages, setAllowMessages] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
@@ -21,7 +21,11 @@ export default function Settings() {
     { id: '6', type: 'contact', order: 6, isVisible: true }
   ]);
 
-  const visibilityOptions = ["Public", "Private", "Friends Only"];
+  const visibilityOptions = [
+    { value: 0, label: "Public" },
+    { value: 1, label: "Private" }, 
+    { value: 2, label: "Unlisted" }
+  ];
 
   const handleDeleteAccount = () => {
     alert("ERROR");
@@ -66,21 +70,21 @@ export default function Settings() {
                   onClick={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
                   className="flex items-center justify-between w-full sm:w-auto gap-3 bg-white border border-[#E2E8F0] rounded-lg px-4 sm:px-5 py-3 text-sm text-[#020817] leading-4 hover:bg-gray-50"
                 >
-                  {portfolioVisibility}
+                  {visibilityOptions.find(option => option.value === portfolioVisibility)?.label}
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 {showVisibilityDropdown && (
                   <div className="absolute top-full mt-1 right-0 bg-white border border-[#E2E8F0] rounded-lg shadow-lg z-10 min-w-[120px] w-full sm:w-auto">
                     {visibilityOptions.map((option) => (
                       <button
-                        key={option}
+                        key={option.value}
                         onClick={() => {
-                          setPortfolioVisibility(option);
+                          setPortfolioVisibility(option.value);
                           setShowVisibilityDropdown(false);
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-[#020817] hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                       >
-                        {option}
+                        {option.label}
                       </button>
                     ))}
                   </div>

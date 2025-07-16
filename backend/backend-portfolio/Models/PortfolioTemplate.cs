@@ -19,7 +19,7 @@ namespace backend_portfolio.Models
         public string? Description { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [StringLength(100)]
         [Column("component_name")]
         public string ComponentName { get; set; } = string.Empty;
 
