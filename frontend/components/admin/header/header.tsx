@@ -8,12 +8,9 @@ const AdminHeader: React.FC = () => {
     <div className="admin-header">
       <div className="admin-header-content">
         <div className="admin-logo">
-          <h2>GoalKeeper Admin</h2>
+          <h2>GoalKeeper</h2>
         </div>
-        
-        <nav className="admin-nav">
-          <div className="nav-item active">Dashboard</div>
-        </nav>
+      
         
         <div className="admin-header-actions">
           <Button icon={<EyeOutlined />} className="view-site-btn">
