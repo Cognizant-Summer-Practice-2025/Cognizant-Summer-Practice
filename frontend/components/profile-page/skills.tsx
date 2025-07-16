@@ -5,7 +5,7 @@ import { X, GripVertical } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skill } from '@/lib/interfaces';
+import { Skill } from '@/lib/portfolio';
 
 export default function Skills() {
   const [skills, setSkills] = useState<Skill[]>([

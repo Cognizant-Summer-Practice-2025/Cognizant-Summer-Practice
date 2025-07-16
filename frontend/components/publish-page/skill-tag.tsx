@@ -1,4 +1,4 @@
-import { Skill } from '@/lib/interfaces';
+import { Skill } from '@/lib/portfolio';
 
 interface SkillTagProps {
   skill: Skill;

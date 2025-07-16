@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
-import { User } from '@/lib/interfaces';
-import { getUserByEmail } from '@/lib/api';
+import { User } from '@/lib/user/interfaces';
+import { getUserByEmail } from '@/lib/user/api';
 
 interface UserContextType {
   user: User | null;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BasicInfo } from '@/lib/interfaces';
+import { BasicInfo } from '@/lib/portfolio';
 
 interface HeaderProps {
   basicInfo: BasicInfo;

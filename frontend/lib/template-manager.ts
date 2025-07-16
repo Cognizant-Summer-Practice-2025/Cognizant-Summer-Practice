@@ -1,4 +1,4 @@
-import { ComponentConfig, PortfolioDataFromDB } from './interfaces';
+import { ComponentConfig, PortfolioDataFromDB } from './portfolio/interfaces';
 
 export interface ComponentMap {
   [key: string]: React.ComponentType<{ data: unknown }>;

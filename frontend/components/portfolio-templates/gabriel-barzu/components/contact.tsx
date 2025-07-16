@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContactInfo } from '@/lib/interfaces';
+import { ContactInfo } from '@/lib/portfolio';
 
 interface ContactProps {
   data: ContactInfo;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Quote } from '@/lib/interfaces';
+import { Quote } from '@/lib/portfolio';
 
 interface AboutProps {
   data: Quote[];

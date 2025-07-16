@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { PortfolioDataFromDB } from '@/lib/interfaces';
+import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { TemplateManager, ComponentMap } from '@/lib/template-manager';
 import { Header } from './components/header';
 import { Stats } from './components/stats';

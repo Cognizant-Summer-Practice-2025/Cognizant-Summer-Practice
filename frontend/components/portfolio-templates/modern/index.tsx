@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { PortfolioData } from '@/lib/interfaces';
+import { PortfolioData } from '@/lib/portfolio';
 
 interface ModernTemplateProps {
   data?: PortfolioData;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Experience as ExperienceType } from '@/lib/interfaces';
+import { Experience as ExperienceType } from '@/lib/portfolio';
 
 interface ExperienceProps {
   data: ExperienceType[];

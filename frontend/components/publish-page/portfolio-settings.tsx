@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PORTFOLIO_TEMPLATES } from "@/lib/templates"
 import { ComponentOrdering } from "@/components/ui/component-ordering"
-import { ComponentConfig } from "@/lib/interfaces"
+import { ComponentConfig } from "@/lib/portfolio"
 
 export function PortfolioSettings() {
   const [visibility, setVisibility] = useState(0) // 0=Public, 1=Private, 2=Unlisted

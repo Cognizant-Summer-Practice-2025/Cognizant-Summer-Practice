@@ -1,4 +1,4 @@
-import { TemplateConfig } from './interfaces';
+import { TemplateConfig } from './portfolio/interfaces';
 
 // Template Registry
 export const PORTFOLIO_TEMPLATES: TemplateConfig[] = [

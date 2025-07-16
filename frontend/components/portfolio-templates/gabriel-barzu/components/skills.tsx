@@ -1,5 +1,5 @@
 import React from 'react';
-import { Skill } from '@/lib/interfaces';
+import { Skill } from '@/lib/portfolio';
 
 interface SkillsProps {
   data: Skill[];

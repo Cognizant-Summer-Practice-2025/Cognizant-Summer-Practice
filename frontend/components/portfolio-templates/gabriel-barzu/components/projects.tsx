@@ -1,5 +1,5 @@
 import React from 'react';
-import { Project } from '@/lib/interfaces';
+import { Project } from '@/lib/portfolio';
 
 interface ProjectsProps {
   data: Project[];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SocialLink } from '@/lib/interfaces';
+import { SocialLink } from '@/lib/portfolio';
 
 interface FooterProps {
   socialLinks: SocialLink[];

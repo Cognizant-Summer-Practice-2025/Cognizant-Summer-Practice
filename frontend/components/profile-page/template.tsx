@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PORTFOLIO_TEMPLATES } from "@/lib/templates";
-import { TemplateConfig } from "@/lib/interfaces";
+import { TemplateConfig } from "@/lib/portfolio";
 
 const templates: TemplateConfig[] = PORTFOLIO_TEMPLATES;
 

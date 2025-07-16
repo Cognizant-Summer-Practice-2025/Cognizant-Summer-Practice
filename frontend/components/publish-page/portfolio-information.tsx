@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SkillTag } from "./skill-tag"
-import { Skill } from "@/lib/interfaces"
+import { Skill } from "@/lib/portfolio"
 
 export function PortfolioInformation() {
   const [skills, setSkills] = useState<Skill[]>([

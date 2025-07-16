@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { loadTemplateComponent, getDefaultTemplate } from '@/lib/templates';
-import { PortfolioDataFromDB } from '@/lib/interfaces';
+import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { createMockPortfolioData } from '@/lib/template-manager';
 
 // Loading component

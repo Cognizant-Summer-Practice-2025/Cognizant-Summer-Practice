@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatData } from '@/lib/interfaces';
+import { StatData } from '@/lib/portfolio';
 
 interface StatsProps {
   stats: StatData[];

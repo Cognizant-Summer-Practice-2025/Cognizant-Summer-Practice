@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { ComponentConfig } from "@/lib/interfaces";
+import { ComponentConfig } from "@/lib/portfolio";
 import { ComponentOrdering } from "@/components/ui/component-ordering";
 
 export default function Settings() {

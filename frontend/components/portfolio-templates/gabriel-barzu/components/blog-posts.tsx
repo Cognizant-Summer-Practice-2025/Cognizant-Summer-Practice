@@ -1,5 +1,5 @@
 import React from 'react';
-import { BlogPost } from '@/lib/interfaces';
+import { BlogPost } from '@/lib/portfolio';
 
 interface BlogPostsProps {
   data: BlogPost[];

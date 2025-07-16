@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GripVertical } from "lucide-react";
-import { ComponentConfig } from "@/lib/interfaces";
+import { ComponentConfig } from "@/lib/portfolio";
 
 interface ComponentOrderingProps {
   components: ComponentConfig[];
