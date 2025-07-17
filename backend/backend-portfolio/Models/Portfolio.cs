@@ -26,12 +26,6 @@ namespace backend_portfolio.Models
         [Column("bio", TypeName = "text")]
         public string? Bio { get; set; }
 
-        [Column("custom_config", TypeName = "jsonb")]
-        public string? CustomConfig { get; set; }
-
-        [Column("custom_sections", TypeName = "jsonb")]
-        public string? CustomSections { get; set; }
-
         [Column("view_count")]
         public int ViewCount { get; set; } = 0;
 
@@ -49,6 +43,9 @@ namespace backend_portfolio.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        [Column("components", TypeName = "text")]
+        public string? Components { get; set; }
 
         // Navigation properties
         [ForeignKey("TemplateId")]

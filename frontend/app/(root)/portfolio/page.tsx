@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
-import { loadTemplateComponent, getDefaultTemplate } from '@/lib/templates';
-import { PortfolioDataFromDB } from '@/lib/portfolio';
-import { createMockPortfolioData } from '@/lib/template-manager';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useUser } from '@/lib/contexts/user-context';
+import { usePortfolio } from '@/lib/contexts/portfolio-context';
+import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
+import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
 
 // Loading component
 function TemplateLoader() {
@@ -18,79 +19,223 @@ function TemplateLoader() {
   );
 }
 
-const PortfolioPage = () => {
-  const [TemplateComponent, setTemplateComponent] = useState<React.ComponentType<any> | null>(null);
-  const [portfolioData, setPortfolioData] = useState<PortfolioDataFromDB | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Get user ID from URL params or search params (for future use)
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('user') || 'default-user'; // Default for demo
+// No Portfolio component
+function NoPortfolioFound({ 
+  isOwnProfile, 
+  userName, 
+  onCreatePortfolio 
+}: { 
+  isOwnProfile: boolean; 
+  userName?: string;
+  onCreatePortfolio: () => void;
+}) {
+  return (
+    <div className="portfolio-error">
+      <div className="error-container no-portfolio-container">
+        <div className="no-portfolio-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7Z" stroke="#94A3B8" strokeWidth="2"/>
+            <path d="M8 12H16" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M8 15H13" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M8 9H10" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </div>
+        
+        {isOwnProfile ? (
+          <>
+            <h2>No Portfolio Yet</h2>
+            <p>You haven&apos;t created a portfolio yet. Start building your professional presence!</p>
+            <button 
+              className="publish-button primary"
+              onClick={onCreatePortfolio}
+            >
+              <span className="button-icon">🚀</span>
+              Create Your Portfolio
+            </button>
+          </>
+        ) : (
+          <>
+            <h2>Portfolio Not Available</h2>
+            <p>
+              {userName ? `${userName} hasn't` : 'This user hasn&apos;t'} published a portfolio yet.
+            </p>
+            <p className="secondary-text">Check back later or contact them directly.</p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
+const PortfolioPage = () => {
+  const [TemplateComponent, setTemplateComponent] = useState<React.ComponentType<{data: PortfolioDataFromDB | PortfolioData}> | null>(null);
+  const [templateLoading, setTemplateLoading] = useState(false);
+  
+  const router = useRouter();
+  const { user: currentUser } = useUser();
+  const { 
+    currentPortfolio, 
+    currentPortfolioEntities,
+    portfolioLoading, 
+    portfolioError, 
+    loadPortfolioByUserId,
+    loadPortfolioById,
+    clearCurrentPortfolio,
+    isViewingOwnPortfolio 
+  } = usePortfolio();
+  
+  // Get user ID from URL params or search params
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('user');
+  const portfolioId = searchParams.get('portfolio');
+  
+
+
+  const handleCreatePortfolio = () => {
+    router.push('/publish');
+  };
+
+  // Create portfolio data structure for templates (compatibility layer)
+  const createPortfolioDataForTemplate = (): PortfolioDataFromDB | PortfolioData | null => {
+    if (!currentPortfolio || !currentPortfolioEntities) return null;
+
+    // For templates that expect PortfolioDataFromDB (like Gabriel Barzu)
+    const portfolioDataFromDB: PortfolioDataFromDB = {
+      portfolio: {
+        id: currentPortfolio.id,
+        userId: currentPortfolio.userId,
+        templateId: currentPortfolio.templateId,
+        title: currentPortfolio.title || '',
+        bio: currentPortfolio.bio,
+        isPublished: currentPortfolio.isPublished,
+        visibility: currentPortfolio.visibility,
+        viewCount: currentPortfolio.viewCount,
+        likeCount: currentPortfolio.likeCount,
+        components: currentPortfolio.components || [],
+        createdAt: '', // Not available in new structure
+        updatedAt: currentPortfolio.updatedAt,
+      },
+      profile: {
+        id: currentUser?.id || '',
+        name: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : 'Portfolio Owner',
+        title: currentUser?.professionalTitle || 'Professional',
+        bio: currentPortfolio.bio || 'Welcome to my portfolio',
+        profileImage: currentUser?.avatarUrl || 'https://placehold.co/120x120',
+        location: currentUser?.location || '',
+        email: currentUser?.email || 'contact@example.com',
+      },
+      stats: [
+        { id: '1', label: 'Portfolio Views', value: currentPortfolio.viewCount?.toString() || '0', icon: '👁️' },
+        { id: '2', label: 'Portfolio Likes', value: currentPortfolio.likeCount?.toString() || '0', icon: '❤️' },
+        { id: '3', label: 'Projects', value: currentPortfolioEntities.projects.length.toString(), icon: '🚀' },
+        { id: '4', label: 'Skills', value: currentPortfolioEntities.skills.length.toString(), icon: '🎯' }
+      ],
+      contacts: {
+        email: currentUser?.email || 'contact@example.com',
+        location: currentUser?.location || 'Location not specified',
+      },
+      quotes: [
+        {
+          id: 'default-1',
+          text: currentPortfolio.bio || 'Passionate about creating amazing experiences and solving complex problems.',
+          author: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : 'Portfolio Owner',
+          position: currentUser?.professionalTitle
+        }
+      ],
+      experience: currentPortfolioEntities.experience,
+      projects: currentPortfolioEntities.projects,
+      skills: currentPortfolioEntities.skills,
+      socialLinks: [], // Would need to be configured or fetched separately
+      blogPosts: currentPortfolioEntities.blogPosts,
+    };
+
+    return portfolioDataFromDB;
+  };
+
+  // Load portfolio data when URL parameters change
   useEffect(() => {
-    async function loadUserPortfolio() {
+    async function loadPortfolio() {
+              // Clear any existing portfolio when URL changes
+        clearCurrentPortfolio();
+        
+        if (portfolioId) {
+          // Load portfolio by ID
+          await loadPortfolioById(portfolioId, true); // increment views
+        } else if (userId) {
+          // Load user's published portfolio
+          await loadPortfolioByUserId(userId, true); // increment views
+        }
+    }
+
+          if (portfolioId || userId) {
+        loadPortfolio();
+      } else if (currentUser?.id) {
+        // If no user ID provided but we have a current user, load their portfolio
+        loadPortfolioByUserId(currentUser.id, true);
+      }
+  }, [portfolioId, userId, loadPortfolioByUserId, loadPortfolioById, clearCurrentPortfolio, currentUser]);
+
+  // Load template component when portfolio data is available
+  useEffect(() => {
+    async function loadTemplate() {
+      if (!currentPortfolio) {
+        setTemplateComponent(null);
+        return;
+      }
+
       try {
-        setLoading(true);
+        setTemplateLoading(true);
         
-        // TODO: Replace with actual API call to get user's portfolio
-        // const response = await fetch(`/api/portfolio/${userId}`);
-        // const portfolioData = await response.json();
+        // Get template ID from portfolio configuration, converting UUID to string ID if needed
+        const rawTemplateId = currentPortfolio.templateId || getDefaultTemplate().id;
+        const templateId = convertTemplateUuidToId(rawTemplateId);
         
-        // For now, use mock data
-        const mockData = createMockPortfolioData(userId);
-        setPortfolioData(mockData);
-        
-        // Get template ID from portfolio configuration
-        const templateId = mockData.portfolio.templateId;
+
         
         // Load the template component
         const templateModule = await loadTemplateComponent(templateId);
-        setTemplateComponent(() => templateModule.default);
+        setTemplateComponent(() => templateModule.default as React.ComponentType<{data: PortfolioDataFromDB | PortfolioData}>);
         
       } catch (err) {
-        console.error('Error loading portfolio:', err);
-        setError('Failed to load portfolio. Please try again.');
+        console.error('Error loading template:', err);
       } finally {
-        setLoading(false);
+        setTemplateLoading(false);
       }
     }
 
-    loadUserPortfolio();
-  }, [userId]);
+    loadTemplate();
+  }, [currentPortfolio]);
 
-  if (loading) {
+
+
+  // Show loading state
+  if (portfolioLoading || templateLoading || !currentPortfolio || !currentPortfolioEntities) {
     return <TemplateLoader />;
   }
 
-  if (error) {
+  // Show no portfolio found
+  if (portfolioError || (!currentPortfolio && !portfolioLoading)) {
     return (
-      <div className="portfolio-error">
-        <div className="error-container">
-          <h2>Oops! Something went wrong</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>
-            Try Again
-          </button>
-        </div>
-      </div>
+      <NoPortfolioFound 
+        isOwnProfile={isViewingOwnPortfolio}
+        userName={currentUser?.firstName && currentUser?.lastName ? 
+          `${currentUser.firstName} ${currentUser.lastName}` : undefined}
+        onCreatePortfolio={handleCreatePortfolio}
+      />
     );
   }
 
-  if (!TemplateComponent || !portfolioData) {
-    return (
-      <div className="portfolio-error">
-        <div className="error-container">
-          <h2>Portfolio Not Found</h2>
-          <p>Unable to load the portfolio data or template.</p>
-        </div>
-      </div>
-    );
+  // Create template data
+  const templateData = createPortfolioDataForTemplate();
+
+  // Show loading if template data is not ready
+  if (!TemplateComponent || !templateData) {
+    return <TemplateLoader />;
   }
 
   return (
     <Suspense fallback={<TemplateLoader />}>
-      <TemplateComponent data={portfolioData} />
+      <TemplateComponent data={templateData} />
     </Suspense>
   );
 };

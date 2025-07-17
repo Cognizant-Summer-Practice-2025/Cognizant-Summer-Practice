@@ -37,6 +37,15 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Bookmark>> GetBookmarksByPortfolioIdAsync(Guid portfolioId)
+        {
+            return await _context.Bookmarks
+                .Include(b => b.Portfolio)
+                .Where(b => b.PortfolioId == portfolioId)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+        }
+
         public async Task<Bookmark> CreateBookmarkAsync(BookmarkRequestDto request)
         {
             var bookmark = new Bookmark

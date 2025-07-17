@@ -4,7 +4,8 @@
 !define FOREIGN_KEY(x) <color:#aaaaaa><&arrow-right></color> x
 !define EXTERNAL_REF(x) <color:#red><&warning></color> x
 
-' === CONFIGURABLE SECTION ORDERING SCHEMA ===
+' === PORTFOLIO SERVICE WITH CONFIGURABLE COMPONENTS ===
+
 entity "portfolios" as portfolios {
   PRIMARY_KEY(id) : UUID
   --
@@ -12,29 +13,28 @@ entity "portfolios" as portfolios {
   FOREIGN_KEY(template_id) : UUID
   title : VARCHAR
   bio : TEXT
-  custom_config : JSONB
-  custom_sections : JSONB
   view_count : INTEGER
   like_count : INTEGER
   visibility : INTEGER
   is_published : BOOLEAN
+  <color:#green>components : TEXT</color>
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
   --
   note: visibility enum values
   0=Public, 1=Private, 2=Unlisted
+  --
+  note: components field stores JSON
+  serialized ComponentConfig[]
+  with order and visibility settings
 }
 
 entity "portfolio_templates" as templates {
   PRIMARY_KEY(id) : UUID
   --
-  name : VARCHAR
+  name : VARCHAR UNIQUE
   description : TEXT
-  component_name : VARCHAR
   preview_image_url : TEXT
-  default_config : JSONB
-  default_sections : JSONB
-  customizable_options : JSONB
   is_active : BOOLEAN
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
@@ -107,12 +107,16 @@ entity "bookmarks" as bookmarks {
   created_at : TIMESTAMP
 }
 
-' Configurable section ordering relationships
-portfolios }o--|| templates : "uses"
+note top of portfolios : **Component Configuration**\nThe components field stores JSON array:\n[{\n  "id": "experience-1",\n  "type": "experience",\n  "order": 1,\n  "isVisible": true,\n  "settings": {}\n}, ...]\n\nSupported component types:\n• experience\n• projects\n• skills\n• blog_posts\n• contact\n• about
+
+' Portfolio relationships (Many portfolios can use one template)
+portfolios }o--|| templates : "uses template"
 portfolios ||--o{ projects : "showcases"
 portfolios ||--o{ experience : "includes"
 portfolios ||--o{ skills : "has"
 portfolios ||--o{ blog_posts : "writes"
 portfolios ||--o{ bookmarks : "bookmarked_as"
+
+note bottom : **API Changes & Enhancements**\n• POST /api/Portfolio - accepts templateName instead of templateId\n• Backend finds template by name automatically\n• Templates seeded with: Gabriel Bârzu, Modern, Creative, Professional\n• Components field stores JSON configuration\n\n**Frontend Updates**\n• ComponentOrdering UI component\n• Settings page with component management\n• Template loading by ID (maps to backend names)\n• Simplified template structure (no componentName)
 
 @enduml

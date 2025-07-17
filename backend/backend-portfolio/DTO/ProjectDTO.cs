@@ -53,4 +53,4 @@ namespace backend_portfolio.DTO
         public string[]? Technologies { get; set; }
         public bool? Featured { get; set; }
     }
-}
+} 

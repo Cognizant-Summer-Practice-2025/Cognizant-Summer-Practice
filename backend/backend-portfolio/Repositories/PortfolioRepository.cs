@@ -50,17 +50,25 @@ namespace backend_portfolio.Repositories
 
         public async Task<Portfolio> CreatePortfolioAsync(PortfolioRequestDto request)
         {
+            // Find template by name
+            var template = await _context.PortfolioTemplates
+                .FirstOrDefaultAsync(t => t.Name == request.TemplateName && t.IsActive);
+            
+            if (template == null)
+            {
+                throw new ArgumentException($"Template with name '{request.TemplateName}' not found or is inactive.");
+            }
+
             var portfolio = new Portfolio
             {
                 Id = Guid.NewGuid(),
                 UserId = request.UserId,
-                TemplateId = request.TemplateId,
+                TemplateId = template.Id, // Use the found template's ID
                 Title = request.Title,
                 Bio = request.Bio,
-                CustomConfig = request.CustomConfig,
-                CustomSections = request.CustomSections,
                 Visibility = request.Visibility,
                 IsPublished = request.IsPublished,
+                Components = request.Components,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -75,13 +83,25 @@ namespace backend_portfolio.Repositories
             var portfolio = await _context.Portfolios.FindAsync(id);
             if (portfolio == null) return null;
 
-            if (request.TemplateId.HasValue) portfolio.TemplateId = request.TemplateId.Value;
+            // Handle template name update
+            if (!string.IsNullOrEmpty(request.TemplateName))
+            {
+                var template = await _context.PortfolioTemplates
+                    .FirstOrDefaultAsync(t => t.Name == request.TemplateName && t.IsActive);
+                
+                if (template == null)
+                {
+                    throw new ArgumentException($"Template with name '{request.TemplateName}' not found or is inactive.");
+                }
+                
+                portfolio.TemplateId = template.Id;
+            }
+
             if (request.Title != null) portfolio.Title = request.Title;
             if (request.Bio != null) portfolio.Bio = request.Bio;
-            if (request.CustomConfig != null) portfolio.CustomConfig = request.CustomConfig;
-            if (request.CustomSections != null) portfolio.CustomSections = request.CustomSections;
-            if (request.Visibility.HasValue) portfolio.Visibility = request.Visibility.Value;
+            if (request.Visibility.HasValue) portfolio.Visibility = (Visibility)request.Visibility.Value;
             if (request.IsPublished.HasValue) portfolio.IsPublished = request.IsPublished.Value;
+            if (request.Components != null) portfolio.Components = request.Components;
             portfolio.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

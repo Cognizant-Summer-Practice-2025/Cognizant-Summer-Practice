@@ -1,96 +1,314 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PORTFOLIO_TEMPLATES } from "@/lib/templates"
+import { Textarea } from "@/components/ui/textarea"
 import { ComponentOrdering } from "@/components/ui/component-ordering"
-import { ComponentConfig } from "@/lib/portfolio"
+import { ComponentConfig } from '@/lib/portfolio'
+import { TemplateManager } from '@/lib/template-manager'
+import { updatePortfolio } from '@/lib/portfolio/api'
+import { usePortfolio } from '@/lib/contexts/portfolio-context'
 
-export function PortfolioSettings() {
-  const [visibility, setVisibility] = useState(0) // 0=Public, 1=Private, 2=Unlisted
-  const [template, setTemplate] = useState("gabriel-barzu")
-  const [customCSS, setCustomCSS] = useState("")
+interface PortfolioSettingsProps {
+  portfolioId?: string;
+  initialData?: {
+    portfolio?: {
+      visibility?: number;
+      templateId?: string;
+      components?: ComponentConfig[];
+      title?: string;
+      bio?: string;
+    };
+  };
+  onSave?: (data: any) => void;
+  readOnly?: boolean;
+}
+
+export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly = false }: PortfolioSettingsProps = {}) {
+  const { getUserPortfolios, loading: portfolioLoading } = usePortfolio();
+  const userPortfolios = getUserPortfolios();
+  const currentPortfolioId = portfolioId || userPortfolios[0]?.id;
+  const currentPortfolio = userPortfolios.find(p => p.id === currentPortfolioId);
   
-  // Mock component configuration - in real app, this would come from API
-  const [components, setComponents] = useState<ComponentConfig[]>([
-    { id: '1', type: 'about', order: 1, isVisible: true },
-    { id: '2', type: 'experience', order: 2, isVisible: true },
-    { id: '3', type: 'projects', order: 3, isVisible: true },
-    { id: '4', type: 'skills', order: 4, isVisible: true },
-    { id: '5', type: 'blog_posts', order: 5, isVisible: false },
-    { id: '6', type: 'contact', order: 6, isVisible: true }
-  ])
+
+  
+  // Initial values that will be updated when portfolio data changes
+  const [initialVisibility, setInitialVisibility] = useState(initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0);
+  const [initialTemplate, setInitialTemplate] = useState(initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu");
+  const [initialTitle, setInitialTitle] = useState(initialData?.portfolio?.title ?? currentPortfolio?.title ?? "");
+  const [initialBio, setInitialBio] = useState(initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "");
+  const [initialComponents, setInitialComponents] = useState<ComponentConfig[]>(initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig());
+  
+  // Current form state
+  const [visibility, setVisibility] = useState(initialVisibility);
+  const [template, setTemplate] = useState(initialTemplate);
+  const [title, setTitle] = useState(initialTitle);
+  const [bio, setBio] = useState(initialBio);
+  const [components, setComponents] = useState<ComponentConfig[]>(initialComponents);
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  
+
+  
+  // Update initial values when portfolio data changes
+  useEffect(() => {
+    const newVisibility = initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0;
+    const newTemplate = initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu";
+    const newTitle = initialData?.portfolio?.title ?? currentPortfolio?.title ?? "";
+    const newBio = initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "";
+    const newComponents = initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig();
+    
+    // Update both current form state and initial values for comparison
+    setInitialVisibility(newVisibility);
+    setInitialTemplate(newTemplate);
+    setInitialTitle(newTitle);
+    setInitialBio(newBio);
+    setInitialComponents(newComponents);
+    
+    setVisibility(newVisibility);
+    setTemplate(newTemplate);
+    setTitle(newTitle);
+    setBio(newBio);
+    setComponents(newComponents);
+  }, [currentPortfolio, initialData]);
+  
+  // Available templates from the portfolio-templates folder
+  const availableTemplates = [
+    { id: 'gabriel-barzu', name: 'Gabriel Bârzu', description: 'Professional template with sidebar layout' },
+    { id: 'modern', name: 'Modern', description: 'Clean and modern design' },
+    { id: 'creative', name: 'Creative', description: 'Creative and colorful layout' },
+    { id: 'professional', name: 'Professional', description: 'Classic professional design' }
+  ];
+
+  // Function to check if there are any changes
+  const hasChanges = () => {
+    return (
+      visibility !== initialVisibility ||
+      template !== initialTemplate ||
+      title.trim() !== initialTitle ||
+      bio.trim() !== initialBio ||
+      JSON.stringify(components) !== JSON.stringify(initialComponents)
+    );
+  };
+
+  const handleSave = async () => {
+    if (!currentPortfolioId && !onSave) {
+      setError("No portfolio found to save settings.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const dataToSave = {
+        templateName: availableTemplates.find(t => t.id === template)?.name || template,
+        title: title.trim(),
+        bio: bio.trim(),
+        visibility: visibility as 0 | 1 | 2,
+        components: JSON.stringify(components)
+      };
+
+      if (onSave) {
+        await onSave(dataToSave);
+      } else if (currentPortfolioId) {
+        await updatePortfolio(currentPortfolioId, dataToSave);
+      }
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000); // Hide success message after 3 seconds
+    } catch (err) {
+      console.error('❌ Error saving portfolio settings:', err);
+      setError('Failed to save portfolio settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setVisibility(initialVisibility);
+    setTemplate(initialTemplate);
+    setTitle(initialTitle);
+    setBio(initialBio);
+    setComponents(initialComponents);
+  };
+
+  const visibilityOptions = [
+    { value: 0, label: "Public - Anyone can view" },
+    { value: 1, label: "Private - Only you can view" },
+    { value: 2, label: "Unlisted - Only with link" }
+  ];
+
+  if (loading && !initialData) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold mb-4">Portfolio Settings</h2>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-2">Loading settings...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full pb-6 md:pb-8 flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-col">
-        <h2 className="text-slate-900 text-xl md:text-2xl font-semibold">Portfolio Settings</h2>
-      </div>
+    <div className="space-y-6">
+            <h2 className="text-xl font-semibold mb-4">Portfolio Settings</h2>
       
-      <div className="px-4 py-4 md:px-6 md:py-6 bg-white rounded-lg border border-slate-200 flex flex-col gap-4 md:gap-6">
-        <div className="py-3 md:py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-          <div className="flex flex-col gap-1">
-            <div className="pb-1 flex flex-col">
-              <h4 className="text-slate-900 text-base font-medium">Make Portfolio Public</h4>
-            </div>
-            <div className="flex flex-col">
-              <p className="text-slate-500 text-sm">Allow others to discover and view your portfolio</p>
-            </div>
-          </div>
-          
-          <button
-            onClick={() => setVisibility(visibility === 0 ? 1 : 0)}
-            className={`w-11 h-6 rounded-full relative transition-all flex-shrink-0 ${
-              visibility === 0 ? "bg-blue-600" : "bg-slate-300"
-            }`}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+          <button 
+            onClick={() => setError(null)}
+            className="ml-2 text-red-500 hover:text-red-700"
           >
-            <div
-              className={`w-4.5 h-4.5 bg-white rounded-full absolute top-0.75 transition-all ${
-                visibility === 0 ? "left-5.75" : "left-0.75"
-              }`}
-            />
+            ×
           </button>
         </div>
+      )}
 
-        <div className="flex flex-col gap-2">
-          <Label className="text-slate-900 text-sm font-medium">
-            Template
-          </Label>
-          <Select value={template} onValueChange={setTemplate}>
-            <SelectTrigger className="p-3 rounded-lg border border-slate-200">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PORTFOLIO_TEMPLATES.map((templateOption) => (
-                <SelectItem key={templateOption.id} value={templateOption.id}>
-                  {templateOption.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          ✅ Portfolio settings saved successfully!
+          <button 
+            onClick={() => setSuccess(false)}
+            className="ml-2 text-green-500 hover:text-green-700"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Basic Settings */}
+        <div className="bg-white p-6 rounded-lg border space-y-4">
+          <h3 className="text-lg font-medium mb-4">Basic Information</h3>
+          
+          <div>
+            <Label htmlFor="title">Portfolio Title</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="My Portfolio"
+              disabled={readOnly || loading}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="bio">Portfolio Description</Label>
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell visitors about your portfolio..."
+              className="min-h-[100px]"
+              disabled={readOnly || loading}
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="visibility">Visibility</Label>
+            <Select 
+              value={visibility.toString()} 
+              onValueChange={(value) => setVisibility(parseInt(value))}
+              disabled={readOnly || loading}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {visibilityOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value.toString()}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="pt-4 md:pt-6 flex flex-col gap-2">
-          <Label htmlFor="custom-css" className="text-slate-900 text-sm font-medium">
-            Custom CSS (Advanced)
-          </Label>
-          <Textarea
-            id="custom-css"
-            placeholder="/* Add your custom styles here */"
-            value={customCSS}
-            onChange={(e) => setCustomCSS(e.target.value)}
-            className="p-3 rounded-lg border border-slate-200 min-h-[120px] md:min-h-[160px] font-mono text-sm"
-          />
+        {/* Template Settings */}
+        <div className="bg-white p-6 rounded-lg border space-y-4">
+          <h3 className="text-lg font-medium mb-4">Template Selection</h3>
+          
+          <div>
+            <Label htmlFor="template">Choose Template</Label>
+            <Select 
+              value={template} 
+              onValueChange={setTemplate}
+              disabled={readOnly || loading}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTemplates.map(tmpl => (
+                  <SelectItem key={tmpl.id} value={tmpl.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{tmpl.name}</span>
+                      <span className="text-xs text-gray-500">{tmpl.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Select from our collection of professionally designed templates
+            </p>
+          </div>
+          
+          {/* Custom CSS temporarily disabled */}
+          <div className="opacity-50 pointer-events-none">
+            <Label htmlFor="custom-css">Custom CSS (Coming Soon)</Label>
+            <Textarea
+              id="custom-css"
+              value=""
+              placeholder="/* Custom CSS will be available in a future update */"
+              className="min-h-[100px] font-mono text-sm"
+              disabled={true}
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Custom CSS functionality is temporarily disabled and will be available in a future update
+            </p>
+          </div>
         </div>
       </div>
-      
-      {/* Portfolio Sections Ordering */}
-      <ComponentOrdering 
-        components={components}
-        onComponentsChange={setComponents}
-      />
+
+      {/* Component Configuration */}
+      <div className="bg-white p-6 rounded-lg border">
+        <h3 className="text-lg font-medium mb-4">Portfolio Sections</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Configure which sections appear in your portfolio and their display order
+        </p>
+        
+        <ComponentOrdering
+          components={components}
+          onComponentsChange={setComponents}
+        />
+      </div>
+
+      {!readOnly && (
+        <div className="flex justify-end space-x-3 pt-4">
+          <Button 
+            variant="outline" 
+            disabled={loading || !hasChanges()}
+            onClick={handleReset}
+          >
+            Reset
+          </Button>
+          <Button 
+            onClick={handleSave}
+            disabled={loading || !hasChanges() || (!currentPortfolioId && !onSave)}
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      )}
     </div>
   )
 } 
