@@ -15,9 +15,19 @@ namespace backend_portfolio.Models
         public Guid PortfolioId { get; set; }
 
         [Required]
-        [StringLength(50)]
+        [StringLength(100)]
         [Column("name")]
         public string Name { get; set; } = string.Empty;
+
+        [StringLength(100)]
+        [Column("category")]
+        public string? Category { get; set; }
+
+        [Column("proficiency_level")]
+        public int? ProficiencyLevel { get; set; }
+
+        [Column("display_order")]
+        public int? DisplayOrder { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import RegistrationModal from '@/components/auth/registration-modal';
-import { registerOAuthUser } from '@/lib/api';
+import { registerOAuthUser } from '@/lib/user';
 
 const RegisterPage = () => {
   const router = useRouter();

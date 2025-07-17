@@ -239,4 +239,4 @@ export async function removeOAuthProvider(providerId: string): Promise<void> {
     console.error('Error removing OAuth provider:', error);
     throw error;
   }
-} 
+}
