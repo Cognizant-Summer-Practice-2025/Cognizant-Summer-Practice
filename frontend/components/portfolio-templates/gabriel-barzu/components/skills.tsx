@@ -12,10 +12,11 @@ export function Skills({ data: skills }: SkillsProps) {
 
   // Group skills by category
   const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
+    const categoryKey = skill.category || 'Uncategorized';
+    if (!acc[categoryKey]) {
+      acc[categoryKey] = [];
     }
-    acc[skill.category].push(skill);
+    acc[categoryKey].push(skill);
     return acc;
   }, {} as Record<string, Skill[]>);
 

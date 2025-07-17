@@ -16,6 +16,7 @@ namespace backend_portfolio.DTO
         public bool IsPublished { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? Components { get; set; }
         public PortfolioTemplateSummaryDto? Template { get; set; }
         public List<ProjectSummaryDto> Projects { get; set; } = new();
         public List<ExperienceSummaryDto> Experience { get; set; } = new();
@@ -27,11 +28,12 @@ namespace backend_portfolio.DTO
     public class PortfolioRequestDto
     {
         public Guid UserId { get; set; }
-        public Guid TemplateId { get; set; }
+        public string TemplateName { get; set; } = string.Empty; // Changed from TemplateId to TemplateName
         public string Title { get; set; } = string.Empty;
         public string? Bio { get; set; }
         public Visibility Visibility { get; set; } = Visibility.Public;
         public bool IsPublished { get; set; } = false;
+        public string? Components { get; set; }
     }
 
     // Portfolio Summary DTO (for list views)
@@ -47,6 +49,7 @@ namespace backend_portfolio.DTO
         public Visibility Visibility { get; set; }
         public bool IsPublished { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? Components { get; set; }
         public PortfolioTemplateSummaryDto? Template { get; set; }
     }
 
@@ -57,6 +60,8 @@ namespace backend_portfolio.DTO
         public string? Bio { get; set; }
         public Visibility? Visibility { get; set; }
         public bool? IsPublished { get; set; }
+        public string? Components { get; set; }
+        public string? TemplateName { get; set; } // Allow updating template by name
     }
 
     // Bulk Portfolio Content DTO for publishing

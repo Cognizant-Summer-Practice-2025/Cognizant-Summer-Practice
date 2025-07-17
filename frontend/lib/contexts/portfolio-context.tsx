@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useUser } from './user-context';
 import { 
   Portfolio,
@@ -14,7 +14,7 @@ import {
 } from '@/lib/portfolio';
 import { 
   getUserPortfolioComprehensive,
-  getPortfolioById,
+  getPortfolioComprehensive,
   incrementViewCount 
 } from '@/lib/portfolio/api';
 
@@ -39,6 +39,7 @@ interface PortfolioContextType {
   // Portfolio management
   loadUserPortfolios: () => Promise<void>;
   loadPortfolioByUserId: (userId: string, incrementViews?: boolean) => Promise<void>;
+  loadPortfolioById: (portfolioId: string, incrementViews?: boolean) => Promise<void>;
   refreshUserPortfolios: () => Promise<void>;
   clearCurrentPortfolio: () => void;
   invalidateCache: () => void;
@@ -78,7 +79,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
 
   // Load user's comprehensive portfolio data
-  const loadUserPortfolios = async () => {
+  const loadUserPortfolios = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -93,10 +94,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   // Load portfolio by user ID (first published one)
-  const loadPortfolioByUserId = async (userId: string, incrementViews = false) => {
+  const loadPortfolioByUserId = useCallback(async (userId: string, incrementViews = false) => {
     try {
       setPortfolioLoading(true);
       setPortfolioError(null);
@@ -139,29 +140,74 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     } finally {
       setPortfolioLoading(false);
     }
-  };
+  }, []);
+
+  // Load portfolio by portfolio ID
+  const loadPortfolioById = useCallback(async (portfolioId: string, incrementViews = false) => {
+    try {
+      setPortfolioLoading(true);
+      setPortfolioError(null);
+      
+      // Get comprehensive portfolio data by ID
+      const comprehensiveData = await getPortfolioComprehensive(portfolioId);
+      
+              if (!comprehensiveData.portfolio.isPublished) {
+          setPortfolioError(`Portfolio ${portfolioId} is not published`);
+          setCurrentPortfolio(null);
+          setCurrentPortfolioEntities(null);
+          return;
+        }
+        
+        setCurrentPortfolio(comprehensiveData.portfolio);
+        
+        // Set the comprehensive portfolio entities
+        setCurrentPortfolioEntities({
+          projects: comprehensiveData.projects,
+          experience: comprehensiveData.experience,
+          skills: comprehensiveData.skills,
+          blogPosts: comprehensiveData.blogPosts,
+          bookmarks: comprehensiveData.bookmarks,
+        });
+        
+        // Increment view count if requested
+        if (incrementViews) {
+          try {
+            await incrementViewCount(portfolioId);
+          } catch (err) {
+            console.warn('Failed to increment view count:', err);
+          }
+        }
+    } catch (err) {
+      console.error('Error loading portfolio by ID:', err);
+      setPortfolioError(err instanceof Error ? err.message : `Portfolio ${portfolioId} not found`);
+      setCurrentPortfolio(null);
+      setCurrentPortfolioEntities(null);
+    } finally {
+      setPortfolioLoading(false);
+    }
+  }, []);
 
   // Refresh user portfolios
-  const refreshUserPortfolios = async () => {
+  const refreshUserPortfolios = useCallback(async () => {
     setUserPortfolioData(null); // Clear cache to force reload
     await loadUserPortfolios();
-  };
+  }, [loadUserPortfolios]);
 
   // Clear current portfolio
-  const clearCurrentPortfolio = () => {
+  const clearCurrentPortfolio = useCallback(() => {
     setCurrentPortfolio(null);
     setCurrentPortfolioEntities(null);
     setPortfolioError(null);
-  };
+  }, []);
 
   // Invalidate all cached data
-  const invalidateCache = () => {
+  const invalidateCache = useCallback(() => {
     setUserPortfolioData(null);
     setCurrentPortfolio(null);
     setCurrentPortfolioEntities(null);
     setError(null);
     setPortfolioError(null);
-  };
+  }, []);
 
   // Load user portfolio data when user changes
   useEffect(() => {
@@ -233,6 +279,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     // Portfolio management methods
     loadUserPortfolios,
     loadPortfolioByUserId,
+    loadPortfolioById,
     refreshUserPortfolios,
     clearCurrentPortfolio,
     invalidateCache,
@@ -248,6 +295,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     getUserPortfolios,
     getPortfolioTemplates,
   };
+
+
 
   return (
     <PortfolioContext.Provider value={value}>

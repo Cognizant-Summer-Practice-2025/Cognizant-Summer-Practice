@@ -19,10 +19,7 @@ namespace backend_portfolio.Models
         [Column("description", TypeName = "text")]
         public string? Description { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        [Column("component_name")]
-        public string ComponentName { get; set; } = string.Empty;
+
 
         [Column("preview_image_url", TypeName = "text")]
         public string? PreviewImageUrl { get; set; }

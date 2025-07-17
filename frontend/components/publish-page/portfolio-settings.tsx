@@ -28,30 +28,73 @@ interface PortfolioSettingsProps {
 }
 
 export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly = false }: PortfolioSettingsProps = {}) {
-  const { getUserPortfolios } = usePortfolio();
+  const { getUserPortfolios, loading: portfolioLoading } = usePortfolio();
   const userPortfolios = getUserPortfolios();
   const currentPortfolioId = portfolioId || userPortfolios[0]?.id;
   const currentPortfolio = userPortfolios.find(p => p.id === currentPortfolioId);
   
-  const [visibility, setVisibility] = useState(initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0);
-  const [template, setTemplate] = useState(initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu");
-  const [title, setTitle] = useState(initialData?.portfolio?.title ?? currentPortfolio?.title ?? "");
-  const [bio, setBio] = useState(initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "");
+
+  
+  // Initial values that will be updated when portfolio data changes
+  const [initialVisibility, setInitialVisibility] = useState(initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0);
+  const [initialTemplate, setInitialTemplate] = useState(initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu");
+  const [initialTitle, setInitialTitle] = useState(initialData?.portfolio?.title ?? currentPortfolio?.title ?? "");
+  const [initialBio, setInitialBio] = useState(initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "");
+  const [initialComponents, setInitialComponents] = useState<ComponentConfig[]>(initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig());
+  
+  // Current form state
+  const [visibility, setVisibility] = useState(initialVisibility);
+  const [template, setTemplate] = useState(initialTemplate);
+  const [title, setTitle] = useState(initialTitle);
+  const [bio, setBio] = useState(initialBio);
+  const [components, setComponents] = useState<ComponentConfig[]>(initialComponents);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  
+
+  
+  // Update initial values when portfolio data changes
+  useEffect(() => {
+    const newVisibility = initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0;
+    const newTemplate = initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu";
+    const newTitle = initialData?.portfolio?.title ?? currentPortfolio?.title ?? "";
+    const newBio = initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "";
+    const newComponents = initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig();
+    
+    // Update both current form state and initial values for comparison
+    setInitialVisibility(newVisibility);
+    setInitialTemplate(newTemplate);
+    setInitialTitle(newTitle);
+    setInitialBio(newBio);
+    setInitialComponents(newComponents);
+    
+    setVisibility(newVisibility);
+    setTemplate(newTemplate);
+    setTitle(newTitle);
+    setBio(newBio);
+    setComponents(newComponents);
+  }, [currentPortfolio, initialData]);
   
   // Available templates from the portfolio-templates folder
   const availableTemplates = [
-    { id: 'gabriel-barzu', name: 'Gabriel Barzu', componentName: 'gabriel-barzu', description: 'Professional template with sidebar layout' },
-    { id: 'modern', name: 'Modern', componentName: 'modern', description: 'Clean and modern design' },
-    { id: 'creative', name: 'Creative', componentName: 'creative', description: 'Creative and colorful layout' },
-    { id: 'professional', name: 'Professional', componentName: 'professional', description: 'Classic professional design' }
+    { id: 'gabriel-barzu', name: 'Gabriel Bârzu', description: 'Professional template with sidebar layout' },
+    { id: 'modern', name: 'Modern', description: 'Clean and modern design' },
+    { id: 'creative', name: 'Creative', description: 'Creative and colorful layout' },
+    { id: 'professional', name: 'Professional', description: 'Classic professional design' }
   ];
-  
-  // Use provided component configuration or create default
-  const [components, setComponents] = useState<ComponentConfig[]>(
-    initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig()
-  );
+
+  // Function to check if there are any changes
+  const hasChanges = () => {
+    return (
+      visibility !== initialVisibility ||
+      template !== initialTemplate ||
+      title.trim() !== initialTitle ||
+      bio.trim() !== initialBio ||
+      JSON.stringify(components) !== JSON.stringify(initialComponents)
+    );
+  };
 
   const handleSave = async () => {
     if (!currentPortfolioId && !onSave) {
@@ -64,10 +107,11 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       setError(null);
 
       const dataToSave = {
-        templateId: template,
+        templateName: availableTemplates.find(t => t.id === template)?.name || template,
         title: title.trim(),
         bio: bio.trim(),
-        visibility
+        visibility: visibility as 0 | 1 | 2,
+        components: JSON.stringify(components)
       };
 
       if (onSave) {
@@ -75,34 +119,22 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       } else if (currentPortfolioId) {
         await updatePortfolio(currentPortfolioId, dataToSave);
       }
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000); // Hide success message after 3 seconds
     } catch (err) {
-      console.error('Error saving portfolio settings:', err);
+      console.error('❌ Error saving portfolio settings:', err);
       setError('Failed to save portfolio settings');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateComponentVisibility = (componentId: string, isVisible: boolean) => {
-    setComponents(components.map(comp => 
-      comp.id === componentId 
-        ? { ...comp, isVisible }
-        : comp
-    ));
-  };
-
-  const reorderComponents = (startIndex: number, endIndex: number) => {
-    const result = Array.from(components);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-
-    // Update order values
-    const reorderedComponents = result.map((comp, index) => ({
-      ...comp,
-      order: index + 1
-    }));
-
-    setComponents(reorderedComponents);
+  const handleReset = () => {
+    setVisibility(initialVisibility);
+    setTemplate(initialTemplate);
+    setTitle(initialTitle);
+    setBio(initialBio);
+    setComponents(initialComponents);
   };
 
   const visibilityOptions = [
@@ -125,7 +157,7 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold mb-4">Portfolio Settings</h2>
+            <h2 className="text-xl font-semibold mb-4">Portfolio Settings</h2>
       
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -133,6 +165,18 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
           <button 
             onClick={() => setError(null)}
             className="ml-2 text-red-500 hover:text-red-700"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          ✅ Portfolio settings saved successfully!
+          <button 
+            onClick={() => setSuccess(false)}
+            className="ml-2 text-green-500 hover:text-green-700"
           >
             ×
           </button>
@@ -204,7 +248,7 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
               </SelectTrigger>
               <SelectContent>
                 {availableTemplates.map(tmpl => (
-                  <SelectItem key={tmpl.id} value={tmpl.componentName}>
+                  <SelectItem key={tmpl.id} value={tmpl.id}>
                     <div className="flex flex-col">
                       <span className="font-medium">{tmpl.name}</span>
                       <span className="text-xs text-gray-500">{tmpl.description}</span>
@@ -244,9 +288,7 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
         
         <ComponentOrdering
           components={components}
-          onReorder={reorderComponents}
-          onToggleVisibility={updateComponentVisibility}
-          disabled={readOnly || loading}
+          onComponentsChange={setComponents}
         />
       </div>
 
@@ -254,21 +296,14 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
         <div className="flex justify-end space-x-3 pt-4">
           <Button 
             variant="outline" 
-            disabled={loading}
-            onClick={() => {
-              // Reset to initial values
-              setVisibility(initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0);
-              setTemplate(initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu");
-              setTitle(initialData?.portfolio?.title ?? currentPortfolio?.title ?? "");
-              setBio(initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "");
-              setComponents(initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig());
-            }}
+            disabled={loading || !hasChanges()}
+            onClick={handleReset}
           >
             Reset
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={loading || (!currentPortfolioId && !onSave)}
+            disabled={loading || !hasChanges() || (!currentPortfolioId && !onSave)}
           >
             {loading ? 'Saving...' : 'Save Changes'}
           </Button>

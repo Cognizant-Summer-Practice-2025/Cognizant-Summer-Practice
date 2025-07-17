@@ -6,7 +6,6 @@ namespace backend_portfolio.DTO
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string ComponentName { get; set; } = string.Empty;
         public string? PreviewImageUrl { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -18,7 +17,6 @@ namespace backend_portfolio.DTO
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string ComponentName { get; set; } = string.Empty;
         public string? PreviewImageUrl { get; set; }
         public bool IsActive { get; set; } = true;
     }
@@ -28,7 +26,6 @@ namespace backend_portfolio.DTO
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public string? ComponentName { get; set; }
         public string? PreviewImageUrl { get; set; }
         public bool? IsActive { get; set; }
     }
@@ -39,7 +36,6 @@ namespace backend_portfolio.DTO
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string ComponentName { get; set; } = string.Empty;
         public string? PreviewImageUrl { get; set; }
         public bool IsActive { get; set; }
     }

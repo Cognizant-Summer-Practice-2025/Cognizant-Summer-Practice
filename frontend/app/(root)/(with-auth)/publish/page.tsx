@@ -14,14 +14,17 @@ import { AddBlogPost } from "@/components/publish-page/add-blog-post"
 import { BlogPostsList } from "@/components/publish-page/blog-posts-list"
 import { PortfolioSettings } from "@/components/publish-page/portfolio-settings"
 import { PublishSidebar } from "@/components/publish-page/publish-sidebar"
+import { LoadingModal } from "@/components/ui/loading-modal"
 import { usePortfolio } from "@/lib/contexts/portfolio-context"
 import { useDraft } from "@/lib/contexts/draft-context"
 import { useUser } from "@/lib/contexts/user-context"
+import { TemplateManager } from "@/lib/template-manager"
 import { updatePortfolio, savePortfolioContent, createPortfolioAndGetId } from "@/lib/portfolio/api"
 
 export default function Publish() {
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
+  const [showLoadingModal, setShowLoadingModal] = useState(false)
   
   const { user } = useUser()
   
@@ -78,15 +81,19 @@ export default function Publish() {
   }
 
   const handlePublish = async () => {
-    if (!currentPortfolio) return
-
+    console.log('🚀 Starting publish process...')
+    console.log('Current portfolio:', currentPortfolio)
+    
     const validationErrors = validatePortfolioData()
     if (validationErrors.length > 0) {
+      console.log('❌ Validation failed:', validationErrors)
       setPublishError(`Please complete your portfolio:\n• ${validationErrors.join('\n• ')}`)
       return
     }
 
+    console.log('✅ Validation passed, starting publish...')
     setPublishing(true)
+    setShowLoadingModal(true)
     setPublishError(null)
 
     try {
@@ -102,11 +109,12 @@ export default function Publish() {
           // Create basic portfolio data
           const portfolioData = {
             userId: user?.id || 'default-user-id',
-            templateId: 'gabriel-barzu', // Default template
+            templateName: 'Gabriel Bârzu', // Default template name
             title: 'My Portfolio',
             bio: 'Welcome to my portfolio',
             visibility: 0 as 0 | 1 | 2, // Public
-            isPublished: false // Will be set to true after content is saved
+            isPublished: false, // Will be set to true after content is saved
+            components: JSON.stringify(TemplateManager.createDefaultComponentConfig())
           }
           
           portfolioId = await createPortfolioAndGetId(portfolioData);
@@ -180,11 +188,12 @@ export default function Publish() {
           console.log('No portfolio exists and no draft data. Creating basic portfolio...')
           const portfolioData = {
             userId: user?.id || 'default-user-id',
-            templateId: 'gabriel-barzu', // Default template
+            templateName: 'Gabriel Bârzu', // Default template name
             title: 'My Portfolio',
             bio: 'Welcome to my portfolio',
             visibility: 0 as 0 | 1 | 2, // Public
-            isPublished: true // Publish immediately since no content to add
+            isPublished: true, // Publish immediately since no content to add
+            components: JSON.stringify(TemplateManager.createDefaultComponentConfig())
           }
           
           await createPortfolioAndGetId(portfolioData);
@@ -200,7 +209,8 @@ export default function Publish() {
       }
 
       await refreshUserPortfolios()
-      console.log('Portfolio published successfully')
+      console.log('✅ Portfolio published successfully!')
+      console.log('🎉 All processes completed!')
       
       // Show success message
       setPublishError(null)
@@ -225,7 +235,9 @@ export default function Publish() {
       
       setPublishError(errorMessage)
     } finally {
+      console.log('📝 Cleaning up publish process...')
       setPublishing(false)
+      setShowLoadingModal(false)
     }
   }
 
@@ -292,7 +304,20 @@ export default function Publish() {
                   </TabsContent>
 
                   <TabsContent value="settings" className="space-y-6">
-                    <PortfolioSettings />
+                    <PortfolioSettings 
+                      portfolioId={currentPortfolio?.id}
+                      onSave={async (settingsData) => {
+                        // If no portfolio exists, we'll need to create one or update draft settings
+                        if (!currentPortfolio) {
+                          // TODO: Store settings in draft/temp state for when portfolio is created
+                          return;
+                        }
+                        
+                        // Update existing portfolio
+                        await updatePortfolio(currentPortfolio.id, settingsData);
+                        await refreshUserPortfolios();
+                      }}
+                    />
                   </TabsContent>
                 </Tabs>
               </div>
@@ -313,6 +338,13 @@ export default function Publish() {
           </div>
         </div>
       </div>
+
+      {/* Loading Modal */}
+      <LoadingModal 
+        isOpen={showLoadingModal}
+        title="Publishing Portfolio..."
+        message="Please wait while we publish your portfolio and save all your content. This may take a few moments."
+      />
     </div>
   )
 }    

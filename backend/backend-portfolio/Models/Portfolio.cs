@@ -44,6 +44,9 @@ namespace backend_portfolio.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [Column("components", TypeName = "text")]
+        public string? Components { get; set; }
+
         // Navigation properties
         [ForeignKey("TemplateId")]
         public virtual PortfolioTemplate Template { get; set; } = null!;

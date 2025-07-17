@@ -22,11 +22,11 @@ interface PortfolioResponseDto {
   isPublished: boolean;
   createdAt: string;
   updatedAt: string;
+  components?: string;
   template?: {
     id: string;
     name: string;
     description: string;
-    componentName: string;
     previewImageUrl: string;
     isActive: boolean;
   };
@@ -41,7 +41,6 @@ interface PortfolioTemplateResponseDto {
   id: string;
   name: string;
   description?: string;
-  componentName: string;
   previewImageUrl?: string;
   isActive: boolean;
   createdAt: string;
@@ -51,7 +50,6 @@ interface PortfolioTemplateResponseDto {
 interface PortfolioTemplateRequestDto {
   name: string;
   description?: string;
-  componentName: string;
   previewImageUrl?: string;
   isActive: boolean;
 }
@@ -60,7 +58,6 @@ interface PortfolioTemplateSummaryDto {
   id: string;
   name: string;
   description?: string;
-  componentName: string;
   previewImageUrl?: string;
   isActive: boolean;
 }
@@ -68,7 +65,6 @@ interface PortfolioTemplateSummaryDto {
 interface PortfolioTemplateUpdateDto {
   name?: string;
   description?: string;
-  componentName?: string;
   previewImageUrl?: string;
   isActive?: boolean;
 }
@@ -306,16 +302,18 @@ interface PortfolioSummaryDto {
   isPublished: boolean;
   updatedAt: string;
   createdAt: string;
+  components?: string;
 }
 
 // Request/Update DTOs
 interface PortfolioRequestDto {
   userId: string;
-  templateId: string;
+  templateName: string; // Changed from templateId to templateName
   title: string;
   bio?: string;
   visibility: 0 | 1 | 2;
   isPublished: boolean;
+  components?: string;
 }
 
 interface PortfolioUpdateDto {
@@ -323,6 +321,8 @@ interface PortfolioUpdateDto {
   bio?: string;
   visibility?: 0 | 1 | 2;
   isPublished?: boolean;
+  components?: string;
+  templateName?: string; // Allow updating template by name
 }
 
 // Bulk Portfolio Content DTO
@@ -356,7 +356,8 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
 
 // Helper function to convert backend DTO to frontend interface
 function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromDB {
-  return {
+  
+  const result = {
     portfolio: {
       id: dto.id,
       userId: dto.userId,
@@ -367,6 +368,7 @@ function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromD
       visibility: dto.visibility,
       viewCount: dto.viewCount,
       likeCount: dto.likeCount,
+      components: dto.components ? JSON.parse(dto.components) : undefined,
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt
     },
@@ -436,6 +438,8 @@ function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromD
       updatedAt: post.updatedAt
     }))
   };
+  
+  return result;
 }
 
 // ============= PORTFOLIO API FUNCTIONS =============
@@ -444,6 +448,65 @@ export async function getPortfolioById(portfolioId: string): Promise<PortfolioDa
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`);
   const data = await handleApiResponse<PortfolioResponseDto>(response);
   return convertPortfolioResponse(data);
+}
+
+// Get comprehensive portfolio data for a specific portfolio ID (similar to getUserPortfolioComprehensive but for a single portfolio)
+export async function getPortfolioComprehensive(portfolioId: string): Promise<{
+  portfolio: Portfolio;
+  projects: Project[];
+  experience: Experience[];
+  skills: Skill[];
+  blogPosts: BlogPost[];
+  bookmarks: Bookmark[];
+}> {
+  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`);
+  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  
+  const portfolioData = convertPortfolioResponse(data);
+  
+  console.log('🔄 API - Converted portfolio data:', {
+    portfolio: {
+      id: portfolioData.portfolio.id,
+      title: portfolioData.portfolio.title,
+      templateId: portfolioData.portfolio.templateId
+    },
+    projectsCount: portfolioData.projects.length,
+    experienceCount: portfolioData.experience.length,
+    skillsCount: portfolioData.skills.length,
+    blogPostsCount: portfolioData.blogPosts.length,
+    skills: portfolioData.skills.map(s => ({
+      id: s.id,
+      name: s.name,
+      category: s.category,
+      proficiencyLevel: s.proficiencyLevel
+    }))
+  });
+  
+  // Convert to the format expected by the portfolio context
+  const portfolio: Portfolio = {
+    id: portfolioData.portfolio.id,
+    userId: portfolioData.portfolio.userId,
+    templateId: portfolioData.portfolio.templateId,
+    title: portfolioData.portfolio.title || '',
+    bio: portfolioData.portfolio.bio,
+    visibility: portfolioData.portfolio.visibility,
+    isPublished: portfolioData.portfolio.isPublished,
+    viewCount: portfolioData.portfolio.viewCount,
+    likeCount: portfolioData.portfolio.likeCount,
+    updatedAt: portfolioData.portfolio.updatedAt,
+    components: portfolioData.portfolio.components,
+  };
+
+  const result = {
+    portfolio,
+    projects: portfolioData.projects || [],
+    experience: portfolioData.experience || [],
+    skills: portfolioData.skills || [],
+    blogPosts: portfolioData.blogPosts || [],
+    bookmarks: [], // Bookmarks would need to be fetched separately if available
+  };
+
+  return result;
 }
 
 export async function getPortfoliosByUserId(userId: string): Promise<UserPortfolio[]> {
@@ -460,6 +523,7 @@ export async function getPortfoliosByUserId(userId: string): Promise<UserPortfol
     visibility: dto.visibility,
     viewCount: dto.viewCount,
     likeCount: dto.likeCount,
+    components: dto.components ? JSON.parse(dto.components) : undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt
   }));
@@ -479,6 +543,7 @@ export async function getAllPortfolios(): Promise<UserPortfolio[]> {
     visibility: dto.visibility,
     viewCount: dto.viewCount,
     likeCount: dto.likeCount,
+    components: dto.components ? JSON.parse(dto.components) : undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt
   }));
@@ -498,12 +563,15 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
     visibility: dto.visibility,
     viewCount: dto.viewCount,
     likeCount: dto.likeCount,
+    components: dto.components ? JSON.parse(dto.components) : undefined,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt
   }));
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {
+  console.log('📤 API: Creating portfolio (regular) with data:', portfolioData);
+  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio`, {
     method: 'POST',
     headers: {
@@ -512,6 +580,8 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
     body: JSON.stringify(portfolioData),
   });
   
+  console.log('📤 API: Portfolio creation (regular) response status:', response.status);
+  
   const data = await handleApiResponse<PortfolioResponseDto>(response);
   
   return {
@@ -524,13 +594,15 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
     visibility: data.visibility,
     viewCount: data.viewCount,
     likeCount: data.likeCount,
-    components: [], // Will be populated with default components
+    components: data.components ? JSON.parse(data.components) : undefined,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt
   };
 }
 
 export async function updatePortfolio(portfolioId: string, portfolioData: PortfolioUpdateDto): Promise<UserPortfolio> {
+  console.log('📤 API: Updating portfolio', portfolioId, 'with data:', portfolioData);
+  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
     method: 'PUT',
     headers: {
@@ -539,7 +611,10 @@ export async function updatePortfolio(portfolioId: string, portfolioData: Portfo
     body: JSON.stringify(portfolioData),
   });
   
+  console.log('📤 API: Portfolio update response status:', response.status);
+  
   const data = await handleApiResponse<PortfolioResponseDto>(response);
+  console.log('📤 API: Portfolio update response data:', data);
   
   return {
     id: data.id,
@@ -551,7 +626,7 @@ export async function updatePortfolio(portfolioId: string, portfolioData: Portfo
     visibility: data.visibility,
     viewCount: data.viewCount,
     likeCount: data.likeCount,
-    components: [], // Will be populated with default components
+    components: data.components ? JSON.parse(data.components) : undefined,
     createdAt: data.createdAt,
     updatedAt: data.updatedAt
   };
@@ -860,10 +935,57 @@ export async function deleteBookmark(bookmarkId: string): Promise<boolean> {
   return response.status === 204;
 }
 
-
+// Get comprehensive portfolio data for a user (all portfolios with related entities)
+export async function getUserPortfolioComprehensive(userId: string): Promise<UserPortfolioComprehensive> {
+  const response = await fetch(`${API_BASE_URL}/api/Portfolio/user/${userId}/comprehensive`);
+  
+  if (!response.ok) {
+    // If comprehensive endpoint doesn't exist, fall back to individual calls
+    const portfolios = await getPortfoliosByUserId(userId);
+    const templates = await getActiveTemplates();
+    
+    // For now, return empty arrays for other entities since we don't have direct user-level endpoints
+    // In a real implementation, you'd need to aggregate data from all user's portfolios
+    return {
+      userId,
+      portfolios: portfolios.map(p => ({
+        id: p.id,
+        userId: p.userId,
+        templateId: p.templateId,
+        title: p.title || '',
+        bio: p.bio,
+        viewCount: p.viewCount,
+        likeCount: p.likeCount,
+        visibility: p.visibility,
+        isPublished: p.isPublished,
+        updatedAt: p.updatedAt,
+        components: p.components,
+        template: undefined // Will be populated if needed
+      })),
+      projects: [], // Would need to aggregate from all portfolios
+      experience: [], // Would need to aggregate from all portfolios
+      skills: [], // Would need to aggregate from all portfolios
+      blogPosts: [], // Would need to aggregate from all portfolios
+      bookmarks: [], // Would need to fetch from bookmark service
+      templates: templates.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        previewImageUrl: t.previewImageUrl,
+        isActive: t.isActive,
+        createdAt: '', // Not provided in summary
+        updatedAt: '' // Not provided in summary
+      }))
+    };
+  }
+  
+  return handleApiResponse<UserPortfolioComprehensive>(response);
+}
 
 // Split Bulk Portfolio Creation - First create portfolio, then add content
 export async function createPortfolioAndGetId(portfolioData: PortfolioRequestDto): Promise<string> {
+  console.log('📤 API: Creating portfolio with data:', portfolioData);
+  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/create-and-get-id`, {
     method: 'POST',
     headers: {
@@ -872,7 +994,10 @@ export async function createPortfolioAndGetId(portfolioData: PortfolioRequestDto
     body: JSON.stringify(portfolioData),
   });
   
+  console.log('📤 API: Portfolio creation response status:', response.status);
+  
   const data = await handleApiResponse<{ portfolioId: string }>(response);
+  console.log('📤 API: Portfolio created with ID:', data.portfolioId);
   return data.portfolioId;
 }
 

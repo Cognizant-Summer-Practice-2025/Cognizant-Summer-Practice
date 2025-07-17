@@ -53,7 +53,7 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
       const dataToSave = {
         portfolio: {
           visibility,
-          components
+          components: JSON.stringify(components)
         },
         preferences: {
           allowMessages,
@@ -63,9 +63,14 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
 
       if (onSave) {
         await onSave(dataToSave);
-      } else {
-        // TODO: Implement API call to save portfolio settings
-        console.log('Saving settings:', dataToSave);
+      } else if (portfolioId) {
+        // Implement API call to save portfolio settings
+        const { updatePortfolio } = await import('@/lib/portfolio/api');
+        await updatePortfolio(portfolioId, {
+          visibility,
+          components: JSON.stringify(components)
+        });
+        console.log('Settings saved successfully');
       }
     } catch (err) {
       console.error('Error saving settings:', err);
@@ -75,35 +80,7 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
     }
   };
 
-  const updateComponentVisibility = (componentId: string, isVisible: boolean) => {
-    setComponents(components.map(comp => 
-      comp.id === componentId 
-        ? { ...comp, isVisible }
-        : comp
-    ));
-  };
 
-  const updateComponentOrder = (componentId: string, newOrder: number) => {
-    setComponents(components.map(comp => 
-      comp.id === componentId 
-        ? { ...comp, order: newOrder }
-        : comp
-    ));
-  };
-
-  const reorderComponents = (startIndex: number, endIndex: number) => {
-    const result = Array.from(components);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-
-    // Update order values
-    const reorderedComponents = result.map((comp, index) => ({
-      ...comp,
-      order: index + 1
-    }));
-
-    setComponents(reorderedComponents);
-  };
 
   if (loading && !initialData) {
   return (
@@ -217,9 +194,7 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
         
         <ComponentOrdering
           components={components}
-          onReorder={reorderComponents}
-          onToggleVisibility={updateComponentVisibility}
-          disabled={readOnly || loading}
+          onComponentsChange={setComponents}
         />
       </div>
 

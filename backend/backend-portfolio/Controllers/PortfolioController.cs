@@ -52,12 +52,12 @@ namespace backend_portfolio.Controllers
                 Visibility = p.Visibility,
                 IsPublished = p.IsPublished,
                 UpdatedAt = p.UpdatedAt,
+                Components = p.Components,
                 Template = p.Template != null ? new PortfolioTemplateSummaryDto
                 {
                     Id = p.Template.Id,
                     Name = p.Template.Name,
                     Description = p.Template.Description,
-                    ComponentName = p.Template.ComponentName,
                     PreviewImageUrl = p.Template.PreviewImageUrl,
                     IsActive = p.Template.IsActive
                 } : null
@@ -87,12 +87,13 @@ namespace backend_portfolio.Controllers
                 IsPublished = portfolio.IsPublished,
                 CreatedAt = portfolio.CreatedAt,
                 UpdatedAt = portfolio.UpdatedAt,
+                Components = portfolio.Components,
                 Template = portfolio.Template != null ? new PortfolioTemplateSummaryDto
                 {
                     Id = portfolio.Template.Id,
                     Name = portfolio.Template.Name,
                     Description = portfolio.Template.Description,
-                    ComponentName = portfolio.Template.ComponentName,
+
                     PreviewImageUrl = portfolio.Template.PreviewImageUrl,
                     IsActive = portfolio.Template.IsActive
                 } : null,
@@ -158,12 +159,12 @@ namespace backend_portfolio.Controllers
                 Visibility = p.Visibility,
                 IsPublished = p.IsPublished,
                 UpdatedAt = p.UpdatedAt,
+                Components = p.Components,
                 Template = p.Template != null ? new PortfolioTemplateSummaryDto
                 {
                     Id = p.Template.Id,
                     Name = p.Template.Name,
                     Description = p.Template.Description,
-                    ComponentName = p.Template.ComponentName,
                     PreviewImageUrl = p.Template.PreviewImageUrl,
                     IsActive = p.Template.IsActive
                 } : null
@@ -189,7 +190,8 @@ namespace backend_portfolio.Controllers
                     Visibility = portfolio.Visibility,
                     IsPublished = portfolio.IsPublished,
                     CreatedAt = portfolio.CreatedAt,
-                    UpdatedAt = portfolio.UpdatedAt
+                    UpdatedAt = portfolio.UpdatedAt,
+                    Components = portfolio.Components
                 };
                 return Ok(response);
             }
@@ -316,7 +318,8 @@ namespace backend_portfolio.Controllers
                     Visibility = portfolio.Visibility,
                     IsPublished = portfolio.IsPublished,
                     CreatedAt = portfolio.CreatedAt,
-                    UpdatedAt = portfolio.UpdatedAt
+                    UpdatedAt = portfolio.UpdatedAt,
+                    Components = portfolio.Components
                 };
                 return Ok(response);
             }
@@ -351,12 +354,12 @@ namespace backend_portfolio.Controllers
                 Visibility = p.Visibility,
                 IsPublished = p.IsPublished,
                 UpdatedAt = p.UpdatedAt,
+                Components = p.Components,
                 Template = p.Template != null ? new PortfolioTemplateSummaryDto
                 {
                     Id = p.Template.Id,
                     Name = p.Template.Name,
                     Description = p.Template.Description,
-                    ComponentName = p.Template.ComponentName,
                     PreviewImageUrl = p.Template.PreviewImageUrl,
                     IsActive = p.Template.IsActive
                 } : null
@@ -465,12 +468,12 @@ namespace backend_portfolio.Controllers
                     Visibility = p.Visibility,
                     IsPublished = p.IsPublished,
                     UpdatedAt = p.UpdatedAt,
+                    Components = p.Components,
                     Template = p.Template != null ? new PortfolioTemplateSummaryDto
                     {
                         Id = p.Template.Id,
                         Name = p.Template.Name,
                         Description = p.Template.Description,
-                        ComponentName = p.Template.ComponentName,
                         PreviewImageUrl = p.Template.PreviewImageUrl,
                         IsActive = p.Template.IsActive
                     } : null
@@ -547,7 +550,6 @@ namespace backend_portfolio.Controllers
                     Id = t.Id,
                     Name = t.Name,
                     Description = t.Description,
-                    ComponentName = t.ComponentName,
                     PreviewImageUrl = t.PreviewImageUrl,
                     IsActive = t.IsActive
                 }).ToList();

@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
-import { loadTemplateComponent, getDefaultTemplate } from '@/lib/templates';
+import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
 import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
 
 // Loading component
@@ -79,6 +79,7 @@ const PortfolioPage = () => {
     portfolioLoading, 
     portfolioError, 
     loadPortfolioByUserId,
+    loadPortfolioById,
     clearCurrentPortfolio,
     isViewingOwnPortfolio 
   } = usePortfolio();
@@ -87,6 +88,8 @@ const PortfolioPage = () => {
   const searchParams = useSearchParams();
   const userId = searchParams.get('user');
   const portfolioId = searchParams.get('portfolio');
+  
+
 
   const handleCreatePortfolio = () => {
     router.push('/publish');
@@ -108,26 +111,37 @@ const PortfolioPage = () => {
         visibility: currentPortfolio.visibility,
         viewCount: currentPortfolio.viewCount,
         likeCount: currentPortfolio.likeCount,
-        customConfig: {},
-        components: [], // Would need to be populated from template configuration
+        components: currentPortfolio.components || [],
         createdAt: '', // Not available in new structure
         updatedAt: currentPortfolio.updatedAt,
       },
       profile: {
         id: currentUser?.id || '',
-        name: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '',
-        title: currentUser?.jobTitle || '',
-        bio: currentPortfolio.bio || '',
-        profileImage: currentUser?.profileImageUrl || '',
+        name: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : 'Portfolio Owner',
+        title: currentUser?.professionalTitle || 'Professional',
+        bio: currentPortfolio.bio || 'Welcome to my portfolio',
+        profileImage: currentUser?.avatarUrl || 'https://placehold.co/120x120',
         location: currentUser?.location || '',
-        email: currentUser?.email || '',
+        email: currentUser?.email || 'contact@example.com',
       },
-      stats: [], // Would need to be calculated or configured
+      stats: [
+        { id: '1', label: 'Portfolio Views', value: currentPortfolio.viewCount?.toString() || '0', icon: '👁️' },
+        { id: '2', label: 'Portfolio Likes', value: currentPortfolio.likeCount?.toString() || '0', icon: '❤️' },
+        { id: '3', label: 'Projects', value: currentPortfolioEntities.projects.length.toString(), icon: '🚀' },
+        { id: '4', label: 'Skills', value: currentPortfolioEntities.skills.length.toString(), icon: '🎯' }
+      ],
       contacts: {
-        email: currentUser?.email || '',
-        location: currentUser?.location || '',
+        email: currentUser?.email || 'contact@example.com',
+        location: currentUser?.location || 'Location not specified',
       },
-      quotes: [], // Would need to be configured or fetched separately
+      quotes: [
+        {
+          id: 'default-1',
+          text: currentPortfolio.bio || 'Passionate about creating amazing experiences and solving complex problems.',
+          author: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : 'Portfolio Owner',
+          position: currentUser?.professionalTitle
+        }
+      ],
       experience: currentPortfolioEntities.experience,
       projects: currentPortfolioEntities.projects,
       skills: currentPortfolioEntities.skills,
@@ -141,23 +155,25 @@ const PortfolioPage = () => {
   // Load portfolio data when URL parameters change
   useEffect(() => {
     async function loadPortfolio() {
-      // Clear any existing portfolio when URL changes
-      clearCurrentPortfolio();
-      
-      if (portfolioId) {
-        // For now, portfolioId loading would need to be implemented differently
-        // since we removed loadPortfolioById from context
-        console.warn('Portfolio ID loading not yet implemented with new context structure');
-      } else if (userId) {
-        // Load user's published portfolio
-        await loadPortfolioByUserId(userId, true); // increment views
-      }
+              // Clear any existing portfolio when URL changes
+        clearCurrentPortfolio();
+        
+        if (portfolioId) {
+          // Load portfolio by ID
+          await loadPortfolioById(portfolioId, true); // increment views
+        } else if (userId) {
+          // Load user's published portfolio
+          await loadPortfolioByUserId(userId, true); // increment views
+        }
     }
 
-    if (portfolioId || userId) {
-      loadPortfolio();
-    }
-  }, [portfolioId, userId, loadPortfolioByUserId, clearCurrentPortfolio]);
+          if (portfolioId || userId) {
+        loadPortfolio();
+      } else if (currentUser?.id) {
+        // If no user ID provided but we have a current user, load their portfolio
+        loadPortfolioByUserId(currentUser.id, true);
+      }
+  }, [portfolioId, userId, loadPortfolioByUserId, loadPortfolioById, clearCurrentPortfolio, currentUser]);
 
   // Load template component when portfolio data is available
   useEffect(() => {
@@ -170,8 +186,11 @@ const PortfolioPage = () => {
       try {
         setTemplateLoading(true);
         
-        // Get template ID from portfolio configuration
-        const templateId = currentPortfolio.templateId || getDefaultTemplate().id;
+        // Get template ID from portfolio configuration, converting UUID to string ID if needed
+        const rawTemplateId = currentPortfolio.templateId || getDefaultTemplate().id;
+        const templateId = convertTemplateUuidToId(rawTemplateId);
+        
+
         
         // Load the template component
         const templateModule = await loadTemplateComponent(templateId);
@@ -187,8 +206,10 @@ const PortfolioPage = () => {
     loadTemplate();
   }, [currentPortfolio]);
 
+
+
   // Show loading state
-  if (portfolioLoading || templateLoading) {
+  if (portfolioLoading || templateLoading || !currentPortfolio || !currentPortfolioEntities) {
     return <TemplateLoader />;
   }
 
@@ -207,19 +228,9 @@ const PortfolioPage = () => {
   // Create template data
   const templateData = createPortfolioDataForTemplate();
 
-  // Show general error
+  // Show loading if template data is not ready
   if (!TemplateComponent || !templateData) {
-    return (
-      <div className="portfolio-error">
-        <div className="error-container">
-          <h2>Portfolio Not Found</h2>
-          <p>Unable to load the portfolio data or template.</p>
-          <button onClick={() => window.location.reload()}>
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
+    return <TemplateLoader />;
   }
 
   return (

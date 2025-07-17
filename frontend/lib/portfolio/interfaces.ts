@@ -4,7 +4,6 @@ export interface TemplateConfig {
   name: string;
   description: string;
   previewImage: string;
-  componentName: string;
 }
 
 export interface PortfolioData {
@@ -128,6 +127,7 @@ export interface UserPortfolio {
   visibility: 0 | 1 | 2; // 0=public, 1=private, 2=unlisted
   viewCount: number;
   likeCount: number;
+  components?: ComponentConfig[];
   createdAt: string;
   updatedAt: string;
 }
@@ -170,7 +170,6 @@ export interface PortfolioTemplate {
   id: string;
   name: string;
   description?: string;
-  componentName: string;
   previewImageUrl?: string;
   isActive: boolean;
   createdAt: string;
@@ -188,6 +187,7 @@ export interface Portfolio {
   visibility: 0 | 1 | 2; // 0=public, 1=private, 2=unlisted
   isPublished: boolean;
   updatedAt: string;
+  components?: ComponentConfig[];
   template?: PortfolioTemplate;
 }
 

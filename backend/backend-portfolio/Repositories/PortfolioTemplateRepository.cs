@@ -31,7 +31,6 @@ namespace backend_portfolio.Repositories
                 Id = Guid.NewGuid(),
                 Name = request.Name,
                 Description = request.Description,
-                ComponentName = request.ComponentName,
                 PreviewImageUrl = request.PreviewImageUrl,
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
@@ -50,7 +49,6 @@ namespace backend_portfolio.Repositories
 
             if (request.Name != null) template.Name = request.Name;
             if (request.Description != null) template.Description = request.Description;
-            if (request.ComponentName != null) template.ComponentName = request.ComponentName;
             if (request.PreviewImageUrl != null) template.PreviewImageUrl = request.PreviewImageUrl;
             if (request.IsActive.HasValue) template.IsActive = request.IsActive.Value;
             template.UpdatedAt = DateTime.UtcNow;

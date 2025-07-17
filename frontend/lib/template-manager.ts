@@ -13,9 +13,11 @@ export class TemplateManager {
 
   // Get visible components sorted by order
   getVisibleComponents(components: ComponentConfig[]): ComponentConfig[] {
-    return components
+    const visibleComponents = components
       .filter(component => component.isVisible)
       .sort((a, b) => a.order - b.order);
+
+    return visibleComponents;
   }
 
   // Get component by type
@@ -25,7 +27,7 @@ export class TemplateManager {
 
   // Render components dynamically
   renderComponents(portfolioData: PortfolioDataFromDB) {
-    const visibleComponents = this.getVisibleComponents(portfolioData.portfolio.components);
+    const visibleComponents = this.getVisibleComponents(portfolioData.portfolio.components || []);
     
     return visibleComponents.map((componentConfig) => {
       const Component = this.getComponent(componentConfig.type);
