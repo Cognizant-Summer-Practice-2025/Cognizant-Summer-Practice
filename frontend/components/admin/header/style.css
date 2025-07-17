@@ -1,5 +1,5 @@
 .admin-header {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   right: 0;
@@ -78,6 +78,56 @@
   flex-shrink: 0;
 }
 
+/* Navigation Tabs */
+.admin-nav-tabs {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+
+.nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-tab:hover {
+  color: #3b82f6;
+  background-color: #e0f2fe;
+}
+
+.nav-tab.active {
+  color: #3b82f6;
+  background-color: white;
+}
+
+.nav-tab-icon {
+  font-size: 1rem;
+}
+
+.nav-tab-text {
+  display: inline;
+}
+
 /* Responsive breakpoints */
 @media (max-width: 1024px) {
   .admin-header-content {
@@ -86,6 +136,11 @@
   
   .admin-nav {
     gap: 1rem;
+  }
+  
+  .nav-tab {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -96,13 +151,33 @@
   }
   
   .admin-nav {
-    display: none; /* Hide navigation on mobile */
+    display: none; /* Hide old navigation on mobile */
   }
+  
+  .nav-tab {
+    padding: 0.5rem;
+    gap: 0;
+    min-width: 2.5rem;
+    justify-content: center;
+  }
+  
+  .nav-tab-text {
+    display: none; /* Hide text on mobile */
+  }
+  
+  .nav-tab-icon {
+    font-size: 1.1rem;
+  }
+
   
   .view-site-btn {
     padding: 0.5rem;
     min-width: 2.5rem;
     justify-content: center;
+  }
+  
+  .view-site-btn .anticon + span {
+    display: none; /* Hide "View Site" text on mobile */
   }
 }
 
@@ -120,4 +195,62 @@
     width: 1.75rem;
     height: 1.75rem;
   }
+  
+  .nav-tab {
+    padding: 0.375rem;
+    gap: 0;
+    min-width: 2rem;
+    justify-content: center;
+  }
+  
+  .nav-tab-text {
+    display: none; /* Hide text on small mobile */
+  }
+  
+  .nav-tab-icon {
+    font-size: 1rem;
+  }
+  
+  .admin-logo h2 {
+    font-size: 1rem;
+  }
+}
+
+/* Dark mode support */
+.dark .admin-header {
+  background-color: #1f2937;
+  border-bottom-color: #374151;
+}
+
+.dark .admin-logo h2 {
+  color: #f9fafb;
+}
+
+.dark .nav-tabs {
+  background-color: #374151;
+}
+
+.dark .nav-tab {
+  color: #d1d5db;
+}
+
+.dark .nav-tab:hover {
+  color: #60a5fa;
+  background-color: #4b5563;
+}
+
+.dark .nav-tab.active {
+  color: #60a5fa;
+  background-color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .view-site-btn {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark .nav-tab-icon {
+  color: inherit;
 }

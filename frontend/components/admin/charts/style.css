@@ -1,0 +1,78 @@
+.charts-section {
+  width: 100%;
+  max-width: 80rem;
+  margin: 2rem 0;
+  align-self: center;
+}
+
+.charts-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.charts-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.charts-header p {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.chart-full-width {
+  grid-column: span 2;
+}
+
+.chart-half-width {
+  grid-column: span 1;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .chart-full-width,
+  .chart-half-width {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .charts-section {
+    margin: 1rem 0;
+  }
+  
+  .charts-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .charts-header p {
+    font-size: 0.875rem;
+  }
+  
+  .charts-grid {
+    gap: 0.75rem;
+  }
+}
+
+/* Dark mode support */
+.dark .charts-header h2 {
+  color: #f9fafb;
+}
+
+.dark .charts-header p {
+  color: #d1d5db;
+} 
