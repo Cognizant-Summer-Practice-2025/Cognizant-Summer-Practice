@@ -10,8 +10,6 @@ namespace backend_portfolio.DTO
         public Guid TemplateId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? Bio { get; set; }
-        public string? CustomConfig { get; set; }
-        public string? CustomSections { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
         public Visibility Visibility { get; set; }
@@ -32,8 +30,6 @@ namespace backend_portfolio.DTO
         public Guid TemplateId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? Bio { get; set; }
-        public string? CustomConfig { get; set; }
-        public string? CustomSections { get; set; }
         public Visibility Visibility { get; set; } = Visibility.Public;
         public bool IsPublished { get; set; } = false;
     }
@@ -57,12 +53,44 @@ namespace backend_portfolio.DTO
     // Portfolio Update DTO
     public class PortfolioUpdateDto
     {
-        public Guid? TemplateId { get; set; }
         public string? Title { get; set; }
         public string? Bio { get; set; }
-        public string? CustomConfig { get; set; }
-        public string? CustomSections { get; set; }
         public Visibility? Visibility { get; set; }
         public bool? IsPublished { get; set; }
+    }
+
+    // Bulk Portfolio Content DTO for publishing
+    public class BulkPortfolioContentDto
+    {
+        public Guid PortfolioId { get; set; }
+        public List<ProjectRequestDto>? Projects { get; set; }
+        public List<ExperienceRequestDto>? Experience { get; set; }
+        public List<SkillRequestDto>? Skills { get; set; }
+        public List<BlogPostRequestDto>? BlogPosts { get; set; }
+        public bool PublishPortfolio { get; set; } = true;
+    }
+
+    // Bulk Portfolio Response DTO
+    public class BulkPortfolioResponseDto
+    {
+        public string Message { get; set; } = string.Empty;
+        public int ProjectsCreated { get; set; }
+        public int ExperienceCreated { get; set; }
+        public int SkillsCreated { get; set; }
+        public int BlogPostsCreated { get; set; }
+        public bool PortfolioPublished { get; set; }
+    }
+
+    // User Portfolio Comprehensive DTO (includes all portfolio data for a user)
+    public class UserPortfolioComprehensiveDto
+    {
+        public Guid UserId { get; set; }
+        public List<PortfolioSummaryDto> Portfolios { get; set; } = new();
+        public List<ProjectResponseDto> Projects { get; set; } = new();
+        public List<ExperienceResponseDto> Experience { get; set; } = new();
+        public List<SkillResponseDto> Skills { get; set; } = new();
+        public List<BlogPostResponseDto> BlogPosts { get; set; } = new();
+        public List<BookmarkResponseDto> Bookmarks { get; set; } = new();
+        public List<PortfolioTemplateSummaryDto> Templates { get; set; } = new();
     }
 }

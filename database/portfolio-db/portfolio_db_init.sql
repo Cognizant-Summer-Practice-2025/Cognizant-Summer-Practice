@@ -1,30 +1,25 @@
 -- Enum values stored as integers for Entity Framework compatibility
 -- visibility: 0=Public, 1=Private, 2=Unlisted
 
--- Portfolio Templates table
+-- Simplified Portfolio Templates table
 CREATE TABLE portfolio_templates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     description TEXT,
     component_name VARCHAR(100) NOT NULL,
     preview_image_url TEXT,
-    default_config JSONB DEFAULT '{}',
-    default_sections JSONB DEFAULT '[]',
-    customizable_options JSONB DEFAULT '{}',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- Portfolios table
+-- Simplified Portfolios table
 CREATE TABLE portfolios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     template_id UUID NOT NULL REFERENCES portfolio_templates(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     bio TEXT,
-    custom_config JSONB DEFAULT '{}',
-    custom_sections JSONB DEFAULT '[]',
     view_count INTEGER NOT NULL DEFAULT 0,
     like_count INTEGER NOT NULL DEFAULT 0,
     visibility INTEGER NOT NULL DEFAULT 0,

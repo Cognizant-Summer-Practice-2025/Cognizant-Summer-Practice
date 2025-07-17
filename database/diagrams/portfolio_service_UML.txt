@@ -12,8 +12,6 @@ entity "portfolios" as portfolios {
   FOREIGN_KEY(template_id) : UUID
   title : VARCHAR
   bio : TEXT
-  custom_config : JSONB
-  custom_sections : JSONB
   view_count : INTEGER
   like_count : INTEGER
   visibility : INTEGER
@@ -32,9 +30,6 @@ entity "portfolio_templates" as templates {
   description : TEXT
   component_name : VARCHAR
   preview_image_url : TEXT
-  default_config : JSONB
-  default_sections : JSONB
-  customizable_options : JSONB
   is_active : BOOLEAN
   created_at : TIMESTAMP
   updated_at : TIMESTAMP

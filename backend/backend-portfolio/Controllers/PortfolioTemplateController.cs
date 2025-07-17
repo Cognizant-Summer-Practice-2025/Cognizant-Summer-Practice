@@ -28,9 +28,6 @@ namespace backend_portfolio.Controllers
                 Description = t.Description,
                 ComponentName = t.ComponentName,
                 PreviewImageUrl = t.PreviewImageUrl,
-                DefaultConfig = t.DefaultConfig,
-                DefaultSections = t.DefaultSections,
-                CustomizableOptions = t.CustomizableOptions,
                 IsActive = t.IsActive,
                 CreatedAt = t.CreatedAt,
                 UpdatedAt = t.UpdatedAt
@@ -54,29 +51,10 @@ namespace backend_portfolio.Controllers
                 Description = template.Description,
                 ComponentName = template.ComponentName,
                 PreviewImageUrl = template.PreviewImageUrl,
-                DefaultConfig = template.DefaultConfig,
-                DefaultSections = template.DefaultSections,
-                CustomizableOptions = template.CustomizableOptions,
                 IsActive = template.IsActive,
                 CreatedAt = template.CreatedAt,
                 UpdatedAt = template.UpdatedAt
             };
-            return Ok(response);
-        }
-
-        [HttpGet("active")]
-        public async Task<IActionResult> GetActiveTemplates()
-        {
-            var templates = await _templateRepository.GetActiveTemplatesAsync();
-            var response = templates.Select(t => new PortfolioTemplateSummaryDto
-            {
-                Id = t.Id,
-                Name = t.Name,
-                Description = t.Description,
-                ComponentName = t.ComponentName,
-                PreviewImageUrl = t.PreviewImageUrl,
-                IsActive = t.IsActive
-            });
             return Ok(response);
         }
 
@@ -93,9 +71,6 @@ namespace backend_portfolio.Controllers
                     Description = template.Description,
                     ComponentName = template.ComponentName,
                     PreviewImageUrl = template.PreviewImageUrl,
-                    DefaultConfig = template.DefaultConfig,
-                    DefaultSections = template.DefaultSections,
-                    CustomizableOptions = template.CustomizableOptions,
                     IsActive = template.IsActive,
                     CreatedAt = template.CreatedAt,
                     UpdatedAt = template.UpdatedAt
@@ -124,9 +99,6 @@ namespace backend_portfolio.Controllers
                     Description = template.Description,
                     ComponentName = template.ComponentName,
                     PreviewImageUrl = template.PreviewImageUrl,
-                    DefaultConfig = template.DefaultConfig,
-                    DefaultSections = template.DefaultSections,
-                    CustomizableOptions = template.CustomizableOptions,
                     IsActive = template.IsActive,
                     CreatedAt = template.CreatedAt,
                     UpdatedAt = template.UpdatedAt

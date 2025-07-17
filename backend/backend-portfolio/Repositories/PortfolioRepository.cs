@@ -57,8 +57,6 @@ namespace backend_portfolio.Repositories
                 TemplateId = request.TemplateId,
                 Title = request.Title,
                 Bio = request.Bio,
-                CustomConfig = request.CustomConfig,
-                CustomSections = request.CustomSections,
                 Visibility = request.Visibility,
                 IsPublished = request.IsPublished,
                 CreatedAt = DateTime.UtcNow,
@@ -75,12 +73,9 @@ namespace backend_portfolio.Repositories
             var portfolio = await _context.Portfolios.FindAsync(id);
             if (portfolio == null) return null;
 
-            if (request.TemplateId.HasValue) portfolio.TemplateId = request.TemplateId.Value;
             if (request.Title != null) portfolio.Title = request.Title;
             if (request.Bio != null) portfolio.Bio = request.Bio;
-            if (request.CustomConfig != null) portfolio.CustomConfig = request.CustomConfig;
-            if (request.CustomSections != null) portfolio.CustomSections = request.CustomSections;
-            if (request.Visibility.HasValue) portfolio.Visibility = request.Visibility.Value;
+            if (request.Visibility.HasValue) portfolio.Visibility = (Visibility)request.Visibility.Value;
             if (request.IsPublished.HasValue) portfolio.IsPublished = request.IsPublished.Value;
             portfolio.UpdatedAt = DateTime.UtcNow;
 

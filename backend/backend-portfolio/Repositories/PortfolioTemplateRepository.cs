@@ -33,9 +33,6 @@ namespace backend_portfolio.Repositories
                 Description = request.Description,
                 ComponentName = request.ComponentName,
                 PreviewImageUrl = request.PreviewImageUrl,
-                DefaultConfig = request.DefaultConfig,
-                DefaultSections = request.DefaultSections,
-                CustomizableOptions = request.CustomizableOptions,
                 IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -55,9 +52,6 @@ namespace backend_portfolio.Repositories
             if (request.Description != null) template.Description = request.Description;
             if (request.ComponentName != null) template.ComponentName = request.ComponentName;
             if (request.PreviewImageUrl != null) template.PreviewImageUrl = request.PreviewImageUrl;
-            if (request.DefaultConfig != null) template.DefaultConfig = request.DefaultConfig;
-            if (request.DefaultSections != null) template.DefaultSections = request.DefaultSections;
-            if (request.CustomizableOptions != null) template.CustomizableOptions = request.CustomizableOptions;
             if (request.IsActive.HasValue) template.IsActive = request.IsActive.Value;
             template.UpdatedAt = DateTime.UtcNow;
 

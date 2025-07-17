@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace backend_portfolio.Models
 {
@@ -25,15 +26,6 @@ namespace backend_portfolio.Models
 
         [Column("preview_image_url", TypeName = "text")]
         public string? PreviewImageUrl { get; set; }
-
-        [Column("default_config", TypeName = "jsonb")]
-        public string? DefaultConfig { get; set; }
-
-        [Column("default_sections", TypeName = "jsonb")]
-        public string? DefaultSections { get; set; }
-
-        [Column("customizable_options", TypeName = "jsonb")]
-        public string? CustomizableOptions { get; set; }
 
         [Column("is_active")]
         public bool IsActive { get; set; } = true;

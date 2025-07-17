@@ -57,8 +57,8 @@ export interface Experience {
   startDate: string;
   endDate?: string;
   isCurrent: boolean;
-  description: string;
-  skillsUsed: string[];
+  description?: string;
+  skillsUsed?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -67,11 +67,11 @@ export interface Project {
   id: string;
   portfolioId: string;
   title: string;
-  description: string;
-  imageUrl: string;
+  description?: string;
+  imageUrl?: string;
   demoUrl?: string;
   githubUrl?: string;
-  technologies: string[];
+  technologies?: string[];
   featured: boolean;
   createdAt: string;
   updatedAt: string;
@@ -81,9 +81,9 @@ export interface Skill {
   id: string;
   portfolioId: string;
   name: string;
-  category: string;
-  proficiencyLevel: number; // 1-100
-  displayOrder: number;
+  category?: string;
+  proficiencyLevel?: number; // 1-100
+  displayOrder?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -99,10 +99,10 @@ export interface BlogPost {
   id: string;
   portfolioId: string;
   title: string;
-  excerpt: string;
-  content: string;
+  excerpt?: string;
+  content?: string;
   featuredImageUrl?: string;
-  tags: string[];
+  tags?: string[];
   isPublished: boolean;
   publishedAt?: string;
   createdAt: string;
@@ -128,8 +128,6 @@ export interface UserPortfolio {
   visibility: 0 | 1 | 2; // 0=public, 1=private, 2=unlisted
   viewCount: number;
   likeCount: number;
-  customConfig?: Record<string, unknown>;
-  components: ComponentConfig[];
   createdAt: string;
   updatedAt: string;
 }
@@ -155,4 +153,51 @@ export interface PortfolioDataFromDB {
   skills: Skill[];
   socialLinks: SocialLink[];
   blogPosts: BlogPost[];
+}
+
+export interface Bookmark {
+  id: string;
+  portfolioId: string;
+  title: string;
+  url: string;
+  description?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PortfolioTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  componentName: string;
+  previewImageUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Portfolio {
+  id: string;
+  userId: string;
+  templateId: string;
+  title: string;
+  bio?: string;
+  viewCount: number;
+  likeCount: number;
+  visibility: 0 | 1 | 2; // 0=public, 1=private, 2=unlisted
+  isPublished: boolean;
+  updatedAt: string;
+  template?: PortfolioTemplate;
+}
+
+export interface UserPortfolioComprehensive {
+  userId: string;
+  portfolios: Portfolio[];
+  projects: Project[];
+  experience: Experience[];
+  skills: Skill[];
+  blogPosts: BlogPost[];
+  bookmarks: Bookmark[];
+  templates: PortfolioTemplate[];
 }
