@@ -184,6 +184,7 @@
 @media (max-width: 480px) {
   .admin-header-content {
     height: 3rem;
+    padding-top: 1rem;
     padding: 0 0.5rem;
   }
   
