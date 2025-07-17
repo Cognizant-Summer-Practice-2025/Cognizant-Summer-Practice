@@ -62,7 +62,7 @@ export default function Header() {
 
           {/* Logo */}
           <div className="flex items-center ml-2 lg:ml-0">
-            <Link href="/" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
+            <Link href="/home" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
               GoalKeeper
             </Link>
           </div>
@@ -97,11 +97,15 @@ export default function Header() {
           {/* Right side items - Hidden on mobile */}
           <div className="hidden lg:flex items-center gap-4">
             {/* Message Icon */}
-            <div className="p-2 rounded-lg flex flex-col justify-center items-center">
+            <button
+              className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-transform transition-colors active:scale-90 duration-150"
+              onClick={() => router.push('/messages')}
+              aria-label="Messages"
+            >
               <div className="flex justify-center items-start">
-                <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B]" />
+              <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B] group-hover:text-[#2563EB] transition-colors" />
               </div>
-            </div>
+            </button>
 
             {/* Publish Button */}
             <Button 

@@ -1,0 +1,181 @@
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+  min-height: 4rem;
+}
+
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1rem);
+}
+
+.contact-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.125rem, 0.25vw, 0.25rem);
+}
+
+.contact-name {
+  color: #1f2937;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.contact-status {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.25rem, 0.5vw, 0.5rem);
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+}
+
+.contact-role {
+  color: #6b7280;
+}
+
+.status-separator {
+  color: #6b7280;
+}
+
+.online-status {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.25rem, 0.5vw, 0.375rem);
+  font-weight: 500;
+}
+
+.online-status.online {
+  color: #22c55e;
+}
+
+.online-status.offline {
+  color: #6b7280;
+}
+
+.status-dot {
+  width: clamp(0.5rem, 1vw, 0.625rem);
+  height: clamp(0.5rem, 1vw, 0.625rem);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.online-status.online .status-dot {
+  background-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.online-status.offline .status-dot {
+  background-color: #6b7280;
+}
+
+.chat-header-right {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+}
+
+.view-profile-btn {
+  padding: clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 2vw, 1rem);
+  border: 1px solid #e5e7eb;
+  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
+  background: white;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.375rem, 0.75vw, 0.5rem);
+  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+  font-family: 'Inter', sans-serif;
+  height: auto;
+  transition: all 0.2s ease;
+}
+
+.view-profile-btn:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  color: #1f2937;
+}
+
+.more-options-btn {
+  padding: clamp(0.625rem, 1.25vw, 0.75rem);
+  border: 1px solid #e5e7eb;
+  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
+  background: white;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2.25rem, 4vw, 2.75rem);
+  height: clamp(2.25rem, 4vw, 2.75rem);
+  transition: all 0.2s ease;
+}
+
+.more-options-btn:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  color: #1f2937;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chat-header {
+    padding: 1rem;
+  }
+  
+  .view-profile-btn span {
+    display: none; /* Hide text on mobile, show only icon */
+  }
+  
+  .contact-name {
+    font-size: 0.875rem;
+  }
+  
+  .contact-status {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-header-left {
+    gap: 0.75rem;
+  }
+  
+  .chat-header-right {
+    gap: 0.5rem;
+  }
+}
+
+/* Custom dropdown styles */
+.ant-dropdown-menu {
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.ant-dropdown-menu-item {
+  padding: 0.75rem 1rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+}
+
+.ant-dropdown-menu-item:hover {
+  background-color: #f3f4f6;
+}
+
+.ant-dropdown-menu-item-danger:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
