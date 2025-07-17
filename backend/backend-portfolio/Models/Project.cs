@@ -15,7 +15,7 @@ namespace backend_portfolio.Models
         public Guid PortfolioId { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [StringLength(255)]
         [Column("title")]
         public string Title { get; set; } = string.Empty;
 

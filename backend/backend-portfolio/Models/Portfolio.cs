@@ -14,21 +14,17 @@ namespace backend_portfolio.Models
         [Column("user_id")]
         public Guid UserId { get; set; }
 
+        [Required]
         [Column("template_id")]
-        public Guid? TemplateId { get; set; }
+        public Guid TemplateId { get; set; }
 
-        [StringLength(200)]
+        [Required]
+        [StringLength(255)]
         [Column("title")]
-        public string? Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Column("bio", TypeName = "text")]
         public string? Bio { get; set; }
-
-        [Column("custom_config", TypeName = "jsonb")]
-        public string? CustomConfig { get; set; }
-
-        [Column("custom_sections", TypeName = "jsonb")]
-        public string? CustomSections { get; set; }
 
         [Column("view_count")]
         public int ViewCount { get; set; } = 0;
@@ -48,9 +44,12 @@ namespace backend_portfolio.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [Column("components", TypeName = "text")]
+        public string? Components { get; set; }
+
         // Navigation properties
         [ForeignKey("TemplateId")]
-        public virtual PortfolioTemplate? Template { get; set; }
+        public virtual PortfolioTemplate Template { get; set; } = null!;
         public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
         public virtual ICollection<Experience> Experience { get; set; } = new List<Experience>();
         public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();

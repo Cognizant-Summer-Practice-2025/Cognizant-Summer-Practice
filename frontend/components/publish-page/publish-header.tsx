@@ -1,10 +1,25 @@
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
-export function PublishHeader() {
+interface PublishHeaderProps {
+  onPublish: () => Promise<void>
+  publishing: boolean
+}
+
+export function PublishHeader({ onPublish, publishing }: PublishHeaderProps) {
+  const router = useRouter()
+
+  const handleBack = () => {
+    router.push('/profile')
+  }
+
   return (
     <div className="w-full px-4 py-3 md:px-6 md:py-4 lg:px-8 bg-white border-b border-slate-200 flex justify-between items-center">
       <div className="flex flex-col justify-start items-start">
-        <button className="px-2 py-2 flex justify-center items-center hover:bg-slate-50 rounded-md transition-colors">
+        <button 
+          onClick={handleBack}
+          className="px-2 py-2 flex justify-center items-center hover:bg-slate-50 rounded-md transition-colors"
+        >
           <span className="text-slate-900 text-sm font-normal">← Back</span>
         </button>
       </div>
@@ -30,10 +45,23 @@ export function PublishHeader() {
           </span>
         </Button>
         
-        <Button className="px-2 py-2 sm:px-3 md:px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm">
+        <Button 
+          onClick={onPublish}
+          disabled={publishing}
+          className="px-2 py-2 sm:px-3 md:px-4 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs sm:text-sm"
+        >
           <span className="text-white font-normal">
-            <span className="hidden sm:inline">🌐 Publish</span>
-            <span className="sm:hidden">🌐</span>
+            {publishing ? (
+              <>
+                <span className="hidden sm:inline">⏳ Publishing...</span>
+                <span className="sm:hidden">⏳</span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">🌐 Publish</span>
+                <span className="sm:hidden">🌐</span>
+              </>
+            )}
           </span>
         </Button>
       </div>

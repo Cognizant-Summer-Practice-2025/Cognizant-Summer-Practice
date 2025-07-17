@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using backend_user.Models;
+using System;
 
 namespace backend_user.Data
 {
     public class UserDbContext : DbContext
     {
         public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
-        {
+        {   
+            
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,6 +31,9 @@ namespace backend_user.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(o => new { o.Provider, o.ProviderId }).IsUnique();
+                
+                entity.Property(o => o.Provider)
+                    .HasConversion<int>();
             });
 
             // Configure Newsletter entity
@@ -69,6 +74,15 @@ namespace backend_user.Data
 
                 entity.HasIndex(ur => new { ur.ReportedService, ur.ReportedId });
                 entity.HasIndex(ur => ur.Status);
+                
+                entity.Property(ur => ur.ReportedType)
+                    .HasConversion<int>();
+                    
+                entity.Property(ur => ur.ReportType)
+                    .HasConversion<int>();
+                    
+                entity.Property(ur => ur.Status)
+                    .HasConversion<int>();
             });
         }
 

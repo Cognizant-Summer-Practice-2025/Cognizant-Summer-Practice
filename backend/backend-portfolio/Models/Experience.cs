@@ -15,12 +15,12 @@ namespace backend_portfolio.Models
         public Guid PortfolioId { get; set; }
 
         [Required]
-        [StringLength(100)]
+        [StringLength(255)]
         [Column("job_title")]
         public string JobTitle { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(255)]
         [Column("company_name")]
         public string CompanyName { get; set; } = string.Empty;
 

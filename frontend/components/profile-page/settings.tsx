@@ -1,173 +1,226 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ComponentOrdering } from "@/components/ui/component-ordering"
+import { ComponentConfig } from '@/lib/portfolio';
+import { TemplateManager } from '@/lib/template-manager';
 
-export default function Settings() {
-  const [portfolioVisibility, setPortfolioVisibility] = useState("Public");
-  const [allowMessages, setAllowMessages] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
+interface SettingsProps {
+  portfolioId?: string;
+  initialData?: {
+    portfolio?: {
+      visibility?: number;
+      templateId?: string;
+      components?: ComponentConfig[];
+    };
+    allowMessages?: boolean;
+    emailNotifications?: boolean;
+  };
+  onSave?: (data: any) => void;
+  readOnly?: boolean;
+}
+
+export default function Settings({ portfolioId, initialData, onSave, readOnly = false }: SettingsProps = {}) {
+  const [visibility, setVisibility] = useState(initialData?.portfolio?.visibility ?? 0);
+  const [allowMessages, setAllowMessages] = useState(initialData?.allowMessages ?? true);
+  const [emailNotifications, setEmailNotifications] = useState(initialData?.emailNotifications ?? true);
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Use provided component configuration or create default
+  const [components, setComponents] = useState<ComponentConfig[]>(
+    initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig()
+  );
 
-  const visibilityOptions = ["Public", "Private", "Friends Only"];
+  const visibilityOptions = [
+    { value: 0, label: "Public" },
+    { value: 1, label: "Private" }, 
+    { value: 2, label: "Unlisted" }
+  ];
 
-  const handleDeleteAccount = () => {
-    alert("ERROR");
+  const handleSave = async () => {
+    if (!portfolioId && !onSave) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const dataToSave = {
+        portfolio: {
+          visibility,
+          components: JSON.stringify(components)
+        },
+        preferences: {
+          allowMessages,
+          emailNotifications
+        }
+      };
+
+      if (onSave) {
+        await onSave(dataToSave);
+      } else if (portfolioId) {
+        // Implement API call to save portfolio settings
+        const { updatePortfolio } = await import('@/lib/portfolio/api');
+        await updatePortfolio(portfolioId, {
+          visibility,
+          components: JSON.stringify(components)
+        });
+        console.log('Settings saved successfully');
+      }
+    } catch (err) {
+      console.error('Error saving settings:', err);
+      setError('Failed to save settings');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] overflow-hidden">
-      <div className="flex flex-col gap-4 sm:gap-6">
-        
-        <div className="flex flex-col">
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#020817] leading-tight sm:leading-[38.4px] mb-1">
-            Settings
-          </h1>
-          <p className="text-sm text-[#64748B] leading-[22.4px]">
-            Manage your account preferences
-          </p>
-        </div>
 
-        <div className="w-full max-w-[800px] flex flex-col gap-6 sm:gap-8">
-          {/* Privacy Section */}
-          <div className="border border-[#E2E8F0] rounded-lg p-0 relative">
-            <div className="p-4 sm:p-6 pb-0">
-              <h2 className="text-base sm:text-lg font-semibold text-[#020817] leading-tight sm:leading-[28.8px] mb-4">
-                Privacy
-              </h2>
+
+  if (loading && !initialData) {
+  return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold mb-4">Settings</h2>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-2">Loading settings...</span>
+        </div>
             </div>
-            
-            {/* Portfolio Visibility */}
-            <div className="px-4 sm:px-6 py-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-              <div className="flex flex-col gap-[3px] flex-1">
-                <div className="pb-[0.59px]">
-                  <h3 className="text-sm sm:text-base font-medium text-[#020817] leading-tight sm:leading-[25.6px]">
-                    Portfolio Visibility
-                  </h3>
-                </div>
-                <p className="text-xs sm:text-sm text-[#64748B] leading-[22.4px]">
-                  Control who can see your portfolio
-                </p>
-              </div>
-              <div className="relative w-full sm:w-auto">
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold mb-4">Settings</h2>
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
                 <button
-                  onClick={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
-                  className="flex items-center justify-between w-full sm:w-auto gap-3 bg-white border border-[#E2E8F0] rounded-lg px-4 sm:px-5 py-3 text-sm text-[#020817] leading-4 hover:bg-gray-50"
-                >
-                  {portfolioVisibility}
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                {showVisibilityDropdown && (
-                  <div className="absolute top-full mt-1 right-0 bg-white border border-[#E2E8F0] rounded-lg shadow-lg z-10 min-w-[120px] w-full sm:w-auto">
-                    {visibilityOptions.map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => {
-                          setPortfolioVisibility(option);
-                          setShowVisibilityDropdown(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-[#020817] hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+            onClick={() => setError(null)}
+            className="ml-2 text-red-500 hover:text-red-700"
                       >
-                        {option}
+            ×
                       </button>
-                    ))}
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Allow Messages */}
-            <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-              <div className="flex flex-col gap-[3px] flex-1">
-                <div className="pb-[0.59px]">
-                  <h3 className="text-sm sm:text-base font-medium text-[#020817] leading-tight sm:leading-[25.6px]">
-                    Allow Messages
-                  </h3>
-                </div>
-                <p className="text-xs sm:text-sm text-[#64748B] leading-[22.4px]">
-                  Let other users send you messages
-                </p>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setAllowMessages(!allowMessages)}
-                  className={`w-11 h-6 rounded-full transition-colors ${
-                    allowMessages ? "bg-[#2563EB]" : "bg-gray-300"
-                  }`}
-                >
-                  <div
-                    className={`w-[18px] h-[18px] bg-white rounded-full transition-transform ${
-                      allowMessages ? "translate-x-[23px]" : "translate-x-[3px]"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Notifications Section */}
-          <div className="border border-[#E2E8F0] rounded-lg p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold text-[#020817] leading-tight sm:leading-[28.8px] mb-4">
-              Notifications
-            </h2>
-            
-            <div className="pt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-              <div className="flex flex-col gap-[3px] flex-1">
-                <div className="pb-[0.59px]">
-                  <h3 className="text-sm sm:text-base font-medium text-[#020817] leading-tight sm:leading-[25.6px]">
-                    Email Notifications
-                  </h3>
-                </div>
-                <p className="text-xs sm:text-sm text-[#64748B] leading-[22.4px]">
-                  Receive email updates
-                </p>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setEmailNotifications(!emailNotifications)}
-                  className={`w-11 h-6 rounded-full transition-colors ${
-                    emailNotifications ? "bg-[#2563EB]" : "bg-gray-300"
-                  }`}
-                >
-                  <div
-                    className={`w-[18px] h-[18px] bg-white rounded-full transition-transform ${
-                      emailNotifications ? "translate-x-[23px]" : "translate-x-[3px]"
-                    }`}
-                  />
-                </button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Portfolio Settings */}
+        <div className="bg-white p-6 rounded-lg border">
+          <h3 className="text-lg font-medium mb-4">Portfolio Settings</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="visibility">Portfolio Visibility</Label>
+              <Select 
+                value={visibility.toString()} 
+                onValueChange={(value) => setVisibility(parseInt(value))}
+                disabled={readOnly || loading}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {visibilityOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-500 mt-1">
+                {visibility === 0 && "Anyone can view your portfolio"}
+                {visibility === 1 && "Only you can view your portfolio"}
+                {visibility === 2 && "Only people with the link can view"}
+              </p>
               </div>
             </div>
           </div>
 
-          {/* Delete Section */}
-          <div className="border border-[rgba(239,68,68,0.3)] rounded-lg p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold text-[#EF4444] leading-tight sm:leading-[28.8px] mb-4">
-              Delete
-            </h2>
+        {/* Notification Settings */}
+        <div className="bg-white p-6 rounded-lg border">
+          <h3 className="text-lg font-medium mb-4">Notification Settings</h3>
             
-            <div className="pt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-              <div className="flex flex-col gap-[3px] flex-1">
-                <div className="pb-[0.59px]">
-                  <h3 className="text-sm sm:text-base font-medium text-[#020817] leading-tight sm:leading-[25.6px]">
-                    Delete Account
-                  </h3>
-                </div>
-                <p className="text-xs sm:text-sm text-[#64748B] leading-[22.4px]">
-                  Permanently delete your account and all data
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="allow-messages">Allow Messages</Label>
+                <p className="text-sm text-gray-500">
+                  Allow others to send you messages through your portfolio
                 </p>
               </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={handleDeleteAccount}
-                  className="bg-[#EF4444] text-[#F8FAFC] px-4 py-2 rounded-lg text-sm font-normal hover:bg-red-600 transition-colors w-full sm:w-auto"
-                >
-                  Delete Account
-                </button>
+              <input
+                id="allow-messages"
+                type="checkbox"
+                checked={allowMessages}
+                onChange={(e) => setAllowMessages(e.target.checked)}
+                disabled={readOnly || loading}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="email-notifications">Email Notifications</Label>
+                <p className="text-sm text-gray-500">
+                  Receive email notifications for new messages and comments
+                </p>
               </div>
+              <input
+                id="email-notifications"
+                type="checkbox"
+                checked={emailNotifications}
+                onChange={(e) => setEmailNotifications(e.target.checked)}
+                disabled={readOnly || loading}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Component Configuration */}
+      <div className="bg-white p-6 rounded-lg border">
+        <h3 className="text-lg font-medium mb-4">Portfolio Components</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Configure which sections appear in your portfolio and their order
+        </p>
+        
+        <ComponentOrdering
+          components={components}
+          onComponentsChange={setComponents}
+        />
+      </div>
+
+      {!readOnly && (
+        <div className="flex justify-end space-x-3 pt-4">
+          <Button 
+            variant="outline" 
+            disabled={loading}
+            onClick={() => {
+              // Reset to initial values
+              setVisibility(initialData?.portfolio?.visibility ?? 0);
+              setAllowMessages(initialData?.allowMessages ?? true);
+              setEmailNotifications(initialData?.emailNotifications ?? true);
+              setComponents(initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig());
+            }}
+          >
+            Reset
+          </Button>
+          <Button 
+            onClick={handleSave}
+            disabled={loading || !portfolioId}
+          >
+            {loading ? 'Saving...' : 'Save Settings'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 
