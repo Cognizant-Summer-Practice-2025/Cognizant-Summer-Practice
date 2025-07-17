@@ -62,7 +62,7 @@ export default function Header() {
 
           {/* Logo */}
           <div className="flex items-center ml-2 lg:ml-0">
-            <Link href="/" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
+            <Link href="/home" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
               GoalKeeper
             </Link>
           </div>

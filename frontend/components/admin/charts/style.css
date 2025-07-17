@@ -37,7 +37,6 @@
   grid-column: span 1;
 }
 
-/* Responsive design */
 @media (max-width: 1024px) {
   .charts-grid {
     grid-template-columns: 1fr;
@@ -67,12 +66,3 @@
     gap: 0.75rem;
   }
 }
-
-/* Dark mode support */
-.dark .charts-header h2 {
-  color: #f9fafb;
-}
-
-.dark .charts-header p {
-  color: #d1d5db;
-} 

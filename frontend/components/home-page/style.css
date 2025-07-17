@@ -289,6 +289,11 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
+.ant-select-dropdown {
+  box-shadow: none;
+  border: 1px solid #e5e7eb;
+}
+
 .portfolio-grid-content {
   width: 100%;
 }
@@ -301,7 +306,7 @@
   display: flex;
 }
 
-/* Portfolio Card Styles */
+/* Portfolio Card */
 .portfolio-card {
   width: 100%;
   border: 1px solid #e5e7eb;
@@ -410,6 +415,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .portfolio-stats-left {
@@ -562,6 +569,26 @@
   
   .portfolio-grid-title h1 {
     font-size: 1.75rem;
+  }
+  
+  /* Portfolio card responsive fixes */
+  .portfolio-card {
+    margin-bottom: 1rem;
+  }
+  
+  .portfolio-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .portfolio-stats-left {
+    width: 100%;
+  }
+  
+  .portfolio-date {
+    width: 100%;
+    text-align: left;
   }
 }
 

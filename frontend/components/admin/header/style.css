@@ -24,7 +24,7 @@
 
 .admin-logo h2 {
   color: #1f2937;
-  font-size: clamp(1rem, 3vw, 1.25rem); /* 16px to 20px */
+  font-size: clamp(1rem, 3vw, 1.25rem); 
   font-weight: 600;
   line-height: 1.75;
   margin: 0;
@@ -78,7 +78,6 @@
   flex-shrink: 0;
 }
 
-/* Navigation Tabs */
 .admin-nav-tabs {
   display: flex;
   align-items: center;
@@ -128,7 +127,6 @@
   display: inline;
 }
 
-/* Responsive breakpoints */
 @media (max-width: 1024px) {
   .admin-header-content {
     padding: 0 1rem;
@@ -151,7 +149,7 @@
   }
   
   .admin-nav {
-    display: none; /* Hide old navigation on mobile */
+    display: none; 
   }
   
   .nav-tab {
@@ -162,7 +160,7 @@
   }
   
   .nav-tab-text {
-    display: none; /* Hide text on mobile */
+    display: none; 
   }
   
   .nav-tab-icon {
@@ -177,7 +175,7 @@
   }
   
   .view-site-btn .anticon + span {
-    display: none; /* Hide "View Site" text on mobile */
+    display: none;
   }
 }
 
@@ -205,7 +203,7 @@
   }
   
   .nav-tab-text {
-    display: none; /* Hide text on small mobile */
+    display: none;
   }
   
   .nav-tab-icon {
@@ -215,43 +213,4 @@
   .admin-logo h2 {
     font-size: 1rem;
   }
-}
-
-/* Dark mode support */
-.dark .admin-header {
-  background-color: #1f2937;
-  border-bottom-color: #374151;
-}
-
-.dark .admin-logo h2 {
-  color: #f9fafb;
-}
-
-.dark .nav-tabs {
-  background-color: #374151;
-}
-
-.dark .nav-tab {
-  color: #d1d5db;
-}
-
-.dark .nav-tab:hover {
-  color: #60a5fa;
-  background-color: #4b5563;
-}
-
-.dark .nav-tab.active {
-  color: #60a5fa;
-  background-color: #1f2937;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.dark .view-site-btn {
-  background-color: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
-}
-
-.dark .nav-tab-icon {
-  color: inherit;
 }

@@ -8,7 +8,6 @@
   white-space: nowrap;
 }
 
-/* Portfolio table columns */
 .col-portfolio { 
   width: 32%; 
   min-width: 250px;
@@ -99,7 +98,6 @@
   align-items: center;
 }
 
-/* Responsive breakpoints */
 @media (max-width: 768px) {
  .management-section {
     gap: 1rem;

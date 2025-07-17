@@ -18,7 +18,7 @@
 
 .section-header h2 {
   color: #1f2937;
-  font-size: clamp(1.25rem, 3vw, 1.5rem); /* 20px to 24px */
+  font-size: clamp(1.25rem, 3vw, 1.5rem); 
   font-weight: 600;
   line-height: 1.4;
   margin: 0;
@@ -69,7 +69,7 @@
   display: flex;
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
-  min-width: 800px; /* Minimum width for horizontal scroll */
+  min-width: 800px; 
 }
 
 .table-header > div {
@@ -81,7 +81,7 @@
   white-space: nowrap;
 }
 
-/* Column widths with flexible approach */
+/* Column widths*/
 .col-user { 
   width: 35%; 
   min-width: 200px;
@@ -205,7 +205,6 @@
   color: #ef4444;
 }
 
-/* Responsive breakpoints */
 @media (max-width: 1024px) {
   .section-header {
     align-items: flex-start;

@@ -1,5 +1,5 @@
 import React from 'react';
-import HomeHeader from '@/components/home-page/home-header';
+import Header from '@/components/header';
 import FilterSidebar from '@/components/home-page/filter-sidebar';
 import PortfolioGrid from '@/components/home-page/portfolio-grid';
 import './style.css';
@@ -7,7 +7,7 @@ import './style.css';
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      <HomeHeader />
+      <Header />
       <div className="home-main">
         <div className="home-container">
           <div className="home-content">

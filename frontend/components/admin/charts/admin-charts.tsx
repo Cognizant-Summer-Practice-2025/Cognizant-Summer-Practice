@@ -22,11 +22,9 @@ import {
   Cell,
   XAxis, 
   YAxis, 
-  CartesianGrid,
-  ResponsiveContainer
+  CartesianGrid
 } from 'recharts';
 
-// Sample data for different charts
 const userGrowthData = [
   { month: 'Jan', users: 400, portfolios: 240 },
   { month: 'Feb', users: 600, portfolios: 380 },
@@ -53,45 +51,44 @@ const dailyActivityData = [
   { day: 'Sun', logins: 87, posts: 12 },
 ];
 
-// Chart configurations with blue theme
 const userGrowthConfig = {
   users: {
     label: "Users",
-    color: "#3b82f6", // Blue-500
+    color: "#3b82f6", 
   },
   portfolios: {
     label: "Portfolios", 
-    color: "#1e40af", // Blue-700
+    color: "#1e40af", 
   },
 } satisfies ChartConfig;
 
 const projectTypesConfig = {
   web: {
     label: "Web Development",
-    color: "#3b82f6", // Blue-500
+    color: "#3b82f6", 
   },
   mobile: {
     label: "Mobile Apps",
-    color: "#1d4ed8", // Blue-600
+    color: "#1d4ed8", 
   },
   design: {
     label: "Design",
-    color: "#1e40af", // Blue-700
+    color: "#1e40af", 
   },
   data: {
     label: "Data Science",
-    color: "#1e3a8a", // Blue-800
+    color: "#1e3a8a", 
   },
 } satisfies ChartConfig;
 
 const activityConfig = {
   logins: {
     label: "Daily Logins",
-    color: "#3b82f6", // Blue-500
+    color: "#3b82f6", 
   },
   posts: {
     label: "New Posts",
-    color: "#60a5fa", // Blue-400
+    color: "#60a5fa", 
   },
 } satisfies ChartConfig;
 
