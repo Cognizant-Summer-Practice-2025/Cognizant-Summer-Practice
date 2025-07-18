@@ -1,78 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, Row, Col } from 'antd';
 import PortfolioCard from './portfolio-card';
+import { getPortfolioCardsForHomePage, PortfolioCardDto } from '@/lib/portfolio/api';
 import './style.css';
 
 const { Option } = Select;
 
-interface Portfolio {
-  id: string;
-  name: string;
-  role: string;
-  location: string;
-  description: string;
-  skills: string[];
-  views: number;
-  likes: number;
-  comments: number;
-  date: string;
-  avatar?: string;
-  featured?: boolean;
-}
-
 const PortfolioGrid: React.FC = () => {
   const [sortBy, setSortBy] = useState('most-recent');
+  const [portfolios, setPortfolios] = useState<PortfolioCardDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sample portfolio data
-  const portfolios: Portfolio[] = [
-    {
-      id: '1',
-      name: 'Alex Johnson',
-      role: 'Full Stack Developer',
-      location: 'San Francisco, CA',
-      description: 'Crafting digital experiences with modern web technologies',
-      skills: ['React', 'Node.js', 'TypeScript', 'GraphQL'],
-      views: 546,
-      likes: 49,
-      comments: 2,
-      date: '15/03/2024',
-      avatar: 'https://placehold.co/48x48',
-      featured: false,
-    },
-    {
-      id: '2',
-      name: 'Sarah Chen',
-      role: 'UI/UX Designer',
-      location: 'New York, NY',
-      description: 'Creating beautiful and intuitive user experiences',
-      skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research'],
-      views: 832,
-      likes: 73,
-      comments: 5,
-      date: '12/03/2024',
-      featured: true,
-    },
-    {
-      id: '3',
-      name: 'Mike Rodriguez',
-      role: 'Data Scientist',
-      location: 'Austin, TX',
-      description: 'Turning data into actionable insights and predictive models',
-      skills: ['Python', 'Machine Learning', 'TensorFlow', 'SQL'],
-      views: 421,
-      likes: 34,
-      comments: 3,
-      date: '10/03/2024',
-      avatar: 'https://placehold.co/48x48',
-      featured: false,
-    },
-  ];
+  useEffect(() => {
+    const fetchPortfolios = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getPortfolioCardsForHomePage();
+        setPortfolios(data);
+      } catch (err) {
+        console.error('Error fetching portfolios:', err);
+        setError('Failed to load portfolios. Please try again later.');
+        // Fallback to empty array or you could keep some mock data
+        setPortfolios([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPortfolios();
+  }, []);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
-    // Implement sorting logic here
+    // TODO: Implement sorting logic here
   };
 
   return (
@@ -98,21 +62,48 @@ const PortfolioGrid: React.FC = () => {
       </div>
 
       <div className="portfolio-grid-content">
-        <Row gutter={[24, 24]} className="portfolio-row">
-          {portfolios.map((portfolio) => (
-            <Col 
-              key={portfolio.id} 
-              xs={24} 
-              sm={24} 
-              md={12} 
-              lg={8} 
-              xl={8}
-              className="portfolio-col"
-            >
-              <PortfolioCard {...portfolio} />
-            </Col>
-          ))}
-        </Row>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p>Loading portfolios...</p>
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p style={{ color: 'red' }}>{error}</p>
+          </div>
+        ) : portfolios.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p>No portfolios found. Be the first to create one!</p>
+          </div>
+        ) : (
+          <Row gutter={[24, 24]} className="portfolio-row">
+            {portfolios.map((portfolio) => (
+              <Col 
+                key={portfolio.id} 
+                xs={24} 
+                sm={24} 
+                md={12} 
+                lg={8} 
+                xl={8}
+                className="portfolio-col"
+              >
+                <PortfolioCard 
+                  id={portfolio.id}
+                  name={portfolio.name}
+                  role={portfolio.role}
+                  location={portfolio.location}
+                  description={portfolio.description}
+                  skills={portfolio.skills}
+                  views={portfolio.views}
+                  likes={portfolio.likes}
+                  comments={portfolio.comments}
+                  date={portfolio.date}
+                  avatar={portfolio.avatar}
+                  featured={portfolio.featured}
+                />
+              </Col>
+            ))}
+          </Row>
+        )}
       </div>
     </div>
   );

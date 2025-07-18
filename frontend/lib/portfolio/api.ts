@@ -9,6 +9,24 @@ import {
 
 const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
 
+// Portfolio Card DTO for home page display
+export interface PortfolioCardDto {
+  id: string;
+  userId: string;
+  name: string;
+  role: string;
+  location: string;
+  description: string;
+  skills: string[];
+  views: number;
+  likes: number;
+  comments: number;
+  date: string;
+  avatar?: string;
+  featured: boolean;
+  templateName?: string;
+}
+
 // Portfolio API Response Types (matching backend DTOs)
 interface PortfolioResponseDto {
   id: string;
@@ -577,6 +595,11 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt
   }));
+}
+
+export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]> {
+  const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards`);
+  return handleApiResponse<PortfolioCardDto[]>(response);
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {

@@ -369,6 +369,50 @@ namespace backend_portfolio.Controllers
             return Ok(response);
         }
 
+        [HttpGet("home-page-cards")]
+        public async Task<IActionResult> GetPortfoliosForHomePage()
+        {
+            try
+            {
+                var portfolios = await _portfolioRepository.GetPublishedPortfoliosAsync();
+                var portfolioCards = new List<PortfolioCardDto>();
+
+                foreach (var portfolio in portfolios)
+                {
+                    // For now, we'll create cards with the portfolio data we have
+                    // In the future, you might want to call the user service to get user details
+                    var skills = await _skillRepository.GetSkillsByPortfolioIdAsync(portfolio.Id);
+                    var skillNames = skills.Select(s => s.Name).Take(4).ToList(); // Limit to 4 skills for display
+
+                    var portfolioCard = new PortfolioCardDto
+                    {
+                        Id = portfolio.Id,
+                        UserId = portfolio.UserId,
+                        Name = $"User {portfolio.UserId.ToString().Substring(0, 8)}", // Placeholder - replace with actual user name from user service
+                        Role = "Portfolio Creator", // Placeholder - replace with actual role from user service  
+                        Location = "Location", // Placeholder - replace with actual location from user service
+                        Description = portfolio.Bio ?? "A talented professional showcasing their work",
+                        Skills = skillNames,
+                        Views = portfolio.ViewCount,
+                        Likes = portfolio.LikeCount,
+                        Comments = 0, // You might want to add a comments system later
+                        Date = portfolio.UpdatedAt.ToString("dd/MM/yyyy"),
+                        Avatar = null, // Placeholder - replace with actual avatar from user service
+                        Featured = false, // You might want to add a featured flag to the portfolio model
+                        TemplateName = portfolio.Template?.Name
+                    };
+
+                    portfolioCards.Add(portfolioCard);
+                }
+
+                return Ok(portfolioCards);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpPost("{id}/view")]
         public async Task<IActionResult> IncrementViewCount(Guid id)
         {
