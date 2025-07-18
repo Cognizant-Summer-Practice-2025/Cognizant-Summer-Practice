@@ -3,6 +3,7 @@ using backend_portfolio.Repositories;
 using backend_portfolio.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace backend_portfolio.Controllers
 {
@@ -377,27 +378,63 @@ namespace backend_portfolio.Controllers
                 var portfolios = await _portfolioRepository.GetPublishedPortfoliosAsync();
                 var portfolioCards = new List<PortfolioCardDto>();
 
+                // Create HttpClient for calling user service
+                using var httpClient = new HttpClient();
+                const string userServiceBaseUrl = "http://localhost:5200"; // User service URL
+
                 foreach (var portfolio in portfolios)
                 {
-                    // For now, we'll create cards with the portfolio data we have
-                    // In the future, you might want to call the user service to get user details
                     var skills = await _skillRepository.GetSkillsByPortfolioIdAsync(portfolio.Id);
                     var skillNames = skills.Select(s => s.Name).Take(4).ToList(); // Limit to 4 skills for display
+
+                    // Fetch user information from user service
+                    string userName = "Unknown User";
+                    string userRole = "Portfolio Creator";
+                    string userLocation = "Location not specified";
+                    string? userAvatar = null;
+
+                    try
+                    {
+                        var userResponse = await httpClient.GetAsync($"{userServiceBaseUrl}/api/Users/{portfolio.UserId}");
+                        if (userResponse.IsSuccessStatusCode)
+                        {
+                            var userJson = await userResponse.Content.ReadAsStringAsync();
+                            var userInfo = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(userJson);
+                            
+                            // Extract user information from response
+                            if (userInfo.TryGetProperty("username", out var usernameElement))
+                                userName = usernameElement.GetString() ?? "Unknown User";
+                            
+                            if (userInfo.TryGetProperty("professionalTitle", out var titleElement))
+                                userRole = titleElement.GetString() ?? "Portfolio Creator";
+                            
+                            if (userInfo.TryGetProperty("location", out var locationElement))
+                                userLocation = locationElement.GetString() ?? "Location not specified";
+                            
+                            if (userInfo.TryGetProperty("avatarUrl", out var avatarElement))
+                                userAvatar = avatarElement.GetString();
+                        }
+                    }
+                    catch (Exception userEx)
+                    {
+                        // Log the error but continue with default values
+                        Console.WriteLine($"Error fetching user data for {portfolio.UserId}: {userEx.Message}");
+                    }
 
                     var portfolioCard = new PortfolioCardDto
                     {
                         Id = portfolio.Id,
                         UserId = portfolio.UserId,
-                        Name = $"User {portfolio.UserId.ToString().Substring(0, 8)}", // Placeholder - replace with actual user name from user service
-                        Role = "Portfolio Creator", // Placeholder - replace with actual role from user service  
-                        Location = "Location", // Placeholder - replace with actual location from user service
+                        Name = userName,
+                        Role = userRole,
+                        Location = userLocation,
                         Description = portfolio.Bio ?? "A talented professional showcasing their work",
                         Skills = skillNames,
                         Views = portfolio.ViewCount,
                         Likes = portfolio.LikeCount,
                         Comments = 0, // You might want to add a comments system later
                         Date = portfolio.UpdatedAt.ToString("dd/MM/yyyy"),
-                        Avatar = null, // Placeholder - replace with actual avatar from user service
+                        Avatar = userAvatar,
                         Featured = false, // You might want to add a featured flag to the portfolio model
                         TemplateName = portfolio.Template?.Name
                     };

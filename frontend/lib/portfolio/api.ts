@@ -8,6 +8,17 @@ import {
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
+const USER_API_BASE_URL = 'http://localhost:5200'; // User service URL
+
+// User info for portfolio cards
+export interface UserPortfolioInfo {
+  userId: string;
+  username: string;
+  name: string;
+  professionalTitle: string;
+  location: string;
+  avatarUrl?: string;
+}
 
 // Portfolio Card DTO for home page display
 export interface PortfolioCardDto {
@@ -597,9 +608,56 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
   }));
 }
 
+// Get user info for portfolio cards
+export async function getUserPortfolioInfo(userId: string): Promise<UserPortfolioInfo> {
+  console.log(`🔍 Fetching user info for userId: ${userId}`);
+  console.log(`🌐 Calling: ${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
+  
+  const response = await fetch(`${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
+  console.log(`📥 User API response status: ${response.status}`);
+  
+  const result = await handleApiResponse<UserPortfolioInfo>(response);
+  console.log(`👤 User info received:`, result);
+  
+  return result;
+}
+
 export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]> {
+  console.log('📡 Starting to fetch portfolio cards...');
+  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards`);
-  return handleApiResponse<PortfolioCardDto[]>(response);
+  const portfolioCards = await handleApiResponse<PortfolioCardDto[]>(response);
+  
+  console.log(`📊 Received ${portfolioCards.length} portfolio cards`);
+  
+  // Fetch user info for each portfolio card
+  const enrichedCards = await Promise.all(
+    portfolioCards.map(async (card) => {
+      try {
+        const userInfo = await getUserPortfolioInfo(card.userId);
+        return {
+          ...card,
+          name: userInfo.name || userInfo.username,
+          role: userInfo.professionalTitle,
+          location: userInfo.location,
+          avatar: userInfo.avatarUrl
+        };
+      } catch (error) {
+        console.error(`❌ Error fetching user info for ${card.userId}:`, error);
+        // Return card with fallback values
+        return {
+          ...card,
+          name: 'Unknown User',
+          role: 'Portfolio Creator', 
+          location: 'Location not specified',
+          avatar: undefined
+        };
+      }
+    })
+  );
+  
+  console.log('✅ Portfolio cards enriched with user data');
+  return enrichedCards;
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {
