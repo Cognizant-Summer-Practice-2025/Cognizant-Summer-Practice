@@ -18,9 +18,7 @@ namespace backend_portfolio.Models
 
         [Column("description", TypeName = "text")]
         public string? Description { get; set; }
-
-
-
+        
         [Column("preview_image_url", TypeName = "text")]
         public string? PreviewImageUrl { get; set; }
 

@@ -28,7 +28,7 @@ namespace backend_portfolio.DTO
     public class PortfolioRequestDto
     {
         public Guid UserId { get; set; }
-        public string TemplateName { get; set; } = string.Empty; // Changed from TemplateId to TemplateName
+        public string TemplateName { get; set; } = string.Empty; 
         public string Title { get; set; } = string.Empty;
         public string? Bio { get; set; }
         public Visibility Visibility { get; set; } = Visibility.Public;
@@ -61,7 +61,7 @@ namespace backend_portfolio.DTO
         public Visibility? Visibility { get; set; }
         public bool? IsPublished { get; set; }
         public string? Components { get; set; }
-        public string? TemplateName { get; set; } // Allow updating template by name
+        public string? TemplateName { get; set; } 
     }
 
     // Bulk Portfolio Content DTO for publishing
@@ -86,7 +86,7 @@ namespace backend_portfolio.DTO
         public bool PortfolioPublished { get; set; }
     }
 
-    // User Portfolio Comprehensive DTO (includes all portfolio data for a user)
+    // User Portfolio Comprehensive DTO 
     public class UserPortfolioComprehensiveDto
     {
         public Guid UserId { get; set; }
