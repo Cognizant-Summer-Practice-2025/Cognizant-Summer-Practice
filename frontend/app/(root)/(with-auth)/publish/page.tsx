@@ -152,6 +152,8 @@ export default function Publish() {
         const skillsData = draftSkills.map((skill, index) => ({
           portfolioId: portfolioId,
           name: skill.name,
+          categoryType: skill.categoryType,
+          subcategory: skill.subcategory,
           category: skill.category || '',
           proficiencyLevel: skill.proficiencyLevel,
           displayOrder: skills.length + index + 1

@@ -3,6 +3,7 @@
 import React from 'react';
 import { User, Folder, Briefcase, Code, Layout, Settings, FileText } from 'lucide-react';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
+import { useUser } from '@/lib/contexts/user-context';
 
 interface ProfileSidebarProps {
   activeTab?: string;
@@ -10,7 +11,44 @@ interface ProfileSidebarProps {
 }
 
 export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }: ProfileSidebarProps) {
-  const { hasPublishedPortfolio } = usePortfolio();
+  const { hasPublishedPortfolio, userPortfolioData } = usePortfolio();
+  const { user } = useUser();
+
+  // Get the first published portfolio for stats
+  const publishedPortfolio = userPortfolioData?.portfolios?.find(p => p.isPublished);
+
+  // Helper function to get user's full name
+  const getUserFullName = () => {
+    if (!user) return 'User';
+    
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    } else if (user.firstName) {
+      return user.firstName;
+    } else if (user.lastName) {
+      return user.lastName;
+    } else if (user.username) {
+      return user.username;
+    }
+    
+    return 'User';
+  };
+
+  // Helper function to get user's title
+  const getUserTitle = () => {
+    if (user?.professionalTitle) {
+      return user.professionalTitle;
+    }
+    return 'Professional';
+  };
+
+  // Helper function to get user's avatar
+  const getUserAvatar = () => {
+    if (user?.avatarUrl) {
+      return user.avatarUrl;
+    }
+    return 'https://placehold.co/80x80';
+  };
 
   const basicMenuItems = [
     { id: 'basic-info', label: 'Basic Info', icon: User },
@@ -56,18 +94,18 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
           {/* Profile Picture */}
           <img 
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mb-3 sm:mb-4" 
-            src="https://placehold.co/80x80" 
+            src={getUserAvatar()} 
             alt="Profile"
           />
           
           {/* Name */}
           <div className="text-center text-[#020817] text-2xl sm:text-3xl lg:text-[40px] font-bold font-['Inter'] leading-tight mb-1 sm:mb-2">
-            John Doe
+            {getUserFullName()}
           </div>
           
           {/* Title */}
           <div className="text-center text-[#64748B] text-sm sm:text-lg lg:text-xl font-medium font-['Inter'] leading-tight">
-            Full Stack Developer
+            {getUserTitle()}
           </div>
         </div>
         
@@ -75,7 +113,7 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
         <div className="flex justify-center items-start gap-4 sm:gap-6 lg:gap-8 mb-2">
           <div className="flex flex-col justify-start items-center">
             <div className="text-center text-[#020817] text-lg sm:text-xl lg:text-2xl font-semibold font-['Inter'] leading-6">
-              1,234
+              {publishedPortfolio?.viewCount || 0}
             </div>
             <div className="text-center text-[#64748B] text-xs sm:text-sm font-medium font-['Inter'] leading-[22.4px]">
               Views
@@ -83,7 +121,7 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
           </div>
           <div className="flex flex-col justify-start items-center">
             <div className="text-center text-[#020817] text-lg sm:text-xl lg:text-2xl font-semibold font-['Inter'] leading-6">
-              49
+              {publishedPortfolio?.likeCount || 0}
             </div>
             <div className="text-center text-[#64748B] text-xs sm:text-sm font-medium font-['Inter'] leading-[22.4px]">
               Likes

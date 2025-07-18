@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SkillDropdown } from "@/components/ui/skill-dropdown"
 import { Skill } from '@/lib/portfolio';
 import { getSkillsByPortfolioId, createSkill, updateSkill, deleteSkill } from '@/lib/portfolio/api';
 
@@ -18,13 +17,15 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
   const [skills, setSkills] = useState<Skill[]>(initialSkills || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newSkill, setNewSkill] = useState('');
-  const [newCategory, setNewCategory] = useState('Frontend');
   const [newProficiency, setNewProficiency] = useState(50);
+  const [selectedSkillData, setSelectedSkillData] = useState<{
+    categoryType: string
+    subcategory: string
+    skillName: string
+    fullCategoryPath: string
+  } | null>(null);
   const [editingSkill, setEditingSkill] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Skill>>({});
-  
-  const categories = ['Frontend', 'Backend', 'Database', 'DevOps', 'Mobile', 'Design', 'Other'];
 
   // Fetch skills from API when portfolioId is provided
   useEffect(() => {
@@ -47,10 +48,20 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
     fetchSkills();
   }, [portfolioId, initialSkills]);
 
+  const handleSkillSelect = (skillData: {
+    categoryType: string
+    subcategory: string
+    skillName: string
+    fullCategoryPath: string
+  }) => {
+    setSelectedSkillData(skillData);
+    setError(null); // Clear any previous errors when a skill is selected
+  };
+
   const addSkill = async () => {
-    if (!newSkill.trim() || !portfolioId) return;
+    if (!selectedSkillData || !portfolioId) return;
     
-    if (skills.some(skill => skill.name.toLowerCase() === newSkill.trim().toLowerCase())) {
+    if (skills.some(skill => skill.name.toLowerCase() === selectedSkillData.skillName.toLowerCase())) {
       setError('Skill already exists');
       return;
     }
@@ -61,15 +72,17 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       
       const newSkillData = {
         portfolioId,
-        name: newSkill.trim(),
-        category: newCategory,
+        name: selectedSkillData.skillName,
+        categoryType: selectedSkillData.categoryType,
+        subcategory: selectedSkillData.subcategory,
+        category: selectedSkillData.fullCategoryPath,
         proficiencyLevel: newProficiency,
         displayOrder: skills.length + 1,
       };
 
       const createdSkill = await createSkill(newSkillData);
       setSkills([...skills, createdSkill]);
-      setNewSkill('');
+      setSelectedSkillData(null);
       setNewProficiency(50);
     } catch (err) {
       console.error('Error creating skill:', err);
@@ -180,53 +193,53 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       {!readOnly && portfolioId && (
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="text-lg font-medium mb-3">Add New Skill</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Skill Selection */}
             <div>
-              <Label htmlFor="skill-name">Skill Name</Label>
-            <Input
-                id="skill-name"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-                placeholder="e.g., React"
+              <SkillDropdown
+                onSkillSelect={handleSkillSelect}
                 disabled={loading}
-            />
-          </div>
-            <div>
-              <Label htmlFor="skill-category">Category</Label>
-              <Select value={newCategory} onValueChange={setNewCategory} disabled={loading}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-            <div>
-              <Label htmlFor="skill-proficiency">Proficiency ({newProficiency}%)</Label>
-            <input
-                id="skill-proficiency"
-              type="range"
-              min="1"
-              max="100"
-              value={newProficiency}
-                onChange={(e) => setNewProficiency(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                disabled={loading}
-            />
-          </div>
-            <div className="flex items-end">
-            <Button
-              onClick={addSkill}
-                disabled={!newSkill.trim() || loading}
                 className="w-full"
-            >
-                {loading ? 'Adding...' : 'Add Skill'}
-            </Button>
+              />
+            </div>
+            
+            {/* Proficiency Selection */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="skill-proficiency">Proficiency ({newProficiency}%)</Label>
+                <input
+                  id="skill-proficiency"
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={newProficiency}
+                  onChange={(e) => setNewProficiency(parseInt(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-1"
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="flex items-end">
+                <Button
+                  onClick={addSkill}
+                  disabled={!selectedSkillData || loading}
+                  className="w-full"
+                >
+                  {loading ? 'Adding...' : 'Add Skill'}
+                </Button>
+              </div>
             </div>
           </div>
+
+          {/* Selected Skill Preview */}
+          {selectedSkillData && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Selected:</strong> {selectedSkillData.skillName} 
+                <span className="text-blue-600"> ({selectedSkillData.fullCategoryPath})</span>
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -242,24 +255,12 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
               <div key={skill.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
                 {editingSkill === skill.id ? (
                   <div className="space-y-3">
-                    <Input
-                      value={editForm.name || ''}
-                      onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                      placeholder="Skill name"
-                    />
-                    <Select 
-                      value={editForm.category || skill.category} 
-                      onValueChange={(value) => setEditForm({...editForm, category: value})}
-                    >
-                      <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <p className="text-sm font-medium text-gray-700">
+                      Skill: {editForm.name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Category: {editForm.category}
+                    </p>
                     <div>
                       <Label>Proficiency ({editForm.proficiencyLevel || skill.proficiencyLevel}%)</Label>
                   <input

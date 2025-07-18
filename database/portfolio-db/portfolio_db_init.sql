@@ -58,12 +58,14 @@ CREATE TABLE experience (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- Skills table
+-- Skills table with hierarchical categories
 CREATE TABLE skills (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    category VARCHAR,
+    category_type VARCHAR(50), -- 'hard_skills' or 'soft_skills'
+    subcategory VARCHAR(100), -- 'frontend', 'backend', 'communication', etc.
+    category VARCHAR(255), -- Full category path for display (deprecated but kept for backward compatibility)
     proficiency_level INTEGER,
     display_order INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -104,6 +106,8 @@ CREATE INDEX idx_portfolios_is_published ON portfolios(is_published);
 CREATE INDEX idx_projects_portfolio_id ON projects(portfolio_id);
 CREATE INDEX idx_experience_portfolio_id ON experience(portfolio_id);
 CREATE INDEX idx_skills_portfolio_id ON skills(portfolio_id);
+CREATE INDEX idx_skills_category_type ON skills(category_type);
+CREATE INDEX idx_skills_subcategory ON skills(subcategory);
 CREATE INDEX idx_blog_posts_portfolio_id ON blog_posts(portfolio_id);
 CREATE INDEX idx_blog_posts_is_published ON blog_posts(is_published);
 CREATE INDEX idx_bookmarks_user_id ON bookmarks(user_id);

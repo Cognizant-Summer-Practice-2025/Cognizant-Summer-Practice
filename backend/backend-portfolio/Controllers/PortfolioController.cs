@@ -123,6 +123,8 @@ namespace backend_portfolio.Controllers
                 {
                     Id = s.Id,
                     Name = s.Name,
+                    CategoryType = s.CategoryType,
+                    Subcategory = s.Subcategory,
                     Category = s.Category,
                     ProficiencyLevel = s.ProficiencyLevel,
                     DisplayOrder = s.DisplayOrder
@@ -514,8 +516,11 @@ namespace backend_portfolio.Controllers
                     Id = s.Id,
                     PortfolioId = s.PortfolioId,
                     Name = s.Name,
+                    CategoryType = s.CategoryType,
+                    Subcategory = s.Subcategory,
                     Category = s.Category,
                     ProficiencyLevel = s.ProficiencyLevel,
+                    DisplayOrder = s.DisplayOrder,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt
                 }).ToList();

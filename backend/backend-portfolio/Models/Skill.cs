@@ -19,7 +19,15 @@ namespace backend_portfolio.Models
         [Column("name")]
         public string Name { get; set; } = string.Empty;
 
+        [StringLength(50)]
+        [Column("category_type")]
+        public string? CategoryType { get; set; }
+
         [StringLength(100)]
+        [Column("subcategory")]
+        public string? Subcategory { get; set; }
+
+        [StringLength(255)]
         [Column("category")]
         public string? Category { get; set; }
 

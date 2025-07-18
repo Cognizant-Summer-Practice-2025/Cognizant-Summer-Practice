@@ -6,6 +6,8 @@ namespace backend_portfolio.DTO
         public Guid Id { get; set; }
         public Guid PortfolioId { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? CategoryType { get; set; }
+        public string? Subcategory { get; set; }
         public string? Category { get; set; }
         public int? ProficiencyLevel { get; set; }
         public int? DisplayOrder { get; set; }
@@ -18,6 +20,8 @@ namespace backend_portfolio.DTO
     {
         public Guid PortfolioId { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? CategoryType { get; set; }
+        public string? Subcategory { get; set; }
         public string? Category { get; set; }
         public int? ProficiencyLevel { get; set; }
         public int? DisplayOrder { get; set; }
@@ -28,6 +32,8 @@ namespace backend_portfolio.DTO
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? CategoryType { get; set; }
+        public string? Subcategory { get; set; }
         public string? Category { get; set; }
         public int? ProficiencyLevel { get; set; }
         public int? DisplayOrder { get; set; }
@@ -37,6 +43,8 @@ namespace backend_portfolio.DTO
     public class SkillUpdateDto
     {
         public string? Name { get; set; }
+        public string? CategoryType { get; set; }
+        public string? Subcategory { get; set; }
         public string? Category { get; set; }
         public int? ProficiencyLevel { get; set; }
         public int? DisplayOrder { get; set; }

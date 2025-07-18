@@ -12,5 +12,7 @@ namespace backend_portfolio.Repositories
         Task<Skill?> UpdateSkillAsync(Guid id, SkillUpdateDto request);
         Task<bool> DeleteSkillAsync(Guid id);
         Task<List<Skill>> GetSkillsByCategoryAsync(Guid portfolioId, string category);
+        Task<List<Skill>> GetSkillsByCategoryTypeAsync(Guid portfolioId, string categoryType);
+        Task<List<Skill>> GetSkillsBySubcategoryAsync(Guid portfolioId, string subcategory);
     }
 }

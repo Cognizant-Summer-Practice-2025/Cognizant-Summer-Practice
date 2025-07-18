@@ -44,6 +44,8 @@ namespace backend_portfolio.Repositories
                 Id = Guid.NewGuid(),
                 PortfolioId = request.PortfolioId,
                 Name = request.Name,
+                CategoryType = request.CategoryType,
+                Subcategory = request.Subcategory,
                 Category = request.Category,
                 ProficiencyLevel = request.ProficiencyLevel,
                 DisplayOrder = request.DisplayOrder,
@@ -62,6 +64,8 @@ namespace backend_portfolio.Repositories
             if (skill == null) return null;
 
             if (request.Name != null) skill.Name = request.Name;
+            if (request.CategoryType != null) skill.CategoryType = request.CategoryType;
+            if (request.Subcategory != null) skill.Subcategory = request.Subcategory;
             if (request.Category != null) skill.Category = request.Category;
             if (request.ProficiencyLevel.HasValue) skill.ProficiencyLevel = request.ProficiencyLevel.Value;
             if (request.DisplayOrder.HasValue) skill.DisplayOrder = request.DisplayOrder.Value;
@@ -85,6 +89,24 @@ namespace backend_portfolio.Repositories
         {
             return await _context.Skills
                 .Where(s => s.PortfolioId == portfolioId && s.Category == category)
+                .OrderBy(s => s.DisplayOrder)
+                .ThenBy(s => s.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<Skill>> GetSkillsByCategoryTypeAsync(Guid portfolioId, string categoryType)
+        {
+            return await _context.Skills
+                .Where(s => s.PortfolioId == portfolioId && s.CategoryType == categoryType)
+                .OrderBy(s => s.DisplayOrder)
+                .ThenBy(s => s.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<Skill>> GetSkillsBySubcategoryAsync(Guid portfolioId, string subcategory)
+        {
+            return await _context.Skills
+                .Where(s => s.PortfolioId == portfolioId && s.Subcategory == subcategory)
                 .OrderBy(s => s.DisplayOrder)
                 .ThenBy(s => s.Name)
                 .ToListAsync();

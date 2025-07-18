@@ -166,6 +166,8 @@ interface SkillResponseDto {
   id: string;
   portfolioId: string;
   name: string;
+  categoryType?: string;
+  subcategory?: string;
   category?: string;
   proficiencyLevel?: number;
   displayOrder?: number;
@@ -176,6 +178,8 @@ interface SkillResponseDto {
 interface SkillRequestDto {
   portfolioId: string;
   name: string;
+  categoryType?: string;
+  subcategory?: string;
   category?: string;
   proficiencyLevel?: number;
   displayOrder?: number;
@@ -184,6 +188,8 @@ interface SkillRequestDto {
 interface SkillSummaryDto {
   id: string;
   name: string;
+  categoryType?: string;
+  subcategory?: string;
   category?: string;
   proficiencyLevel?: number;
   displayOrder?: number;
@@ -191,6 +197,8 @@ interface SkillSummaryDto {
 
 interface SkillUpdateDto {
   name?: string;
+  categoryType?: string;
+  subcategory?: string;
   category?: string;
   proficiencyLevel?: number;
   displayOrder?: number;
@@ -417,6 +425,8 @@ function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromD
       id: skill.id,
       portfolioId: dto.id,
       name: skill.name,
+      categoryType: skill.categoryType,
+      subcategory: skill.subcategory,
       category: skill.category,
       proficiencyLevel: skill.proficiencyLevel,
       displayOrder: skill.displayOrder,

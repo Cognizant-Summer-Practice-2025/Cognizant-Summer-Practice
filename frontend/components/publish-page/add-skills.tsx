@@ -1,10 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SkillDropdown } from "@/components/ui/skill-dropdown"
 import { useDraft } from "@/lib/contexts/draft-context"
 import { usePortfolio } from "@/lib/contexts/portfolio-context"
 
@@ -16,15 +15,27 @@ export function AddSkills() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [newSkill, setNewSkill] = useState("")
-  const [newCategory, setNewCategory] = useState("Frontend")
   const [newProficiency, setNewProficiency] = useState(50)
-  
-  const categories = ['Frontend', 'Backend', 'Database', 'DevOps', 'Mobile', 'Design', 'Other']
+  const [selectedSkillData, setSelectedSkillData] = useState<{
+    categoryType: string
+    subcategory: string
+    skillName: string
+    fullCategoryPath: string
+  } | null>(null)
+
+  const handleSkillSelect = (skillData: {
+    categoryType: string
+    subcategory: string
+    skillName: string
+    fullCategoryPath: string
+  }) => {
+    setSelectedSkillData(skillData)
+    setError(null) // Clear any previous errors when a skill is selected
+  }
 
   const handleAddSkill = async () => {
-    if (!newSkill.trim()) {
-      setError("Please enter a skill name.")
+    if (!selectedSkillData) {
+      setError("Please select a skill.")
       return
     }
 
@@ -34,7 +45,7 @@ export function AddSkills() {
       ...draftSkills.map(s => s.name.toLowerCase())
     ]
     
-    if (allSkills.includes(newSkill.trim().toLowerCase())) {
+    if (allSkills.includes(selectedSkillData.skillName.toLowerCase())) {
       setError("Skill already exists.")
       return
     }
@@ -44,15 +55,18 @@ export function AddSkills() {
       setError(null)
 
       // Save to draft context instead of API
-      addDraftSkill({
-        name: newSkill.trim(),
-        category: newCategory,
+      const draftSkillData = {
+        name: selectedSkillData.skillName,
+        categoryType: selectedSkillData.categoryType,
+        subcategory: selectedSkillData.subcategory,
+        category: selectedSkillData.fullCategoryPath,
         proficiencyLevel: newProficiency
-      })
+      };
+      
+      addDraftSkill(draftSkillData);
 
       // Reset form
-      setNewSkill("")
-      setNewCategory("Frontend")
+      setSelectedSkillData(null)
       setNewProficiency(50)
 
       setSuccess(true)
@@ -65,12 +79,6 @@ export function AddSkills() {
       setError('Failed to add skill. Please try again.')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAddSkill()
     }
   }
 
@@ -104,64 +112,55 @@ export function AddSkills() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Skill Selection */}
         <div>
-          <Label htmlFor="skill-name" className="text-sm font-medium text-slate-700">
-            Skill Name
-          </Label>
-          <Input
-            id="skill-name"
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="e.g., React"
-            className="mt-1"
+          <SkillDropdown
+            onSkillSelect={handleSkillSelect}
             disabled={loading}
+            className="w-full"
           />
         </div>
         
-        <div>
-          <Label htmlFor="skill-category" className="text-sm font-medium text-slate-700">
-            Category
-          </Label>
-          <Select value={newCategory} onValueChange={setNewCategory} disabled={loading}>
-            <SelectTrigger className="mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="skill-proficiency" className="text-sm font-medium text-slate-700">
-            Proficiency ({newProficiency}% - {getProficiencyLabel(newProficiency)})
-          </Label>
-          <input
-            id="skill-proficiency"
-            type="range"
-            min="1"
-            max="100"
-            value={newProficiency}
-            onChange={(e) => setNewProficiency(parseInt(e.target.value))}
-            className="mt-1 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            disabled={loading}
-          />
-        </div>
-        
-        <div className="flex items-end">
-          <Button
-            onClick={handleAddSkill}
-            disabled={!newSkill.trim() || loading}
-            className="w-full px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg"
-          >
-            {loading ? "Adding..." : "Add Skill"}
-          </Button>
+        {/* Proficiency Selection */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="skill-proficiency" className="text-sm font-medium text-slate-700">
+              Proficiency ({newProficiency}% - {getProficiencyLabel(newProficiency)})
+            </Label>
+            <input
+              id="skill-proficiency"
+              type="range"
+              min="1"
+              max="100"
+              value={newProficiency}
+              onChange={(e) => setNewProficiency(parseInt(e.target.value))}
+              className="mt-1 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="flex items-end">
+            <Button
+              onClick={handleAddSkill}
+              disabled={!selectedSkillData || loading}
+              className="w-full px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg"
+            >
+              {loading ? "Adding..." : "Add Skill"}
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Selected Skill Preview */}
+      {selectedSkillData && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Selected:</strong> {selectedSkillData.skillName} 
+            <span className="text-blue-600"> ({selectedSkillData.fullCategoryPath})</span>
+          </p>
+        </div>
+      )}
     </div>
   )
 } 
