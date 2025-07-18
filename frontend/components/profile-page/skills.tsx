@@ -11,9 +11,10 @@ interface SkillsProps {
   portfolioId?: string;
   initialSkills?: Skill[];
   readOnly?: boolean;
+  onSkillsUpdate?: () => Promise<void>;
 }
 
-export default function Skills({ portfolioId, initialSkills, readOnly = false }: SkillsProps = {}) {
+export default function Skills({ portfolioId, initialSkills, readOnly = false, onSkillsUpdate }: SkillsProps = {}) {
   const [skills, setSkills] = useState<Skill[]>(initialSkills || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +85,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       setSkills([...skills, createdSkill]);
       setSelectedSkillData(null);
       setNewProficiency(50);
+      onSkillsUpdate?.();
     } catch (err) {
       console.error('Error creating skill:', err);
       setError('Failed to add skill');
@@ -103,6 +105,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       setSkills(skills.map(skill => skill.id === skillId ? updatedSkill : skill));
       setEditingSkill(null);
       setEditForm({});
+      onSkillsUpdate?.();
     } catch (err) {
       console.error('Error updating skill:', err);
       setError('Failed to update skill');
@@ -118,6 +121,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       
       await deleteSkill(skillId);
       setSkills(skills.filter(skill => skill.id !== skillId));
+      onSkillsUpdate?.();
     } catch (err) {
       console.error('Error deleting skill:', err);
       setError('Failed to delete skill');

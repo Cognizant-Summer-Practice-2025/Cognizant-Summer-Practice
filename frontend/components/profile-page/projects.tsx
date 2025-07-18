@@ -1,17 +1,261 @@
 'use client';
 
-import React from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FormDialog, EditFormDialog, FormField } from '@/components/ui/form-dialog';
 import { Project } from '@/lib/portfolio';
+import { createProject, updateProject, deleteProject } from '@/lib/portfolio/api';
 
 interface ProjectsProps {
   projects?: Project[];
   portfolioId?: string;
   loading?: boolean;
+  onProjectsUpdate?: (projects: Project[]) => void;
 }
 
-export default function Projects({ projects = [], portfolioId, loading = false }: ProjectsProps) {
+interface ProjectFormData {
+  title: string;
+  imageUrl: string;
+  description: string;
+  demoUrl: string;
+  githubUrl: string;
+  technologies: string;
+  featured: boolean;
+}
+
+// Helper function to validate URL
+const isValidUrl = (string: string): boolean => {
+  try {
+    new URL(string);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Helper function to get a safe image URL
+const getSafeImageUrl = (imageUrl: string | undefined): string => {
+  if (!imageUrl || imageUrl.trim() === '') {
+    return "https://placehold.co/754x200";
+  }
+  
+  const trimmedUrl = imageUrl.trim();
+  if (isValidUrl(trimmedUrl)) {
+    return trimmedUrl;
+  }
+  
+  return "https://placehold.co/754x200";
+};
+
+// Define form fields for projects
+const projectFormFields: FormField[] = [
+  {
+    name: 'title',
+    label: 'Project Title',
+    type: 'text',
+    placeholder: 'Enter project title',
+    required: true
+  },
+  {
+    name: 'imageUrl',
+    label: 'Image URL',
+    type: 'url',
+    placeholder: 'https://example.com/image.jpg'
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    type: 'textarea',
+    placeholder: 'Describe your project...',
+    rows: 3
+  },
+  {
+    name: 'demoUrl',
+    label: 'Demo URL',
+    type: 'url',
+    placeholder: 'https://your-demo.com'
+  },
+  {
+    name: 'githubUrl',
+    label: 'GitHub URL',
+    type: 'url',
+    placeholder: 'https://github.com/username/repo'
+  },
+  {
+    name: 'technologies',
+    label: 'Technologies',
+    type: 'text',
+    placeholder: 'React, Node.js, MongoDB (comma-separated)'
+  },
+  {
+    name: 'featured',
+    label: 'Featured Project',
+    type: 'checkbox'
+  }
+];
+
+export default function Projects({ projects = [], portfolioId, loading = false, onProjectsUpdate }: ProjectsProps) {
+  const [localProjects, setLocalProjects] = useState<Project[]>(projects);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [projectForm, setProjectForm] = useState<ProjectFormData>({
+    title: '',
+    imageUrl: '',
+    description: '',
+    demoUrl: '',
+    githubUrl: '',
+    technologies: '',
+    featured: false
+  });
+
+  // Update local projects when props change
+  React.useEffect(() => {
+    setLocalProjects(projects);
+  }, [projects]);
+
+  const resetForm = React.useCallback(() => {
+    setProjectForm({
+      title: '',
+      imageUrl: '',
+      description: '',
+      demoUrl: '',
+      githubUrl: '',
+      technologies: '',
+      featured: false
+    });
+    setError(null);
+  }, []);
+
+  const handleFormChange = React.useCallback((field: string, value: string | boolean) => {
+    setProjectForm(prev => ({ ...prev, [field]: value }));
+    if (error) setError(null);
+  }, [error]);
+
+  const handleAddProject = async () => {
+    if (!projectForm.title.trim()) {
+      setError('Please enter a project title.');
+      return;
+    }
+
+    if (!portfolioId) {
+      setError('No portfolio found. Please create a portfolio first by going to the Publish page.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError(null);
+
+      const newProject = await createProject({
+        portfolioId,
+        title: projectForm.title.trim(),
+        imageUrl: projectForm.imageUrl.trim() || undefined,
+        description: projectForm.description.trim() || undefined,
+        demoUrl: projectForm.demoUrl.trim() || undefined,
+        githubUrl: projectForm.githubUrl.trim() || undefined,
+        technologies: projectForm.technologies.trim() ? projectForm.technologies.trim().split(',').map(t => t.trim()) : [],
+        featured: projectForm.featured
+      });
+
+      const updatedProjects = [...localProjects, newProject];
+      setLocalProjects(updatedProjects);
+      onProjectsUpdate?.(updatedProjects);
+      
+      resetForm();
+      setIsAddDialogOpen(false);
+    } catch (err) {
+      console.error('Error adding project:', err);
+      setError('Failed to add project. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEditProject = async () => {
+    if (!editingProject || !projectForm.title.trim()) {
+      setError('Please enter a project title.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError(null);
+
+      const updatedProject = await updateProject(editingProject.id, {
+        title: projectForm.title.trim(),
+        imageUrl: projectForm.imageUrl.trim() || undefined,
+        description: projectForm.description.trim() || undefined,
+        demoUrl: projectForm.demoUrl.trim() || undefined,
+        githubUrl: projectForm.githubUrl.trim() || undefined,
+        technologies: projectForm.technologies.trim() ? projectForm.technologies.trim().split(',').map(t => t.trim()) : [],
+        featured: projectForm.featured
+      });
+
+      const updatedProjects = localProjects.map(p => p.id === editingProject.id ? updatedProject : p);
+      setLocalProjects(updatedProjects);
+      onProjectsUpdate?.(updatedProjects);
+      
+      resetForm();
+      setIsEditDialogOpen(false);
+      setEditingProject(null);
+    } catch (err) {
+      console.error('Error updating project:', err);
+      setError('Failed to update project. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this project?')) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setError(null);
+
+      await deleteProject(projectId);
+      const updatedProjects = localProjects.filter(p => p.id !== projectId);
+      setLocalProjects(updatedProjects);
+      onProjectsUpdate?.(updatedProjects);
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      setError('Failed to delete project. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openEditDialog = (project: Project) => {
+    setEditingProject(project);
+    setProjectForm({
+      title: project.title,
+      imageUrl: project.imageUrl || '',
+      description: project.description || '',
+      demoUrl: project.demoUrl || '',
+      githubUrl: project.githubUrl || '',
+      technologies: project.technologies?.join(', ') || '',
+      featured: project.featured || false
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleAddCancel = () => {
+    setIsAddDialogOpen(false);
+    resetForm();
+  };
+
+  const handleEditCancel = () => {
+    setIsEditDialogOpen(false);
+    setEditingProject(null);
+    resetForm();
+  };
 
   if (loading) {
     return (
@@ -30,16 +274,44 @@ export default function Projects({ projects = [], portfolioId, loading = false }
       <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Manage your portfolio projects</p>
       
       <div className="space-y-4 sm:space-y-6">
-        {/* Add Project Button */}
+        {/* Add Project Dialog */}
         <div>
-          <Button className="w-full sm:w-auto px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-center items-center gap-2">
-            <Plus className="w-[14px] h-[14px]" />
-            Add Project
-          </Button>
+          <FormDialog
+            title="Add New Project"
+            description="Add a new project to your portfolio"
+            triggerLabel="Add Project"
+            isOpen={isAddDialogOpen}
+            onOpenChange={setIsAddDialogOpen}
+            fields={projectFormFields}
+            formData={projectForm}
+            onFormChange={handleFormChange}
+            onSubmit={handleAddProject}
+            onCancel={handleAddCancel}
+            isEdit={false}
+            loading={actionLoading}
+            error={error}
+            submitLabel="Add Project"
+          />
         </div>
 
+        {/* Edit Project Dialog */}
+        <EditFormDialog
+          title="Edit Project"
+          description="Update your project details"
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          fields={projectFormFields}
+          formData={projectForm}
+          onFormChange={handleFormChange}
+          onSubmit={handleEditProject}
+          onCancel={handleEditCancel}
+          loading={actionLoading}
+          error={error}
+          submitLabel="Update Project"
+        />
+
         {/* Projects Grid */}
-        {projects.length === 0 ? (
+        {localProjects.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,15 +323,17 @@ export default function Projects({ projects = [], portfolioId, loading = false }
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-6">
-            {projects.map((project) => (
+            {localProjects.map((project) => (
               <div
                 key={project.id}
                 className="p-[1px] bg-white overflow-hidden rounded-lg border border-[#E2E8F0] flex flex-col justify-start items-start"
               >
-                <img
+                <Image
                   className="w-full h-[150px] sm:h-[200px] object-cover"
-                  src={project.imageUrl || "https://placehold.co/754x200"}
+                  src={getSafeImageUrl(project.imageUrl)}
                   alt={project.title}
+                  width={754}
+                  height={200}
                 />
                 <div className="w-full pt-4 sm:pt-[23px] pb-4 sm:pb-6 px-4 sm:px-6 flex flex-col justify-start items-start gap-2">
                   <div className="w-full pb-[0.8px] flex flex-col justify-start items-start">
@@ -86,20 +360,26 @@ export default function Projects({ projects = [], portfolioId, loading = false }
                       ))}
                     </div>
                   )}
-                <div className="w-full pt-2 flex flex-col sm:flex-row justify-start items-start gap-2">
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal"
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal"
-                  >
-                    Delete
-                  </Button>
-                </div>
+                  <div className="w-full pt-2 flex flex-col sm:flex-row justify-start items-start gap-2">
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      onClick={() => openEditDialog(project)}
+                      disabled={actionLoading}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      onClick={() => handleDeleteProject(project.id)}
+                      disabled={actionLoading}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -108,4 +388,4 @@ export default function Projects({ projects = [], portfolioId, loading = false }
       </div>
     </div>
   );
-} 
+}
