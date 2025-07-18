@@ -82,6 +82,41 @@ namespace backend_user.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
+        {
+            try
+            {
+                var updatedUser = await userRepository.UpdateUser(id, request);
+                if (updatedUser == null)
+                {
+                    return NotFound($"User with ID {id} not found.");
+                }
+
+                var response = new UserResponseDto
+                {
+                    Id = updatedUser.Id,
+                    Email = updatedUser.Email,
+                    Username = updatedUser.Username,
+                    FirstName = updatedUser.FirstName,
+                    LastName = updatedUser.LastName,
+                    ProfessionalTitle = updatedUser.ProfessionalTitle,
+                    Bio = updatedUser.Bio,
+                    Location = updatedUser.Location,
+                    AvatarUrl = updatedUser.AvatarUrl,
+                    IsActive = updatedUser.IsActive,
+                    IsAdmin = updatedUser.IsAdmin,
+                    LastLoginAt = updatedUser.LastLoginAt
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         // OAuth Provider endpoints
         [HttpGet("{userId}/oauth-providers")]
         public async Task<IActionResult> GetUserOAuthProviders(Guid userId)

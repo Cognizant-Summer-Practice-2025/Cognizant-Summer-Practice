@@ -91,7 +91,7 @@ export function ComponentOrdering({ components, onComponentsChange, className = 
               <button
                 onClick={() => toggleComponentVisibility(component.id)}
                 className={`w-11 h-6 rounded-full transition-colors ${
-                  component.isVisible ? "bg-[#2563EB]" : "bg-gray-300"
+                  component.isVisible ? "bg-app-blue" : "bg-gray-300"
                 }`}
                 title={component.isVisible ? "Hide section" : "Show section"}
               >

@@ -3,13 +3,21 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { User } from '@/lib/user/interfaces';
-import { getUserByEmail } from '@/lib/user/api';
+import { getUserByEmail, updateUser } from '@/lib/user/api';
 
 interface UserContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
   refetchUser: () => Promise<void>;
+  updateUserData: (userData: {
+    firstName?: string;
+    lastName?: string;
+    professionalTitle?: string;
+    bio?: string;
+    location?: string;
+    profileImage?: string;
+  }) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -41,6 +49,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserData = async (userData: {
+    firstName?: string;
+    lastName?: string;
+    professionalTitle?: string;
+    bio?: string;
+    location?: string;
+    profileImage?: string;
+  }) => {
+    if (!user?.id) {
+      throw new Error('No user ID available');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const updatedUser = await updateUser(user.id, userData);
+      setUser(updatedUser);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update user data';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Reset user state when session changes
     if (status === 'loading') {
@@ -66,6 +100,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     loading: loading || status === 'loading',
     error,
     refetchUser,
+    updateUserData,
   };
 
   return (

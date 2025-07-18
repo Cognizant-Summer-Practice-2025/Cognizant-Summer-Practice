@@ -168,7 +168,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false, o
 
   if (loading && skills.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
         <h2 className="text-2xl font-bold mb-4">Skills</h2>
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -179,7 +179,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false, o
     }
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full space-y-6">
       <h2 className="text-2xl font-bold mb-4">Skills</h2>
       
       {error && (

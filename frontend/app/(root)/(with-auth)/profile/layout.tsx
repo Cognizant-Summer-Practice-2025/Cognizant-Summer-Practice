@@ -51,7 +51,7 @@ export default function ProfileLayout({
         </div>
         
         {/* Main Content */}
-        <div className="flex-1 bg-gray-50 overflow-y-auto lg:overflow-hidden">
+        <div className="flex-1 bg-gray-50 overflow-y-auto">
           {/* Mobile Tab Selector */}
           <div className="lg:hidden bg-white border-b border-[#E2E8F0] p-4 sticky top-0 z-10">
             <Select value={activeTab} onValueChange={setActiveTab}>

@@ -110,7 +110,7 @@ export default function Header() {
             {/* Publish Button */}
             <Button 
               onClick={() => router.push('/publish')}
-              className="px-3 xl:px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-start items-center gap-1 xl:gap-2"
+                              className="px-3 xl:px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg flex justify-start items-center gap-1 xl:gap-2"
             >
               <Plus className="w-[14px] h-[14px]" />
               <span className="hidden lg:inline">Publish</span>
@@ -153,7 +153,7 @@ export default function Header() {
             ) : (
               <Button 
                 onClick={handleLogin}
-                className="px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg"
+                className="px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg"
               >
                 Login
               </Button>
@@ -206,7 +206,7 @@ export default function Header() {
                 setIsMobileMenuOpen(false);
                 router.push('/publish');
               }}
-              className="w-full px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-center items-center gap-2"
+              className="w-full px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg flex justify-center items-center gap-2"
             >
               <Plus className="w-[14px] h-[14px]" />
               Publish

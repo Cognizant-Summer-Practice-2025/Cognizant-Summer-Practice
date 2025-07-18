@@ -219,7 +219,7 @@ export function FormDialog<T = Record<string, any>>({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button 
-          className="w-full sm:w-auto px-4 py-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-[#F8FAFC] text-sm font-normal rounded-lg flex justify-center items-center gap-2"
+          className="w-full sm:w-auto px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg flex justify-center items-center gap-2"
         >
           <Plus className="w-[14px] h-[14px]" />
           {triggerLabel}

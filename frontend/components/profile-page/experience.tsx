@@ -248,9 +248,9 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 spinner-app-blue mx-auto mb-4"></div>
           <p className="text-gray-600">Loading experience...</p>
         </div>
       </div>
@@ -258,7 +258,7 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px]">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full">
       <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Experience</h1>
       <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Add your work experience and achievements</p>
     
