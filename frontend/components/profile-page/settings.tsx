@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ComponentOrdering } from "@/components/ui/component-ordering"
 import { ComponentConfig } from '@/lib/portfolio';
 import { TemplateManager } from '@/lib/template-manager';
+import { usePortfolio } from '@/lib/contexts/portfolio-context';
+import { updatePortfolio } from '@/lib/portfolio/api';
 
 interface SettingsProps {
   portfolioId?: string;
@@ -20,22 +21,47 @@ interface SettingsProps {
     allowMessages?: boolean;
     emailNotifications?: boolean;
   };
-  onSave?: (data: any) => void;
+  onSave?: (data: {
+    portfolio: {
+      visibility: number;
+      components: string;
+    };
+    preferences: {
+      allowMessages: boolean;
+      emailNotifications: boolean;
+    };
+  }) => void;
   readOnly?: boolean;
 }
 
-export default function Settings({ portfolioId, initialData, onSave, readOnly = false }: SettingsProps = {}) {
-  const [visibility, setVisibility] = useState(initialData?.portfolio?.visibility ?? 0);
+export default function Settings({ portfolioId: propPortfolioId, initialData, onSave, readOnly = false }: SettingsProps = {}) {
+  const { userPortfolioData, refreshUserPortfolios, loading: portfolioLoading } = usePortfolio();
+  
+  // Get the current portfolio from context or use provided portfolioId
+  const currentPortfolio = userPortfolioData?.portfolios?.[0]; // Get first portfolio for now
+  const portfolioId = propPortfolioId || currentPortfolio?.id;
+  
+  const [visibility, setVisibility] = useState(initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0);
   const [allowMessages, setAllowMessages] = useState(initialData?.allowMessages ?? true);
   const [emailNotifications, setEmailNotifications] = useState(initialData?.emailNotifications ?? true);
-  const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   
-  // Use provided component configuration or create default
-  const [components, setComponents] = useState<ComponentConfig[]>(
-    initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig()
-  );
+  // Use provided component configuration or from portfolio or create default
+  const [components, setComponents] = useState<ComponentConfig[]>(() => {
+    if (initialData?.portfolio?.components) {
+      return initialData.portfolio.components;
+    }
+    if (currentPortfolio?.components) {
+      try {
+        return JSON.parse(currentPortfolio.components);
+      } catch {
+        return TemplateManager.createDefaultComponentConfig();
+      }
+    }
+    return TemplateManager.createDefaultComponentConfig();
+  });
 
   const visibilityOptions = [
     { value: 0, label: "Public" },
@@ -43,12 +69,31 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
     { value: 2, label: "Unlisted" }
   ];
 
+  // Update state when portfolio data changes
+  useEffect(() => {
+    if (currentPortfolio && !initialData) {
+      setVisibility(currentPortfolio.visibility);
+      if (currentPortfolio.components) {
+        try {
+          const parsedComponents = JSON.parse(currentPortfolio.components);
+          setComponents(parsedComponents);
+        } catch {
+          setComponents(TemplateManager.createDefaultComponentConfig());
+        }
+      }
+    }
+  }, [currentPortfolio, initialData]);
+
   const handleSave = async () => {
-    if (!portfolioId && !onSave) return;
+    if (!portfolioId && !onSave) {
+      setError('No portfolio found to update');
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
+      setSuccess(false);
 
       const dataToSave = {
         portfolio: {
@@ -64,17 +109,20 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
       if (onSave) {
         await onSave(dataToSave);
       } else if (portfolioId) {
-        // Implement API call to save portfolio settings
-        const { updatePortfolio } = await import('@/lib/portfolio/api');
         await updatePortfolio(portfolioId, {
-          visibility,
+          visibility: visibility as 0 | 1 | 2,
           components: JSON.stringify(components)
         });
-        console.log('Settings saved successfully');
+        
+        // Refresh portfolio data to get updated values
+        await refreshUserPortfolios();
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
       console.error('Error saving settings:', err);
-      setError('Failed to save settings');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save settings';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -82,37 +130,47 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
 
 
 
-  if (loading && !initialData) {
-  return (
-      <div className="space-y-6">
+  if ((portfolioLoading || loading) && !initialData && !currentPortfolio) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full h-full overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4">Settings</h2>
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           <span className="ml-2">Loading settings...</span>
         </div>
-            </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-4">Settings</h2>
+    <div className="bg-white rounded-lg shadow-sm w-full">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold mb-4">Settings</h2>
       
+      {/* Success Message */}
+      {success && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-600">Settings saved successfully!</p>
+        </div>
+      )}
+      
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-                <button
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">{error}</p>
+          <button
             onClick={() => setError(null)}
             className="ml-2 text-red-500 hover:text-red-700"
-                      >
+          >
             ×
-                      </button>
-                  </div>
-                )}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Portfolio Settings */}
-        <div className="bg-white p-6 rounded-lg border">
+        <div className="p-6 rounded-lg border border-gray-200 bg-gray-50">
           <h3 className="text-lg font-medium mb-4">Portfolio Settings</h3>
           
           <div className="space-y-4">
@@ -144,7 +202,7 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
           </div>
 
         {/* Notification Settings */}
-        <div className="bg-white p-6 rounded-lg border">
+        <div className="p-6 rounded-lg border border-gray-200 bg-gray-50">
           <h3 className="text-lg font-medium mb-4">Notification Settings</h3>
             
           <div className="space-y-4">
@@ -186,7 +244,7 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
       </div>
 
       {/* Component Configuration */}
-      <div className="bg-white p-6 rounded-lg border">
+      <div className="p-6 rounded-lg border border-gray-200 bg-gray-50">
         <h3 className="text-lg font-medium mb-4">Portfolio Components</h3>
         <p className="text-sm text-gray-500 mb-4">
           Configure which sections appear in your portfolio and their order
@@ -204,11 +262,25 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
             variant="outline" 
             disabled={loading}
             onClick={() => {
-              // Reset to initial values
-              setVisibility(initialData?.portfolio?.visibility ?? 0);
+              // Reset to current portfolio values or initial values
+              const resetVisibility = currentPortfolio?.visibility ?? initialData?.portfolio?.visibility ?? 0;
+              const resetComponents = (() => {
+                if (currentPortfolio?.components) {
+                  try {
+                    return JSON.parse(currentPortfolio.components);
+                  } catch {
+                    return TemplateManager.createDefaultComponentConfig();
+                  }
+                }
+                return initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig();
+              })();
+              
+              setVisibility(resetVisibility);
               setAllowMessages(initialData?.allowMessages ?? true);
               setEmailNotifications(initialData?.emailNotifications ?? true);
-              setComponents(initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig());
+              setComponents(resetComponents);
+              setError(null);
+              setSuccess(false);
             }}
           >
             Reset
@@ -221,6 +293,8 @@ export default function Settings({ portfolioId, initialData, onSave, readOnly = 
           </Button>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 } 

@@ -1,5 +1,6 @@
 ﻿using backend_user.Data;
 using backend_user.Models;
+using backend_user.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_user.Repositories
@@ -33,8 +34,34 @@ namespace backend_user.Repositories
             await _context.SaveChangesAsync();
             return user;
         }
-        
-        
-        
+
+        public async Task<User?> UpdateUser(Guid id, UpdateUserRequest request)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return null;
+
+            // Update only the fields that are provided
+            if (request.FirstName != null)
+                user.FirstName = request.FirstName;
+            
+            if (request.LastName != null)
+                user.LastName = request.LastName;
+            
+            if (request.ProfessionalTitle != null)
+                user.ProfessionalTitle = request.ProfessionalTitle;
+            
+            if (request.Bio != null)
+                user.Bio = request.Bio;
+            
+            if (request.Location != null)
+                user.Location = request.Location;
+            
+            if (request.ProfileImage != null)
+                user.AvatarUrl = request.ProfileImage;
+
+            await _context.SaveChangesAsync();
+            return user;
+        }
     }
 }
