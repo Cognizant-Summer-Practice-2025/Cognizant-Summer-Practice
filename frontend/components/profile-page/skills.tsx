@@ -11,9 +11,10 @@ interface SkillsProps {
   portfolioId?: string;
   initialSkills?: Skill[];
   readOnly?: boolean;
+  onSkillsUpdate?: () => Promise<void>;
 }
 
-export default function Skills({ portfolioId, initialSkills, readOnly = false }: SkillsProps = {}) {
+export default function Skills({ portfolioId, initialSkills, readOnly = false, onSkillsUpdate }: SkillsProps = {}) {
   const [skills, setSkills] = useState<Skill[]>(initialSkills || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +85,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       setSkills([...skills, createdSkill]);
       setSelectedSkillData(null);
       setNewProficiency(50);
+      onSkillsUpdate?.();
     } catch (err) {
       console.error('Error creating skill:', err);
       setError('Failed to add skill');
@@ -103,6 +105,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       setSkills(skills.map(skill => skill.id === skillId ? updatedSkill : skill));
       setEditingSkill(null);
       setEditForm({});
+      onSkillsUpdate?.();
     } catch (err) {
       console.error('Error updating skill:', err);
       setError('Failed to update skill');
@@ -118,6 +121,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
       
       await deleteSkill(skillId);
       setSkills(skills.filter(skill => skill.id !== skillId));
+      onSkillsUpdate?.();
     } catch (err) {
       console.error('Error deleting skill:', err);
       setError('Failed to delete skill');
@@ -164,7 +168,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
 
   if (loading && skills.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
         <h2 className="text-2xl font-bold mb-4">Skills</h2>
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -175,7 +179,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false }:
     }
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full space-y-6">
       <h2 className="text-2xl font-bold mb-4">Skills</h2>
       
       {error && (

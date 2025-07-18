@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useUser } from '@/lib/contexts/user-context';
 
 export default function BasicInfo() {
-  const { user, loading, error } = useUser();
+  const { user, loading, error, updateUserData } = useUser();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,6 +15,9 @@ export default function BasicInfo() {
     location: '',
     email: ''
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   // Update form data when user data is loaded
   useEffect(() => {
@@ -35,19 +38,46 @@ export default function BasicInfo() {
       ...prev,
       [field]: value
     }));
+    // Clear success/error states when user types
+    if (success) setSuccess(false);
+    if (submitError) setSubmitError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement user data update logic
-    console.log('Updated user data:', formData);
+    
+    if (!user) {
+      setSubmitError('User data not available');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      
+      await updateUserData({
+        firstName: formData.firstName.trim() || undefined,
+        lastName: formData.lastName.trim() || undefined,
+        professionalTitle: formData.professionalTitle.trim() || undefined,
+        bio: formData.bio.trim() || undefined,
+        location: formData.location.trim() || undefined,
+      });
+      
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000); // Clear success message after 3 seconds
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      setSubmitError(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 spinner-app-blue mx-auto mb-4"></div>
           <p className="text-gray-600">Loading user information...</p>
         </div>
       </div>
@@ -59,7 +89,7 @@ export default function BasicInfo() {
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">Error loading user information: {error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => window.location.reload()} className="bg-app-blue hover:bg-app-blue-hover">
             Retry
           </Button>
         </div>
@@ -68,9 +98,23 @@ export default function BasicInfo() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px]">
+    <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full">
       <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Basic Information</h1>
       <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Update your basic profile information</p>
+      
+      {/* Success Message */}
+      {success && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-600">Profile updated successfully!</p>
+        </div>
+      )}
+      
+      {/* Error Message */}
+      {submitError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-600">{submitError}</p>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -155,13 +199,15 @@ export default function BasicInfo() {
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button 
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+            disabled={submitting}
+            className="bg-app-blue hover:bg-app-blue-hover text-white px-6 py-2"
           >
-            Save Changes
+            {submitting ? 'Saving...' : 'Save Changes'}
           </Button>
           <Button 
             type="button"
             variant="outline"
+            disabled={submitting}
             className="px-6 py-2"
             onClick={() => {
               if (user) {
@@ -173,6 +219,8 @@ export default function BasicInfo() {
                   location: user.location || '',
                   email: user.email || ''
                 });
+                setSubmitError(null);
+                setSuccess(false);
               }
             }}
           >

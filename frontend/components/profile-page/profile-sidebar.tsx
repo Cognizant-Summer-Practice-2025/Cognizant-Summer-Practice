@@ -72,7 +72,7 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
         onClick={() => onTabChange?.(item.id)}
         className={`self-stretch px-4 py-3 rounded-lg flex justify-start items-center gap-3 transition-colors ${
           isActive 
-            ? 'bg-[#2563EB] text-[#F8FAFC]' 
+                          ? 'bg-app-blue text-white' 
             : 'hover:bg-gray-50 text-[#64748B]'
         }`}
       >
@@ -161,7 +161,7 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
             </div>
             <button
               onClick={() => window.location.href = '/publish'}
-              className="w-full px-3 py-2 bg-[#2563EB] text-white text-xs font-medium rounded-md hover:bg-[#1D4ED8] transition-colors"
+              className="w-full px-3 py-2 bg-app-blue text-white text-xs font-medium rounded-md hover:bg-app-blue-hover transition-colors"
             >
               Create Portfolio
             </button>

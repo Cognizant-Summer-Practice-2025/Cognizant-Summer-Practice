@@ -240,3 +240,33 @@ export async function removeOAuthProvider(providerId: string): Promise<void> {
     throw error;
   }
 }
+
+// Update user data
+export async function updateUser(userId: string, userData: {
+  firstName?: string;
+  lastName?: string;
+  professionalTitle?: string;
+  bio?: string;
+  location?: string;
+  profileImage?: string;
+}): Promise<User> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw error;
+  }
+}

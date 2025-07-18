@@ -206,7 +206,7 @@ export default function RegistrationModal({
             <Button
               type="submit"
               disabled={isLoading}
-              className="px-6 bg-blue-600 hover:bg-blue-700"
+                              className="px-6 bg-app-blue hover:bg-app-blue-hover"
             >
               {isLoading ? 'Creating Account...' : 'Complete Registration'}
             </Button>
