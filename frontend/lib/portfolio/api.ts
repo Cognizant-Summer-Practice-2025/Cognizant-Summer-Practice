@@ -1018,6 +1018,9 @@ export async function savePortfolioContent(portfolioId: string, contentData: {
   blogPosts?: BlogPostRequestDto[];
   publishPortfolio?: boolean;
 }): Promise<BulkPortfolioResponseDto> {
+  console.log('📤 API: Saving portfolio content for ID:', portfolioId);
+  console.log('📤 API: Content data:', JSON.stringify(contentData, null, 2));
+  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/save-content`, {
     method: 'POST',
     headers: {
@@ -1026,7 +1029,12 @@ export async function savePortfolioContent(portfolioId: string, contentData: {
     body: JSON.stringify(contentData),
   });
   
-  return handleApiResponse<BulkPortfolioResponseDto>(response);
+  console.log('📤 API: Save content response status:', response.status);
+  
+  const result = await handleApiResponse<BulkPortfolioResponseDto>(response);
+  console.log('📤 API: Save content response data:', result);
+  
+  return result;
 }
 
 // Export all API functions and types

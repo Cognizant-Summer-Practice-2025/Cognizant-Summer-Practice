@@ -23,12 +23,18 @@ interface PortfolioSettingsProps {
       bio?: string;
     };
   };
-  onSave?: (data: any) => void;
+  onSave?: (data: {
+    templateName: string;
+    title: string;
+    bio: string;
+    visibility: 0 | 1 | 2;
+    components: string;
+  }) => Promise<void>;
   readOnly?: boolean;
 }
 
 export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly = false }: PortfolioSettingsProps = {}) {
-  const { getUserPortfolios, loading: portfolioLoading } = usePortfolio();
+  const { getUserPortfolios } = usePortfolio();
   const userPortfolios = getUserPortfolios();
   const currentPortfolioId = portfolioId || userPortfolios[0]?.id;
   const currentPortfolio = userPortfolios.find(p => p.id === currentPortfolioId);
@@ -57,25 +63,44 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
   
   // Update initial values when portfolio data changes
   useEffect(() => {
+    console.log('🔄 Portfolio settings: Portfolio data changed', { currentPortfolio, initialData });
+    
     const newVisibility = initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0;
     const newTemplate = initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu";
     const newTitle = initialData?.portfolio?.title ?? currentPortfolio?.title ?? "";
     const newBio = initialData?.portfolio?.bio ?? currentPortfolio?.bio ?? "";
     const newComponents = initialData?.portfolio?.components || TemplateManager.createDefaultComponentConfig();
     
-    // Update both current form state and initial values for comparison
-    setInitialVisibility(newVisibility);
-    setInitialTemplate(newTemplate);
-    setInitialTitle(newTitle);
-    setInitialBio(newBio);
-    setInitialComponents(newComponents);
+    // Only update if the values have actually changed to prevent unnecessary re-renders
+    if (newVisibility !== initialVisibility) {
+      setInitialVisibility(newVisibility);
+      setVisibility(newVisibility);
+    }
+    if (newTemplate !== initialTemplate) {
+      setInitialTemplate(newTemplate);
+      setTemplate(newTemplate);
+    }
+    if (newTitle !== initialTitle) {
+      setInitialTitle(newTitle);
+      setTitle(newTitle);
+    }
+    if (newBio !== initialBio) {
+      setInitialBio(newBio);
+      setBio(newBio);
+    }
+    if (JSON.stringify(newComponents) !== JSON.stringify(initialComponents)) {
+      setInitialComponents(newComponents);
+      setComponents(newComponents);
+    }
     
-    setVisibility(newVisibility);
-    setTemplate(newTemplate);
-    setTitle(newTitle);
-    setBio(newBio);
-    setComponents(newComponents);
-  }, [currentPortfolio, initialData]);
+    console.log('✅ Portfolio settings: State updated', {
+      visibility: newVisibility,
+      template: newTemplate,
+      title: newTitle,
+      bio: newBio,
+      componentsCount: newComponents.length
+    });
+  }, [currentPortfolio, initialData, initialVisibility, initialTemplate, initialTitle, initialBio, initialComponents]);
   
   // Available templates from the portfolio-templates folder
   const availableTemplates = [
@@ -105,6 +130,7 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
     try {
       setLoading(true);
       setError(null);
+      setSuccess(false);
 
       const dataToSave = {
         templateName: availableTemplates.find(t => t.id === template)?.name || template,
@@ -114,16 +140,36 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
         components: JSON.stringify(components)
       };
 
+      console.log('💾 Saving portfolio settings:', dataToSave);
+
       if (onSave) {
         await onSave(dataToSave);
+        console.log('✅ Portfolio settings saved via onSave callback');
+        
+        // Update initial values after successful save to reflect current state
+        setInitialVisibility(visibility);
+        setInitialTemplate(template);
+        setInitialTitle(title.trim());
+        setInitialBio(bio.trim());
+        setInitialComponents([...components]);
       } else if (currentPortfolioId) {
         await updatePortfolio(currentPortfolioId, dataToSave);
+        console.log('✅ Portfolio settings saved via direct API call');
+        
+        // Update initial values after successful save
+        setInitialVisibility(visibility);
+        setInitialTemplate(template);
+        setInitialTitle(title.trim());
+        setInitialBio(bio.trim());
+        setInitialComponents([...components]);
       }
+      
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000); // Hide success message after 3 seconds
     } catch (err) {
       console.error('❌ Error saving portfolio settings:', err);
-      setError('Failed to save portfolio settings');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save portfolio settings';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

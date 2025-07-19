@@ -99,13 +99,13 @@ export default function Publish() {
     try {
       // Check if we have draft data to save
       if (hasDraftData()) {
-        console.log('Publishing draft data using split approach...')
+        console.log('📝 Publishing draft data using split approach...')
         
         let portfolioId: string;
         
         // If no current portfolio exists, create a new one first
         if (!currentPortfolio) {
-          console.log('Creating new portfolio...')
+          console.log('📝 Creating new portfolio...')
           // Create basic portfolio data
           const portfolioData = {
             userId: user?.id || 'default-user-id',
@@ -118,10 +118,15 @@ export default function Publish() {
           }
           
           portfolioId = await createPortfolioAndGetId(portfolioData);
-          console.log('Created new portfolio with ID:', portfolioId);
+          console.log('✅ Created new portfolio with ID:', portfolioId);
         } else {
           portfolioId = currentPortfolio.id;
-          console.log('Using existing portfolio ID:', portfolioId);
+          console.log('📝 Using existing portfolio ID:', portfolioId);
+        }
+        
+        // Verify we have a valid portfolio ID
+        if (!portfolioId) {
+          throw new Error('Failed to obtain portfolio ID for saving content');
         }
         
         // Prepare projects data
@@ -141,8 +146,8 @@ export default function Publish() {
           portfolioId: portfolioId,
           jobTitle: exp.jobTitle,
           companyName: exp.companyName,
-          startDate: exp.startDate,
-          endDate: exp.isCurrent ? undefined : exp.endDate,
+          startDate: exp.startDate, // Keep as string in YYYY-MM-DD format
+          endDate: exp.isCurrent ? null : exp.endDate, // Use null instead of undefined for optional DateOnly
           isCurrent: exp.isCurrent,
           description: exp.description || '',
           skillsUsed: exp.skillsUsed ? exp.skillsUsed.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
@@ -178,12 +183,33 @@ export default function Publish() {
           publishPortfolio: true
         }
 
-        console.log('Saving portfolio content using split approach:', contentData)
+        console.log('📊 Content data summary:')
+        console.log(`  Projects: ${projects.length}`)
+        console.log(`  Experience: ${experience.length}`)
+        console.log(`  Skills: ${skillsData.length}`)
+        console.log(`  Blog Posts: ${blogPosts.length}`)
+        console.log('📤 Saving portfolio content using split approach:', contentData)
+        
         const result = await savePortfolioContent(portfolioId, contentData)
-        console.log('Save content result:', result)
+        console.log('✅ Save content result:', result)
+
+        // Verify the content was actually saved by checking the response
+        if (result.projectsCreated !== projects.length) {
+          console.warn(`⚠️ Project count mismatch: expected ${projects.length}, created ${result.projectsCreated}`)
+        }
+        if (result.experienceCreated !== experience.length) {
+          console.warn(`⚠️ Experience count mismatch: expected ${experience.length}, created ${result.experienceCreated}`)
+        }
+        if (result.skillsCreated !== skillsData.length) {
+          console.warn(`⚠️ Skills count mismatch: expected ${skillsData.length}, created ${result.skillsCreated}`)
+        }
+        if (result.blogPostsCreated !== blogPosts.length) {
+          console.warn(`⚠️ Blog posts count mismatch: expected ${blogPosts.length}, created ${result.blogPostsCreated}`)
+        }
 
         // Clear drafts after successful save
         clearAllDrafts()
+        console.log('🧹 Draft data cleared')
       } else {
         // Handle case when no draft data exists
         if (!currentPortfolio) {
@@ -309,15 +335,39 @@ export default function Publish() {
                     <PortfolioSettings 
                       portfolioId={currentPortfolio?.id}
                       onSave={async (settingsData) => {
-                        // If no portfolio exists, we'll need to create one or update draft settings
-                        if (!currentPortfolio) {
-                          // TODO: Store settings in draft/temp state for when portfolio is created
-                          return;
+                        try {
+                          console.log('💾 Portfolio settings: Saving settings data:', settingsData);
+                          
+                          if (!currentPortfolio) {
+                            console.log('📝 Portfolio settings: No portfolio exists, creating new one with settings');
+                            // Create a basic portfolio first with the settings data
+                            const portfolioData = {
+                              userId: user?.id || 'default-user-id',
+                              templateName: settingsData.templateName || 'Gabriel Bârzu',
+                              title: settingsData.title || 'My Portfolio',
+                              bio: settingsData.bio || 'Welcome to my portfolio',
+                              visibility: settingsData.visibility || 0,
+                              isPublished: false, // Keep as draft until publish is clicked
+                              components: settingsData.components || JSON.stringify(TemplateManager.createDefaultComponentConfig())
+                            };
+                            
+                            const newPortfolioId = await createPortfolioAndGetId(portfolioData);
+                            console.log('✅ Portfolio settings: Created new portfolio with ID:', newPortfolioId);
+                          } else {
+                            console.log('📝 Portfolio settings: Updating existing portfolio:', currentPortfolio.id);
+                            // Update existing portfolio with settings data
+                            await updatePortfolio(currentPortfolio.id, settingsData);
+                            console.log('✅ Portfolio settings: Updated existing portfolio');
+                          }
+                          
+                          // Refresh portfolio data to reflect changes
+                          console.log('🔄 Portfolio settings: Refreshing portfolio data');
+                          await refreshUserPortfolios();
+                          console.log('✅ Portfolio settings: Portfolio data refreshed');
+                        } catch (error) {
+                          console.error('❌ Portfolio settings: Error saving settings:', error);
+                          throw error; // Let the component handle the error display
                         }
-                        
-                        // Update existing portfolio
-                        await updatePortfolio(currentPortfolio.id, settingsData);
-                        await refreshUserPortfolios();
                       }}
                     />
                   </TabsContent>
