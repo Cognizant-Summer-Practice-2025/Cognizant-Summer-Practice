@@ -99,13 +99,13 @@ export default function Publish() {
     try {
       // Check if we have draft data to save
       if (hasDraftData()) {
-        console.log('📝 Publishing draft data using split approach...')
+        console.log('Publishing draft data using split approach...')
         
         let portfolioId: string;
         
         // If no current portfolio exists, create a new one first
         if (!currentPortfolio) {
-          console.log('📝 Creating new portfolio...')
+          console.log('Creating new portfolio...')
           // Create basic portfolio data
           const portfolioData = {
             userId: user?.id || 'default-user-id',
@@ -118,10 +118,10 @@ export default function Publish() {
           }
           
           portfolioId = await createPortfolioAndGetId(portfolioData);
-          console.log('✅ Created new portfolio with ID:', portfolioId);
+          console.log('Created new portfolio with ID:', portfolioId);
         } else {
           portfolioId = currentPortfolio.id;
-          console.log('📝 Using existing portfolio ID:', portfolioId);
+          console.log('Using existing portfolio ID:', portfolioId);
         }
         
         // Verify we have a valid portfolio ID
@@ -183,33 +183,10 @@ export default function Publish() {
           publishPortfolio: true
         }
 
-        console.log('📊 Content data summary:')
-        console.log(`  Projects: ${projects.length}`)
-        console.log(`  Experience: ${experience.length}`)
-        console.log(`  Skills: ${skillsData.length}`)
-        console.log(`  Blog Posts: ${blogPosts.length}`)
-        console.log('📤 Saving portfolio content using split approach:', contentData)
-        
-        const result = await savePortfolioContent(portfolioId, contentData)
-        console.log('✅ Save content result:', result)
-
-        // Verify the content was actually saved by checking the response
-        if (result.projectsCreated !== projects.length) {
-          console.warn(`⚠️ Project count mismatch: expected ${projects.length}, created ${result.projectsCreated}`)
-        }
-        if (result.experienceCreated !== experience.length) {
-          console.warn(`⚠️ Experience count mismatch: expected ${experience.length}, created ${result.experienceCreated}`)
-        }
-        if (result.skillsCreated !== skillsData.length) {
-          console.warn(`⚠️ Skills count mismatch: expected ${skillsData.length}, created ${result.skillsCreated}`)
-        }
-        if (result.blogPostsCreated !== blogPosts.length) {
-          console.warn(`⚠️ Blog posts count mismatch: expected ${blogPosts.length}, created ${result.blogPostsCreated}`)
-        }
+        await savePortfolioContent(portfolioId, contentData)
 
         // Clear drafts after successful save
         clearAllDrafts()
-        console.log('🧹 Draft data cleared')
       } else {
         // Handle case when no draft data exists
         if (!currentPortfolio) {
@@ -237,8 +214,6 @@ export default function Publish() {
       }
 
       await refreshUserPortfolios()
-      console.log('✅ Portfolio published successfully!')
-      console.log('🎉 All processes completed!')
       
       // Show success message
       setPublishError(null)
@@ -271,12 +246,10 @@ export default function Publish() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Fixed header positioned under app header */}
       <div className="fixed top-16 left-0 right-0 z-40">
         <PublishHeader onPublish={handlePublish} publishing={publishing} />
       </div>
       
-      {/* Main content with proper top margin */}
       <div className="pt-32 pb-6">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -290,13 +263,43 @@ export default function Publish() {
                 )}
                 
                 <Tabs defaultValue="basic-info" className="w-full">
-                  <TabsList className="grid w-full grid-cols-6 mb-6">
-                    <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
-                    <TabsTrigger value="projects">Projects</TabsTrigger>
-                    <TabsTrigger value="experience">Experience</TabsTrigger>
-                    <TabsTrigger value="skills">Skills</TabsTrigger>
-                    <TabsTrigger value="blog-posts">Blog Posts</TabsTrigger>
-                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                  <TabsList className="flex flex-wrap w-full gap-1 mb-6 h-auto p-1 bg-slate-100 rounded-lg">
+                    <TabsTrigger 
+                      value="basic-info" 
+                      className="flex-1 min-w-[120px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Basic Info
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="projects" 
+                      className="flex-1 min-w-[100px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Projects
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="experience" 
+                      className="flex-1 min-w-[110px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Experience
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="skills" 
+                      className="flex-1 min-w-[80px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Skills
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="blog-posts" 
+                      className="flex-1 min-w-[100px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Blog Posts
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="settings" 
+                      className="flex-1 min-w-[90px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Settings
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="basic-info" className="space-y-6">
@@ -336,10 +339,7 @@ export default function Publish() {
                       portfolioId={currentPortfolio?.id}
                       onSave={async (settingsData) => {
                         try {
-                          console.log('💾 Portfolio settings: Saving settings data:', settingsData);
-                          
                           if (!currentPortfolio) {
-                            console.log('📝 Portfolio settings: No portfolio exists, creating new one with settings');
                             // Create a basic portfolio first with the settings data
                             const portfolioData = {
                               userId: user?.id || 'default-user-id',
@@ -351,21 +351,16 @@ export default function Publish() {
                               components: settingsData.components || JSON.stringify(TemplateManager.createDefaultComponentConfig())
                             };
                             
-                            const newPortfolioId = await createPortfolioAndGetId(portfolioData);
-                            console.log('✅ Portfolio settings: Created new portfolio with ID:', newPortfolioId);
+                            await createPortfolioAndGetId(portfolioData);
                           } else {
-                            console.log('📝 Portfolio settings: Updating existing portfolio:', currentPortfolio.id);
                             // Update existing portfolio with settings data
                             await updatePortfolio(currentPortfolio.id, settingsData);
-                            console.log('✅ Portfolio settings: Updated existing portfolio');
                           }
                           
                           // Refresh portfolio data to reflect changes
-                          console.log('🔄 Portfolio settings: Refreshing portfolio data');
                           await refreshUserPortfolios();
-                          console.log('✅ Portfolio settings: Portfolio data refreshed');
                         } catch (error) {
-                          console.error('❌ Portfolio settings: Error saving settings:', error);
+                          console.error('Error saving portfolio settings:', error);
                           throw error; // Let the component handle the error display
                         }
                       }}

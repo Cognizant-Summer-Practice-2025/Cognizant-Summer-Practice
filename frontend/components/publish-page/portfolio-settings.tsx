@@ -63,8 +63,6 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
   
   // Update initial values when portfolio data changes
   useEffect(() => {
-    console.log('🔄 Portfolio settings: Portfolio data changed', { currentPortfolio, initialData });
-    
     const newVisibility = initialData?.portfolio?.visibility ?? currentPortfolio?.visibility ?? 0;
     const newTemplate = initialData?.portfolio?.templateId ?? currentPortfolio?.templateId ?? "gabriel-barzu";
     const newTitle = initialData?.portfolio?.title ?? currentPortfolio?.title ?? "";
@@ -92,14 +90,6 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       setInitialComponents(newComponents);
       setComponents(newComponents);
     }
-    
-    console.log('✅ Portfolio settings: State updated', {
-      visibility: newVisibility,
-      template: newTemplate,
-      title: newTitle,
-      bio: newBio,
-      componentsCount: newComponents.length
-    });
   }, [currentPortfolio, initialData, initialVisibility, initialTemplate, initialTitle, initialBio, initialComponents]);
   
   // Available templates from the portfolio-templates folder
@@ -140,11 +130,8 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
         components: JSON.stringify(components)
       };
 
-      console.log('💾 Saving portfolio settings:', dataToSave);
-
       if (onSave) {
         await onSave(dataToSave);
-        console.log('✅ Portfolio settings saved via onSave callback');
         
         // Update initial values after successful save to reflect current state
         setInitialVisibility(visibility);
@@ -154,7 +141,6 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
         setInitialComponents([...components]);
       } else if (currentPortfolioId) {
         await updatePortfolio(currentPortfolioId, dataToSave);
-        console.log('✅ Portfolio settings saved via direct API call');
         
         // Update initial values after successful save
         setInitialVisibility(visibility);
@@ -167,7 +153,7 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000); // Hide success message after 3 seconds
     } catch (err) {
-      console.error('❌ Error saving portfolio settings:', err);
+      console.error('Error saving portfolio settings:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to save portfolio settings';
       setError(errorMessage);
     } finally {
