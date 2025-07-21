@@ -56,7 +56,7 @@ export function PublishSidebar({ totalProjects, totalExperience, totalSkills, to
             <span className="text-sm font-medium">{totalSkills}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">📝 Blog Posts</span>
+            <span className="text-sm text-gray-600">📝 Blog Posts (Optional)</span>
             <span className="text-sm font-medium">{totalBlogPosts}</span>
           </div>
         </div>

@@ -64,6 +64,7 @@ export default function Publish() {
     const errors = []
     
     // Check if at least one item exists in each category (including drafts)
+    // Blog posts are optional, so we don't validate them
     if (totalProjects === 0) {
       errors.push("Add at least one project")
     }
@@ -73,9 +74,7 @@ export default function Publish() {
     if (totalSkills === 0) {
       errors.push("Add at least one skill")
     }
-    if (totalBlogPosts === 0) {
-      errors.push("Add at least one blog post")
-    }
+    // Blog posts are optional - no validation required
     
     return errors
   }
@@ -250,7 +249,7 @@ export default function Publish() {
         <PublishHeader onPublish={handlePublish} publishing={publishing} />
       </div>
       
-      <div className="pt-32 pb-6">
+      <div className="pt-40 pb-6">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Content */}
@@ -377,7 +376,7 @@ export default function Publish() {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <div className="sticky top-32 space-y-6">
+              <div className="sticky top-40 space-y-6">
                 <PublishSidebar 
                   totalProjects={totalProjects}
                   totalExperience={totalExperience}
