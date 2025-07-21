@@ -1,6 +1,7 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_portfolio.Repositories
@@ -46,7 +47,7 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Bookmark> CreateBookmarkAsync(BookmarkRequestDto request)
+        public async Task<Bookmark> CreateBookmarkAsync(BookmarkCreateRequest request)
         {
             var bookmark = new Bookmark
             {
@@ -63,7 +64,7 @@ namespace backend_portfolio.Repositories
             return bookmark;
         }
 
-        public async Task<Bookmark?> UpdateBookmarkAsync(Guid id, BookmarkUpdateDto request)
+        public async Task<Bookmark?> UpdateBookmarkAsync(Guid id, BookmarkUpdateRequest request)
         {
             var bookmark = await _context.Bookmarks.FindAsync(id);
             if (bookmark == null) return null;

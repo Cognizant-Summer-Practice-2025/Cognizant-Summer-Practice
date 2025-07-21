@@ -1,0 +1,77 @@
+using backend_portfolio.DTO.Request;
+using backend_portfolio.Services.Abstractions;
+
+namespace backend_portfolio.Services.Validators
+{
+    public class ProjectValidator : IValidationService<ProjectCreateRequest>
+    {
+        public ValidationResult Validate(ProjectCreateRequest entity)
+        {
+            var errors = new List<string>();
+
+            if (entity == null)
+            {
+                errors.Add("Project request cannot be null.");
+                return ValidationResult.Failure(errors.ToArray());
+            }
+
+            if (string.IsNullOrWhiteSpace(entity.Title))
+                errors.Add("Project title is required.");
+
+            if (entity.PortfolioId == Guid.Empty)
+                errors.Add("Portfolio ID is required.");
+
+            if (entity.Title?.Length > 255)
+                errors.Add("Project title cannot exceed 255 characters.");
+
+            if (!string.IsNullOrEmpty(entity.DemoUrl) && !Uri.IsWellFormedUriString(entity.DemoUrl, UriKind.Absolute))
+                errors.Add("Demo URL must be a valid URL.");
+
+            if (!string.IsNullOrEmpty(entity.GithubUrl) && !Uri.IsWellFormedUriString(entity.GithubUrl, UriKind.Absolute))
+                errors.Add("GitHub URL must be a valid URL.");
+
+            if (!string.IsNullOrEmpty(entity.ImageUrl) && !Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Absolute))
+                errors.Add("Image URL must be a valid URL.");
+
+            return errors.Any() ? ValidationResult.Failure(errors.ToArray()) : ValidationResult.Success();
+        }
+
+        public Task<ValidationResult> ValidateAsync(ProjectCreateRequest entity)
+        {
+            return Task.FromResult(Validate(entity));
+        }
+    }
+
+    public class ProjectUpdateValidator : IValidationService<ProjectUpdateRequest>
+    {
+        public ValidationResult Validate(ProjectUpdateRequest entity)
+        {
+            var errors = new List<string>();
+
+            if (entity == null)
+            {
+                errors.Add("Project update request cannot be null.");
+                return ValidationResult.Failure(errors.ToArray());
+            }
+
+            if (entity.Title?.Length > 255)
+                errors.Add("Project title cannot exceed 255 characters.");
+
+            if (!string.IsNullOrEmpty(entity.DemoUrl) && !Uri.IsWellFormedUriString(entity.DemoUrl, UriKind.Absolute))
+                errors.Add("Demo URL must be a valid URL.");
+
+            if (!string.IsNullOrEmpty(entity.GithubUrl) && !Uri.IsWellFormedUriString(entity.GithubUrl, UriKind.Absolute))
+                errors.Add("GitHub URL must be a valid URL.");
+
+            if (!string.IsNullOrEmpty(entity.ImageUrl) && !Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Absolute))
+                errors.Add("Image URL must be a valid URL.");
+
+            return errors.Any() ? ValidationResult.Failure(errors.ToArray()) : ValidationResult.Success();
+        }
+
+        public Task<ValidationResult> ValidateAsync(ProjectUpdateRequest entity)
+        {
+            return Task.FromResult(Validate(entity));
+        }
+    }
+} 

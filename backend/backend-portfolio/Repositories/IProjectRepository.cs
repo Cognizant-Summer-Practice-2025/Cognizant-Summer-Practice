@@ -1,5 +1,6 @@
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 
 namespace backend_portfolio.Repositories
 {
@@ -8,8 +9,8 @@ namespace backend_portfolio.Repositories
         Task<List<Project>> GetAllProjectsAsync();
         Task<Project?> GetProjectByIdAsync(Guid id);
         Task<List<Project>> GetProjectsByPortfolioIdAsync(Guid portfolioId);
-        Task<Project> CreateProjectAsync(ProjectRequestDto request);
-        Task<Project?> UpdateProjectAsync(Guid id, ProjectUpdateDto request);
+        Task<Project> CreateProjectAsync(ProjectCreateRequest request);
+        Task<Project?> UpdateProjectAsync(Guid id, ProjectUpdateRequest request);
         Task<bool> DeleteProjectAsync(Guid id);
         Task<List<Project>> GetFeaturedProjectsAsync();
         Task<List<Project>> GetFeaturedProjectsByPortfolioIdAsync(Guid portfolioId);

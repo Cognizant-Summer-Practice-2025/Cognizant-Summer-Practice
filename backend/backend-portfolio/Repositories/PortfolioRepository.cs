@@ -1,6 +1,7 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_portfolio.Repositories
@@ -48,7 +49,7 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Portfolio> CreatePortfolioAsync(PortfolioRequestDto request)
+        public async Task<Portfolio> CreatePortfolioAsync(PortfolioCreateRequest request)
         {
             // Find template by name
             var template = await _context.PortfolioTemplates
@@ -78,7 +79,7 @@ namespace backend_portfolio.Repositories
             return portfolio;
         }
 
-        public async Task<Portfolio?> UpdatePortfolioAsync(Guid id, PortfolioUpdateDto request)
+        public async Task<Portfolio?> UpdatePortfolioAsync(Guid id, PortfolioUpdateRequest request)
         {
             var portfolio = await _context.Portfolios.FindAsync(id);
             if (portfolio == null) return null;

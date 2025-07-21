@@ -1,6 +1,7 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_portfolio.Repositories
@@ -36,7 +37,7 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
-        public async Task<BlogPost> CreateBlogPostAsync(BlogPostRequestDto request)
+        public async Task<BlogPost> CreateBlogPostAsync(BlogPostCreateRequest request)
         {
             var blogPost = new BlogPost
             {
@@ -58,7 +59,7 @@ namespace backend_portfolio.Repositories
             return blogPost;
         }
 
-        public async Task<BlogPost?> UpdateBlogPostAsync(Guid id, BlogPostUpdateDto request)
+        public async Task<BlogPost?> UpdateBlogPostAsync(Guid id, BlogPostUpdateRequest request)
         {
             var blogPost = await _context.BlogPosts.FindAsync(id);
             if (blogPost == null) return null;

@@ -1,6 +1,7 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_portfolio.Repositories
@@ -37,7 +38,7 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Skill> CreateSkillAsync(SkillRequestDto request)
+        public async Task<Skill> CreateSkillAsync(SkillCreateRequest request)
         {
             var skill = new Skill
             {
@@ -58,7 +59,7 @@ namespace backend_portfolio.Repositories
             return skill;
         }
 
-        public async Task<Skill?> UpdateSkillAsync(Guid id, SkillUpdateDto request)
+        public async Task<Skill?> UpdateSkillAsync(Guid id, SkillUpdateRequest request)
         {
             var skill = await _context.Skills.FindAsync(id);
             if (skill == null) return null;

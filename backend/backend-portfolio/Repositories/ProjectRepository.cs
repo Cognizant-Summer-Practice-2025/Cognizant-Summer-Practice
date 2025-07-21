@@ -1,6 +1,7 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_portfolio.Repositories
@@ -37,7 +38,7 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Project> CreateProjectAsync(ProjectRequestDto request)
+        public async Task<Project> CreateProjectAsync(ProjectCreateRequest request)
         {
             var project = new Project
             {
@@ -59,7 +60,7 @@ namespace backend_portfolio.Repositories
             return project;
         }
 
-        public async Task<Project?> UpdateProjectAsync(Guid id, ProjectUpdateDto request)
+        public async Task<Project?> UpdateProjectAsync(Guid id, ProjectUpdateRequest request)
         {
             var project = await _context.Projects.FindAsync(id);
             if (project == null) return null;

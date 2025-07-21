@@ -1,5 +1,6 @@
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 
 namespace backend_portfolio.Repositories
 {
@@ -7,8 +8,8 @@ namespace backend_portfolio.Repositories
     {
         Task<List<PortfolioTemplate>> GetAllTemplatesAsync();
         Task<PortfolioTemplate?> GetTemplateByIdAsync(Guid id);
-        Task<PortfolioTemplate> CreateTemplateAsync(PortfolioTemplateRequestDto request);
-        Task<PortfolioTemplate?> UpdateTemplateAsync(Guid id, PortfolioTemplateUpdateDto request);
+        Task<PortfolioTemplate> CreateTemplateAsync(PortfolioTemplateCreateRequest request);
+        Task<PortfolioTemplate?> UpdateTemplateAsync(Guid id, PortfolioTemplateUpdateRequest request);
         Task<bool> DeleteTemplateAsync(Guid id);
     }
 }

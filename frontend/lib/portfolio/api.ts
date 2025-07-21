@@ -610,14 +610,14 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
 
 // Get user info for portfolio cards
 export async function getUserPortfolioInfo(userId: string): Promise<UserPortfolioInfo> {
-  console.log(`🔍 Fetching user info for userId: ${userId}`);
-  console.log(`🌐 Calling: ${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
+  console.log(` Fetching user info for userId: ${userId}`);
+  console.log(` Calling: ${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
   
   const response = await fetch(`${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
-  console.log(`📥 User API response status: ${response.status}`);
+  console.log(` User API response status: ${response.status}`);
   
   const result = await handleApiResponse<UserPortfolioInfo>(response);
-  console.log(`👤 User info received:`, result);
+  console.log(` User info received:`, result);
   
   return result;
 }
