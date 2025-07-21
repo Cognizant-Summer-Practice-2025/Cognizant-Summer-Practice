@@ -41,7 +41,6 @@ export default function Header() {
   };
 
 
-
   return (
     <>
       <header className="fixed top-0 left-0 right-0 w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 z-50">
