@@ -1,13 +1,14 @@
 using backend_user.DTO;
 using backend_user.Models;
 using backend_user.Repositories;
+using backend_user.Services.Abstractions;
+using backend_user.Services.Mappers;
+using backend_user.Services.Validators;
 
 namespace backend_user.Services
 {
     /// <summary>
     /// Implementation of login service.
-    /// Follows Single Responsibility Principle by handling only login operations.
-    /// Follows Dependency Inversion Principle by depending on abstractions (interfaces).
     /// </summary>
     public class LoginService : ILoginService
     {
@@ -22,8 +23,16 @@ namespace backend_user.Services
 
         public async Task<LoginResponseDto> LoginWithOAuthAsync(OAuthLoginRequestDto request)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            var validation = OAuthValidator.ValidateLoginRequest(request);
+            if (!validation.IsValid)
+            {
+                return new LoginResponseDto
+                {
+                    Success = false,
+                    Message = string.Join(", ", validation.Errors),
+                    User = null
+                };
+            }
 
             try
             {
@@ -57,22 +66,8 @@ namespace backend_user.Services
                 await UpdateOAuthTokenAsync(request.Provider, request.ProviderId, 
                     request.AccessToken, request.RefreshToken, request.TokenExpiresAt);
 
-                // Create user response
-                var userResponse = new UserResponseDto
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    Username = user.Username,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    ProfessionalTitle = user.ProfessionalTitle,
-                    Bio = user.Bio,
-                    Location = user.Location,
-                    AvatarUrl = user.AvatarUrl,
-                    IsActive = user.IsActive,
-                    IsAdmin = user.IsAdmin,
-                    LastLoginAt = user.LastLoginAt
-                };
+                // Create user response using mapper
+                var userResponse = UserMapper.ToResponseDto(user);
 
                 return new LoginResponseDto
                 {
@@ -95,7 +90,8 @@ namespace backend_user.Services
 
         public async Task<bool> ValidateOAuthCredentialsAsync(OAuthProviderType provider, string providerId, string providerEmail)
         {
-            if (string.IsNullOrWhiteSpace(providerId) || string.IsNullOrWhiteSpace(providerEmail))
+            var validation = OAuthValidator.ValidateProviderCredentials(provider, providerId, providerEmail);
+            if (!validation.IsValid)
                 return false;
 
             try

@@ -1,13 +1,13 @@
 using backend_user.DTO;
 using backend_user.Models;
 using backend_user.Repositories;
+using backend_user.Services.Abstractions;
+using backend_user.Services.Validators;
 
 namespace backend_user.Services
 {
     /// <summary>
     /// Implementation of authentication service.
-    /// Follows Single Responsibility Principle by handling only authentication concerns.
-    /// Follows Dependency Inversion Principle by depending on abstractions (interfaces).
     /// </summary>
     public class AuthenticationService : IAuthenticationService
     {
@@ -22,11 +22,9 @@ namespace backend_user.Services
 
         public async Task<User?> AuthenticateOAuthUserAsync(OAuthProviderType provider, string providerId, string providerEmail)
         {
-            if (string.IsNullOrWhiteSpace(providerId))
-                throw new ArgumentException("Provider ID cannot be null or empty", nameof(providerId));
-            
-            if (string.IsNullOrWhiteSpace(providerEmail))
-                throw new ArgumentException("Provider email cannot be null or empty", nameof(providerEmail));
+            var validation = OAuthValidator.ValidateProviderCredentials(provider, providerId, providerEmail);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
 
             // Find the OAuth provider
             var oauthProvider = await _oauthProviderRepository.GetByProviderAndProviderIdAsync(provider, providerId);
@@ -71,7 +69,8 @@ namespace backend_user.Services
 
         public async Task<bool> IsOAuthProviderLinkedAsync(OAuthProviderType provider, string providerId)
         {
-            if (string.IsNullOrWhiteSpace(providerId))
+            var validation = OAuthValidator.ValidateProviderCredentials(provider, providerId, "dummy@email.com");
+            if (!validation.IsValid)
                 return false;
 
             var oauthProvider = await _oauthProviderRepository.GetByProviderAndProviderIdAsync(provider, providerId);

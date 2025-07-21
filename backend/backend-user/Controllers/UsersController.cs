@@ -1,5 +1,5 @@
 ﻿using backend_user.Models;
-using backend_user.Services;
+using backend_user.Services.Abstractions;
 using backend_user.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,9 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace backend_user.Controllers
 {
     /// <summary>
-    /// Refactored UsersController following SOLID principles.
-    /// Follows Single Responsibility Principle by delegating business logic to services.
-    /// Follows Dependency Inversion Principle by depending on service abstractions.
+    /// UsersController for managing user-related operations.
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]

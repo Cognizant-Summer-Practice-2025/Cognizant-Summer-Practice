@@ -1,11 +1,10 @@
 using backend_user.DTO;
 using backend_user.Models;
 
-namespace backend_user.Services
+namespace backend_user.Services.Abstractions
 {
     /// <summary>
     /// Interface for login operations.
-    /// Follows Interface Segregation Principle by separating login concerns from other auth operations.
     /// </summary>
     public interface ILoginService
     {

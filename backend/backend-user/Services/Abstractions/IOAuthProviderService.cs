@@ -1,11 +1,10 @@
 using backend_user.DTO;
 using backend_user.Models;
 
-namespace backend_user.Services
+namespace backend_user.Services.Abstractions
 {
     /// <summary>
     /// Interface for OAuth provider management operations.
-    /// Follows Interface Segregation Principle by separating OAuth concerns.
     /// </summary>
     public interface IOAuthProviderService
     {

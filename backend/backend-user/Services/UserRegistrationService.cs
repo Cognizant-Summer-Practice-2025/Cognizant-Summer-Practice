@@ -1,13 +1,14 @@
 using backend_user.DTO;
 using backend_user.Models;
 using backend_user.Repositories;
+using backend_user.Services.Abstractions;
+using backend_user.Services.Mappers;
+using backend_user.Services.Validators;
 
 namespace backend_user.Services
 {
     /// <summary>
     /// Implementation of user registration service.
-    /// Follows Single Responsibility Principle by handling only registration operations.
-    /// Follows Dependency Inversion Principle by depending on abstractions (interfaces).
     /// </summary>
     public class UserRegistrationService : IUserRegistrationService
     {
@@ -22,39 +23,26 @@ namespace backend_user.Services
 
         public async Task<User> RegisterUserAsync(RegisterUserRequest request)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            var validation = UserValidator.ValidateRegisterRequest(request);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
 
-            // Extracted logic from controller's register endpoint
             var existingUser = await _userRepository.GetUserByEmail(request.Email);
             if (existingUser != null)
             {
                 throw new InvalidOperationException("User already exists");
             }
 
-            var username = request.Email.Split('@')[0];
-            
-            var user = new User
-            {
-                Email = request.Email,
-                Username = username,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                ProfessionalTitle = request.ProfessionalTitle,
-                Bio = request.Bio,
-                Location = request.Location,
-                AvatarUrl = request.ProfileImage
-            };
-
+            var user = UserMapper.ToEntity(request);
             return await _userRepository.CreateUser(user);
         }
 
         public async Task<object> RegisterOAuthUserAsync(RegisterOAuthUserRequest request)
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            var validation = UserValidator.ValidateOAuthRegisterRequest(request);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
 
-            // Extracted logic from controller's register-oauth endpoint
             // Check if OAuth provider already exists
             var existingProvider = await _oauthProviderRepository.GetByProviderAndProviderIdAsync(
                 request.Provider, request.ProviderId);
@@ -71,64 +59,16 @@ namespace backend_user.Services
                 throw new InvalidOperationException("User already exists");
             }
 
-            var username = request.Email.Split('@')[0];
-
             // Create user first
-            var user = new User
-            {
-                Email = request.Email,
-                Username = username,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                ProfessionalTitle = request.ProfessionalTitle,
-                Bio = request.Bio,
-                Location = request.Location,
-                AvatarUrl = request.ProfileImage
-            };
-
+            var user = UserMapper.ToEntity(request);
             var newUser = await _userRepository.CreateUser(user);
 
             // create OAuth provider
-            var oauthRequest = new OAuthProviderCreateRequestDto
-            {
-                UserId = newUser.Id,
-                Provider = request.Provider,
-                ProviderId = request.ProviderId,
-                ProviderEmail = request.ProviderEmail,
-                AccessToken = request.AccessToken,
-                RefreshToken = request.RefreshToken,
-                TokenExpiresAt = request.TokenExpiresAt
-            };
-
+            var oauthRequest = OAuthProviderMapper.ToCreateRequest(request, newUser.Id);
             var oauthProvider = await _oauthProviderRepository.CreateAsync(oauthRequest);
 
-            var userResponse = new UserResponseDto
-            {
-                Id = newUser.Id,
-                Email = newUser.Email,
-                Username = newUser.Username,
-                FirstName = newUser.FirstName,
-                LastName = newUser.LastName,
-                ProfessionalTitle = newUser.ProfessionalTitle,
-                Bio = newUser.Bio,
-                Location = newUser.Location,
-                AvatarUrl = newUser.AvatarUrl,
-                IsActive = newUser.IsActive,
-                IsAdmin = newUser.IsAdmin,
-                LastLoginAt = newUser.LastLoginAt
-            };
-
-            var oauthResponse = new OAuthProviderResponseDto
-            {
-                Id = oauthProvider.Id,
-                UserId = oauthProvider.UserId,
-                Provider = oauthProvider.Provider,
-                ProviderId = oauthProvider.ProviderId,
-                ProviderEmail = oauthProvider.ProviderEmail,
-                TokenExpiresAt = oauthProvider.TokenExpiresAt,
-                CreatedAt = oauthProvider.CreatedAt,
-                UpdatedAt = oauthProvider.UpdatedAt
-            };
+            var userResponse = UserMapper.ToResponseDto(newUser);
+            var oauthResponse = OAuthProviderMapper.ToResponseDto(oauthProvider);
 
             return new { user = userResponse, oauthProvider = oauthResponse };
         }

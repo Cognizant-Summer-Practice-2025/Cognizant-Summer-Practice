@@ -1,11 +1,10 @@
 using backend_user.DTO;
 using backend_user.Models;
 
-namespace backend_user.Services
+namespace backend_user.Services.Abstractions
 {
     /// <summary>
     /// Interface for user registration operations.
-    /// Follows Single Responsibility Principle by focusing only on registration logic.
     /// </summary>
     public interface IUserRegistrationService
     {

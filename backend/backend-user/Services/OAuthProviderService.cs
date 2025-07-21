@@ -1,13 +1,14 @@
 using backend_user.DTO;
 using backend_user.Models;
 using backend_user.Repositories;
+using backend_user.Services.Abstractions;
+using backend_user.Services.Mappers;
+using backend_user.Services.Validators;
 
 namespace backend_user.Services
 {
     /// <summary>
     /// Implementation of OAuth provider service.
-    /// Follows Single Responsibility Principle by handling only OAuth provider operations.
-    /// Follows Dependency Inversion Principle by depending on abstractions (interfaces).
     /// </summary>
     public class OAuthProviderService : IOAuthProviderService
     {
@@ -20,72 +21,49 @@ namespace backend_user.Services
 
         public async Task<IEnumerable<OAuthProviderSummaryDto>> GetUserOAuthProvidersAsync(Guid userId)
         {
-            // Extracted logic from controller's GetUserOAuthProviders endpoint
+            var validation = UserValidator.ValidateUserId(userId);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
+
             var providers = await _oauthProviderRepository.GetByUserIdAsync(userId);
-            var response = providers.Select(p => new OAuthProviderSummaryDto
-            {
-                Id = p.Id,
-                Provider = p.Provider,
-                ProviderEmail = p.ProviderEmail,
-                CreatedAt = p.CreatedAt
-            });
-            return response;
+            return providers.Select(OAuthProviderMapper.ToSummaryDto);
         }
 
         public async Task<OAuthProviderResponseDto> CreateOAuthProviderAsync(OAuthProviderCreateRequestDto request)
         {
-            // Extracted logic from controller's CreateOAuthProvider endpoint
+            var validation = OAuthValidator.ValidateCreateRequest(request);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
+
             var provider = await _oauthProviderRepository.CreateAsync(request);
-            var response = new OAuthProviderResponseDto
-            {
-                Id = provider.Id,
-                UserId = provider.UserId,
-                Provider = provider.Provider,
-                ProviderId = provider.ProviderId,
-                ProviderEmail = provider.ProviderEmail,
-                TokenExpiresAt = provider.TokenExpiresAt,
-                CreatedAt = provider.CreatedAt,
-                UpdatedAt = provider.UpdatedAt
-            };
-            return response;
+            return OAuthProviderMapper.ToResponseDto(provider);
         }
 
         public async Task<OAuthProviderResponseDto?> UpdateOAuthProviderAsync(Guid id, OAuthProviderUpdateRequestDto request)
         {
-            if (id == Guid.Empty)
-                throw new ArgumentException("OAuth provider ID cannot be empty", nameof(id));
+            var idValidation = OAuthValidator.ValidateOAuthProviderId(id);
+            if (!idValidation.IsValid)
+                throw new ArgumentException(string.Join(", ", idValidation.Errors));
 
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            var requestValidation = OAuthValidator.ValidateUpdateRequest(request);
+            if (!requestValidation.IsValid)
+                throw new ArgumentException(string.Join(", ", requestValidation.Errors));
 
             var provider = await _oauthProviderRepository.UpdateAsync(id, request);
-            if (provider == null)
-                return null;
-
-            return new OAuthProviderResponseDto
-            {
-                Id = provider.Id,
-                UserId = provider.UserId,
-                Provider = provider.Provider,
-                ProviderId = provider.ProviderId,
-                ProviderEmail = provider.ProviderEmail,
-                TokenExpiresAt = provider.TokenExpiresAt,
-                CreatedAt = provider.CreatedAt,
-                UpdatedAt = provider.UpdatedAt
-            };
+            return provider == null ? null : OAuthProviderMapper.ToResponseDto(provider);
         }
 
         public async Task<bool> DeleteOAuthProviderAsync(Guid id)
         {
-            if (id == Guid.Empty)
-                throw new ArgumentException("OAuth provider ID cannot be empty", nameof(id));
+            var validation = OAuthValidator.ValidateOAuthProviderId(id);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
 
             return await _oauthProviderRepository.DeleteAsync(id);
         }
 
         public async Task<object> CheckOAuthProviderAsync(OAuthProviderType provider, string providerId)
         {
-            // Extracted logic from controller's CheckOAuthProvider endpoint
             var exists = await _oauthProviderRepository.ExistsAsync(provider, providerId);
             var oauthProvider = await _oauthProviderRepository.GetByProviderAndProviderIdAsync(provider, providerId);
             return new { exists = exists, provider = oauthProvider };
@@ -93,24 +71,17 @@ namespace backend_user.Services
 
         public async Task<object> GetUserOAuthProviderByTypeAsync(Guid userId, OAuthProviderType provider)
         {
-            // Extracted logic from controller's GetUserOAuthProviderByType endpoint
+            var validation = UserValidator.ValidateUserId(userId);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
+
             var oauthProvider = await _oauthProviderRepository.GetByUserIdAndProviderAsync(userId, provider);
             if (oauthProvider == null)
             {
                 return new { exists = false, provider = (OAuthProvider?)null };
             }
 
-            var response = new OAuthProviderResponseDto
-            {
-                Id = oauthProvider.Id,
-                UserId = oauthProvider.UserId,
-                Provider = oauthProvider.Provider,
-                ProviderId = oauthProvider.ProviderId,
-                ProviderEmail = oauthProvider.ProviderEmail,
-                TokenExpiresAt = oauthProvider.TokenExpiresAt,
-                CreatedAt = oauthProvider.CreatedAt,
-                UpdatedAt = oauthProvider.UpdatedAt
-            };
+            var response = OAuthProviderMapper.ToResponseDto(oauthProvider);
             return new { exists = true, provider = response };
         }
     }

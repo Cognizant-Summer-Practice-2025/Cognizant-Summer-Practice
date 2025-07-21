@@ -3,6 +3,7 @@ using backend_user.Data;
 using backend_user.Repositories;
 using backend_user.Models;
 using backend_user.Services;
+using backend_user.Services.Abstractions;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
