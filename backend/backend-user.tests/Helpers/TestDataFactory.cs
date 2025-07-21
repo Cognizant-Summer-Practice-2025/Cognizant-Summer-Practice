@@ -217,36 +217,7 @@ namespace backend_user.tests.Helpers
                 LastLoginAt = DateTime.UtcNow
             };
         }
-    }
 
-    /// <summary>
-    /// Helper for creating in-memory database contexts for testing.
-    /// </summary>
-    public static class TestDbContextHelper
-    {
-        public static UserDbContext CreateInMemoryContext(string? databaseName = null)
-        {
-            var options = new DbContextOptionsBuilder<UserDbContext>()
-                .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
-                .Options;
-
-            return new UserDbContext(options);
-        }
-
-        public static async Task<UserDbContext> CreateContextWithDataAsync(params User[] users)
-        {
-            var context = CreateInMemoryContext();
-            
-            if (users.Any())
-            {
-                await context.Users.AddRangeAsync(users);
-                await context.SaveChangesAsync();
-            }
-
-            return context;
-        }
-
-        // OAuth Login Request factory methods
         public static OAuthLoginRequestDto CreateValidOAuthLoginRequest(
             OAuthProviderType? provider = null,
             string? providerId = null,
@@ -278,6 +249,34 @@ namespace backend_user.tests.Helpers
                 AccessToken = "access_token_12345",
                 RefreshToken = "refresh_token_12345"
             };
+        }
+    }
+
+    /// <summary>
+    /// Helper for creating in-memory database contexts for testing.
+    /// </summary>
+    public static class TestDbContextHelper
+    {
+        public static UserDbContext CreateInMemoryContext(string? databaseName = null)
+        {
+            var options = new DbContextOptionsBuilder<UserDbContext>()
+                .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
+                .Options;
+
+            return new UserDbContext(options);
+        }
+
+        public static async Task<UserDbContext> CreateContextWithDataAsync(params User[] users)
+        {
+            var context = CreateInMemoryContext();
+            
+            if (users.Any())
+            {
+                await context.Users.AddRangeAsync(users);
+                await context.SaveChangesAsync();
+            }
+
+            return context;
         }
     }
 }

@@ -111,7 +111,7 @@ namespace backend_user.tests.Services
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
             result.User.Should().BeNull();
-            result.Message.Should().Contain("Provider ID cannot be null or empty");
+            result.Message.Should().Contain("Provider ID is required");
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace backend_user.tests.Services
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
             result.User.Should().BeNull();
-            result.Message.Should().Be("OAuth provider not found");
+            result.Message.Should().Be("OAuth provider not found. Please register first.");
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace backend_user.tests.Services
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
             result.User.Should().BeNull();
-            result.Message.Should().Be("User account is inactive");
+            result.Message.Should().Be("User not found or inactive.");
         }
 
         [Fact]
@@ -183,7 +183,7 @@ namespace backend_user.tests.Services
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
             result.User.Should().BeNull();
-            result.Message.Should().Be("User not found");
+            result.Message.Should().Be("User not found or inactive.");
         }
 
         [Fact]
@@ -203,7 +203,7 @@ namespace backend_user.tests.Services
             result.Should().NotBeNull();
             result.Success.Should().BeFalse();
             result.User.Should().BeNull();
-            result.Message.Should().Be("An error occurred during login");
+            result.Message.Should().Be("Login failed: Database error");
         }
 
         #endregion
@@ -441,6 +441,10 @@ namespace backend_user.tests.Services
             _mockUserRepository
                 .Setup(x => x.UpdateLastLoginAsync(user.Id, It.IsAny<DateTime>()))
                 .ReturnsAsync(true);
+
+            _mockOAuthProviderRepository
+                .Setup(x => x.UpdateAsync(oauthProvider.Id, It.IsAny<OAuthProviderUpdateRequestDto>()))
+                .ReturnsAsync(oauthProvider);
 
             // Act
             var loginResult = await _loginService.LoginWithOAuthAsync(request);

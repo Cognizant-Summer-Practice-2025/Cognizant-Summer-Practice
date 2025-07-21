@@ -98,7 +98,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _userRegistrationService.RegisterUserAsync(request));
 
-            exception.Message.Should().Contain("Email cannot be null or empty");
+            exception.Message.Should().Contain("Email is required");
         }
 
         [Fact]
@@ -186,7 +186,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _userRegistrationService.RegisterOAuthUserAsync(request));
 
-            exception.Message.Should().Contain("Email cannot be null or empty");
+            exception.Message.Should().Contain("Email is required");
         }
 
         [Fact]
@@ -204,7 +204,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _userRegistrationService.RegisterOAuthUserAsync(request));
 
-            exception.Message.Should().Be("OAuth provider already exists");
+            exception.Message.Should().Be("OAuth provider already linked to another user");
         }
 
         [Fact]
@@ -226,7 +226,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _userRegistrationService.RegisterOAuthUserAsync(request));
 
-            exception.Message.Should().Be("User with this email already exists");
+            exception.Message.Should().Be("User already exists");
         }
 
         [Fact]
@@ -364,7 +364,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _userRegistrationService.RegisterUserAsync(request));
 
-            exception.Message.Should().Contain("Email cannot be null or empty");
+            exception.Message.Should().Contain("Email is required");
         }
 
         [Theory]
@@ -381,7 +381,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _userRegistrationService.RegisterUserAsync(request));
 
-            exception.Message.Should().Contain("FirstName cannot be null or empty");
+            exception.Message.Should().Contain("First name is required");
         }
 
         [Theory]
@@ -398,7 +398,7 @@ namespace backend_user.tests.Services
             var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
                 _userRegistrationService.RegisterUserAsync(request));
 
-            exception.Message.Should().Contain("LastName cannot be null or empty");
+            exception.Message.Should().Contain("Last name is required");
         }
 
         [Fact]
