@@ -1,28 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { usePortfolio } from "@/lib/contexts/portfolio-context"
+import { useUser } from "@/lib/contexts/user-context"
+import { updatePortfolio, createPortfolioAndGetId } from "@/lib/portfolio/api"
+import { TemplateManager } from "@/lib/template-manager"
 
 export function PortfolioInformation() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   
-  // Form data state
+  const { getUserPortfolios, refreshUserPortfolios } = usePortfolio()
+  const { user } = useUser()
+  const userPortfolios = getUserPortfolios()
+  const currentPortfolio = userPortfolios[0] // Get first portfolio
+  
+  // Form data state - only portfolio-specific fields
   const [formData, setFormData] = useState({
-    name: "",
     title: "",
-    location: "",
-    email: "",
-    bio: "",
+    description: "",
+    visibility: 0,
     github: "",
     linkedin: ""
   })
 
-  const handleInputChange = (field: string, value: string) => {
+  // Load current portfolio data
+  useEffect(() => {
+    if (currentPortfolio) {
+      setFormData({
+        title: currentPortfolio.title || "",
+        description: currentPortfolio.bio || "",
+        visibility: currentPortfolio.visibility || 0,
+        github: "", // These would need to be added to portfolio model if needed
+        linkedin: ""
+      })
+    }
+  }, [currentPortfolio])
+
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     if (error) setError(null)
     if (success) setSuccess(false)
@@ -33,8 +54,32 @@ export function PortfolioInformation() {
       setLoading(true)
       setError(null)
       
-      // TODO: Implement save functionality for basic info
-      console.log('Saving basic info:', formData)
+      const dataToSave = {
+        title: formData.title.trim(),
+        bio: formData.description.trim(),
+        visibility: formData.visibility as 0 | 1 | 2
+      }
+      
+      if (currentPortfolio) {
+        // Update existing portfolio
+        await updatePortfolio(currentPortfolio.id, dataToSave)
+      } else if (user?.id) {
+        // Create new portfolio with basic information
+        const portfolioData = {
+          userId: user.id,
+          templateName: 'Gabriel Bârzu', // Default template
+          title: dataToSave.title || 'My Portfolio',
+          bio: dataToSave.bio || 'Welcome to my portfolio',
+          visibility: dataToSave.visibility,
+          isPublished: false,
+          components: JSON.stringify(TemplateManager.createDefaultComponentConfig())
+        }
+        
+        await createPortfolioAndGetId(portfolioData)
+      }
+      
+      // Refresh portfolio data
+      await refreshUserPortfolios()
       
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
@@ -53,7 +98,7 @@ export function PortfolioInformation() {
         <div>
           <h3 className="text-xl font-semibold text-slate-900">Portfolio Information</h3>
           <p className="text-sm text-slate-600 mt-1">
-            Basic information about you and your professional background
+            Basic information about your portfolio and how it should be displayed
           </p>
         </div>
       </div>
@@ -70,28 +115,15 @@ export function PortfolioInformation() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name" className="text-sm font-medium text-slate-700">
-              Full Name
-            </Label>
-            <Input 
-              id="name" 
-              placeholder="Enter your full name" 
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          
-          <div>
             <Label htmlFor="title" className="text-sm font-medium text-slate-700">
-              Professional Title
+              Portfolio Title
             </Label>
             <Input 
               id="title" 
-              placeholder="e.g., Software Developer" 
+              placeholder="My Portfolio" 
               value={formData.title}
               onChange={(e) => handleInputChange("title", e.target.value)}
               className="mt-1"
@@ -99,37 +131,43 @@ export function PortfolioInformation() {
           </div>
           
           <div>
-            <Label htmlFor="location" className="text-sm font-medium text-slate-700">
-              Location
+            <Label htmlFor="description" className="text-sm font-medium text-slate-700">
+              Portfolio Description
             </Label>
-            <Input 
-              id="location" 
-              placeholder="e.g., New York, NY" 
-              value={formData.location}
-              onChange={(e) => handleInputChange("location", e.target.value)}
+            <Textarea 
+              id="description" 
+              placeholder="Tell visitors about your portfolio and what they can expect to find..." 
+              value={formData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
               className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-              Email
-            </Label>
-            <Input 
-              id="email" 
-              type="email"
-              placeholder="your.email@example.com" 
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              className="mt-1"
+              rows={4}
             />
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
+            <Label htmlFor="visibility" className="text-sm font-medium text-slate-700">
+              Portfolio Visibility
+            </Label>
+            <Select 
+              value={formData.visibility.toString()} 
+              onValueChange={(value) => handleInputChange("visibility", parseInt(value))}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Public - Anyone can view</SelectItem>
+                <SelectItem value="1">Private - Only you can view</SelectItem>
+                <SelectItem value="2">Unlisted - Only with link</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
             <Label htmlFor="github" className="text-sm font-medium text-slate-700">
-              GitHub Profile
+              GitHub Profile (Optional)
             </Label>
             <Input 
               id="github" 
@@ -142,7 +180,7 @@ export function PortfolioInformation() {
 
           <div>
             <Label htmlFor="linkedin" className="text-sm font-medium text-slate-700">
-              LinkedIn Profile
+              LinkedIn Profile (Optional)
             </Label>
             <Input 
               id="linkedin" 
@@ -150,20 +188,6 @@ export function PortfolioInformation() {
               value={formData.linkedin}
               onChange={(e) => handleInputChange("linkedin", e.target.value)}
               className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="bio" className="text-sm font-medium text-slate-700">
-              Professional Bio
-            </Label>
-            <Textarea 
-              id="bio" 
-              placeholder="Write a brief description about yourself and your professional background..." 
-              value={formData.bio}
-              onChange={(e) => handleInputChange("bio", e.target.value)}
-              className="mt-1"
-              rows={4}
             />
           </div>
         </div>

@@ -147,7 +147,7 @@ export default function Publish() {
           jobTitle: exp.jobTitle,
           companyName: exp.companyName,
           startDate: exp.startDate, // Keep as string in YYYY-MM-DD format
-          endDate: exp.isCurrent ? null : exp.endDate, // Use null instead of undefined for optional DateOnly
+          endDate: exp.isCurrent ? undefined : exp.endDate || undefined, // Use undefined for optional dates
           isCurrent: exp.isCurrent,
           description: exp.description || '',
           skillsUsed: exp.skillsUsed ? exp.skillsUsed.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
@@ -344,17 +344,22 @@ export default function Publish() {
                             const portfolioData = {
                               userId: user?.id || 'default-user-id',
                               templateName: settingsData.templateName || 'Gabriel Bârzu',
-                              title: settingsData.title || 'My Portfolio',
-                              bio: settingsData.bio || 'Welcome to my portfolio',
-                              visibility: settingsData.visibility || 0,
+                              title: 'My Portfolio', // Default title, will be set in basic info
+                              bio: 'Welcome to my portfolio', // Default bio, will be set in basic info
+                              visibility: 0 as 0 | 1 | 2, // Default visibility, will be set in basic info
                               isPublished: false, // Keep as draft until publish is clicked
                               components: settingsData.components || JSON.stringify(TemplateManager.createDefaultComponentConfig())
                             };
                             
                             await createPortfolioAndGetId(portfolioData);
                           } else {
-                            // Update existing portfolio with settings data
-                            await updatePortfolio(currentPortfolio.id, settingsData);
+                            // Update existing portfolio with template and components only
+                            const updateData = {
+                              components: settingsData.components
+                            };
+                            
+                            // Note: Template changes might need special handling
+                            await updatePortfolio(currentPortfolio.id, updateData);
                           }
                           
                           // Refresh portfolio data to reflect changes
