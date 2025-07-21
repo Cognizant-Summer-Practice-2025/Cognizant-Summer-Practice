@@ -1,8 +1,8 @@
 name: .NET CI
 
-on:
+on: 
   pull_request:
-    branches: [ master ]
+    branches: [ "**" ] 
 
 jobs:
   build:
@@ -13,12 +13,49 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - name: Restore dependencies
-        run: dotnet restore Backend.Tests/Backend.Tests.csproj
+      
+      # User Service Tests 
+      - name: Restore dependencies - User Service
+        run: dotnet restore backend-user.tests/backend-user.tests.csproj
         working-directory: ./backend
-      - name: Build
-        run: dotnet build Backend.Tests/Backend.Tests.csproj --no-restore
+      - name: Build - User Service
+        run: dotnet build backend-user.tests/backend-user.tests.csproj --no-restore
         working-directory: ./backend
-      - name: Test
-        run: dotnet test Backend.Tests/Backend.Tests.csproj --no-build --verbosity normal
+      - name: Test - User Service
+        run: dotnet test backend-user.tests/backend-user.tests.csproj --no-build --verbosity normal
         working-directory: ./backend
+      
+      # TODO: Uncomment when tests are implemented for other services
+      
+      # AI Service Tests (Not implemented yet)
+      # - name: Restore dependencies - AI Service
+      #   run: dotnet restore backend-AI.tests/backend-AI.tests.csproj
+      #   working-directory: ./backend
+      # - name: Build - AI Service
+      #   run: dotnet build backend-AI.tests/backend-AI.tests.csproj --no-restore
+      #   working-directory: ./backend
+      # - name: Test - AI Service
+      #   run: dotnet test backend-AI.tests/backend-AI.tests.csproj --no-build --verbosity normal
+      #   working-directory: ./backend
+      
+      # Messages Service Tests (Not implemented yet)
+      # - name: Restore dependencies - Messages Service
+      #   run: dotnet restore backend-messages.tests/backend-messages.tests.csproj
+      #   working-directory: ./backend
+      # - name: Build - Messages Service
+      #   run: dotnet build backend-messages.tests/backend-messages.tests.csproj --no-restore
+      #   working-directory: ./backend
+      # - name: Test - Messages Service
+      #   run: dotnet test backend-messages.tests/backend-messages.tests.csproj --no-build --verbosity normal
+      #   working-directory: ./backend
+      
+      # Portfolio Service Tests (Not implemented yet)
+      # - name: Restore dependencies - Portfolio Service
+      #   run: dotnet restore backend-portfolio.tests/backend-portfolio.tests.csproj
+      #   working-directory: ./backend
+      # - name: Build - Portfolio Service
+      #   run: dotnet build backend-portfolio.tests/backend-portfolio.tests.csproj --no-restore
+      #   working-directory: ./backend
+      # - name: Test - Portfolio Service
+      #   run: dotnet test backend-portfolio.tests/backend-portfolio.tests.csproj --no-build --verbosity normal
+      #   working-directory: ./backend
