@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, Avatar, Tag, Button } from 'antd';
 import { EyeOutlined, LikeOutlined, MessageOutlined, StarOutlined } from '@ant-design/icons';
+import { useRouter } from 'next/navigation';
 import './style.css';
 
 interface PortfolioCardProps {
@@ -34,9 +35,10 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
   avatar,
   featured = false,
 }) => {
+  const router = useRouter();
+
   const handleViewPortfolio = () => {
-    // Navigate to portfolio detail page
-    console.log(`Viewing portfolio: ${id}`);
+    router.push(`/portfolio?portfolio=${id}`);
   };
 
   return (

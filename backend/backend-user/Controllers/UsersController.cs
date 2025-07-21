@@ -27,6 +27,29 @@ namespace backend_user.Controllers
             }
             return Ok(user);
         }
+
+        [HttpGet("{id}/portfolio-info")]
+        public async Task<IActionResult> GetUserPortfolioInfo(Guid id)
+        {
+            var user = await userRepository.GetUserById(id);
+            if (user == null)
+            {
+                return NotFound($"User with ID {id} not found.");
+            }
+
+            var portfolioInfo = new
+            {
+                userId = user.Id,
+                username = user.Username,
+                name = $"{user.FirstName} {user.LastName}".Trim(),
+                professionalTitle = user.ProfessionalTitle ?? "Portfolio Creator",
+                location = user.Location ?? "Location not specified",
+                avatarUrl = user.AvatarUrl
+            };
+
+            return Ok(portfolioInfo);
+        }
+
         [HttpGet("email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {

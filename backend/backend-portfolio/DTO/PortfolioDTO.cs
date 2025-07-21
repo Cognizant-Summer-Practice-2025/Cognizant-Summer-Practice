@@ -98,4 +98,23 @@ namespace backend_portfolio.DTO
         public List<BookmarkResponseDto> Bookmarks { get; set; } = new();
         public List<PortfolioTemplateSummaryDto> Templates { get; set; } = new();
     }
+
+    // Portfolio Card DTO for home page display
+    public class PortfolioCardDto
+    {
+        public Guid Id { get; set; }
+        public Guid UserId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<string> Skills { get; set; } = new();
+        public int Views { get; set; }
+        public int Likes { get; set; }
+        public int Comments { get; set; }
+        public string Date { get; set; } = string.Empty;
+        public string? Avatar { get; set; }
+        public bool Featured { get; set; }
+        public string? TemplateName { get; set; }
+    }
 }
