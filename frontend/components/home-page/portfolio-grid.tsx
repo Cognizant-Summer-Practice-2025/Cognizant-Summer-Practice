@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Select, Row, Col } from 'antd';
 import PortfolioCard from './portfolio-card';
 import { PortfolioCardDto } from '@/lib/portfolio/api';
@@ -19,8 +19,70 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, erro
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
-    // TODO: Implement sorting logic here
   };
+
+  // 🔄 SORTING LOGIC - Sort portfolios based on selected criteria
+  const sortedPortfolios = useMemo(() => {
+    if (!portfolios || portfolios.length === 0) {
+      return portfolios;
+    }
+
+    const sorted = [...portfolios]; // Create a copy to avoid mutating original array
+
+    switch (sortBy) {
+      case 'most-recent':
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateB.getTime() - dateA.getTime(); // Newest first
+        });
+
+      case 'most-popular':
+        return sorted.sort((a, b) => {
+          // Combine views and likes for popularity score
+          const popularityA = a.views + (a.likes * 2); // Weight likes more than views
+          const popularityB = b.views + (b.likes * 2);
+          return popularityB - popularityA; // Highest popularity first
+        });
+
+      case 'most-liked':
+        return sorted.sort((a, b) => {
+          if (a.likes !== b.likes) {
+            return b.likes - a.likes; // Most liked first
+          }
+          // If likes are equal, use views as tiebreaker
+          return b.views - a.views;
+        });
+
+      case 'most-bookmarked':
+        return sorted.sort((a, b) => {
+          if (a.bookmarks !== b.bookmarks) {
+            return b.bookmarks - a.bookmarks; // Most bookmarked first
+          }
+          // If bookmarks are equal, use likes as tiebreaker
+          if (a.likes !== b.likes) {
+            return b.likes - a.likes;
+          }
+          // If both are equal, use views as final tiebreaker
+          return b.views - a.views;
+        });
+
+      case 'featured':
+        return sorted.sort((a, b) => {
+          // Featured portfolios first, then by most recent
+          if (a.featured !== b.featured) {
+            return a.featured ? -1 : 1; // Featured portfolios first
+          }
+          // If both are featured or both are not, sort by date
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateB.getTime() - dateA.getTime();
+        });
+
+      default:
+        return sorted;
+    }
+  }, [portfolios, sortBy]);
 
   return (
     <div className="portfolio-grid">
@@ -28,9 +90,9 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, erro
         <div className="portfolio-grid-title">
           <h1>Discover Portfolios</h1>
           <p>
-            {portfolios.length === 0 && !loading ? 
+            {sortedPortfolios.length === 0 && !loading ? 
               'No portfolios match your current filters' : 
-              `Showing ${portfolios.length} ${portfolios.length === 1 ? 'portfolio' : 'portfolios'}`
+              `Showing ${sortedPortfolios.length} ${sortedPortfolios.length === 1 ? 'portfolio' : 'portfolios'}`
             }
           </p>
         </div>
@@ -44,6 +106,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, erro
             <Option value="most-recent">Most Recent</Option>
             <Option value="most-popular">Most Popular</Option>
             <Option value="most-liked">Most Liked</Option>
+            <Option value="most-bookmarked">Most Bookmarked</Option>
             <Option value="featured">Featured</Option>
           </Select>
         </div>
@@ -58,13 +121,13 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, erro
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <p style={{ color: 'red' }}>{error}</p>
           </div>
-        ) : portfolios.length === 0 ? (
+        ) : sortedPortfolios.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <p>No portfolios found. Be the first to create one!</p>
           </div>
         ) : (
           <Row gutter={[24, 24]} className="portfolio-row">
-            {portfolios.map((portfolio) => (
+            {sortedPortfolios.map((portfolio) => (
               <Col 
                 key={portfolio.id} 
                 xs={24} 
@@ -84,6 +147,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, erro
                   views={portfolio.views}
                   likes={portfolio.likes}
                   comments={portfolio.comments}
+                  bookmarks={portfolio.bookmarks}
                   date={portfolio.date}
                   avatar={portfolio.avatar}
                   featured={portfolio.featured}

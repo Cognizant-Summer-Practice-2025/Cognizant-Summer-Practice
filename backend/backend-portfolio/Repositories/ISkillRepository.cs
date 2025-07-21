@@ -1,5 +1,6 @@
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 
 namespace backend_portfolio.Repositories
 {
@@ -8,8 +9,8 @@ namespace backend_portfolio.Repositories
         Task<List<Skill>> GetAllSkillsAsync();
         Task<Skill?> GetSkillByIdAsync(Guid id);
         Task<List<Skill>> GetSkillsByPortfolioIdAsync(Guid portfolioId);
-        Task<Skill> CreateSkillAsync(SkillRequestDto request);
-        Task<Skill?> UpdateSkillAsync(Guid id, SkillUpdateDto request);
+        Task<Skill> CreateSkillAsync(SkillCreateRequest request);
+        Task<Skill?> UpdateSkillAsync(Guid id, SkillUpdateRequest request);
         Task<bool> DeleteSkillAsync(Guid id);
         Task<List<Skill>> GetSkillsByCategoryAsync(Guid portfolioId, string category);
         Task<List<Skill>> GetSkillsByCategoryTypeAsync(Guid portfolioId, string categoryType);

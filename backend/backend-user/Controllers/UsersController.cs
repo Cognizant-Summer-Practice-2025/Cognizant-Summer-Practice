@@ -6,6 +6,7 @@ using backend_user.DTO.Authentication.Request;
 using backend_user.DTO.Authentication.Response;
 using backend_user.DTO.OAuthProvider.Request;
 using backend_user.DTO.OAuthProvider.Response;
+using backend_user.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,17 +23,20 @@ namespace backend_user.Controllers
         private readonly IOAuthProviderService _oauthProviderService;
         private readonly IUserRegistrationService _userRegistrationService;
         private readonly ILoginService _loginService;
+        private readonly IBookmarkService _bookmarkService;
 
         public UsersController(
             IUserService userService,
             IOAuthProviderService oauthProviderService,
             IUserRegistrationService userRegistrationService,
-            ILoginService loginService)
+            ILoginService loginService,
+            IBookmarkService bookmarkService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _oauthProviderService = oauthProviderService ?? throw new ArgumentNullException(nameof(oauthProviderService));
             _userRegistrationService = userRegistrationService ?? throw new ArgumentNullException(nameof(userRegistrationService));
             _loginService = loginService ?? throw new ArgumentNullException(nameof(loginService));
+            _bookmarkService = bookmarkService ?? throw new ArgumentNullException(nameof(bookmarkService));
         }
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
@@ -232,6 +236,83 @@ namespace backend_user.Controllers
             {
                 var result = await _userRegistrationService.RegisterOAuthUserAsync(request);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Bookmark endpoints
+        [HttpPost("{userId}/bookmarks")]
+        public async Task<IActionResult> AddBookmark(Guid userId, [FromBody] AddBookmarkRequest request)
+        {
+            try
+            {
+                var response = await _bookmarkService.AddBookmarkAsync(userId, request);
+                return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{userId}/bookmarks/{portfolioId}")]
+        public async Task<IActionResult> RemoveBookmark(Guid userId, string portfolioId)
+        {
+            try
+            {
+                await _bookmarkService.RemoveBookmarkAsync(userId, portfolioId);
+                return Ok(new { message = "Bookmark removed successfully." });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/bookmarks")]
+        public async Task<IActionResult> GetUserBookmarks(Guid userId)
+        {
+            try
+            {
+                var response = await _bookmarkService.GetUserBookmarksAsync(userId);
+                return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/bookmarks/{portfolioId}/status")]
+        public async Task<IActionResult> GetBookmarkStatus(Guid userId, string portfolioId)
+        {
+            try
+            {
+                var response = await _bookmarkService.GetBookmarkStatusAsync(userId, portfolioId);
+                return Ok(response);
             }
             catch (Exception ex)
             {

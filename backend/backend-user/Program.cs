@@ -42,6 +42,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 // Add Repository services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOAuthProviderRepository, OAuthProviderRepository>();
+builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
 
 // Add Business Logic Services (following SOLID principles)
 builder.Services.AddScoped<IUserService, UserService>();
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IOAuthProviderService, OAuthProviderService>();
 builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);

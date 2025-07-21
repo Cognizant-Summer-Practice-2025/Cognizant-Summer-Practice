@@ -1,6 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using backend_portfolio.Data;
 using backend_portfolio.Repositories;
+using backend_portfolio.Services;
+using backend_portfolio.Services.Abstractions;
+using backend_portfolio.Services.Mappers;
+using backend_portfolio.Services.Validators;
+using backend_portfolio.Services.External;
+using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
+using backend_portfolio.DTO.Response;
 using backend_portfolio.Models;
 using Npgsql;
 
@@ -33,6 +41,9 @@ builder.Services.AddDbContext<PortfolioDbContext>(options =>
     options.UseNpgsql(dataSource)
            .UseSnakeCaseNamingConvention());
 
+// Add HttpClient for external service calls
+builder.Services.AddHttpClient();
+
 // Add Repository services
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 builder.Services.AddScoped<IPortfolioTemplateRepository, PortfolioTemplateRepository>();
@@ -41,6 +52,27 @@ builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
+
+// Add Mappers
+builder.Services.AddScoped<PortfolioMapper>();
+builder.Services.AddScoped<ProjectMapper>();
+
+// Add Validators
+builder.Services.AddScoped<IValidationService<PortfolioCreateRequest>, PortfolioValidator>();
+builder.Services.AddScoped<IValidationService<PortfolioUpdateRequest>, PortfolioUpdateValidator>();
+builder.Services.AddScoped<IValidationService<ProjectCreateRequest>, ProjectValidator>();
+builder.Services.AddScoped<IValidationService<ProjectUpdateRequest>, ProjectUpdateValidator>();
+
+// Add External Services
+builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
+
+// Add SOLID-compliant Service layer (following ISP)
+builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
+builder.Services.AddScoped<IPortfolioCommandService, PortfolioCommandService>();
+builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();
+builder.Services.AddScoped<IProjectCommandService, ProjectCommandService>();
+
+
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);

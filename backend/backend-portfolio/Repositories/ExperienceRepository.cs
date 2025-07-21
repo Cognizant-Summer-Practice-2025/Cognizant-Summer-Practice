@@ -1,6 +1,7 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
+using backend_portfolio.DTO.Request;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_portfolio.Repositories
@@ -36,7 +37,7 @@ namespace backend_portfolio.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Experience> CreateExperienceAsync(ExperienceRequestDto request)
+        public async Task<Experience> CreateExperienceAsync(ExperienceCreateRequest request)
         {
             var experience = new Experience
             {
@@ -58,7 +59,7 @@ namespace backend_portfolio.Repositories
             return experience;
         }
 
-        public async Task<Experience?> UpdateExperienceAsync(Guid id, ExperienceUpdateDto request)
+        public async Task<Experience?> UpdateExperienceAsync(Guid id, ExperienceUpdateRequest request)
         {
             var experience = await _context.Experience.FindAsync(id);
             if (experience == null) return null;
