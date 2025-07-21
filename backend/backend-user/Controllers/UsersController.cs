@@ -6,6 +6,7 @@ using backend_user.DTO.Authentication.Request;
 using backend_user.DTO.Authentication.Response;
 using backend_user.DTO.OAuthProvider.Request;
 using backend_user.DTO.OAuthProvider.Response;
+using backend_user.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,13 +17,27 @@ namespace backend_user.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController(IUserRepository userRepository, IOAuthProviderRepository oauthProviderRepository, IBookmarkRepository bookmarkRepository) : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly IOAuthProviderService _oauthProviderService;
         private readonly IUserRegistrationService _userRegistrationService;
         private readonly ILoginService _loginService;
-        
+        private readonly IBookmarkService _bookmarkService;
+
+        public UsersController(
+            IUserService userService,
+            IOAuthProviderService oauthProviderService,
+            IUserRegistrationService userRegistrationService,
+            ILoginService loginService,
+            IBookmarkService bookmarkService)
+        {
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _oauthProviderService = oauthProviderService ?? throw new ArgumentNullException(nameof(oauthProviderService));
+            _userRegistrationService = userRegistrationService ?? throw new ArgumentNullException(nameof(userRegistrationService));
+            _loginService = loginService ?? throw new ArgumentNullException(nameof(loginService));
+            _bookmarkService = bookmarkService ?? throw new ArgumentNullException(nameof(bookmarkService));
+        }
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -234,41 +249,16 @@ namespace backend_user.Controllers
         {
             try
             {
-                // Check if user exists
-                var user = await userRepository.GetUserById(userId);
-                if (user == null)
-                {
-                    return NotFound($"User with ID {userId} not found.");
-                }
-
-                // Check if already bookmarked
-                var isBookmarked = await bookmarkRepository.IsBookmarked(userId, request.PortfolioId);
-                if (isBookmarked)
-                {
-                    return Conflict(new { message = "Portfolio is already bookmarked." });
-                }
-
-                var bookmark = new Bookmark
-                {
-                    UserId = userId,
-                    PortfolioId = request.PortfolioId,
-                    PortfolioTitle = request.PortfolioTitle,
-                    PortfolioOwnerName = request.PortfolioOwnerName
-                };
-
-                var createdBookmark = await bookmarkRepository.AddBookmark(bookmark);
-
-                var response = new BookmarkResponse
-                {
-                    Id = createdBookmark.Id,
-                    UserId = createdBookmark.UserId,
-                    PortfolioId = createdBookmark.PortfolioId,
-                    PortfolioTitle = createdBookmark.PortfolioTitle,
-                    PortfolioOwnerName = createdBookmark.PortfolioOwnerName,
-                    CreatedAt = createdBookmark.CreatedAt
-                };
-
+                var response = await _bookmarkService.AddBookmarkAsync(userId, request);
                 return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -281,20 +271,16 @@ namespace backend_user.Controllers
         {
             try
             {
-                // Check if user exists
-                var user = await userRepository.GetUserById(userId);
-                if (user == null)
-                {
-                    return NotFound($"User with ID {userId} not found.");
-                }
-
-                var removed = await bookmarkRepository.RemoveBookmark(userId, portfolioId);
-                if (!removed)
-                {
-                    return NotFound(new { message = "Bookmark not found." });
-                }
-
+                await _bookmarkService.RemoveBookmarkAsync(userId, portfolioId);
                 return Ok(new { message = "Bookmark removed successfully." });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -307,25 +293,12 @@ namespace backend_user.Controllers
         {
             try
             {
-                // Check if user exists
-                var user = await userRepository.GetUserById(userId);
-                if (user == null)
-                {
-                    return NotFound($"User with ID {userId} not found.");
-                }
-
-                var bookmarks = await bookmarkRepository.GetUserBookmarks(userId);
-                var response = bookmarks.Select(b => new BookmarkResponse
-                {
-                    Id = b.Id,
-                    UserId = b.UserId,
-                    PortfolioId = b.PortfolioId,
-                    PortfolioTitle = b.PortfolioTitle,
-                    PortfolioOwnerName = b.PortfolioOwnerName,
-                    CreatedAt = b.CreatedAt
-                });
-
+                var response = await _bookmarkService.GetUserBookmarksAsync(userId);
                 return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -338,8 +311,8 @@ namespace backend_user.Controllers
         {
             try
             {
-                var isBookmarked = await bookmarkRepository.IsBookmarked(userId, portfolioId);
-                return Ok(new IsBookmarkedResponse { IsBookmarked = isBookmarked });
+                var response = await _bookmarkService.GetBookmarkStatusAsync(userId, portfolioId);
+                return Ok(response);
             }
             catch (Exception ex)
             {

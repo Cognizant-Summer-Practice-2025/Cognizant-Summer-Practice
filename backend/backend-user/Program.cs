@@ -50,6 +50,7 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IOAuthProviderService, OAuthProviderService>();
 builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);
