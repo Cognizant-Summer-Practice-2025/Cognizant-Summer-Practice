@@ -1,4 +1,4 @@
-﻿using backend_user.Models;
+using backend_user.Models;
 using backend_user.Services;
 using backend_user.DTO;
 using Microsoft.AspNetCore.Http;
@@ -13,24 +13,28 @@ namespace backend_user.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersControllerRefactored : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IAuthenticationService _authenticationService;
         private readonly IOAuthProviderService _oauthProviderService;
         private readonly IUserRegistrationService _userRegistrationService;
         private readonly ILoginService _loginService;
 
-        public UsersController(
+        public UsersControllerRefactored(
             IUserService userService,
+            IAuthenticationService authenticationService,
             IOAuthProviderService oauthProviderService,
             IUserRegistrationService userRegistrationService,
             ILoginService loginService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             _oauthProviderService = oauthProviderService ?? throw new ArgumentNullException(nameof(oauthProviderService));
             _userRegistrationService = userRegistrationService ?? throw new ArgumentNullException(nameof(userRegistrationService));
             _loginService = loginService ?? throw new ArgumentNullException(nameof(loginService));
         }
+
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -57,7 +61,6 @@ namespace backend_user.Controllers
             {
                 return NotFound($"User with ID {id} not found.");
             }
-
             return Ok(portfolioInfo);
         }
 
@@ -78,20 +81,22 @@ namespace backend_user.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(User user)
         {
-            // Convert User entity to RegisterUserRequest for service compatibility
-            var registerRequest = new RegisterUserRequest
-            {
-                Email = user.Email,
-                FirstName = user.FirstName ?? "",
-                LastName = user.LastName ?? "",
-                ProfessionalTitle = user.ProfessionalTitle,
-                Bio = user.Bio,
-                Location = user.Location,
-                ProfileImage = user.AvatarUrl
-            };
-
+            // Note: This endpoint uses User entity directly, which violates some principles
+            // In a proper refactor, this should use a DTO and service method
+            // For now, keeping the original logic
             try
             {
+                var registerRequest = new RegisterUserRequest
+                {
+                    Email = user.Email,
+                    FirstName = user.FirstName ?? "",
+                    LastName = user.LastName ?? "",
+                    ProfessionalTitle = user.ProfessionalTitle,
+                    Bio = user.Bio,
+                    Location = user.Location,
+                    ProfileImage = user.AvatarUrl
+                };
+
                 var newUser = await _userService.CreateUserAsync(registerRequest);
                 return Ok(newUser);
             }
@@ -235,6 +240,5 @@ namespace backend_user.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
     }
 }

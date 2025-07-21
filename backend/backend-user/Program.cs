@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using backend_user.Data;
 using backend_user.Repositories;
 using backend_user.Models;
+using backend_user.Services;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +41,13 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 // Add Repository services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOAuthProviderRepository, OAuthProviderRepository>();
+
+// Add Business Logic Services (following SOLID principles)
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IOAuthProviderService, OAuthProviderService>();
+builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
+builder.Services.AddScoped<ILoginService, LoginService>();
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);

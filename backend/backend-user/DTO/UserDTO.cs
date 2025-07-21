@@ -180,4 +180,33 @@ namespace backend_user.DTO
         public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
     }
+
+    // Login DTOs
+    public class OAuthLoginRequestDto
+    {
+        [Required]
+        public OAuthProviderType Provider { get; set; }
+
+        [Required]
+        public string ProviderId { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string ProviderEmail { get; set; } = string.Empty;
+
+        [Required]
+        public string AccessToken { get; set; } = string.Empty;
+
+        public string? RefreshToken { get; set; }
+
+        public DateTime? TokenExpiresAt { get; set; }
+    }
+
+    public class LoginResponseDto
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public UserResponseDto? User { get; set; }
+        public DateTime? LastLoginAt { get; set; }
+    }
 } 
