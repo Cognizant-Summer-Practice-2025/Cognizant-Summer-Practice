@@ -14,6 +14,7 @@ namespace backend_portfolio.DTO.Response
         public string? Bio { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
+        public int BookmarkCount { get; set; }
         public Visibility Visibility { get; set; }
         public bool IsPublished { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -33,6 +34,7 @@ namespace backend_portfolio.DTO.Response
         public string? Bio { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
+        public int BookmarkCount { get; set; }
         public Visibility Visibility { get; set; }
         public bool IsPublished { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -57,6 +59,7 @@ namespace backend_portfolio.DTO.Response
         public string? Bio { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
+        public int BookmarkCount { get; set; }
         public Visibility Visibility { get; set; }
         public bool IsPublished { get; set; }
         public DateTime UpdatedAt { get; set; }
@@ -79,6 +82,7 @@ namespace backend_portfolio.DTO.Response
         public int Views { get; set; }
         public int Likes { get; set; }
         public int Comments { get; set; }
+        public int Bookmarks { get; set; }
         public string Date { get; set; } = string.Empty;
         public string? Avatar { get; set; }
         public bool Featured { get; set; }

@@ -40,6 +40,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 // Add Repository services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOAuthProviderRepository, OAuthProviderRepository>();
+builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);

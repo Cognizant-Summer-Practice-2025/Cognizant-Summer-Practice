@@ -84,6 +84,18 @@ namespace backend_user.Data
                 entity.Property(ur => ur.Status)
                     .HasConversion<int>();
             });
+
+            // Configure Bookmark entity
+            modelBuilder.Entity<Bookmark>(entity =>
+            {
+                entity.HasOne(b => b.User)
+                    .WithMany(u => u.Bookmarks)
+                    .HasForeignKey(b => b.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(b => new { b.UserId, b.PortfolioId }).IsUnique();
+                entity.HasIndex(b => b.CreatedAt);
+            });
         }
 
         // DbSets
@@ -92,5 +104,6 @@ namespace backend_user.Data
         public DbSet<Newsletter> Newsletters { get; set; }
         public DbSet<UserAnalytics> UserAnalytics { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
+        public DbSet<Bookmark> Bookmarks { get; set; }
     }
 }

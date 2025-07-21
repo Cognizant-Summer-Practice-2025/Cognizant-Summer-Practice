@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
         setError(null);
         const data = await getPortfolioCardsForHomePage();
         setPortfolios(data);
-        setFilteredPortfolios(data); // Initially show all portfolios
+        setFilteredPortfolios(data);
       } catch (err) {
         console.error('Error fetching portfolios:', err);
         setError('Failed to load portfolios. Please try again later.');
@@ -96,25 +96,13 @@ const HomePage: React.FC = () => {
           const portfolioSkills = portfolio.skills.map(skill => skill.toLowerCase().trim());
           
           const matchesSkills = skillFilters.every(skillFilter => {
-            // Convert filter value back to skill name for matching
             const skillName = skillFilter.replace(/-/g, ' ').toLowerCase();
             
             return portfolioSkills.some(portfolioSkill => {
-              // Direct match
+
               if (portfolioSkill === skillName) return true;
               
-              // Partial match
               if (portfolioSkill.includes(skillName) || skillName.includes(portfolioSkill)) return true;
-              
-              // Handle common variations
-              if ((skillName === 'javascript' && portfolioSkill === 'js') ||
-                  (skillName === 'js' && portfolioSkill === 'javascript') ||
-                  (skillName === 'react.js' && portfolioSkill === 'react') ||
-                  (skillName === 'react' && portfolioSkill === 'react.js') ||
-                  (skillName === 'node.js' && portfolioSkill === 'nodejs') ||
-                  (skillName === 'nodejs' && portfolioSkill === 'node.js')) {
-                return true;
-              }
               
               return false;
             });

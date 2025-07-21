@@ -32,6 +32,7 @@ export interface PortfolioCardDto {
   views: number;
   likes: number;
   comments: number;
+  bookmarks: number;
   date: string;
   avatar?: string;
   featured: boolean;

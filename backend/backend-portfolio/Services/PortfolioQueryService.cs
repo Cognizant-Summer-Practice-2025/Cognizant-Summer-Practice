@@ -111,6 +111,7 @@ namespace backend_portfolio.Services
                     var skills = await _skillRepository.GetSkillsByPortfolioIdAsync(portfolio.Id);
                     var skillNames = skills.Select(s => s.Name).ToList();
                     var userInfo = await _externalUserService.GetUserInformationAsync(portfolio.UserId);
+                    var bookmarks = await _bookmarkRepository.GetBookmarksByPortfolioIdAsync(portfolio.Id);
 
                     var portfolioCard = new PortfolioCardResponse
                     {
@@ -124,6 +125,7 @@ namespace backend_portfolio.Services
                         Views = portfolio.ViewCount,
                         Likes = portfolio.LikeCount,
                         Comments = 0, // Future enhancement
+                        Bookmarks = bookmarks.Count,
                         Date = portfolio.UpdatedAt.ToString("dd/MM/yyyy"),
                         Avatar = userInfo?.ProfilePictureUrl ?? "/default-avatar.png",
                         Featured = false, // Future enhancement

@@ -8,7 +8,7 @@ namespace backend_user.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController(IUserRepository userRepository, IOAuthProviderRepository oauthProviderRepository) : ControllerBase
+    public class UsersController(IUserRepository userRepository, IOAuthProviderRepository oauthProviderRepository, IBookmarkRepository bookmarkRepository) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
@@ -322,6 +322,125 @@ namespace backend_user.Controllers
                 };
 
                 return Ok(new { user = userResponse, oauthProvider = oauthResponse });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Bookmark endpoints
+        [HttpPost("{userId}/bookmarks")]
+        public async Task<IActionResult> AddBookmark(Guid userId, [FromBody] AddBookmarkRequest request)
+        {
+            try
+            {
+                // Check if user exists
+                var user = await userRepository.GetUserById(userId);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {userId} not found.");
+                }
+
+                // Check if already bookmarked
+                var isBookmarked = await bookmarkRepository.IsBookmarked(userId, request.PortfolioId);
+                if (isBookmarked)
+                {
+                    return Conflict(new { message = "Portfolio is already bookmarked." });
+                }
+
+                var bookmark = new Bookmark
+                {
+                    UserId = userId,
+                    PortfolioId = request.PortfolioId,
+                    PortfolioTitle = request.PortfolioTitle,
+                    PortfolioOwnerName = request.PortfolioOwnerName
+                };
+
+                var createdBookmark = await bookmarkRepository.AddBookmark(bookmark);
+
+                var response = new BookmarkResponse
+                {
+                    Id = createdBookmark.Id,
+                    UserId = createdBookmark.UserId,
+                    PortfolioId = createdBookmark.PortfolioId,
+                    PortfolioTitle = createdBookmark.PortfolioTitle,
+                    PortfolioOwnerName = createdBookmark.PortfolioOwnerName,
+                    CreatedAt = createdBookmark.CreatedAt
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{userId}/bookmarks/{portfolioId}")]
+        public async Task<IActionResult> RemoveBookmark(Guid userId, string portfolioId)
+        {
+            try
+            {
+                // Check if user exists
+                var user = await userRepository.GetUserById(userId);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {userId} not found.");
+                }
+
+                var removed = await bookmarkRepository.RemoveBookmark(userId, portfolioId);
+                if (!removed)
+                {
+                    return NotFound(new { message = "Bookmark not found." });
+                }
+
+                return Ok(new { message = "Bookmark removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/bookmarks")]
+        public async Task<IActionResult> GetUserBookmarks(Guid userId)
+        {
+            try
+            {
+                // Check if user exists
+                var user = await userRepository.GetUserById(userId);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {userId} not found.");
+                }
+
+                var bookmarks = await bookmarkRepository.GetUserBookmarks(userId);
+                var response = bookmarks.Select(b => new BookmarkResponse
+                {
+                    Id = b.Id,
+                    UserId = b.UserId,
+                    PortfolioId = b.PortfolioId,
+                    PortfolioTitle = b.PortfolioTitle,
+                    PortfolioOwnerName = b.PortfolioOwnerName,
+                    CreatedAt = b.CreatedAt
+                });
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/bookmarks/{portfolioId}/status")]
+        public async Task<IActionResult> GetBookmarkStatus(Guid userId, string portfolioId)
+        {
+            try
+            {
+                var isBookmarked = await bookmarkRepository.IsBookmarked(userId, portfolioId);
+                return Ok(new IsBookmarkedResponse { IsBookmarked = isBookmarked });
             }
             catch (Exception ex)
             {
