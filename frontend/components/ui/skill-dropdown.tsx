@@ -116,74 +116,149 @@ export function SkillDropdown({ onSkillSelect, disabled = false, value, classNam
     : []
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${className}`}>
-      {/* Category Selection */}
-      <div>
-        <Label htmlFor="skill-category" className="text-sm font-medium text-slate-700">
-          Skill Category
-        </Label>
-        <Select 
-          value={selectedCategory} 
-          onValueChange={handleCategoryChange} 
-          disabled={disabled}
-        >
-          <SelectTrigger className="mt-1">
-            <SelectValue placeholder="Select category..." />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map(([key, category]) => (
-              <SelectItem key={key} value={key}>
-                {category.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className={`space-y-4 ${className}`}>
+      {/* Mobile and Tablet: Stack vertically */}
+      <div className="block lg:hidden space-y-4">
+        {/* Category Selection */}
+        <div>
+          <Label htmlFor="skill-category" className="text-sm font-medium text-slate-700">
+            Skill Category
+          </Label>
+          <Select 
+            value={selectedCategory} 
+            onValueChange={handleCategoryChange} 
+            disabled={disabled}
+          >
+            <SelectTrigger className="mt-1 w-full min-h-[40px]">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 z-[60] min-w-[200px]" position="popper">
+              {categories.map(([key, category]) => (
+                <SelectItem key={key} value={key} className="cursor-pointer hover:bg-gray-100 py-2 px-3">
+                  {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Subcategory Selection */}
+        <div>
+          <Label htmlFor="skill-subcategory" className="text-sm font-medium text-slate-700">
+            Subcategory
+          </Label>
+          <Select 
+            value={selectedSubcategory} 
+            onValueChange={handleSubcategoryChange} 
+            disabled={disabled || !selectedCategory}
+          >
+            <SelectTrigger className="mt-1 w-full min-h-[40px]">
+              <SelectValue placeholder="Select subcategory..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 z-[60] min-w-[200px]" position="popper">
+              {subcategories.map(([key, subcategory]) => (
+                <SelectItem key={key} value={key} className="cursor-pointer hover:bg-gray-100 py-2 px-3">
+                  {(subcategory as SubcategoryData).label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Skill Selection */}
+        <div>
+          <Label htmlFor="skill-name" className="text-sm font-medium text-slate-700">
+            Specific Skill
+          </Label>
+          <Select 
+            value={selectedSkill} 
+            onValueChange={handleSkillChange} 
+            disabled={disabled || !selectedSubcategory}
+          >
+            <SelectTrigger className="mt-1 w-full min-h-[40px]">
+              <SelectValue placeholder="Select skill..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 z-[60] min-w-[200px]" position="popper">
+              {skills.map((skill: string) => (
+                <SelectItem key={skill} value={skill} className="cursor-pointer hover:bg-gray-100 py-2 px-3">
+                  {skill}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Subcategory Selection */}
-      <div>
-        <Label htmlFor="skill-subcategory" className="text-sm font-medium text-slate-700">
-          Subcategory
-        </Label>
-        <Select 
-          value={selectedSubcategory} 
-          onValueChange={handleSubcategoryChange} 
-          disabled={disabled || !selectedCategory}
-        >
-          <SelectTrigger className="mt-1">
-            <SelectValue placeholder="Select subcategory..." />
-          </SelectTrigger>
-          <SelectContent>
-            {subcategories.map(([key, subcategory]) => (
-              <SelectItem key={key} value={key}>
-                {(subcategory as SubcategoryData).label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Desktop: Side by side */}
+      <div className="hidden lg:grid lg:grid-cols-3 gap-4">
+        {/* Category Selection */}
+        <div>
+          <Label htmlFor="skill-category" className="text-sm font-medium text-slate-700">
+            Skill Category
+          </Label>
+          <Select 
+            value={selectedCategory} 
+            onValueChange={handleCategoryChange} 
+            disabled={disabled}
+          >
+            <SelectTrigger className="mt-1 w-full min-h-[40px]">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 z-[60] min-w-[200px]" position="popper">
+              {categories.map(([key, category]) => (
+                <SelectItem key={key} value={key} className="cursor-pointer hover:bg-gray-100 py-2 px-3">
+                  {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Skill Selection */}
-      <div>
-        <Label htmlFor="skill-name" className="text-sm font-medium text-slate-700">
-          Specific Skill
-        </Label>
-        <Select 
-          value={selectedSkill} 
-          onValueChange={handleSkillChange} 
-          disabled={disabled || !selectedSubcategory}
-        >
-          <SelectTrigger className="mt-1">
-            <SelectValue placeholder="Select skill..." />
-          </SelectTrigger>
-          <SelectContent>
-            {skills.map((skill: string) => (
-              <SelectItem key={skill} value={skill}>
-                {skill}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Subcategory Selection */}
+        <div>
+          <Label htmlFor="skill-subcategory" className="text-sm font-medium text-slate-700">
+            Subcategory
+          </Label>
+          <Select 
+            value={selectedSubcategory} 
+            onValueChange={handleSubcategoryChange} 
+            disabled={disabled || !selectedCategory}
+          >
+            <SelectTrigger className="mt-1 w-full min-h-[40px]">
+              <SelectValue placeholder="Select subcategory..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 z-[60] min-w-[200px]" position="popper">
+              {subcategories.map(([key, subcategory]) => (
+                <SelectItem key={key} value={key} className="cursor-pointer hover:bg-gray-100 py-2 px-3">
+                  {(subcategory as SubcategoryData).label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Skill Selection */}
+        <div>
+          <Label htmlFor="skill-name" className="text-sm font-medium text-slate-700">
+            Specific Skill
+          </Label>
+          <Select 
+            value={selectedSkill} 
+            onValueChange={handleSkillChange} 
+            disabled={disabled || !selectedSubcategory}
+          >
+            <SelectTrigger className="mt-1 w-full min-h-[40px]">
+              <SelectValue placeholder="Select skill..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 z-[60] min-w-[200px]" position="popper">
+              {skills.map((skill: string) => (
+                <SelectItem key={skill} value={skill} className="cursor-pointer hover:bg-gray-100 py-2 px-3">
+                  {skill}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   )

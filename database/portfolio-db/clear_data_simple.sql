@@ -1,4 +1,3 @@
-
 DELETE FROM bookmarks;
 DELETE FROM blog_posts;
 DELETE FROM skills;

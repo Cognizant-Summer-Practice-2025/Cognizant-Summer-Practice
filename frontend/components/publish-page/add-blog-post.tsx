@@ -80,7 +80,7 @@ export function AddBlogPost() {
         <div>
           <h3 className="text-xl font-semibold text-slate-900">Add New Blog Post</h3>
           <p className="text-sm text-slate-600 mt-1">
-            Blog post will be saved as draft and published when you hit publish
+            Blog posts are optional. Share your thoughts and expertise with your audience.
           </p>
         </div>
       </div>

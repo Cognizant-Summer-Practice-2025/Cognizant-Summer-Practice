@@ -90,8 +90,8 @@ export function AddSkills() {
   }
 
   return (
-    <div className="border border-slate-200 rounded-lg p-6 bg-white">
-      <div className="flex items-center justify-between mb-6">
+    <div className="border border-slate-200 rounded-lg p-4 sm:p-6 bg-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
         <div>
           <h3 className="text-xl font-semibold text-slate-900">Add New Skill</h3>
           <p className="text-sm text-slate-600 mt-1">
@@ -112,7 +112,7 @@ export function AddSkills() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
         {/* Skill Selection */}
         <div>
           <SkillDropdown
@@ -123,28 +123,39 @@ export function AddSkills() {
         </div>
         
         {/* Proficiency Selection */}
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="skill-proficiency" className="text-sm font-medium text-slate-700">
-              Proficiency ({newProficiency}% - {getProficiencyLabel(newProficiency)})
-            </Label>
-            <input
-              id="skill-proficiency"
-              type="range"
-              min="1"
-              max="100"
-              value={newProficiency}
-              onChange={(e) => setNewProficiency(parseInt(e.target.value))}
-              className="mt-1 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              disabled={loading}
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="skill-proficiency" className="text-sm font-medium text-slate-700">
+                Proficiency ({newProficiency}% - {getProficiencyLabel(newProficiency)})
+              </Label>
+              <input
+                id="skill-proficiency"
+                type="range"
+                min="1"
+                max="100"
+                value={newProficiency}
+                onChange={(e) => setNewProficiency(parseInt(e.target.value))}
+                className="mt-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                disabled={loading}
+                style={{
+                  background: `linear-gradient(to right, #1e293b 0%, #1e293b ${newProficiency}%, #e5e7eb ${newProficiency}%, #e5e7eb 100%)`
+                }}
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Beginner</span>
+                <span>Intermediate</span>
+                <span>Advanced</span>
+                <span>Expert</span>
+              </div>
+            </div>
           </div>
           
           <div className="flex items-end">
             <Button
               onClick={handleAddSkill}
               disabled={!selectedSkillData || loading}
-              className="w-full px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg"
+              className="w-full px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-colors duration-200"
             >
               {loading ? "Adding..." : "Add Skill"}
             </Button>

@@ -64,6 +64,7 @@ export default function Publish() {
     const errors = []
     
     // Check if at least one item exists in each category (including drafts)
+    // Blog posts are optional, so we don't validate them
     if (totalProjects === 0) {
       errors.push("Add at least one project")
     }
@@ -73,9 +74,7 @@ export default function Publish() {
     if (totalSkills === 0) {
       errors.push("Add at least one skill")
     }
-    if (totalBlogPosts === 0) {
-      errors.push("Add at least one blog post")
-    }
+    // Blog posts are optional - no validation required
     
     return errors
   }
@@ -124,6 +123,11 @@ export default function Publish() {
           console.log('Using existing portfolio ID:', portfolioId);
         }
         
+        // Verify we have a valid portfolio ID
+        if (!portfolioId) {
+          throw new Error('Failed to obtain portfolio ID for saving content');
+        }
+        
         // Prepare projects data
         const projects = draftProjects.map(project => ({
           portfolioId: portfolioId,
@@ -141,8 +145,8 @@ export default function Publish() {
           portfolioId: portfolioId,
           jobTitle: exp.jobTitle,
           companyName: exp.companyName,
-          startDate: exp.startDate,
-          endDate: exp.isCurrent ? undefined : exp.endDate,
+          startDate: exp.startDate, // Keep as string in YYYY-MM-DD format
+          endDate: exp.isCurrent ? undefined : exp.endDate || undefined, // Use undefined for optional dates
           isCurrent: exp.isCurrent,
           description: exp.description || '',
           skillsUsed: exp.skillsUsed ? exp.skillsUsed.split(',').map(s => s.trim()).filter(s => s.length > 0) : []
@@ -178,9 +182,7 @@ export default function Publish() {
           publishPortfolio: true
         }
 
-        console.log('Saving portfolio content using split approach:', contentData)
-        const result = await savePortfolioContent(portfolioId, contentData)
-        console.log('Save content result:', result)
+        await savePortfolioContent(portfolioId, contentData)
 
         // Clear drafts after successful save
         clearAllDrafts()
@@ -211,8 +213,6 @@ export default function Publish() {
       }
 
       await refreshUserPortfolios()
-      console.log('✅ Portfolio published successfully!')
-      console.log('🎉 All processes completed!')
       
       // Show success message
       setPublishError(null)
@@ -245,13 +245,11 @@ export default function Publish() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Fixed header positioned under app header */}
       <div className="fixed top-16 left-0 right-0 z-40">
         <PublishHeader onPublish={handlePublish} publishing={publishing} />
       </div>
       
-      {/* Main content with proper top margin */}
-      <div className="pt-32 pb-6">
+      <div className="pt-40 pb-6">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Content */}
@@ -264,13 +262,43 @@ export default function Publish() {
                 )}
                 
                 <Tabs defaultValue="basic-info" className="w-full">
-                  <TabsList className="grid w-full grid-cols-6 mb-6">
-                    <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
-                    <TabsTrigger value="projects">Projects</TabsTrigger>
-                    <TabsTrigger value="experience">Experience</TabsTrigger>
-                    <TabsTrigger value="skills">Skills</TabsTrigger>
-                    <TabsTrigger value="blog-posts">Blog Posts</TabsTrigger>
-                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                  <TabsList className="flex flex-wrap w-full gap-1 mb-6 h-auto p-1 bg-slate-100 rounded-lg">
+                    <TabsTrigger 
+                      value="basic-info" 
+                      className="flex-1 min-w-[120px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Basic Info
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="projects" 
+                      className="flex-1 min-w-[100px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Projects
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="experience" 
+                      className="flex-1 min-w-[110px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Experience
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="skills" 
+                      className="flex-1 min-w-[80px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Skills
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="blog-posts" 
+                      className="flex-1 min-w-[100px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Blog Posts
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="settings" 
+                      className="flex-1 min-w-[90px] text-xs sm:text-sm whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5"
+                    >
+                      Settings
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="basic-info" className="space-y-6">
@@ -309,15 +337,36 @@ export default function Publish() {
                     <PortfolioSettings 
                       portfolioId={currentPortfolio?.id}
                       onSave={async (settingsData) => {
-                        // If no portfolio exists, we'll need to create one or update draft settings
-                        if (!currentPortfolio) {
-                          // TODO: Store settings in draft/temp state for when portfolio is created
-                          return;
+                        try {
+                          if (!currentPortfolio) {
+                            // Create a basic portfolio first with the settings data
+                            const portfolioData = {
+                              userId: user?.id || 'default-user-id',
+                              templateName: settingsData.templateName || 'Gabriel Bârzu',
+                              title: 'My Portfolio', // Default title, will be set in basic info
+                              bio: 'Welcome to my portfolio', // Default bio, will be set in basic info
+                              visibility: 0 as 0 | 1 | 2, // Default visibility, will be set in basic info
+                              isPublished: false, // Keep as draft until publish is clicked
+                              components: settingsData.components || JSON.stringify(TemplateManager.createDefaultComponentConfig())
+                            };
+                            
+                            await createPortfolioAndGetId(portfolioData);
+                          } else {
+                            // Update existing portfolio with template and components only
+                            const updateData = {
+                              components: settingsData.components
+                            };
+                            
+                            // Note: Template changes might need special handling
+                            await updatePortfolio(currentPortfolio.id, updateData);
+                          }
+                          
+                          // Refresh portfolio data to reflect changes
+                          await refreshUserPortfolios();
+                        } catch (error) {
+                          console.error('Error saving portfolio settings:', error);
+                          throw error; // Let the component handle the error display
                         }
-                        
-                        // Update existing portfolio
-                        await updatePortfolio(currentPortfolio.id, settingsData);
-                        await refreshUserPortfolios();
                       }}
                     />
                   </TabsContent>
@@ -327,7 +376,7 @@ export default function Publish() {
 
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <div className="sticky top-32 space-y-6">
+              <div className="sticky top-40 space-y-6">
                 <PublishSidebar 
                   totalProjects={totalProjects}
                   totalExperience={totalExperience}
