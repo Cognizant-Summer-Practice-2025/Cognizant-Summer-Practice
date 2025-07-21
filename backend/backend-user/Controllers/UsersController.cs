@@ -1,26 +1,39 @@
 ﻿using backend_user.Models;
-using backend_user.Repositories;
-using backend_user.DTO;
+using backend_user.Services.Abstractions;
+using backend_user.DTO.User.Request;
+using backend_user.DTO.User.Response;
+using backend_user.DTO.Authentication.Request;
+using backend_user.DTO.Authentication.Response;
+using backend_user.DTO.OAuthProvider.Request;
+using backend_user.DTO.OAuthProvider.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend_user.Controllers
 {
+    /// <summary>
+    /// UsersController for managing user-related operations.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController(IUserRepository userRepository, IOAuthProviderRepository oauthProviderRepository, IBookmarkRepository bookmarkRepository) : ControllerBase
     {
+        private readonly IUserService _userService;
+        private readonly IOAuthProviderService _oauthProviderService;
+        private readonly IUserRegistrationService _userRegistrationService;
+        private readonly ILoginService _loginService;
+        
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await userRepository.GetAllUsers();
+            var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
-            var user = await userRepository.GetUserById(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound($"User with ID {id} not found.");
@@ -31,21 +44,11 @@ namespace backend_user.Controllers
         [HttpGet("{id}/portfolio-info")]
         public async Task<IActionResult> GetUserPortfolioInfo(Guid id)
         {
-            var user = await userRepository.GetUserById(id);
-            if (user == null)
+            var portfolioInfo = await _userService.GetUserPortfolioInfoAsync(id);
+            if (portfolioInfo == null)
             {
                 return NotFound($"User with ID {id} not found.");
             }
-
-            var portfolioInfo = new
-            {
-                userId = user.Id,
-                username = user.Username,
-                name = $"{user.FirstName} {user.LastName}".Trim(),
-                professionalTitle = user.ProfessionalTitle ?? "Portfolio Creator",
-                location = user.Location ?? "Location not specified",
-                avatarUrl = user.AvatarUrl
-            };
 
             return Ok(portfolioInfo);
         }
@@ -53,22 +56,41 @@ namespace backend_user.Controllers
         [HttpGet("email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
-            var user = await userRepository.GetUserByEmail(email);
+            var user = await _userService.GetUserByEmailAsync(email);
             return Ok(user);
         }
 
         [HttpGet("check-email/{email}")]
         public async Task<IActionResult> CheckUserExistsByEmail(string email)
         {
-            var user = await userRepository.GetUserByEmail(email);
+            var user = await _userService.GetUserByEmailAsync(email);
             return Ok(new { exists = user != null, user = user });
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateUser(User user)
         {
-            var newUser = await userRepository.CreateUser(user);
-            return Ok(newUser);
+            // Convert User entity to RegisterUserRequest for service compatibility
+            var registerRequest = new RegisterUserRequest
+            {
+                Email = user.Email,
+                FirstName = user.FirstName ?? "",
+                LastName = user.LastName ?? "",
+                ProfessionalTitle = user.ProfessionalTitle,
+                Bio = user.Bio,
+                Location = user.Location,
+                ProfileImage = user.AvatarUrl
+            };
+
+            try
+            {
+                var newUser = await _userService.CreateUserAsync(registerRequest);
+                return Ok(newUser);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("register")]
@@ -76,28 +98,26 @@ namespace backend_user.Controllers
         {
             try
             {
-                var existingUser = await userRepository.GetUserByEmail(request.Email);
-                if (existingUser != null)
-                {
-                    return BadRequest(new { message = "User already exists" });
-                }
-
-                var username = request.Email.Split('@')[0];
-                
-                var user = new User
-                {
-                    Email = request.Email,
-                    Username = username,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    ProfessionalTitle = request.ProfessionalTitle,
-                    Bio = request.Bio,
-                    Location = request.Location,
-                    AvatarUrl = request.ProfileImage
-                };
-
-                var newUser = await userRepository.CreateUser(user);
+                var newUser = await _userRegistrationService.RegisterUserAsync(request);
                 return Ok(newUser);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("login-oauth")]
+        public async Task<IActionResult> LoginWithOAuth([FromBody] OAuthLoginRequestDto request)
+        {
+            try
+            {
+                var result = await _loginService.LoginWithOAuthAsync(request);
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+                return BadRequest(result);
             }
             catch (Exception ex)
             {
@@ -110,7 +130,7 @@ namespace backend_user.Controllers
         {
             try
             {
-                var updatedUser = await userRepository.UpdateUser(id, request);
+                var updatedUser = await _userService.UpdateUserAsync(id, request);
                 if (updatedUser == null)
                 {
                     return NotFound($"User with ID {id} not found.");
@@ -144,14 +164,7 @@ namespace backend_user.Controllers
         [HttpGet("{userId}/oauth-providers")]
         public async Task<IActionResult> GetUserOAuthProviders(Guid userId)
         {
-            var providers = await oauthProviderRepository.GetByUserIdAsync(userId);
-            var response = providers.Select(p => new OAuthProviderSummaryDto
-            {
-                Id = p.Id,
-                Provider = p.Provider,
-                ProviderEmail = p.ProviderEmail,
-                CreatedAt = p.CreatedAt
-            });
+            var response = await _oauthProviderService.GetUserOAuthProvidersAsync(userId);
             return Ok(response);
         }
 
@@ -160,18 +173,7 @@ namespace backend_user.Controllers
         {
             try
             {
-                var provider = await oauthProviderRepository.CreateAsync(request);
-                var response = new OAuthProviderResponseDto
-                {
-                    Id = provider.Id,
-                    UserId = provider.UserId,
-                    Provider = provider.Provider,
-                    ProviderId = provider.ProviderId,
-                    ProviderEmail = provider.ProviderEmail,
-                    TokenExpiresAt = provider.TokenExpiresAt,
-                    CreatedAt = provider.CreatedAt,
-                    UpdatedAt = provider.UpdatedAt
-                };
+                var response = await _oauthProviderService.CreateOAuthProviderAsync(request);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -183,28 +185,16 @@ namespace backend_user.Controllers
         [HttpPut("oauth-providers/{id}")]
         public async Task<IActionResult> UpdateOAuthProvider(Guid id, [FromBody] OAuthProviderUpdateRequestDto request)
         {
-            var provider = await oauthProviderRepository.UpdateAsync(id, request);
-            if (provider == null)
+            var response = await _oauthProviderService.UpdateOAuthProviderAsync(id, request);
+            if (response == null)
                 return NotFound();
-
-            var response = new OAuthProviderResponseDto
-            {
-                Id = provider.Id,
-                UserId = provider.UserId,
-                Provider = provider.Provider,
-                ProviderId = provider.ProviderId,
-                ProviderEmail = provider.ProviderEmail,
-                TokenExpiresAt = provider.TokenExpiresAt,
-                CreatedAt = provider.CreatedAt,
-                UpdatedAt = provider.UpdatedAt
-            };
             return Ok(response);
         }
 
         [HttpDelete("oauth-providers/{id}")]
         public async Task<IActionResult> DeleteOAuthProvider(Guid id)
         {
-            var result = await oauthProviderRepository.DeleteAsync(id);
+            var result = await _oauthProviderService.DeleteOAuthProviderAsync(id);
             if (!result)
                 return NotFound();
             return NoContent();
@@ -213,32 +203,15 @@ namespace backend_user.Controllers
         [HttpGet("oauth-providers/check")]
         public async Task<IActionResult> CheckOAuthProvider([FromQuery] OAuthProviderType provider, [FromQuery] string providerId)
         {
-            var exists = await oauthProviderRepository.ExistsAsync(provider, providerId);
-            var oauthProvider = await oauthProviderRepository.GetByProviderAndProviderIdAsync(provider, providerId);
-            return Ok(new { exists = exists, provider = oauthProvider });
+            var result = await _oauthProviderService.CheckOAuthProviderAsync(provider, providerId);
+            return Ok(result);
         }
 
         [HttpGet("{userId}/oauth-providers/{provider}")]
         public async Task<IActionResult> GetUserOAuthProviderByType(Guid userId, OAuthProviderType provider)
         {
-            var oauthProvider = await oauthProviderRepository.GetByUserIdAndProviderAsync(userId, provider);
-            if (oauthProvider == null)
-            {
-                return Ok(new { exists = false, provider = (OAuthProvider?)null });
-            }
-
-            var response = new OAuthProviderResponseDto
-            {
-                Id = oauthProvider.Id,
-                UserId = oauthProvider.UserId,
-                Provider = oauthProvider.Provider,
-                ProviderId = oauthProvider.ProviderId,
-                ProviderEmail = oauthProvider.ProviderEmail,
-                TokenExpiresAt = oauthProvider.TokenExpiresAt,
-                CreatedAt = oauthProvider.CreatedAt,
-                UpdatedAt = oauthProvider.UpdatedAt
-            };
-            return Ok(new { exists = true, provider = response });
+            var result = await _oauthProviderService.GetUserOAuthProviderByTypeAsync(userId, provider);
+            return Ok(result);
         }
 
         [HttpPost("register-oauth")]
@@ -246,82 +219,8 @@ namespace backend_user.Controllers
         {
             try
             {
-                // Check if OAuth provider already exists
-                var existingProvider = await oauthProviderRepository.GetByProviderAndProviderIdAsync(
-                    request.Provider, request.ProviderId);
-                
-                if (existingProvider != null)
-                {
-                    return BadRequest(new { message = "OAuth provider already linked to another user" });
-                }
-
-                // Check if user already exists by email
-                var existingUser = await userRepository.GetUserByEmail(request.Email);
-                if (existingUser != null)
-                {
-                    return BadRequest(new { message = "User already exists" });
-                }
-
-                var username = request.Email.Split('@')[0];
-
-                // Create user first
-                var user = new User
-                {
-                    Email = request.Email,
-                    Username = username,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    ProfessionalTitle = request.ProfessionalTitle,
-                    Bio = request.Bio,
-                    Location = request.Location,
-                    AvatarUrl = request.ProfileImage
-                };
-
-                var newUser = await userRepository.CreateUser(user);
-
-                // create OAuth provider
-                var oauthRequest = new OAuthProviderCreateRequestDto
-                {
-                    UserId = newUser.Id,
-                    Provider = request.Provider,
-                    ProviderId = request.ProviderId,
-                    ProviderEmail = request.ProviderEmail,
-                    AccessToken = request.AccessToken,
-                    RefreshToken = request.RefreshToken,
-                    TokenExpiresAt = request.TokenExpiresAt
-                };
-
-                var oauthProvider = await oauthProviderRepository.CreateAsync(oauthRequest);
-
-                var userResponse = new UserResponseDto
-                {
-                    Id = newUser.Id,
-                    Email = newUser.Email,
-                    Username = newUser.Username,
-                    FirstName = newUser.FirstName,
-                    LastName = newUser.LastName,
-                    ProfessionalTitle = newUser.ProfessionalTitle,
-                    Bio = newUser.Bio,
-                    Location = newUser.Location,
-                    AvatarUrl = newUser.AvatarUrl,
-                    IsActive = newUser.IsActive,
-                    IsAdmin = newUser.IsAdmin,
-                    LastLoginAt = newUser.LastLoginAt
-                };
-
-                var oauthResponse = new OAuthProviderResponseDto
-                {
-                    Id = oauthProvider.Id,
-                    UserId = oauthProvider.UserId,
-                    Provider = oauthProvider.Provider,
-                    ProviderId = oauthProvider.ProviderId,
-                    ProviderEmail = oauthProvider.ProviderEmail,
-                    TokenExpiresAt = oauthProvider.TokenExpiresAt,
-                    CreatedAt = oauthProvider.CreatedAt,
-                    UpdatedAt = oauthProvider.UpdatedAt
-                };
-
-                return Ok(new { user = userResponse, oauthProvider = oauthResponse });
+                var result = await _userRegistrationService.RegisterOAuthUserAsync(request);
+                return Ok(result);
             }
             catch (Exception ex)
             {

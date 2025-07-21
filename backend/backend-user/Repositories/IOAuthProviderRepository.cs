@@ -1,5 +1,6 @@
 using backend_user.Models;
-using backend_user.DTO;
+using backend_user.DTO.OAuthProvider.Request;
+using backend_user.DTO.OAuthProvider.Response;
 
 namespace backend_user.Repositories
 {
