@@ -256,6 +256,7 @@
   max-height: 500px;
   overflow-y: auto;
   padding-right: 0.5rem;
+  scroll-behavior: smooth;
 }
 
 .skills-categories.collapsed {
@@ -294,7 +295,7 @@
 }
 
 .skill-category.soft-skills {
-  border-left: 3px solid #10b981;
+  border-left: 3px solid #3b82f6;
 }
 
 .skill-category-header {
@@ -333,7 +334,7 @@
 }
 
 .skill-category-icon.soft {
-  background-color: rgba(16, 185, 129, 0.1);
+  background-color: rgba(59, 130, 246, 0.1);
 }
 
 .skill-category-title {
@@ -368,6 +369,7 @@
   padding: 0.5rem 0;
   max-height: 400px;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .skill-subcategories.collapsed {
@@ -375,21 +377,50 @@
 }
 
 .skill-subcategories::-webkit-scrollbar {
-  width: 1px;
+  width: 6px;
 }
 
 .skill-subcategories::-webkit-scrollbar-track {
   background: #f8fafc;
-  border-radius: 2px;
+  border-radius: 3px;
+  margin: 4px 0;
 }
 
 .skill-subcategories::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 2px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
 }
 
 .skill-subcategories::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Enhanced scrolling for both hard and soft skills */
+.skill-category .skill-subcategories {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 8px;
+  scroll-behavior: smooth !important;
+}
+
+.skill-category .skill-subcategories::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.skill-category .skill-subcategories::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 4px;
+}
+
+.skill-category .skill-subcategories::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+  border-radius: 4px;
+}
+
+.skill-category .skill-subcategories::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
 }
 
 .skill-subcategory {
@@ -467,6 +498,7 @@
   padding-left: 1rem;
   max-height: 200px;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .skill-subcategory-options.collapsed {
@@ -474,20 +506,69 @@
 }
 
 .skill-subcategory-options::-webkit-scrollbar {
-  width: 1px;
+  width: 4px;
 }
 
 .skill-subcategory-options::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 2px;
 }
 
 .skill-subcategory-options::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 2px;
+  transition: background-color 0.2s;
 }
 
 .skill-subcategory-options::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* Enhanced scrolling for both hard and soft skills subcategory options */
+.skill-category .skill-subcategory-options {
+  max-height: 150px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 6px;
+  scroll-behavior: smooth !important;
+}
+
+.skill-category .skill-subcategory-options::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.skill-category .skill-subcategory-options::-webkit-scrollbar-track {
+  background: #f8fafc !important;
+  border-radius: 3px;
+}
+
+.skill-category .skill-subcategory-options::-webkit-scrollbar-thumb {
+  background: #d1d5db !important;
+  border-radius: 3px;
+}
+
+.skill-category .skill-subcategory-options::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af !important;
+}
+
+
+
+/* Better touch scrolling on mobile */
+.skill-category .skill-subcategories,
+.skill-category .skill-subcategory-options {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Enhanced scrolling for all skill categories */
+.skill-category .skill-subcategories {
+  height: auto !important;
+  min-height: 100px !important;
+}
+
+.skill-category .skill-subcategory-options {
+  height: auto !important;
+  min-height: 50px !important;
 }
 
 /* Scroll indicators */

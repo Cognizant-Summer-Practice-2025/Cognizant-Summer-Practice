@@ -162,25 +162,61 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
         return skillCounts.get(normalizedSkill)!;
       }
       
+      let totalCount = 0;
+      
       // Try to find partial matches for common variations
       for (const [portfolioSkill, count] of skillCounts.entries()) {
-        // Check if the config skill is contained in the portfolio skill or vice versa
-        if (portfolioSkill.includes(normalizedSkill) || normalizedSkill.includes(portfolioSkill)) {
-          return count;
-        }
+        let isMatch = false;
         
         // Handle common variations (e.g., "JavaScript" vs "JS")
-        if ((normalizedSkill === 'javascript' && portfolioSkill === 'js') ||
-            (normalizedSkill === 'js' && portfolioSkill === 'javascript') ||
-            (normalizedSkill === 'react.js' && portfolioSkill === 'react') ||
-            (normalizedSkill === 'react' && portfolioSkill === 'react.js') ||
-            (normalizedSkill === 'node.js' && portfolioSkill === 'nodejs') ||
-            (normalizedSkill === 'nodejs' && portfolioSkill === 'node.js')) {
-          return count;
+        const commonVariations = new Map([
+          ['javascript', ['js', 'javascript', 'java script']],
+          ['js', ['javascript', 'js', 'java script']],
+          ['react.js', ['react', 'reactjs', 'react.js', 'react js']],
+          ['react', ['react', 'reactjs', 'react.js', 'react js']],
+          ['reactjs', ['react', 'reactjs', 'react.js', 'react js']],
+          ['node.js', ['nodejs', 'node.js', 'node js', 'node']],
+          ['nodejs', ['nodejs', 'node.js', 'node js', 'node']],
+          ['node', ['nodejs', 'node.js', 'node js', 'node']],
+          ['vue.js', ['vue', 'vuejs', 'vue.js', 'vue js']],
+          ['vue', ['vue', 'vuejs', 'vue.js', 'vue js']],
+          ['vuejs', ['vue', 'vuejs', 'vue.js', 'vue js']],
+          ['angular.js', ['angular', 'angularjs', 'angular.js', 'angular js']],
+          ['angular', ['angular', 'angularjs', 'angular.js', 'angular js']],
+          ['angularjs', ['angular', 'angularjs', 'angular.js', 'angular js']],
+          ['c++', ['cpp', 'c++', 'c plus plus']],
+          ['cpp', ['cpp', 'c++', 'c plus plus']],
+          ['c#', ['csharp', 'c#', 'c sharp']],
+          ['csharp', ['csharp', 'c#', 'c sharp']],
+          ['python', ['python', 'py']],
+          ['py', ['python', 'py']],
+          ['typescript', ['typescript', 'ts']],
+          ['ts', ['typescript', 'ts']],
+          ['html5', ['html', 'html5']],
+          ['html', ['html', 'html5']],
+          ['css3', ['css', 'css3']],
+          ['css', ['css', 'css3']],
+        ]);
+        
+        const variations = commonVariations.get(normalizedSkill);
+        if (variations && variations.includes(portfolioSkill)) {
+          isMatch = true;
+        }
+        
+        // Check if the config skill is contained in the portfolio skill or vice versa
+        // But only for longer skill names to avoid false matches
+        if (!isMatch && normalizedSkill.length > 2 && portfolioSkill.length > 2) {
+          if (portfolioSkill.includes(normalizedSkill) || normalizedSkill.includes(portfolioSkill)) {
+            isMatch = true;
+          }
+        }
+        
+        if (isMatch) {
+          totalCount += count;
         }
       }
       
-      return 0;
+      return totalCount;
     };
     
     // Process hard skills
@@ -196,21 +232,28 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
         value: skill.toLowerCase().replace(/[^a-z0-9]/g, '-'),
         label: skill,
         count: getSkillCount(skill)
-      })).sort((a, b) => {
+      })).filter(skill => skill.count > 0) // Only show skills that exist in portfolios
+      .sort((a, b) => {
         if (a.count !== b.count) {
           return b.count - a.count; // Higher counts first
         }
         return a.label.localeCompare(b.label); // Then alphabetical
       });
 
-      hardSkillsCategory.subcategories.push({
-        id: `hard-${subKey}`,
-        label: subcategory.label,
-        skills: skillsInSubcategory
-      });
+      // Only add subcategory if it has skills that exist in portfolios
+      if (skillsInSubcategory.length > 0) {
+        hardSkillsCategory.subcategories.push({
+          id: `hard-${subKey}`,
+          label: subcategory.label,
+          skills: skillsInSubcategory
+        });
+      }
     });
 
-    categories.push(hardSkillsCategory);
+    // Only add hard skills category if it has subcategories with skills
+    if (hardSkillsCategory.subcategories.length > 0) {
+      categories.push(hardSkillsCategory);
+    }
     
     // Process soft skills
     const softSkillsCategory: SkillCategory = {
@@ -225,21 +268,28 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
         value: skill.toLowerCase().replace(/[^a-z0-9]/g, '-'),
         label: skill,
         count: getSkillCount(skill)
-      })).sort((a, b) => {
+      })).filter(skill => skill.count > 0) // Only show skills that exist in portfolios
+      .sort((a, b) => {
         if (a.count !== b.count) {
           return b.count - a.count; // Higher counts first
         }
         return a.label.localeCompare(b.label); // Then alphabetical
       });
 
-      softSkillsCategory.subcategories.push({
-        id: `soft-${subKey}`,
-        label: subcategory.label,
-        skills: skillsInSubcategory
-      });
+      // Only add subcategory if it has skills that exist in portfolios
+      if (skillsInSubcategory.length > 0) {
+        softSkillsCategory.subcategories.push({
+          id: `soft-${subKey}`,
+          label: subcategory.label,
+          skills: skillsInSubcategory
+        });
+      }
     });
 
-    categories.push(softSkillsCategory);
+    // Only add soft skills category if it has subcategories with skills
+    if (softSkillsCategory.subcategories.length > 0) {
+      categories.push(softSkillsCategory);
+    }
     
     // Handle uncategorized skills (portfolio skills not in config)
     const uncategorizedSkills: FilterOption[] = [];
