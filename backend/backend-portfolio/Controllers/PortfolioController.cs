@@ -385,7 +385,7 @@ namespace backend_portfolio.Controllers
                 foreach (var portfolio in portfolios)
                 {
                     var skills = await _skillRepository.GetSkillsByPortfolioIdAsync(portfolio.Id);
-                    var skillNames = skills.Select(s => s.Name).Take(4).ToList(); // Limit to 4 skills for display
+                    var skillNames = skills.Select(s => s.Name).ToList(); // Show all skills
 
                     // Fetch user information from user service
                     string userName = "Unknown User";
