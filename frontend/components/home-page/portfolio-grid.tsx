@@ -1,38 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Select, Row, Col } from 'antd';
 import PortfolioCard from './portfolio-card';
-import { getPortfolioCardsForHomePage, PortfolioCardDto } from '@/lib/portfolio/api';
+import { PortfolioCardDto } from '@/lib/portfolio/api';
 import './style.css';
 
 const { Option } = Select;
 
-const PortfolioGrid: React.FC = () => {
+interface PortfolioGridProps {
+  portfolios: PortfolioCardDto[];
+  loading: boolean;
+  error: string | null;
+}
+
+const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, error }) => {
   const [sortBy, setSortBy] = useState('most-recent');
-  const [portfolios, setPortfolios] = useState<PortfolioCardDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchPortfolios = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getPortfolioCardsForHomePage();
-        setPortfolios(data);
-      } catch (err) {
-        console.error('Error fetching portfolios:', err);
-        setError('Failed to load portfolios. Please try again later.');
-        // Fallback to empty array or you could keep some mock data
-        setPortfolios([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPortfolios();
-  }, []);
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
@@ -44,7 +27,12 @@ const PortfolioGrid: React.FC = () => {
       <div className="portfolio-grid-header">
         <div className="portfolio-grid-title">
           <h1>Discover Portfolios</h1>
-          <p>Explore creative work from talented professionals</p>
+          <p>
+            {portfolios.length === 0 && !loading ? 
+              'No portfolios match your current filters' : 
+              `Showing ${portfolios.length} ${portfolios.length === 1 ? 'portfolio' : 'portfolios'}`
+            }
+          </p>
         </div>
         <div className="portfolio-sort">
           <Select
