@@ -1,4 +1,6 @@
-using backend_user.DTO;
+using backend_user.DTO.Authentication.Request;
+using backend_user.DTO.Authentication.Response;
+using backend_user.DTO.User.Request;
 using backend_user.Models;
 using backend_user.Repositories;
 using backend_user.Services.Abstractions;
@@ -44,27 +46,15 @@ namespace backend_user.Services
 
         public async Task<bool> UpdateLastLoginAsync(Guid userId)
         {
-            var user = await _userRepository.GetUserById(userId);
-            if (user == null)
-                return false;
-
-            // Note: This would require extending the repository to handle last login updates
-            // For now, we'll create a simple update request
-            var updateRequest = new UpdateUserRequest
+            try
             {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                ProfessionalTitle = user.ProfessionalTitle,
-                Bio = user.Bio,
-                Location = user.Location,
-                ProfileImage = user.AvatarUrl
-            };
-
-            // This is a limitation of the current repository design - it doesn't handle LastLoginAt
-            // In a proper implementation, we would extend the repository or use a specialized method
-            await _userRepository.UpdateUser(userId, updateRequest);
-            
-            return true;
+                return await _userRepository.UpdateLastLoginAsync(userId, DateTime.UtcNow);
+            }
+            catch (Exception)
+            {
+                // Log the exception in a real implementation
+                return false;
+            }
         }
 
         public async Task<bool> IsOAuthProviderLinkedAsync(OAuthProviderType provider, string providerId)

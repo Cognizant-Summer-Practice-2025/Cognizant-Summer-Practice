@@ -1,4 +1,4 @@
-using backend_user.DTO;
+using backend_user.DTO.User.Request;
 
 namespace backend_user.Services.Validators
 {

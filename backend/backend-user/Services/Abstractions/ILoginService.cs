@@ -1,4 +1,5 @@
-using backend_user.DTO;
+using backend_user.DTO.Authentication.Request;
+using backend_user.DTO.Authentication.Response;
 using backend_user.Models;
 
 namespace backend_user.Services.Abstractions

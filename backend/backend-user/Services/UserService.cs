@@ -1,4 +1,5 @@
-using backend_user.DTO;
+using backend_user.DTO.User.Request;
+using backend_user.DTO.User.Response;
 using backend_user.Models;
 using backend_user.Repositories;
 using backend_user.Services.Abstractions;

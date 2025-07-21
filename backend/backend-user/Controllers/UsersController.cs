@@ -1,6 +1,11 @@
 ﻿using backend_user.Models;
 using backend_user.Services.Abstractions;
-using backend_user.DTO;
+using backend_user.DTO.User.Request;
+using backend_user.DTO.User.Response;
+using backend_user.DTO.Authentication.Request;
+using backend_user.DTO.Authentication.Response;
+using backend_user.DTO.OAuthProvider.Request;
+using backend_user.DTO.OAuthProvider.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

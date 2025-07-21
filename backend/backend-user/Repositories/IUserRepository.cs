@@ -1,5 +1,6 @@
 ﻿using backend_user.Models;
-using backend_user.DTO;
+using backend_user.DTO.User.Request;
+using backend_user.DTO.User.Response;
 
 namespace backend_user.Repositories
 {
@@ -10,5 +11,6 @@ namespace backend_user.Repositories
         Task<List<User>> GetAllUsers();
         Task<User> CreateUser(User user);
         Task<User?> UpdateUser(Guid id, UpdateUserRequest request);
+        Task<bool> UpdateLastLoginAsync(Guid userId, DateTime lastLoginAt);
     }
 }

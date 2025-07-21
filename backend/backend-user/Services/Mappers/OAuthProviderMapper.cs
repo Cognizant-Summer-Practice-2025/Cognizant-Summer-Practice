@@ -1,4 +1,7 @@
-using backend_user.DTO;
+using backend_user.DTO.OAuthProvider.Request;
+using backend_user.DTO.OAuthProvider.Response;
+using backend_user.DTO.User.Request;
+using backend_user.DTO.Authentication.Request;
 using backend_user.Models;
 
 namespace backend_user.Services.Mappers

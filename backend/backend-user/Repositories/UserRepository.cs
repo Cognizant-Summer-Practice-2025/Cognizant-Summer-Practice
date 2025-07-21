@@ -1,6 +1,7 @@
-﻿using backend_user.Data;
-using backend_user.Models;
-using backend_user.DTO;
+﻿using backend_user.Models;
+using backend_user.Data;
+using backend_user.DTO.User.Request;
+using backend_user.DTO.User.Response;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend_user.Repositories
@@ -62,6 +63,17 @@ namespace backend_user.Repositories
 
             await _context.SaveChangesAsync();
             return user;
+        }
+
+        public async Task<bool> UpdateLastLoginAsync(Guid userId, DateTime lastLoginAt)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            user.LastLoginAt = lastLoginAt;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
