@@ -1,6 +1,3 @@
-using System.Drawing;
-using System.Drawing.Imaging;
-
 namespace backend_portfolio.Services
 {
     public class ImageUploadUtility
@@ -95,16 +92,55 @@ namespace backend_portfolio.Services
             if (!_allowedExtensions.Contains(fileExtension))
                 throw new ArgumentException($"File type {fileExtension} is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}");
 
-            // Validate that the file is actually an image
+            // Validate that the file is actually an image by checking magic bytes
+            if (!IsValidImageFile(imageFile))
+            {
+                throw new ArgumentException("The uploaded file is not a valid image");
+            }
+        }
+
+        private bool IsValidImageFile(IFormFile imageFile)
+        {
             try
             {
                 using var stream = imageFile.OpenReadStream();
-                using var image = Image.FromStream(stream);
-                // If we get here, it's a valid image
+                
+                // Read the first few bytes to check magic numbers
+                var buffer = new byte[12];
+                var bytesRead = stream.Read(buffer, 0, buffer.Length);
+                
+                if (bytesRead < 4)
+                    return false;
+
+                // Check for common image file signatures (magic bytes)
+                
+                // JPEG: FF D8 FF
+                if (buffer[0] == 0xFF && buffer[1] == 0xD8 && buffer[2] == 0xFF)
+                    return true;
+
+                // PNG: 89 50 4E 47 0D 0A 1A 0A
+                if (bytesRead >= 8 && 
+                    buffer[0] == 0x89 && buffer[1] == 0x50 && buffer[2] == 0x4E && buffer[3] == 0x47 &&
+                    buffer[4] == 0x0D && buffer[5] == 0x0A && buffer[6] == 0x1A && buffer[7] == 0x0A)
+                    return true;
+
+                // GIF: "GIF8"
+                if (bytesRead >= 4 && 
+                    buffer[0] == 0x47 && buffer[1] == 0x49 && buffer[2] == 0x46 && buffer[3] == 0x38)
+                    return true;
+
+                // WebP: "RIFF" followed by "WEBP" at offset 8
+                if (bytesRead >= 12 &&
+                    buffer[0] == 0x52 && buffer[1] == 0x49 && buffer[2] == 0x46 && buffer[3] == 0x46 &&
+                    buffer[8] == 0x57 && buffer[9] == 0x45 && buffer[10] == 0x42 && buffer[11] == 0x50)
+                    return true;
+
+                return false;
             }
-            catch
+            catch (Exception ex)
             {
-                throw new ArgumentException("The uploaded file is not a valid image");
+                _logger.LogWarning(ex, "Error validating image file");
+                return false;
             }
         }
 
