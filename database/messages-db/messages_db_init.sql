@@ -25,6 +25,7 @@ CREATE TABLE messages (
     attachment_url TEXT,
     attachment_filename VARCHAR(255),
     attachment_size INTEGER,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
     is_edited BOOLEAN NOT NULL DEFAULT FALSE,
     edited_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -49,15 +50,6 @@ CREATE TABLE conversation_participants (
     UNIQUE(conversation_id, user_id)
 );
 
--- Message Reads table
-CREATE TABLE message_reads (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL,
-    read_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    UNIQUE(message_id, user_id)
-);
-
 -- User Cache table
 CREATE TABLE user_cache (
     user_id UUID PRIMARY KEY,
@@ -77,6 +69,7 @@ CREATE INDEX idx_conversation_participants_conversation_id ON conversation_parti
 CREATE INDEX idx_conversation_participants_user_id ON conversation_participants(user_id);
 CREATE INDEX idx_message_reads_message_id ON message_reads(message_id);
 CREATE INDEX idx_message_reads_user_id ON message_reads(user_id);
+CREATE INDEX idx_messages_is_read ON messages(is_read);
 
 -- Success message
 \echo 'Messages service database initialized successfully!'

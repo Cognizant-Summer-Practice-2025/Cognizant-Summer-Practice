@@ -95,16 +95,18 @@ export default function Header() {
 
           {/* Right side items - Hidden on mobile */}
           <div className="hidden lg:flex items-center gap-4">
-            {/* Message Icon */}
-            <button
-              className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-transform transition-colors active:scale-90 duration-150"
-              onClick={() => router.push('/messages')}
-              aria-label="Messages"
-            >
-              <div className="flex justify-center items-start">
-              <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B] group-hover:text-[#2563EB] transition-colors" />
-              </div>
-            </button>
+            {/* Message Icon - Only show when logged in */}
+            {session && (
+              <button
+                className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-transform transition-colors active:scale-90 duration-150"
+                onClick={() => router.push('/messages')}
+                aria-label="Messages"
+              >
+                <div className="flex justify-center items-start">
+                <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B] group-hover:text-[#2563EB] transition-colors" />
+                </div>
+              </button>
+            )}
 
             {/* Publish Button */}
             <Button 
@@ -197,6 +199,22 @@ export default function Header() {
               />
             </div>
           </div>
+
+          {/* Messages Button - Only for logged in users */}
+          {session && (
+            <div className="p-4 border-b border-[#E2E8F0]">
+              <Button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/messages');
+                }}
+                className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-normal rounded-lg flex justify-center items-center gap-2 border border-gray-200"
+              >
+                <MessageCircle className="w-[14px] h-[14px]" />
+                Messages
+              </Button>
+            </div>
+          )}
 
           {/* Publish Button */}
           <div className="p-4 border-b border-[#E2E8F0]">

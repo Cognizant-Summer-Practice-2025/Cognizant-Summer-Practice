@@ -13,7 +13,6 @@ namespace backend_portfolio.Services
         public ImageUploadUtility(ILogger<ImageUploadUtility> logger, IConfiguration configuration)
         {
             _logger = logger;
-            // Get the absolute path to the server folder
             _serverPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "server", "portfolio");
         }
 
@@ -21,7 +20,6 @@ namespace backend_portfolio.Services
         {
             try
             {
-                // Validate the image file
                 ValidateImageFile(imageFile);
 
                 // Create subfolder if it doesn't exist

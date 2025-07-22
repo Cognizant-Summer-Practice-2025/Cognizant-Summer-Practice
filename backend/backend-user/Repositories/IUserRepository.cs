@@ -8,6 +8,8 @@ namespace backend_user.Repositories
     {
         Task<User?> GetUserById(Guid id);
         Task<User?> GetUserByEmail(string email);
+        Task<User?> GetUserByUsername(string username);
+        Task<List<User>> SearchUsers(string searchTerm);
         Task<List<User>> GetAllUsers();
         Task<User> CreateUser(User user);
         Task<User?> UpdateUser(Guid id, UpdateUserRequest request);

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import UserSearchModal from '../user-search-modal/user-search-modal';
+import { SearchUser } from '@/lib/user';
 import './style.css';
 
 interface Contact{
@@ -10,12 +12,15 @@ interface Contact{
     isActive?: boolean;
     isOnline?: boolean;
     unreadCount?: number;
+    userId?: string;
+    professionalTitle?: string;
 }
 
 interface MessagesSidebarProps {
     contacts: Contact[];
     selectedContact: Contact | null;
     onSelectContact: (contact: Contact) => void;
+    onNewConversation?: (user: SearchUser) => void;
 }
 
 const ContactItem: React.FC<{
@@ -44,7 +49,13 @@ const ContactItem: React.FC<{
           {contact.lastMessage}
         </div>
         <div className="contact-status">
-          <div className="message-status">√√</div>
+          {contact.unreadCount && contact.unreadCount > 0 ? (
+            <div className="unread-badge">
+              {contact.unreadCount}
+            </div>
+          ) : (
+            <div className="message-status">✓✓</div>
+          )}
         </div>
       </div>
     </div>
@@ -54,13 +65,31 @@ const ContactItem: React.FC<{
 const MessagesSidebar: React.FC<MessagesSidebarProps> = ({
   contacts,
   selectedContact,
-  onSelectContact
+  onSelectContact,
+  onNewConversation
 }) => {
+  const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
+
+  const handleNewButtonClick = () => {
+    setIsSearchModalVisible(true);
+  };
+
+  const handleUserSelect = (user: SearchUser) => {
+    if (onNewConversation) {
+      onNewConversation(user);
+    }
+    setIsSearchModalVisible(false);
+  };
+
+  const handleSearchModalClose = () => {
+    setIsSearchModalVisible(false);
+  };
+
   return (
     <div className="messages-sidebar">
       <div className="sidebar-header">
         <div className="sidebar-title">Messages</div>
-        <div className="new-message-button">
+        <div className="new-message-button" onClick={handleNewButtonClick}>
           <div className="new-message-icon">+</div>
           <div className="new-message-text">New</div>
         </div>
@@ -76,6 +105,12 @@ const MessagesSidebar: React.FC<MessagesSidebarProps> = ({
           />
         ))}
       </div>
+
+      <UserSearchModal
+        visible={isSearchModalVisible}
+        onClose={handleSearchModalClose}
+        onUserSelect={handleUserSelect}
+      />
     </div>
   );
 };

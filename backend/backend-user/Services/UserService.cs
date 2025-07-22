@@ -37,6 +37,23 @@ namespace backend_user.Services
             return await _userRepository.GetUserByEmail(email);
         }
 
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ArgumentException("Username cannot be null or empty", nameof(username));
+
+            return await _userRepository.GetUserByUsername(username);
+        }
+
+        public async Task<IEnumerable<User>> SearchUsersAsync(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return new List<User>();
+
+            var users = await _userRepository.SearchUsers(searchTerm);
+            return users;
+        }
+
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _userRepository.GetAllUsers();

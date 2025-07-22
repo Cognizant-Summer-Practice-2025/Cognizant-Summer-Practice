@@ -1,7 +1,7 @@
 import React from 'react';
-import { Avatar } from '@/components/ui/avatar/avatar';
-import { Button } from '@/components/ui/button/button';
-import styles from './messages-header.module.css';
+import { Avatar } from 'antd';
+import { Button } from '@/components/ui/button';
+import './style.css';
 
 interface MessagesHeaderProps {
   contactName: string;
@@ -11,12 +11,16 @@ interface MessagesHeaderProps {
 
 const MessagesHeader: React.FC<MessagesHeaderProps> = ({ contactName, avatarSrc, onProfileClick }) => {
   return (
-    <div className={styles.header}>
-      <Avatar src={avatarSrc} alt={`${contactName}'s avatar`} />
-      <div className={styles.contactInfo}>
-        <h2 className={styles.contactName}>{contactName}</h2>
+    <div className="messages-header">
+      <Avatar src={avatarSrc} size={40} className="contact-avatar">
+        {contactName.charAt(0).toUpperCase()}
+      </Avatar>
+      <div className="contact-info">
+        <h2 className="contact-name">{contactName}</h2>
       </div>
-      <Button text="Profile" onClick={onProfileClick} className={styles.profileButton} />
+      <Button onClick={onProfileClick} className="profile-button">
+        Profile
+      </Button>
     </div>
   );
 };
