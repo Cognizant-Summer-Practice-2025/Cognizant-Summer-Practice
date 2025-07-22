@@ -15,7 +15,9 @@ import {
 import { 
   getUserPortfolioComprehensive,
   getPortfolioComprehensive,
-  incrementViewCount 
+  incrementViewCount,
+  getUserPortfolioInfo,
+  UserPortfolioInfo
 } from '@/lib/portfolio/api';
 
 interface PortfolioContextType {
@@ -30,6 +32,8 @@ interface PortfolioContextType {
     blogPosts: BlogPost[];
     bookmarks: Bookmark[];
   } | null;
+  // Portfolio owner information (when viewing someone else's portfolio)
+  currentPortfolioOwner: UserPortfolioInfo | null;
   // Loading states
   loading: boolean;
   portfolioLoading: boolean;
@@ -75,6 +79,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     blogPosts: BlogPost[];
     bookmarks: Bookmark[];
   } | null>(null);
+  const [currentPortfolioOwner, setCurrentPortfolioOwner] = useState<UserPortfolioInfo | null>(null);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
 
@@ -110,8 +115,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         setPortfolioError(`No published portfolio found for user ${userId}`);
         setCurrentPortfolio(null);
         setCurrentPortfolioEntities(null);
+        setCurrentPortfolioOwner(null);
         return;
       }
+
+      // Fetch portfolio owner information
+      const portfolioOwner = await getUserPortfolioInfo(userId);
+      setCurrentPortfolioOwner(portfolioOwner);
       
       setCurrentPortfolio(publishedPortfolio);
       
@@ -137,6 +147,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       setPortfolioError(err instanceof Error ? err.message : `No portfolio found for user ${userId}`);
       setCurrentPortfolio(null);
       setCurrentPortfolioEntities(null);
+      setCurrentPortfolioOwner(null);
     } finally {
       setPortfolioLoading(false);
     }
@@ -155,8 +166,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
           setPortfolioError(`Portfolio ${portfolioId} is not published`);
           setCurrentPortfolio(null);
           setCurrentPortfolioEntities(null);
+          setCurrentPortfolioOwner(null);
           return;
         }
+
+        // Fetch portfolio owner information
+        const portfolioOwner = await getUserPortfolioInfo(comprehensiveData.portfolio.userId);
+        setCurrentPortfolioOwner(portfolioOwner);
         
         setCurrentPortfolio(comprehensiveData.portfolio);
         
@@ -182,6 +198,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       setPortfolioError(err instanceof Error ? err.message : `Portfolio ${portfolioId} not found`);
       setCurrentPortfolio(null);
       setCurrentPortfolioEntities(null);
+      setCurrentPortfolioOwner(null);
     } finally {
       setPortfolioLoading(false);
     }
@@ -197,6 +214,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const clearCurrentPortfolio = useCallback(() => {
     setCurrentPortfolio(null);
     setCurrentPortfolioEntities(null);
+    setCurrentPortfolioOwner(null);
     setPortfolioError(null);
   }, []);
 
@@ -205,6 +223,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     setUserPortfolioData(null);
     setCurrentPortfolio(null);
     setCurrentPortfolioEntities(null);
+    setCurrentPortfolioOwner(null);
     setError(null);
     setPortfolioError(null);
   }, []);
@@ -214,7 +233,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     if (!userLoading && user?.id && !userPortfolioData) {
       loadUserPortfolios();
     }
-  }, [user, userLoading, userPortfolioData]);
+  }, [user, userLoading, userPortfolioData, loadUserPortfolios]);
 
   // Computed values
   const hasPublishedPortfolio = userPortfolioData?.portfolios?.some(p => p.isPublished) ?? false;
@@ -270,6 +289,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     userPortfolioData,
     currentPortfolio,
     currentPortfolioEntities,
+    currentPortfolioOwner,
     // Loading states
     loading: loading || userLoading,
     portfolioLoading,
