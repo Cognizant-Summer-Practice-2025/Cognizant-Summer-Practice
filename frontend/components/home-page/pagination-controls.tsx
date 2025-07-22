@@ -1,30 +1,25 @@
 'use client';
 
 import React from 'react';
-import { Pagination, Space, Typography, Button, Tooltip } from 'antd';
+import { Button } from '@/components/ui/button';
 import { 
-  LeftOutlined, 
-  RightOutlined, 
-  DoubleLeftOutlined, 
-  DoubleRightOutlined,
-  ReloadOutlined 
-} from '@ant-design/icons';
+  ChevronLeft, 
+  ChevronRight, 
+  ChevronsLeft, 
+  ChevronsRight,
+  RotateCcw,
+  Database
+} from 'lucide-react';
 import { useHomePageCache } from '@/lib/contexts/home-page-cache-context';
-import './pagination-controls.css';
-
-const { Text } = Typography;
+import { cn } from '@/lib/utils';
 
 interface PaginationControlsProps {
-  showQuickJumper?: boolean;
-  showSizeChanger?: boolean;
   showTotal?: boolean;
   showCacheStats?: boolean;
   className?: string;
 }
 
 const PaginationControls: React.FC<PaginationControlsProps> = ({
-  showQuickJumper = true,
-  showSizeChanger = false,
   showTotal = true,
   showCacheStats = true,
   className = ''
@@ -64,113 +59,158 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
 
   const { totalCount, totalPages, hasNext, hasPrevious } = pagination;
 
+  // Generate page numbers to show
+  const getVisiblePages = () => {
+    const delta = 2; // Number of pages to show on each side
+    const range = [];
+    const rangeWithDots = [];
+
+    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else if (totalPages > 1) {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  const visiblePages = getVisiblePages();
+
   return (
-    <div className={`pagination-controls ${className}`}>
+    <div className={cn("flex flex-col gap-4", className)}>
       {/* Cache Stats */}
       {showCacheStats && (
-        <div className="cache-stats">
-          <Space size="small">
-            <Text type="secondary" className="cache-stat">
-              Cache: {cacheStats.totalEntries} pages
-            </Text>
-            <Text type="secondary" className="cache-stat">
-              Hit Rate: {(cacheStats.hitRate * 100).toFixed(1)}%
-            </Text>
-            <Tooltip title="Clear cache and refresh">
-              <Button 
-                size="small" 
-                icon={<ReloadOutlined />} 
-                onClick={handleClearCache}
-                type="text"
-              >
-                Clear Cache
-              </Button>
-            </Tooltip>
-          </Space>
+        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Database className="h-4 w-4" />
+            <span>Cache: {cacheStats.totalEntries} pages</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>Hit Rate: {(cacheStats.hitRate * 100).toFixed(1)}%</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearCache}
+            className="h-7 px-2 text-xs"
+          >
+            <RotateCcw className="h-3 w-3 mr-1" />
+            Clear Cache
+          </Button>
         </div>
       )}
 
-      {/* Main Pagination Controls */}
-      <div className="pagination-main">
-        <Space size="middle" align="center">
-          {/* Quick Navigation */}
-          <Space size="small">
-            <Tooltip title="First page">
-              <Button
-                icon={<DoubleLeftOutlined />}
-                disabled={!hasPrevious || loading}
-                onClick={goToFirstPage}
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title="Previous page">
-              <Button
-                icon={<LeftOutlined />}
-                disabled={!hasPrevious || loading}
-                onClick={goToPreviousPage}
-                size="small"
-              />
-            </Tooltip>
-          </Space>
+      {/* Main Pagination */}
+      <div className="flex items-center justify-center gap-2">
+        {/* First page button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToFirstPage}
+          disabled={!hasPrevious || loading}
+          className="h-9 w-9 p-0 rounded-full"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
 
-          {/* Ant Design Pagination */}
-          <Pagination
-            current={currentPage}
-            total={totalCount}
-            pageSize={pagination.pageSize}
-            onChange={handlePageChange}
-            showQuickJumper={showQuickJumper}
-            showSizeChanger={showSizeChanger}
+        {/* Previous page button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToPreviousPage}
+          disabled={!hasPrevious || loading}
+          className="h-9 w-9 p-0 rounded-full"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        {/* Page number buttons */}
+        <div className="flex items-center gap-1">
+          {visiblePages.map((page, index) => {
+            if (page === '...') {
+              return (
+                <span key={`dots-${index}`} className="px-2 text-muted-foreground">
+                  ...
+                </span>
+              );
+            }
+
+            const pageNum = page as number;
+            const isActive = pageNum === currentPage;
+
+            return (
+              <Button
+                key={pageNum}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePageChange(pageNum)}
+                disabled={loading}
+                className={cn(
+                  "h-9 w-9 p-0 rounded-full transition-all",
+                  isActive && "bg-primary text-primary-foreground shadow-md"
+                )}
+              >
+                {pageNum}
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Next page button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToNextPage}
+          disabled={!hasNext || loading}
+          className="h-9 w-9 p-0 rounded-full"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+
+        {/* Last page button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={goToLastPage}
+          disabled={!hasNext || loading}
+          className="h-9 w-9 p-0 rounded-full"
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </Button>
+
+        {/* Refresh button */}
+        <div className="ml-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
             disabled={loading}
-            showLessItems
-            size="small"
-            className="main-pagination"
-          />
-
-          {/* Quick Navigation */}
-          <Space size="small">
-            <Tooltip title="Next page">
-              <Button
-                icon={<RightOutlined />}
-                disabled={!hasNext || loading}
-                onClick={goToNextPage}
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title="Last page">
-              <Button
-                icon={<DoubleRightOutlined />}
-                disabled={!hasNext || loading}
-                onClick={goToLastPage}
-                size="small"
-              />
-            </Tooltip>
-          </Space>
-
-          {/* Refresh Button */}
-          <Tooltip title="Refresh current page">
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-              loading={loading}
-              size="small"
-              type="text"
-            />
-          </Tooltip>
-        </Space>
+            className="h-9 w-9 p-0 rounded-full"
+          >
+            <RotateCcw className={cn("h-4 w-4", loading && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
       {/* Page Info */}
       {showTotal && (
-        <div className="pagination-info">
-          <Space direction="vertical" size={2}>
-            <Text type="secondary" className="page-info">
-              Page {currentPage} of {totalPages}
-            </Text>
-            <Text type="secondary" className="total-info">
-              {totalCount} {totalCount === 1 ? 'portfolio' : 'portfolios'} total
-            </Text>
-          </Space>
+        <div className="flex flex-col items-center gap-1 text-sm text-muted-foreground">
+          <span>Page {currentPage} of {totalPages}</span>
+          <span className="text-xs">
+            {totalCount} {totalCount === 1 ? 'portfolio' : 'portfolios'} total
+          </span>
         </div>
       )}
     </div>
