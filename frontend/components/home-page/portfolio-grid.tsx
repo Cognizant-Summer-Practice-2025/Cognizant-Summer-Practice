@@ -135,7 +135,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
         <PaginationControls 
           showQuickJumper
           showTotal
-          showCacheStats
+          showCacheStats={false}
           className="portfolio-pagination"
         />
       )}
