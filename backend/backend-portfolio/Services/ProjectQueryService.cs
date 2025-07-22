@@ -1,5 +1,12 @@
 using backend_portfolio.DTO;
-using backend_portfolio.DTO.Response;
+using backend_portfolio.DTO.Portfolio.Response;
+using backend_portfolio.DTO.Project.Response;
+using backend_portfolio.DTO.Experience.Response;
+using backend_portfolio.DTO.Skill.Response;
+using backend_portfolio.DTO.BlogPost.Response;
+using backend_portfolio.DTO.Bookmark.Response;
+using backend_portfolio.DTO.PortfolioTemplate.Response;
+using backend_portfolio.DTO.ImageUpload.Response;
 using backend_portfolio.Repositories;
 using backend_portfolio.Services.Abstractions;
 using backend_portfolio.Services.Mappers;

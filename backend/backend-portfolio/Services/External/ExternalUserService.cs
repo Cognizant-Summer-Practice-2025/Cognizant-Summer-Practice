@@ -32,10 +32,14 @@ namespace backend_portfolio.Services.External
                 var jsonContent = await response.Content.ReadAsStringAsync();
                 var userJson = JsonSerializer.Deserialize<JsonElement>(jsonContent);
 
-                var fullName = GetJsonProperty(userJson, "fullName") ?? "Anonymous User";
-                var jobTitle = GetJsonProperty(userJson, "jobTitle") ?? "Professional";
+                var firstName = GetJsonProperty(userJson, "firstName") ?? "";
+                var lastName = GetJsonProperty(userJson, "lastName") ?? "";
+                var fullName = $"{firstName} {lastName}".Trim();
+                if (string.IsNullOrEmpty(fullName)) fullName = "Anonymous User";
+                
+                var jobTitle = GetJsonProperty(userJson, "professionalTitle") ?? "Professional";
                 var location = GetJsonProperty(userJson, "location") ?? "Remote";
-                var profilePictureUrl = GetJsonProperty(userJson, "profilePictureUrl") ?? "/default-avatar.png";
+                var profilePictureUrl = GetJsonProperty(userJson, "avatarUrl") ?? "/default-avatar.png";
 
                 return new UserInformation(fullName, jobTitle, location, profilePictureUrl);
             }

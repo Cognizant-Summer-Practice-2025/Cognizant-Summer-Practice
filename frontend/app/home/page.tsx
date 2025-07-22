@@ -1,129 +1,49 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Header from '@/components/header';
 import FilterSidebar from '@/components/home-page/filter-sidebar';
 import PortfolioGrid from '@/components/home-page/portfolio-grid';
-import { getPortfolioCardsForHomePage, PortfolioCardDto } from '@/lib/portfolio/api';
+import { HomePageCacheProvider, useHomePageCache } from '@/lib/contexts/home-page-cache-context';
 import './style.css';
 
-const HomePage: React.FC = () => {
-  const [portfolios, setPortfolios] = useState<PortfolioCardDto[]>([]);
-  const [filteredPortfolios, setFilteredPortfolios] = useState<PortfolioCardDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFilters, setActiveFilters] = useState<string[]>(['all-portfolios']);
+const HomePageContent: React.FC = () => {
+  const { loadPage, setFilters, portfolios } = useHomePageCache();
 
+  // Load initial page on mount
   useEffect(() => {
-    const fetchPortfolios = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getPortfolioCardsForHomePage();
-        setPortfolios(data);
-        setFilteredPortfolios(data);
-      } catch (err) {
-        console.error('Error fetching portfolios:', err);
-        setError('Failed to load portfolios. Please try again later.');
-        setPortfolios([]);
-        setFilteredPortfolios([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPortfolios();
-  }, []);
-
-  // Filter portfolios based on active filters
-  useEffect(() => {
-    const filterPortfolios = () => {
-      if (activeFilters.includes('all-portfolios') || activeFilters.length === 0) {
-        setFilteredPortfolios(portfolios);
-        return;
-      }
-
-      const filtered = portfolios.filter(portfolio => {
-        // Check portfolio type filters
-        if (activeFilters.includes('featured') && !portfolio.featured) {
-          return false;
-        }
-
-        if (activeFilters.includes('new-this-week')) {
-          const oneWeekAgo = new Date();
-          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          const portfolioDate = new Date(portfolio.date);
-          if (portfolioDate < oneWeekAgo) {
-            return false;
-          }
-        }
-
-        // Check role filters
-        const roleFilters = activeFilters.filter(filter => 
-          ['developer', 'designer', 'product-manager', 'engineer', 'analyst'].includes(filter)
-        );
-        
-        if (roleFilters.length > 0) {
-          const portfolioRole = portfolio.role.toLowerCase();
-          const matchesRole = roleFilters.some(roleFilter => {
-            switch (roleFilter) {
-              case 'developer':
-                return portfolioRole.includes('developer') || portfolioRole.includes('dev');
-              case 'designer':
-                return portfolioRole.includes('designer') || portfolioRole.includes('design');
-              case 'product-manager':
-                return portfolioRole.includes('product manager') || portfolioRole.includes('pm') || portfolioRole.includes('project manager');
-              case 'engineer':
-                return portfolioRole.includes('engineer');
-              case 'analyst':
-                return portfolioRole.includes('analyst');
-              default:
-                return portfolioRole.includes(roleFilter);
-            }
-          });
-          
-          if (!matchesRole) {
-            return false;
-          }
-        }
-
-        // Check skill filters
-        const skillFilters = activeFilters.filter(filter => 
-          !['all-portfolios', 'featured', 'new-this-week', 'developer', 'designer', 'product-manager', 'engineer', 'analyst'].includes(filter)
-        );
-
-        if (skillFilters.length > 0) {
-          const portfolioSkills = portfolio.skills.map(skill => skill.toLowerCase().trim());
-          
-          const matchesSkills = skillFilters.every(skillFilter => {
-            const skillName = skillFilter.replace(/-/g, ' ').toLowerCase();
-            
-            return portfolioSkills.some(portfolioSkill => {
-
-              if (portfolioSkill === skillName) return true;
-              
-              if (portfolioSkill.includes(skillName) || skillName.includes(portfolioSkill)) return true;
-              
-              return false;
-            });
-          });
-
-          if (!matchesSkills) {
-            return false;
-          }
-        }
-
-        return true;
-      });
-
-      setFilteredPortfolios(filtered);
-    };
-
-    filterPortfolios();
-  }, [portfolios, activeFilters]);
+    loadPage(1);
+  }, [loadPage]);
 
   const handleFiltersChange = (filters: string[]) => {
-    setActiveFilters(filters);
+    // Convert filter array to filter object
+    const filterObj: {
+      featured?: boolean;
+      roles?: string[];
+      skills?: string[];
+    } = {};
+    
+    if (filters.includes('featured')) {
+      filterObj.featured = true;
+    }
+    
+    // Handle role filters
+    const roleFilters = filters.filter(filter => 
+      ['developer', 'designer', 'product-manager', 'engineer', 'analyst'].includes(filter)
+    );
+    if (roleFilters.length > 0) {
+      filterObj.roles = roleFilters;
+    }
+    
+    // Handle skill filters (remaining filters that aren't roles or special filters)
+    const skillFilters = filters.filter(filter => 
+      !['all-portfolios', 'featured', 'new-this-week', 'developer', 'designer', 'product-manager', 'engineer', 'analyst'].includes(filter)
+    );
+    if (skillFilters.length > 0) {
+      filterObj.skills = skillFilters.map(skill => skill.replace(/-/g, ' '));
+    }
+    
+    setFilters(filterObj);
   };
 
   return (
@@ -135,17 +55,21 @@ const HomePage: React.FC = () => {
             <FilterSidebar 
               portfolios={portfolios} 
               onFiltersChange={handleFiltersChange}
-              activeFilters={activeFilters}
+              activeFilters={['all-portfolios']}
             />
-            <PortfolioGrid 
-              portfolios={filteredPortfolios}
-              loading={loading}
-              error={error}
-            />
+            <PortfolioGrid />
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+const HomePage: React.FC = () => {
+  return (
+    <HomePageCacheProvider>
+      <HomePageContent />
+    </HomePageCacheProvider>
   );
 };
 
