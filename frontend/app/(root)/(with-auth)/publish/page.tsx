@@ -128,16 +128,34 @@ export default function Publish() {
           throw new Error('Failed to obtain portfolio ID for saving content');
         }
         
-        // Prepare projects data
-        const projects = draftProjects.map(project => ({
-          portfolioId: portfolioId,
-          title: project.title,
-          imageUrl: project.imageUrl || '',
-          description: project.description || '',
-          demoUrl: project.demoUrl || '',
-          githubUrl: project.githubUrl || '',
-          technologies: project.technologies ? project.technologies.split(',').map(t => t.trim()).filter(t => t.length > 0) : [],
-          featured: project.featured
+        // Upload images for projects and prepare projects data
+        const projects = await Promise.all(draftProjects.map(async (project) => {
+          let finalImageUrl = project.imageUrl || '';
+          
+          // Upload image if a file was selected
+          if (project.selectedImageFile) {
+            try {
+              console.log('📷 Uploading image for project:', project.title);
+              const { uploadImage } = await import('@/lib/image');
+              const response = await uploadImage(project.selectedImageFile, 'projects');
+              finalImageUrl = response.imagePath;
+              console.log('✅ Project image uploaded:', finalImageUrl);
+            } catch (uploadError) {
+              console.error('❌ Failed to upload image for project:', project.title, uploadError);
+              throw new Error(`Failed to upload image for project "${project.title}": ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+            }
+          }
+          
+          return {
+            portfolioId: portfolioId,
+            title: project.title,
+            imageUrl: finalImageUrl,
+            description: project.description || '',
+            demoUrl: project.demoUrl || '',
+            githubUrl: project.githubUrl || '',
+            technologies: project.technologies ? project.technologies.split(',').map(t => t.trim()).filter(t => t.length > 0) : [],
+            featured: project.featured
+          };
         }))
 
         // Prepare experience data
@@ -163,14 +181,32 @@ export default function Publish() {
           displayOrder: skills.length + index + 1
         }))
 
-        // Prepare blog posts data
-        const blogPosts = draftBlogPosts.map(blog => ({
-          portfolioId: portfolioId,
-          title: blog.title,
-          content: blog.content || '',
-          featuredImageUrl: blog.featuredImageUrl || '',
-          tags: blog.tags ? blog.tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [],
-          isPublished: blog.publishImmediately
+        // Upload images for blog posts and prepare blog posts data
+        const blogPosts = await Promise.all(draftBlogPosts.map(async (blog) => {
+          let finalImageUrl = blog.featuredImageUrl || '';
+          
+          // Upload image if a file was selected
+          if (blog.selectedImageFile) {
+            try {
+              console.log('📷 Uploading image for blog post:', blog.title);
+              const { uploadImage } = await import('@/lib/image');
+              const response = await uploadImage(blog.selectedImageFile, 'blog_posts');
+              finalImageUrl = response.imagePath;
+              console.log('✅ Blog post image uploaded:', finalImageUrl);
+            } catch (uploadError) {
+              console.error('❌ Failed to upload image for blog post:', blog.title, uploadError);
+              throw new Error(`Failed to upload image for blog post "${blog.title}": ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+            }
+          }
+          
+          return {
+            portfolioId: portfolioId,
+            title: blog.title,
+            content: blog.content || '',
+            featuredImageUrl: finalImageUrl,
+            tags: blog.tags ? blog.tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [],
+            isPublished: blog.publishImmediately
+          };
         }))
 
         // Use the new split approach to save content

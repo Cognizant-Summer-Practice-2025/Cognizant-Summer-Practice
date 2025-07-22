@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FormDialog, EditFormDialog, FormField } from '@/components/ui/form-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { getSafeImageUrl } from '@/lib/image';
 import { Project } from '@/lib/portfolio';
 import { createProject, updateProject, deleteProject } from '@/lib/portfolio/api';
 
@@ -25,76 +29,9 @@ interface ProjectFormData {
   featured: boolean;
 }
 
-// Helper function to validate URL
-const isValidUrl = (string: string): boolean => {
-  try {
-    new URL(string);
-    return true;
-  } catch {
-    return false;
-  }
-};
 
-// Helper function to get a safe image URL
-const getSafeImageUrl = (imageUrl: string | undefined): string => {
-  if (!imageUrl || imageUrl.trim() === '') {
-    return "https://placehold.co/754x200";
-  }
-  
-  const trimmedUrl = imageUrl.trim();
-  if (isValidUrl(trimmedUrl)) {
-    return trimmedUrl;
-  }
-  
-  return "https://placehold.co/754x200";
-};
 
-// Define form fields for projects
-const projectFormFields: FormField[] = [
-  {
-    name: 'title',
-    label: 'Project Title',
-    type: 'text',
-    placeholder: 'Enter project title',
-    required: true
-  },
-  {
-    name: 'imageUrl',
-    label: 'Image URL',
-    type: 'url',
-    placeholder: 'https://example.com/image.jpg'
-  },
-  {
-    name: 'description',
-    label: 'Description',
-    type: 'textarea',
-    placeholder: 'Describe your project...',
-    rows: 3
-  },
-  {
-    name: 'demoUrl',
-    label: 'Demo URL',
-    type: 'url',
-    placeholder: 'https://your-demo.com'
-  },
-  {
-    name: 'githubUrl',
-    label: 'GitHub URL',
-    type: 'url',
-    placeholder: 'https://github.com/username/repo'
-  },
-  {
-    name: 'technologies',
-    label: 'Technologies',
-    type: 'text',
-    placeholder: 'React, Node.js, MongoDB (comma-separated)'
-  },
-  {
-    name: 'featured',
-    label: 'Featured Project',
-    type: 'checkbox'
-  }
-];
+
 
 export default function Projects({ projects = [], portfolioId, loading = false, onProjectsUpdate }: ProjectsProps) {
   const [localProjects, setLocalProjects] = useState<Project[]>(projects);
@@ -112,6 +49,7 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
     technologies: '',
     featured: false
   });
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   // Update local projects when props change
   React.useEffect(() => {
@@ -128,6 +66,7 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
       technologies: '',
       featured: false
     });
+    setSelectedImageFile(null);
     setError(null);
   }, []);
 
@@ -136,9 +75,31 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
     if (error) setError(null);
   }, [error]);
 
+  // Client-side URL validation helper
+  const isValidUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // Empty is valid (optional field)
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleAddProject = async () => {
     if (!projectForm.title.trim()) {
       setError('Please enter a project title.');
+      return;
+    }
+
+    // Validate URLs
+    if (projectForm.demoUrl.trim() && !isValidUrl(projectForm.demoUrl.trim())) {
+      setError('Demo URL must be a valid URL (e.g., https://example.com) or leave empty.');
+      return;
+    }
+    
+    if (projectForm.githubUrl.trim() && !isValidUrl(projectForm.githubUrl.trim())) {
+      setError('GitHub URL must be a valid URL (e.g., https://github.com/username/repo) or leave empty.');
       return;
     }
 
@@ -151,13 +112,34 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
       setActionLoading(true);
       setError(null);
 
+      let finalImageUrl = projectForm.imageUrl;
+
+      // Upload image if a file is selected
+      if (selectedImageFile) {
+        try {
+          console.log('Profile: Uploading image for new project');
+          const { uploadImage } = await import('@/lib/image');
+          const response = await uploadImage(selectedImageFile, 'projects');
+          finalImageUrl = response.imagePath;
+          console.log('Profile: Image upload completed, URL:', finalImageUrl);
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          setError('Failed to upload image. Please try again.');
+          return;
+        }
+      }
+
+      // Clean and prepare data - only include URLs if they're valid
+      const cleanDemoUrl = projectForm.demoUrl.trim();
+      const cleanGithubUrl = projectForm.githubUrl.trim();
+
       const newProject = await createProject({
         portfolioId,
         title: projectForm.title.trim(),
-        imageUrl: projectForm.imageUrl.trim() || undefined,
+        imageUrl: finalImageUrl.trim() || undefined,
         description: projectForm.description.trim() || undefined,
-        demoUrl: projectForm.demoUrl.trim() || undefined,
-        githubUrl: projectForm.githubUrl.trim() || undefined,
+        demoUrl: cleanDemoUrl && isValidUrl(cleanDemoUrl) ? cleanDemoUrl : undefined,
+        githubUrl: cleanGithubUrl && isValidUrl(cleanGithubUrl) ? cleanGithubUrl : undefined,
         technologies: projectForm.technologies.trim() ? projectForm.technologies.trim().split(',').map(t => t.trim()) : [],
         featured: projectForm.featured
       });
@@ -182,16 +164,48 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
       return;
     }
 
+    // Validate URLs
+    if (projectForm.demoUrl.trim() && !isValidUrl(projectForm.demoUrl.trim())) {
+      setError('Demo URL must be a valid URL (e.g., https://example.com) or leave empty.');
+      return;
+    }
+    
+    if (projectForm.githubUrl.trim() && !isValidUrl(projectForm.githubUrl.trim())) {
+      setError('GitHub URL must be a valid URL (e.g., https://github.com/username/repo) or leave empty.');
+      return;
+    }
+
     try {
       setActionLoading(true);
       setError(null);
 
+      let finalImageUrl = projectForm.imageUrl;
+
+      // Upload image if a file is selected
+      if (selectedImageFile) {
+        try {
+          console.log('Profile: Uploading image for project update');
+          const { uploadImage } = await import('@/lib/image');
+          const response = await uploadImage(selectedImageFile, 'projects');
+          finalImageUrl = response.imagePath;
+          console.log('Profile: Image upload completed, URL:', finalImageUrl);
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          setError('Failed to upload image. Please try again.');
+          return;
+        }
+      }
+
+      // Clean and prepare data - only include URLs if they're valid
+      const cleanDemoUrl = projectForm.demoUrl.trim();
+      const cleanGithubUrl = projectForm.githubUrl.trim();
+
       const updatedProject = await updateProject(editingProject.id, {
         title: projectForm.title.trim(),
-        imageUrl: projectForm.imageUrl.trim() || undefined,
+        imageUrl: finalImageUrl.trim() || undefined,
         description: projectForm.description.trim() || undefined,
-        demoUrl: projectForm.demoUrl.trim() || undefined,
-        githubUrl: projectForm.githubUrl.trim() || undefined,
+        demoUrl: cleanDemoUrl && isValidUrl(cleanDemoUrl) ? cleanDemoUrl : undefined,
+        githubUrl: cleanGithubUrl && isValidUrl(cleanGithubUrl) ? cleanGithubUrl : undefined,
         technologies: projectForm.technologies.trim() ? projectForm.technologies.trim().split(',').map(t => t.trim()) : [],
         featured: projectForm.featured
       });
@@ -274,41 +288,246 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
       <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Manage your portfolio projects</p>
       
       <div className="space-y-4 sm:space-y-6">
-        {/* Add Project Dialog */}
+        {/* Add Project Button */}
         <div>
-          <FormDialog
-            title="Add New Project"
-            description="Add a new project to your portfolio"
-            triggerLabel="Add Project"
-            isOpen={isAddDialogOpen}
-            onOpenChange={setIsAddDialogOpen}
-            fields={projectFormFields}
-            formData={projectForm}
-            onFormChange={handleFormChange}
-            onSubmit={handleAddProject}
-            onCancel={handleAddCancel}
-            isEdit={false}
-            loading={actionLoading}
-            error={error}
-            submitLabel="Add Project"
-          />
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Project
+          </Button>
         </div>
 
+        {/* Add Project Dialog */}
+        {isAddDialogOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-semibold mb-4">Add New Project</h2>
+              <p className="text-gray-600 mb-6">Add a new project to your portfolio</p>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+                             <div className="space-y-4">
+                 <div>
+                   <Label htmlFor="title" className="text-sm font-medium text-slate-700">
+                     Project Title *
+                   </Label>
+                   <Input
+                     id="title"
+                     value={projectForm.title}
+                     onChange={(e) => handleFormChange("title", e.target.value)}
+                     placeholder="Enter project title"
+                     className="mt-1"
+                   />
+                 </div>
+
+                 <div>
+                   <ImageUpload
+                     label="Project Image"
+                     value={projectForm.imageUrl}
+                     onFileSelect={setSelectedImageFile}
+                     preview={true}
+                   />
+                 </div>
+
+                <div>
+                  <Label htmlFor="description" className="text-sm font-medium text-slate-700">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={projectForm.description}
+                    onChange={(e) => handleFormChange("description", e.target.value)}
+                    placeholder="Describe your project..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="demoUrl" className="text-sm font-medium text-slate-700">
+                      Demo URL
+                    </Label>
+                    <Input
+                      id="demoUrl"
+                      value={projectForm.demoUrl}
+                      onChange={(e) => handleFormChange("demoUrl", e.target.value)}
+                      placeholder="https://your-demo.com"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="githubUrl" className="text-sm font-medium text-slate-700">
+                      GitHub URL
+                    </Label>
+                    <Input
+                      id="githubUrl"
+                      value={projectForm.githubUrl}
+                      onChange={(e) => handleFormChange("githubUrl", e.target.value)}
+                      placeholder="https://github.com/username/repo"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="technologies" className="text-sm font-medium text-slate-700">
+                    Technologies
+                  </Label>
+                  <Input
+                    id="technologies"
+                    value={projectForm.technologies}
+                    onChange={(e) => handleFormChange("technologies", e.target.value)}
+                    placeholder="React, Node.js, MongoDB (comma-separated)"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="featured"
+                    checked={projectForm.featured}
+                    onCheckedChange={(checked) => handleFormChange("featured", checked === true)}
+                  />
+                  <Label htmlFor="featured" className="text-sm font-medium text-slate-700">
+                    Featured Project
+                  </Label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <Button variant="outline" onClick={handleAddCancel}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddProject} disabled={actionLoading}>
+                  {actionLoading ? "Adding..." : "Add Project"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Edit Project Dialog */}
-        <EditFormDialog
-          title="Edit Project"
-          description="Update your project details"
-          isOpen={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          fields={projectFormFields}
-          formData={projectForm}
-          onFormChange={handleFormChange}
-          onSubmit={handleEditProject}
-          onCancel={handleEditCancel}
-          loading={actionLoading}
-          error={error}
-          submitLabel="Update Project"
-        />
+        {isEditDialogOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-semibold mb-4">Edit Project</h2>
+              <p className="text-gray-600 mb-6">Update your project details</p>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+                             <div className="space-y-4">
+                 <div>
+                   <Label htmlFor="edit-title" className="text-sm font-medium text-slate-700">
+                     Project Title *
+                   </Label>
+                   <Input
+                     id="edit-title"
+                     value={projectForm.title}
+                     onChange={(e) => handleFormChange("title", e.target.value)}
+                     placeholder="Enter project title"
+                     className="mt-1"
+                   />
+                 </div>
+
+                 <div>
+                   <ImageUpload
+                     label="Project Image"
+                     value={projectForm.imageUrl}
+                     onFileSelect={setSelectedImageFile}
+                     preview={true}
+                   />
+                 </div>
+
+                <div>
+                  <Label htmlFor="edit-description" className="text-sm font-medium text-slate-700">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={projectForm.description}
+                    onChange={(e) => handleFormChange("description", e.target.value)}
+                    placeholder="Describe your project..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-demoUrl" className="text-sm font-medium text-slate-700">
+                      Demo URL
+                    </Label>
+                    <Input
+                      id="edit-demoUrl"
+                      value={projectForm.demoUrl}
+                      onChange={(e) => handleFormChange("demoUrl", e.target.value)}
+                      placeholder="https://your-demo.com"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-githubUrl" className="text-sm font-medium text-slate-700">
+                      GitHub URL
+                    </Label>
+                    <Input
+                      id="edit-githubUrl"
+                      value={projectForm.githubUrl}
+                      onChange={(e) => handleFormChange("githubUrl", e.target.value)}
+                      placeholder="https://github.com/username/repo"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-technologies" className="text-sm font-medium text-slate-700">
+                    Technologies
+                  </Label>
+                  <Input
+                    id="edit-technologies"
+                    value={projectForm.technologies}
+                    onChange={(e) => handleFormChange("technologies", e.target.value)}
+                    placeholder="React, Node.js, MongoDB (comma-separated)"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="edit-featured"
+                    checked={projectForm.featured}
+                    onCheckedChange={(checked) => handleFormChange("featured", checked === true)}
+                  />
+                  <Label htmlFor="edit-featured" className="text-sm font-medium text-slate-700">
+                    Featured Project
+                  </Label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <Button variant="outline" onClick={handleEditCancel}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEditProject} disabled={actionLoading}>
+                  {actionLoading ? "Updating..." : "Update Project"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Projects Grid */}
         {localProjects.length === 0 ? (
@@ -328,12 +547,14 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
                 key={project.id}
                 className="p-[1px] bg-white overflow-hidden rounded-lg border border-[#E2E8F0] flex flex-col justify-start items-start"
               >
-                <Image
+                <img
                   className="w-full h-[150px] sm:h-[200px] object-cover"
                   src={getSafeImageUrl(project.imageUrl)}
                   alt={project.title}
-                  width={754}
-                  height={200}
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    e.currentTarget.src = getSafeImageUrl('');
+                  }}
                 />
                 <div className="w-full pt-4 sm:pt-[23px] pb-4 sm:pb-6 px-4 sm:px-6 flex flex-col justify-start items-start gap-2">
                   <div className="w-full pb-[0.8px] flex flex-col justify-start items-start">

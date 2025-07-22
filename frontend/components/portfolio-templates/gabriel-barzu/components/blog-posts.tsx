@@ -1,5 +1,6 @@
 import React from 'react';
 import { BlogPost } from '@/lib/portfolio';
+import { getSafeImageUrl } from '@/lib/image';
 
 interface BlogPostsProps {
   data: BlogPost[];
@@ -29,9 +30,13 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
             {post.featuredImageUrl && (
               <div className="blog-post-image-container">
                 <img 
-                  src={post.featuredImageUrl} 
+                  src={getSafeImageUrl(post.featuredImageUrl)} 
                   alt={post.title}
                   className="blog-post-image"
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    e.currentTarget.src = getSafeImageUrl('');
+                  }}
                 />
               </div>
             )}

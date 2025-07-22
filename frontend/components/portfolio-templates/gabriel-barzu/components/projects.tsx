@@ -1,5 +1,6 @@
 import React from 'react';
 import { Project } from '@/lib/portfolio';
+import { getSafeImageUrl } from '@/lib/image';
 
 interface ProjectsProps {
   data: Project[];
@@ -21,9 +22,13 @@ export function Projects({ data: projects }: ProjectsProps) {
           <div key={project.id} className="project-card">
             <div className="project-image-container">
               <img 
-                src={project.imageUrl} 
+                src={getSafeImageUrl(project.imageUrl)} 
                 alt={project.title}
                 className="project-image"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  e.currentTarget.src = getSafeImageUrl('');
+                }}
               />
               <div className="project-overlay">
                 <div className="project-links">

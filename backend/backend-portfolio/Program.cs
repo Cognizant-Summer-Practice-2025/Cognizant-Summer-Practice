@@ -66,6 +66,9 @@ builder.Services.AddScoped<IValidationService<ProjectUpdateRequest>, ProjectUpda
 // Add External Services
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 
+// Add Utility Services
+builder.Services.AddScoped<ImageUploadUtility>();
+
 // Add SOLID-compliant Service layer (following ISP)
 builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
 builder.Services.AddScoped<IPortfolioCommandService, PortfolioCommandService>();
