@@ -25,7 +25,6 @@ namespace backend_portfolio.Repositories
 
         public async Task<List<Portfolio>> GetAllPortfoliosAsync()
         {
-            // Use separate queries to avoid cartesian product
             var portfolios = await _context.Portfolios
                 .Include(p => p.Template)
                 .AsNoTracking()
@@ -35,7 +34,6 @@ namespace backend_portfolio.Repositories
 
             var portfolioIds = portfolios.Select(p => p.Id).ToList();
 
-            // Load related data in separate queries to avoid N+1
             var projects = await _context.Projects
                 .Where(p => portfolioIds.Contains(p.PortfolioId))
                 .AsNoTracking()
@@ -56,7 +54,6 @@ namespace backend_portfolio.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Manually assign related data to avoid lazy loading
             foreach (var portfolio in portfolios)
             {
                 portfolio.Projects = projects.Where(p => p.PortfolioId == portfolio.Id).ToList();
@@ -70,7 +67,6 @@ namespace backend_portfolio.Repositories
 
         public async Task<Portfolio?> GetPortfolioByIdAsync(Guid id)
         {
-            // First get the portfolio with template
             var portfolio = await _context.Portfolios
                 .Include(p => p.Template)
                 .AsNoTracking()
@@ -78,7 +74,6 @@ namespace backend_portfolio.Repositories
 
             if (portfolio == null) return null;
 
-            // Load related data in separate queries for better performance
             var projects = await _context.Projects
                 .Where(p => p.PortfolioId == id)
                 .AsNoTracking()
@@ -99,7 +94,6 @@ namespace backend_portfolio.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Manually assign to avoid lazy loading issues
             portfolio.Projects = projects;
             portfolio.Experience = experiences;
             portfolio.Skills = skills;
@@ -110,7 +104,6 @@ namespace backend_portfolio.Repositories
 
         public async Task<List<Portfolio>> GetPortfoliosByUserIdAsync(Guid userId)
         {
-            // First get portfolios with templates only
             var portfolios = await _context.Portfolios
                 .Include(p => p.Template)
                 .Where(p => p.UserId == userId)
@@ -121,7 +114,6 @@ namespace backend_portfolio.Repositories
 
             var portfolioIds = portfolios.Select(p => p.Id).ToList();
 
-            // Load all related data in separate queries
             var projects = await _context.Projects
                 .Where(p => portfolioIds.Contains(p.PortfolioId))
                 .AsNoTracking()
@@ -142,7 +134,6 @@ namespace backend_portfolio.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Group and assign related data
             var projectsLookup = projects.ToLookup(p => p.PortfolioId);
             var experiencesLookup = experiences.ToLookup(e => e.PortfolioId);
             var skillsLookup = skills.ToLookup(s => s.PortfolioId);
@@ -161,7 +152,6 @@ namespace backend_portfolio.Repositories
 
         public async Task<Portfolio> CreatePortfolioAsync(PortfolioCreateRequest request)
         {
-            // Find template by name
             var template = await _context.PortfolioTemplates
                 .FirstOrDefaultAsync(t => t.Name == request.TemplateName && t.IsActive);
             
@@ -231,7 +221,6 @@ namespace backend_portfolio.Repositories
 
         public async Task<List<Portfolio>> GetPublishedPortfoliosAsync()
         {
-            // Only get basic portfolio info for published portfolios to avoid performance issues
             return await _context.Portfolios
                 .Include(p => p.Template)
                 .Where(p => p.IsPublished && p.Visibility == Visibility.Public)
@@ -241,7 +230,6 @@ namespace backend_portfolio.Repositories
 
         public async Task<List<Portfolio>> GetPortfoliosByVisibilityAsync(Visibility visibility)
         {
-            // Only get basic portfolio info for listing purposes
             return await _context.Portfolios
                 .Include(p => p.Template)
                 .Where(p => p.Visibility == visibility)

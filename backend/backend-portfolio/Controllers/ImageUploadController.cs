@@ -153,14 +153,5 @@ namespace backend_portfolio.Controllers
             }
         }
 
-        [HttpGet("health")]
-        public IActionResult HealthCheck()
-        {
-            return Ok(new { 
-                status = "healthy", 
-                service = "ImageUploadController",
-                timestamp = DateTime.UtcNow 
-            });
-        }
     }
 } 
