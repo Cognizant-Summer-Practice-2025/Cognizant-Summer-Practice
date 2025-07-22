@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { useDraft } from "@/lib/contexts/draft-context"
 
 export function AddBlogPost() {
@@ -21,6 +22,7 @@ export function AddBlogPost() {
     tags: "",
     publishImmediately: true
   })
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setBlogPostData(prev => ({ ...prev, [field]: value }))
@@ -43,13 +45,14 @@ export function AddBlogPost() {
       setLoading(true)
       setError(null)
 
-      // Save to draft context instead of API
+      // Save to draft context 
       addDraftBlogPost({
         title: blogPostData.title.trim(),
         content: blogPostData.content.trim(),
-        featuredImageUrl: blogPostData.featuredImageUrl.trim(),
+        featuredImageUrl: blogPostData.featuredImageUrl.trim(), 
         tags: blogPostData.tags.trim(),
-        publishImmediately: blogPostData.publishImmediately
+        publishImmediately: blogPostData.publishImmediately,
+        selectedImageFile: selectedImageFile 
       })
 
       // Reset form
@@ -60,6 +63,7 @@ export function AddBlogPost() {
         tags: "",
         publishImmediately: true
       })
+      setSelectedImageFile(null)
 
       setSuccess(true)
       
@@ -126,15 +130,11 @@ export function AddBlogPost() {
         </div>
 
         <div>
-          <Label htmlFor="featuredImageUrl" className="text-sm font-medium text-slate-700">
-            Featured Image URL
-          </Label>
-          <Input
-            id="featuredImageUrl"
+          <ImageUpload
+            label="Featured Image"
             value={blogPostData.featuredImageUrl}
-            onChange={(e) => handleInputChange("featuredImageUrl", e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="mt-1"
+            onFileSelect={setSelectedImageFile}
+            preview={true}
           />
         </div>
 

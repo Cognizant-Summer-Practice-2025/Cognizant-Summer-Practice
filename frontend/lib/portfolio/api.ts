@@ -844,24 +844,38 @@ export async function getProjectsByPortfolioId(portfolioId: string): Promise<Pro
 }
 
 export async function createProject(projectData: ProjectRequestDto): Promise<ProjectResponseDto> {
+  // Filter out undefined values to avoid sending them as empty strings
+  const cleanedData = Object.fromEntries(
+    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+  ) as ProjectRequestDto;
+
+  console.log('Sending project data:', cleanedData); // Debug log
+
   const response = await fetch(`${API_BASE_URL}/api/Project`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(projectData),
+    body: JSON.stringify(cleanedData),
   });
   
   return handleApiResponse<ProjectResponseDto>(response);
 }
 
 export async function updateProject(projectId: string, projectData: ProjectUpdateDto): Promise<ProjectResponseDto> {
+  // Filter out undefined values to avoid sending them as empty strings
+  const cleanedData = Object.fromEntries(
+    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+  ) as ProjectUpdateDto;
+
+  console.log('Sending project update data:', cleanedData); // Debug log
+
   const response = await fetch(`${API_BASE_URL}/api/Project/${projectId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(projectData),
+    body: JSON.stringify(cleanedData),
   });
   
   return handleApiResponse<ProjectResponseDto>(response);

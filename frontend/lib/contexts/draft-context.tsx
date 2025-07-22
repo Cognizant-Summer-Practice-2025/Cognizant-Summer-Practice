@@ -11,6 +11,7 @@ interface DraftProject {
   githubUrl: string
   technologies: string
   featured: boolean
+  selectedImageFile?: File | null 
 }
 
 interface DraftExperience {
@@ -31,6 +32,7 @@ interface DraftBlogPost {
   featuredImageUrl: string
   tags: string
   publishImmediately: boolean
+  selectedImageFile?: File | null // Store the selected file for later upload
 }
 
 interface DraftSkill {

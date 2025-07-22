@@ -24,14 +24,21 @@ namespace backend_portfolio.Services.Validators
             if (entity.Title?.Length > 255)
                 errors.Add("Project title cannot exceed 255 characters.");
 
-            if (!string.IsNullOrEmpty(entity.DemoUrl) && !Uri.IsWellFormedUriString(entity.DemoUrl, UriKind.Absolute))
+            if (!string.IsNullOrWhiteSpace(entity.DemoUrl) && !Uri.IsWellFormedUriString(entity.DemoUrl, UriKind.Absolute))
                 errors.Add("Demo URL must be a valid URL.");
 
-            if (!string.IsNullOrEmpty(entity.GithubUrl) && !Uri.IsWellFormedUriString(entity.GithubUrl, UriKind.Absolute))
+            if (!string.IsNullOrWhiteSpace(entity.GithubUrl) && !Uri.IsWellFormedUriString(entity.GithubUrl, UriKind.Absolute))
                 errors.Add("GitHub URL must be a valid URL.");
 
-            if (!string.IsNullOrEmpty(entity.ImageUrl) && !Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Absolute))
-                errors.Add("Image URL must be a valid URL.");
+            if (!string.IsNullOrWhiteSpace(entity.ImageUrl))
+            {
+                bool isValidImageUrl = Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Absolute) || 
+                                     Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Relative) ||
+                                     entity.ImageUrl.StartsWith("server/portfolio/");
+                
+                if (!isValidImageUrl)
+                    errors.Add("Image URL must be a valid URL or server path.");
+            }
 
             return errors.Any() ? ValidationResult.Failure(errors.ToArray()) : ValidationResult.Success();
         }
@@ -57,14 +64,21 @@ namespace backend_portfolio.Services.Validators
             if (entity.Title?.Length > 255)
                 errors.Add("Project title cannot exceed 255 characters.");
 
-            if (!string.IsNullOrEmpty(entity.DemoUrl) && !Uri.IsWellFormedUriString(entity.DemoUrl, UriKind.Absolute))
+            if (!string.IsNullOrWhiteSpace(entity.DemoUrl) && !Uri.IsWellFormedUriString(entity.DemoUrl, UriKind.Absolute))
                 errors.Add("Demo URL must be a valid URL.");
 
-            if (!string.IsNullOrEmpty(entity.GithubUrl) && !Uri.IsWellFormedUriString(entity.GithubUrl, UriKind.Absolute))
+            if (!string.IsNullOrWhiteSpace(entity.GithubUrl) && !Uri.IsWellFormedUriString(entity.GithubUrl, UriKind.Absolute))
                 errors.Add("GitHub URL must be a valid URL.");
 
-            if (!string.IsNullOrEmpty(entity.ImageUrl) && !Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Absolute))
-                errors.Add("Image URL must be a valid URL.");
+            if (!string.IsNullOrWhiteSpace(entity.ImageUrl))
+            {
+                bool isValidImageUrl = Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Absolute) || 
+                                     Uri.IsWellFormedUriString(entity.ImageUrl, UriKind.Relative) ||
+                                     entity.ImageUrl.StartsWith("server/portfolio/");
+                
+                if (!isValidImageUrl)
+                    errors.Add("Image URL must be a valid URL or server path.");
+            }
 
             return errors.Any() ? ValidationResult.Failure(errors.ToArray()) : ValidationResult.Success();
         }

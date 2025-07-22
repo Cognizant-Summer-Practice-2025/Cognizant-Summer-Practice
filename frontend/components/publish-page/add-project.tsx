@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { useDraft } from "@/lib/contexts/draft-context"
 
 export function AddProject() {
@@ -23,6 +24,7 @@ export function AddProject() {
     technologies: "",
     featured: false
   })
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setProjectData(prev => ({ ...prev, [field]: value }))
@@ -40,15 +42,15 @@ export function AddProject() {
       setLoading(true)
       setError(null)
 
-      // Save to draft context instead of API
       addDraftProject({
         title: projectData.title.trim(),
-        imageUrl: projectData.imageUrl.trim(),
+        imageUrl: projectData.imageUrl.trim(), 
         description: projectData.description.trim(),
         demoUrl: projectData.demoUrl.trim(),
         githubUrl: projectData.githubUrl.trim(),
         technologies: projectData.technologies.trim(),
-        featured: projectData.featured
+        featured: projectData.featured,
+        selectedImageFile: selectedImageFile 
       })
 
       // Reset form
@@ -61,6 +63,7 @@ export function AddProject() {
         technologies: "",
         featured: false
       })
+      setSelectedImageFile(null)
 
       setSuccess(true)
       
@@ -114,15 +117,11 @@ export function AddProject() {
           </div>
 
           <div>
-            <Label htmlFor="imageUrl" className="text-sm font-medium text-slate-700">
-              Image URL
-            </Label>
-            <Input
-              id="imageUrl"
+            <ImageUpload
+              label="Project Image"
               value={projectData.imageUrl}
-              onChange={(e) => handleInputChange("imageUrl", e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="mt-1"
+              onFileSelect={setSelectedImageFile}
+              preview={true}
             />
           </div>
         </div>
