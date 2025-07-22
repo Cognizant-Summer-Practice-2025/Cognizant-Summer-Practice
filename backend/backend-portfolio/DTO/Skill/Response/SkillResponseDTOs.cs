@@ -1,10 +1,11 @@
-namespace backend_portfolio.DTO.Request
+namespace backend_portfolio.DTO.Skill.Response
 {
     /// <summary>
-    /// DTO for creating a new skill
+    /// Standard skill response DTO
     /// </summary>
-    public class SkillCreateRequest
+    public class SkillResponse
     {
+        public Guid Id { get; set; }
         public Guid PortfolioId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? CategoryType { get; set; }
@@ -12,14 +13,17 @@ namespace backend_portfolio.DTO.Request
         public string? Category { get; set; }
         public int? ProficiencyLevel { get; set; }
         public int? DisplayOrder { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
     /// <summary>
-    /// DTO for updating an existing skill
+    /// Summary skill response for list views
     /// </summary>
-    public class SkillUpdateRequest
+    public class SkillSummaryResponse
     {
-        public string? Name { get; set; }
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
         public string? CategoryType { get; set; }
         public string? Subcategory { get; set; }
         public string? Category { get; set; }

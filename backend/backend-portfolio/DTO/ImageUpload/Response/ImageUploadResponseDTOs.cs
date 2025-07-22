@@ -1,4 +1,4 @@
-namespace backend_portfolio.DTO.Response
+namespace backend_portfolio.DTO.ImageUpload.Response
 {
     /// <summary>
     /// DTO for image upload response

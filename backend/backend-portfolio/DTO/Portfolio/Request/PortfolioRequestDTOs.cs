@@ -1,6 +1,10 @@
 using backend_portfolio.Models;
+using backend_portfolio.DTO.Project.Request;
+using backend_portfolio.DTO.Experience.Request;
+using backend_portfolio.DTO.Skill.Request;
+using backend_portfolio.DTO.BlogPost.Request;
 
-namespace backend_portfolio.DTO.Request
+namespace backend_portfolio.DTO.Portfolio.Request
 {
     /// <summary>
     /// DTO for creating a new portfolio

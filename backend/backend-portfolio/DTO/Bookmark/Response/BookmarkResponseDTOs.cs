@@ -1,4 +1,6 @@
-namespace backend_portfolio.DTO.Response
+using backend_portfolio.DTO.Portfolio.Response;
+
+namespace backend_portfolio.DTO.Bookmark.Response
 {
     /// <summary>
     /// Standard bookmark response DTO

@@ -1,4 +1,4 @@
-namespace backend_portfolio.DTO.Request
+namespace backend_portfolio.DTO.Project.Request
 {
     /// <summary>
     /// DTO for creating a new project

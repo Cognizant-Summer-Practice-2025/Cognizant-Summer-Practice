@@ -1,6 +1,12 @@
 using backend_portfolio.Models;
+using backend_portfolio.DTO.PortfolioTemplate.Response;
+using backend_portfolio.DTO.Project.Response;
+using backend_portfolio.DTO.Experience.Response;
+using backend_portfolio.DTO.Skill.Response;
+using backend_portfolio.DTO.BlogPost.Response;
+using backend_portfolio.DTO.Bookmark.Response;
 
-namespace backend_portfolio.DTO.Response
+namespace backend_portfolio.DTO.Portfolio.Response
 {
     /// <summary>
     /// Standard portfolio response DTO

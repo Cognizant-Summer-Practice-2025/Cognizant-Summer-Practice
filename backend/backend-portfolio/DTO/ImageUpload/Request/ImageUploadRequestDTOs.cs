@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace backend_portfolio.DTO.Request
+namespace backend_portfolio.DTO.ImageUpload.Request
 {
     /// <summary>
     /// DTO for image upload request

@@ -1,4 +1,4 @@
-namespace backend_portfolio.DTO.Request
+namespace backend_portfolio.DTO.PortfolioTemplate.Request
 {
     /// <summary>
     /// DTO for creating a new portfolio template

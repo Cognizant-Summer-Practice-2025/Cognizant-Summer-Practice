@@ -1,4 +1,4 @@
-namespace backend_portfolio.DTO.Response
+namespace backend_portfolio.DTO.Project.Response
 {
     /// <summary>
     /// Standard project response DTO

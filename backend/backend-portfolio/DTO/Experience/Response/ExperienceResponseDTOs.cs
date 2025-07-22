@@ -1,4 +1,4 @@
-namespace backend_portfolio.DTO.Response
+namespace backend_portfolio.DTO.Experience.Response
 {
     /// <summary>
     /// Standard experience response DTO

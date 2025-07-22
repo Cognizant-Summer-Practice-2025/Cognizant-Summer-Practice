@@ -1,4 +1,4 @@
-namespace backend_portfolio.DTO.Response
+namespace backend_portfolio.DTO.PortfolioTemplate.Response
 {
     /// <summary>
     /// Standard portfolio template response DTO
