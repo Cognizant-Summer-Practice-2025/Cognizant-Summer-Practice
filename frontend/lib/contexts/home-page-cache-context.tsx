@@ -198,6 +198,97 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     };
   }, [pageSize, sortBy, sortDirection, searchTerm, selectedSkills, selectedRoles, featuredOnly]);
 
+  // Preload single page function
+  const preloadPage = useCallback(async (page: number) => {
+    const request = createRequest(page);
+    const cacheKey = cache.generateKey(request);
+    
+    // Don't preload if already cached
+    if (cache.get<PortfolioCardDto>(cacheKey)) {
+      return;
+    }
+
+    try {
+      // Load page without updating UI state
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5201';
+      const queryParams = new URLSearchParams();
+      
+      queryParams.append('page', request.page.toString());
+      queryParams.append('pageSize', request.pageSize.toString());
+      
+      if (request.sortBy) queryParams.append('sortBy', request.sortBy);
+      if (request.sortDirection) queryParams.append('sortDirection', request.sortDirection);
+      if (request.searchTerm) queryParams.append('searchTerm', request.searchTerm);
+      if (request.skills) request.skills.forEach(skill => queryParams.append('skills', skill));
+      if (request.roles) request.roles.forEach(role => queryParams.append('roles', role));
+      if (request.featured !== undefined) queryParams.append('featured', request.featured.toString());
+
+      const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards/paginated?${queryParams}`);
+      
+      if (response.ok) {
+        const data: PaginatedResponse<PortfolioCardDto> = await response.json();
+        cache.set(cacheKey, data);
+        console.log(`📦 Preloaded page ${page}`);
+      }
+    } catch (err) {
+      console.warn(`Failed to preload page ${page}:`, err);
+    }
+  }, [createRequest, cache]);
+
+  // Preload adjacent pages for smoother navigation
+  const preloadAdjacentPages = useCallback(async (currentPageNum: number, totalPages: number) => {
+    const pagesToPreload: number[] = [];
+    
+    // Determine which pages to preload based on current page
+    if (currentPageNum === 1) {
+      // If on page 1, preload the first several pages for initial browsing
+      for (let i = 2; i <= Math.min(4, totalPages); i++) {
+        pagesToPreload.push(i);
+      }
+    } else if (currentPageNum === 2) {
+      // If on page 2, preload pages 1, 3, and 4
+      pagesToPreload.push(1); // Users often go back to page 1
+      if (currentPageNum + 1 <= totalPages) pagesToPreload.push(currentPageNum + 1);
+      if (currentPageNum + 2 <= totalPages) pagesToPreload.push(currentPageNum + 2);
+    } else {
+      // For other pages, preload adjacent pages
+      if (currentPageNum > 1) {
+        pagesToPreload.push(currentPageNum - 1);
+      }
+      if (currentPageNum < totalPages) {
+        pagesToPreload.push(currentPageNum + 1);
+      }
+      
+      // Preload one more page in the direction user is likely going
+      if (currentPageNum + 2 <= totalPages) {
+        pagesToPreload.push(currentPageNum + 2);
+      }
+    }
+    
+    // Filter out pages that are already cached
+    const uncachedPages = pagesToPreload.filter(pageNum => {
+      const request = createRequest(pageNum);
+      const cacheKey = cache.generateKey(request);
+      return !cache.get<PortfolioCardDto>(cacheKey);
+    });
+    
+    if (uncachedPages.length === 0) {
+      console.log(`📦 All adjacent pages already cached for page ${currentPageNum}`);
+      return;
+    }
+    
+    // Preload pages in the background with staggered timing
+    uncachedPages.forEach((pageNum, index) => {
+      setTimeout(() => {
+        preloadPage(pageNum).catch(err => {
+          console.debug(`Background preload failed for page ${pageNum}:`, err);
+        });
+      }, 150 + (index * 100)); // Stagger requests to avoid overwhelming the server
+    });
+    
+    console.log(`🚀 Preloading ${uncachedPages.length} pages: ${uncachedPages.join(', ')}`);
+  }, [preloadPage, createRequest, cache]);
+
   // Load page with cache support
   const loadPage = useCallback(async (page: number, useCache = true) => {
     const request = createRequest(page);
@@ -215,6 +306,11 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
         
         // Scroll to top when page changes (cached data)
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Also trigger preloading for cached hits
+        setTimeout(() => {
+          preloadAdjacentPages(page, cachedData.pagination.totalPages);
+        }, 50); // Smaller delay for cached data
         
         return;
       }
@@ -258,6 +354,11 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
       
       console.log(`🌐 API call for page ${page} - loaded ${data.data.length} portfolios`);
       
+      // Trigger preloading after successful load (use data from response)
+      setTimeout(() => {
+        preloadAdjacentPages(page, data.pagination.totalPages);
+      }, 100); // Small delay to ensure state updates complete
+      
     } catch (err) {
       console.error('Error loading portfolios:', err);
       setError(err instanceof Error ? err.message : 'Failed to load portfolios');
@@ -266,7 +367,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [createRequest, cache]);
+  }, [createRequest, cache, preloadAdjacentPages]);
 
   // Filter and search actions
   const setFilters = useCallback((filters: Partial<PaginationRequest>) => {
@@ -341,42 +442,6 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     cache.clear();
     console.log('🗑️ Cache cleared');
   }, [cache]);
-
-  const preloadPage = useCallback(async (page: number) => {
-    const request = createRequest(page);
-    const cacheKey = cache.generateKey(request);
-    
-    // Don't preload if already cached
-    if (cache.get<PortfolioCardDto>(cacheKey)) {
-      return;
-    }
-
-    try {
-      // Load page without updating UI state
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5201';
-      const queryParams = new URLSearchParams();
-      
-      queryParams.append('page', request.page.toString());
-      queryParams.append('pageSize', request.pageSize.toString());
-      
-      if (request.sortBy) queryParams.append('sortBy', request.sortBy);
-      if (request.sortDirection) queryParams.append('sortDirection', request.sortDirection);
-      if (request.searchTerm) queryParams.append('searchTerm', request.searchTerm);
-      if (request.skills) request.skills.forEach(skill => queryParams.append('skills', skill));
-      if (request.roles) request.roles.forEach(role => queryParams.append('roles', role));
-      if (request.featured !== undefined) queryParams.append('featured', request.featured.toString());
-
-      const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards/paginated?${queryParams}`);
-      
-      if (response.ok) {
-        const data: PaginatedResponse<PortfolioCardDto> = await response.json();
-        cache.set(cacheKey, data);
-        console.log(`📦 Preloaded page ${page}`);
-      }
-    } catch (err) {
-      console.warn(`Failed to preload page ${page}:`, err);
-    }
-  }, [createRequest, cache]);
 
   const getCacheStats = useCallback(() => {
     cache.cleanup(); // Clean expired entries
