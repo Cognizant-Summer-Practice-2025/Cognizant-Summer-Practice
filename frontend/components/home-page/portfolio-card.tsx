@@ -3,9 +3,9 @@
 import React from 'react';
 import { Card, Avatar, Tag, Button } from 'antd';
 import { EyeOutlined, LikeOutlined, MessageOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
 import { useBookmarks } from '@/lib/contexts/bookmark-context';
 import { useUser } from '@/lib/contexts/user-context';
+import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import './style.css';
 
 interface PortfolioCardProps {
@@ -39,12 +39,12 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
   avatar,
   featured = false,
 }) => {
-  const router = useRouter();
   const { user } = useUser();
   const { isBookmarked, toggleBookmark, loading } = useBookmarks();
+  const { navigateToPortfolio } = usePortfolioNavigation();
 
   const handleViewPortfolio = () => {
-    router.push(`/portfolio?portfolio=${id}`);
+    navigateToPortfolio(id);
   };
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {

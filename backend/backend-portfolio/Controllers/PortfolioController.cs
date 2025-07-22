@@ -14,6 +14,7 @@ using backend_portfolio.DTO.BlogPost.Response;
 using backend_portfolio.DTO.Bookmark.Response;
 using backend_portfolio.DTO.PortfolioTemplate.Response;
 using backend_portfolio.DTO.ImageUpload.Response;
+using backend_portfolio.DTO.Pagination;
 using backend_portfolio.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -207,6 +208,21 @@ namespace backend_portfolio.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while getting portfolios for home page");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("home-page-cards/paginated")]
+        public async Task<IActionResult> GetPortfoliosForHomePagePaginated([FromQuery] PaginationRequest request)
+        {
+            try
+            {
+                var portfolioCards = await _portfolioQueryService.GetPortfoliosForHomePagePaginatedAsync(request);
+                return Ok(portfolioCards);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting paginated portfolios for home page");
                 return StatusCode(500, "Internal server error");
             }
         }

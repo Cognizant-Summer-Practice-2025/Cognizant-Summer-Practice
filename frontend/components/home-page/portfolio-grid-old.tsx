@@ -144,3 +144,67 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
 };
 
 export default PortfolioGrid;
+            value={sortBy}
+            onChange={handleSortChange}
+            className="portfolio-sort-select"
+            size="middle"
+          >
+            <Option value="most-recent">Most Recent</Option>
+            <Option value="most-popular">Most Popular</Option>
+            <Option value="most-liked">Most Liked</Option>
+            <Option value="most-bookmarked">Most Bookmarked</Option>
+            <Option value="featured">Featured</Option>
+          </Select>
+        </div>
+      </div>
+
+      <div className="portfolio-grid-content">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p>Loading portfolios...</p>
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p style={{ color: 'red' }}>{error}</p>
+          </div>
+        ) : sortedPortfolios.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <p>No portfolios found. Be the first to create one!</p>
+          </div>
+        ) : (
+          <Row gutter={[24, 24]} className="portfolio-row">
+            {sortedPortfolios.map((portfolio) => (
+              <Col 
+                key={portfolio.id} 
+                xs={24} 
+                sm={24} 
+                md={12} 
+                lg={8} 
+                xl={8}
+                className="portfolio-col"
+              >
+                <PortfolioCard 
+                  id={portfolio.id}
+                  name={portfolio.name}
+                  role={portfolio.role}
+                  location={portfolio.location}
+                  description={portfolio.description}
+                  skills={portfolio.skills}
+                  views={portfolio.views}
+                  likes={portfolio.likes}
+                  comments={portfolio.comments}
+                  bookmarks={portfolio.bookmarks}
+                  date={portfolio.date}
+                  avatar={portfolio.avatar}
+                  featured={portfolio.featured}
+                />
+              </Col>
+            ))}
+          </Row>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PortfolioGrid; 

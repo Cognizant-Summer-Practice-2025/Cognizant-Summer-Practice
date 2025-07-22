@@ -58,6 +58,24 @@ interface PortfolioContextType {
   getUserBookmarks: () => Bookmark[];
   getUserPortfolios: () => Portfolio[];
   getPortfolioTemplates: () => PortfolioTemplate[];
+  // Navigation support for home page cache
+  setHomePageReturnContext: (context: HomePageReturnContext) => void;
+  getHomePageReturnContext: () => HomePageReturnContext | null;
+  clearHomePageReturnContext: () => void;
+}
+
+interface HomePageReturnContext {
+  page: number;
+  scrollPosition: number;
+  timestamp: number;
+  filters?: {
+    searchTerm?: string;
+    sortBy?: string;
+    sortDirection?: string;
+    selectedSkills?: string[];
+    selectedRoles?: string[];
+    featuredOnly?: boolean;
+  };
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -82,6 +100,9 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const [currentPortfolioOwner, setCurrentPortfolioOwner] = useState<UserPortfolioInfo | null>(null);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
+
+  // Home page return context for navigation
+  const [homePageReturnContext, setHomePageReturnContextState] = useState<HomePageReturnContext | null>(null);
 
   // Load user's comprehensive portfolio data
   const loadUserPortfolios = useCallback(async () => {
@@ -228,6 +249,19 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     setPortfolioError(null);
   }, []);
 
+  // Home page return context management
+  const setHomePageReturnContext = useCallback((context: HomePageReturnContext) => {
+    setHomePageReturnContextState(context);
+  }, []);
+
+  const getHomePageReturnContext = useCallback(() => {
+    return homePageReturnContext;
+  }, [homePageReturnContext]);
+
+  const clearHomePageReturnContext = useCallback(() => {
+    setHomePageReturnContextState(null);
+  }, []);
+
   // Load user portfolio data when user changes
   useEffect(() => {
     if (!userLoading && user?.id && !userPortfolioData) {
@@ -314,6 +348,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     getUserBookmarks,
     getUserPortfolios,
     getPortfolioTemplates,
+    // Home page navigation support
+    setHomePageReturnContext,
+    getHomePageReturnContext,
+    clearHomePageReturnContext,
   };
 
 

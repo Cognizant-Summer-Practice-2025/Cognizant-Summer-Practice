@@ -58,6 +58,10 @@ builder.Services.AddDbContext<PortfolioDbContext>(options =>
 // Add HttpClient for external service calls
 builder.Services.AddHttpClient();
 
+// Add Memory Cache
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+
 // Add Repository services
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 builder.Services.AddScoped<IPortfolioTemplateRepository, PortfolioTemplateRepository>();

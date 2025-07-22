@@ -6,6 +6,7 @@ using backend_portfolio.DTO.BlogPost.Response;
 using backend_portfolio.DTO.Bookmark.Response;
 using backend_portfolio.DTO.PortfolioTemplate.Response;
 using backend_portfolio.DTO.ImageUpload.Response;
+using backend_portfolio.DTO.Pagination;
 
 namespace backend_portfolio.Services.Abstractions
 {
@@ -16,6 +17,7 @@ namespace backend_portfolio.Services.Abstractions
         Task<IEnumerable<PortfolioSummaryResponse>> GetPortfoliosByUserIdAsync(Guid userId);
         Task<IEnumerable<PortfolioSummaryResponse>> GetPublishedPortfoliosAsync();
         Task<IEnumerable<PortfolioCardResponse>> GetPortfoliosForHomePageAsync();
+        Task<PaginatedResponse<PortfolioCardResponse>> GetPortfoliosForHomePagePaginatedAsync(PaginationRequest request);
         Task<UserPortfolioComprehensiveResponse> GetUserPortfolioComprehensiveAsync(Guid userId);
     }
 } 

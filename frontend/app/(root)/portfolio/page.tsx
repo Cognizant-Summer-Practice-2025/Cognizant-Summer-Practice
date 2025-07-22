@@ -6,6 +6,7 @@ import { useUser } from '@/lib/contexts/user-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
 import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
+import BackToHomeButton from '@/components/portfolio/back-to-home-button';
 
 // Loading component
 function TemplateLoader() {
@@ -238,9 +239,16 @@ const PortfolioPage = () => {
   }
 
   return (
-    <Suspense fallback={<TemplateLoader />}>
-      <TemplateComponent data={templateData} />
-    </Suspense>
+    <div style={{ position: 'relative' }}>
+      <BackToHomeButton 
+        className="floating"
+        size="small"
+        type="default"
+      />
+      <Suspense fallback={<TemplateLoader />}>
+        <TemplateComponent data={templateData} />
+      </Suspense>
+    </div>
   );
 };
 

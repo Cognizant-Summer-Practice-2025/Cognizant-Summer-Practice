@@ -1,0 +1,147 @@
+.back-to-home-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.back-to-home-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.back-to-home-button:active {
+  transform: translateY(0);
+}
+
+.back-to-home-button .anticon {
+  font-size: inherit;
+}
+
+/* Different variants */
+.back-to-home-button.ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  border: none;
+}
+
+.back-to-home-button.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff, #1890ff);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.back-to-home-button.ant-btn-default {
+  border-color: #d9d9d9;
+  color: #262626;
+  background: white;
+}
+
+.back-to-home-button.ant-btn-default:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #f0f8ff;
+}
+
+.back-to-home-button.ant-btn-text {
+  color: #8c8c8c;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+}
+
+.back-to-home-button.ant-btn-text:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.back-to-home-button.ant-btn-link {
+  color: #1890ff;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+}
+
+.back-to-home-button.ant-btn-link:hover {
+  color: #40a9ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+/* Size variants */
+.back-to-home-button.ant-btn-sm {
+  height: 24px;
+  padding: 0 7px;
+  font-size: 12px;
+}
+
+.back-to-home-button.ant-btn-lg {
+  height: 40px;
+  padding: 0 15px;
+  font-size: 16px;
+}
+
+/* Fixed position variant for floating button */
+.back-to-home-button.floating {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  border-radius: 50px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(24, 144, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.back-to-home-button.floating:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .back-to-home-button.floating {
+    top: 16px;
+    left: 16px;
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  
+  .back-to-home-button.floating .anticon {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .back-to-home-button.floating {
+    top: 12px;
+    left: 12px;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .back-to-home-button.floating .anticon {
+    font-size: 12px;
+  }
+}
+
+/* Animation for icon changes */
+.back-to-home-button .anticon {
+  transition: transform 0.2s ease-in-out;
+}
+
+.back-to-home-button:hover .anticon {
+  transform: scale(1.1);
+}
+
+/* Loading state */
+.back-to-home-button.ant-btn-loading {
+  cursor: not-allowed;
+}
+
+.back-to-home-button.ant-btn-loading:hover {
+  transform: none;
+  box-shadow: none;
+}
