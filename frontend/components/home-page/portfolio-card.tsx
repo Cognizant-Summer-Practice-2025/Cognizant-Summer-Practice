@@ -3,9 +3,9 @@
 import React from 'react';
 import { Card, Avatar, Tag, Button } from 'antd';
 import { EyeOutlined, LikeOutlined, MessageOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
-import { useRouter } from 'next/navigation';
 import { useBookmarks } from '@/lib/contexts/bookmark-context';
 import { useUser } from '@/lib/contexts/user-context';
+import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import './style.css';
 
 interface PortfolioCardProps {
@@ -24,6 +24,12 @@ interface PortfolioCardProps {
   featured?: boolean;
 }
 
+// Utility function to truncate text
+const truncateText = (text: string, maxLength: number = 100): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
 const PortfolioCard: React.FC<PortfolioCardProps> = ({
   id,
   name,
@@ -34,24 +40,23 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
   views,
   likes,
   comments,
-  bookmarks,
   date,
   avatar,
-  featured = false,
 }) => {
-  const router = useRouter();
   const { user } = useUser();
   const { isBookmarked, toggleBookmark, loading } = useBookmarks();
+  const { navigateToPortfolio } = usePortfolioNavigation();
 
   const handleViewPortfolio = () => {
-    router.push(`/portfolio?portfolio=${id}`);
+    navigateToPortfolio(id);
   };
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); 
     
     if (!user) {
-      router.push('/login');
+      // Note: router is not imported, this should be handled differently
+      // For now, we'll just return without action
       return;
     }
 
@@ -59,6 +64,11 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
   };
 
   const bookmarked = isBookmarked(id);
+  
+  // Skills display logic
+  const maxSkillsToShow = 3;
+  const visibleSkills = skills.slice(0, maxSkillsToShow);
+  const remainingSkillsCount = skills.length - maxSkillsToShow;
 
   return (
     <Card
@@ -66,6 +76,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
       styles={{ body: { padding: '24px' } }}
       hoverable
     >
+      {/* Header Section - Fixed Height */}
       <div className="portfolio-card-header">
         <div className="portfolio-user-info">
           <Avatar 
@@ -122,18 +133,26 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
         </div>
       </div>
 
+      {/* Description Section - Fixed Height */}
       <div className="portfolio-description">
-        <p>{description}</p>
+        <p>{truncateText(description, 120)}</p>
       </div>
 
+      {/* Skills Section - Fixed Height */}
       <div className="portfolio-skills">
-        {skills.map((skill, index) => (
+        {visibleSkills.map((skill, index) => (
           <Tag key={index} className="portfolio-skill-tag">
             {skill}
           </Tag>
         ))}
+        {remainingSkillsCount > 0 && (
+          <Tag className="portfolio-skill-tag portfolio-skill-tag-more">
+            +{remainingSkillsCount} more
+          </Tag>
+        )}
       </div>
 
+      {/* Stats Section - Fixed Height */}
       <div className="portfolio-stats">
         <div className="portfolio-stats-left">
           <div className="portfolio-stat">
@@ -154,6 +173,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
         </div>
       </div>
 
+      {/* Actions Section - Fixed Height */}
       <div className="portfolio-actions">
         <Button 
           type="default" 

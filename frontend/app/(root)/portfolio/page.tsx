@@ -76,6 +76,7 @@ const PortfolioPage = () => {
   const { 
     currentPortfolio, 
     currentPortfolioEntities,
+    currentPortfolioOwner,
     portfolioLoading, 
     portfolioError, 
     loadPortfolioByUserId,
@@ -99,6 +100,21 @@ const PortfolioPage = () => {
   const createPortfolioDataForTemplate = (): PortfolioDataFromDB | PortfolioData | null => {
     if (!currentPortfolio || !currentPortfolioEntities) return null;
 
+    // Use portfolio owner information if available, fallback to current user for own portfolio
+    const portfolioOwner = currentPortfolioOwner || (isViewingOwnPortfolio ? currentUser : null);
+    
+    // Helper function to get the display name
+    const getDisplayName = (owner: typeof portfolioOwner) => {
+      if (!owner) return 'Portfolio Owner';
+      if ('name' in owner) return owner.name;
+      return `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || 'Portfolio Owner';
+    };
+    
+    // Helper function to get the email
+    const getEmail = (owner: typeof portfolioOwner) => {
+      return owner?.email || 'contact@example.com';
+    };
+
     // For templates that expect PortfolioDataFromDB (like Gabriel Barzu)
     const portfolioDataFromDB: PortfolioDataFromDB = {
       portfolio: {
@@ -116,13 +132,13 @@ const PortfolioPage = () => {
         updatedAt: currentPortfolio.updatedAt,
       },
       profile: {
-        id: currentUser?.id || '',
-        name: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : 'Portfolio Owner',
-        title: currentUser?.professionalTitle || 'Professional',
+        id: currentPortfolio.userId,
+        name: getDisplayName(portfolioOwner),
+        title: portfolioOwner?.professionalTitle || 'Professional',
         bio: currentPortfolio.bio || 'Welcome to my portfolio',
-        profileImage: currentUser?.avatarUrl || 'https://placehold.co/120x120',
-        location: currentUser?.location || '',
-        email: currentUser?.email || 'contact@example.com',
+        profileImage: portfolioOwner?.avatarUrl || 'https://placehold.co/120x120',
+        location: portfolioOwner?.location || '',
+        email: 'contact@example.com', // Don't expose real email
       },
       stats: [
         { id: '1', label: 'Portfolio Views', value: currentPortfolio.viewCount?.toString() || '0', icon: '👁️' },
@@ -131,15 +147,15 @@ const PortfolioPage = () => {
         { id: '4', label: 'Skills', value: currentPortfolioEntities.skills.length.toString(), icon: '🎯' }
       ],
       contacts: {
-        email: currentUser?.email || 'contact@example.com',
-        location: currentUser?.location || 'Location not specified',
+        email: getEmail(portfolioOwner),
+        location: portfolioOwner?.location || 'Location not specified',
       },
       quotes: [
         {
           id: 'default-1',
           text: currentPortfolio.bio || 'Passionate about creating amazing experiences and solving complex problems.',
-          author: currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : 'Portfolio Owner',
-          position: currentUser?.professionalTitle
+          author: getDisplayName(portfolioOwner),
+          position: portfolioOwner?.professionalTitle
         }
       ],
       experience: currentPortfolioEntities.experience,
@@ -234,9 +250,11 @@ const PortfolioPage = () => {
   }
 
   return (
-    <Suspense fallback={<TemplateLoader />}>
-      <TemplateComponent data={templateData} />
-    </Suspense>
+    <div style={{ position: 'relative' }}>
+      <Suspense fallback={<TemplateLoader />}>
+        <TemplateComponent data={templateData} />
+      </Suspense>
+    </div>
   );
 };
 

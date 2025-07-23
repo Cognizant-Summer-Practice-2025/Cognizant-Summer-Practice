@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +20,11 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+  const { navigateBackToHome } = usePortfolioNavigation();
+
+  // Check if we're on a portfolio page
+  const isPortfolioPage = pathname === '/portfolio' || pathname?.startsWith('/portfolio');
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -44,52 +50,50 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-8 lg:px-80 py-0 z-50">
-        <div className="w-full max-w-[1280px] h-16 mx-auto flex items-center justify-between relative">
+        <div className="w-full max-w-[1280px] h-16 mx-auto flex items-center relative">
+          {/* Back to Results Button - Desktop (Far Left) */}
+          {isPortfolioPage && (
+            <div className="hidden lg:flex items-center mr-4">
+              <Button
+                onClick={navigateBackToHome}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-sm border-gray-300 hover:border-blue-500 hover:text-blue-600 transition-all duration-200"
+              >
+                <ChevronLeft size={16} />
+                Back to Results
+              </Button>
+            </div>
+          )}
+
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              aria-label="Toggle mobile menu"
             >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-[#020817]" />
-              ) : (
-                <Menu className="w-6 h-6 text-[#020817]" />
-              )}
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
 
-          {/* Logo */}
-          <div className="flex items-center ml-2 lg:ml-0">
-            <Link href="/home" className="text-[#020817] text-xl font-semibold font-['Inter'] leading-8 hover:text-[#2563EB] transition-colors cursor-pointer">
-              GoalKeeper
+          {/* Logo - Center on mobile, positioned after back button on desktop */}
+          <div className="flex-shrink-0 flex items-center lg:mr-auto">
+            <Link href="/home">
+              <h1 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                GoalKeeper
+              </h1>
             </Link>
           </div>
 
-          {/* Search Bar - Progressive sizing and positioning */}
-          <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 top-[15px]">
-            <div className="relative">
-              {/* Large screens - Full search bar */}
-              <div className="hidden xl:block w-[400px] 2xl:w-[464px]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-                  <Input
-                    placeholder="Search portfolios, skills, or names..."
-                    className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              {/* Medium screens - Compact search bar */}
-              <div className="block xl:hidden w-[200px] lg:w-[250px]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
-                  <Input
-                    placeholder="Search..."
-                    className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
+          {/* Search Bar - Desktop */}
+          <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
+              <Input
+                placeholder="Search portfolios, skills, or names..."
+                className="w-full pl-10 pr-4 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
           </div>
 
@@ -118,61 +122,103 @@ export default function Header() {
               <span className="lg:hidden">+</span>
             </Button>
 
-            {/* Profile or Login */}
-            {session ? (
+            {session?.user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <Image
-                    className="w-8 h-8 rounded-2xl cursor-pointer hover:ring-2 hover:ring-blue-500 hover:ring-offset-2 transition-all"
-                    src={session.user?.image || "https://placehold.co/32x32"}
-                    alt="Profile"
+                    src={session.user.image || '/default-avatar.png'}
+                    alt={session.user.name || 'User'}
                     width={32}
                     height={32}
+                    className="rounded-full"
                   />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48" align="end">
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => router.push('/profile')}
-                  >
-                    <User className="w-4 h-4" />
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
-                    <Settings className="w-4 h-4" />
+                  <DropdownMenuItem onClick={() => router.push('/portfolio')}>
+                    <User className="mr-2 h-4 w-4" />
+                    My Portfolio
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Disconnect
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Button 
                 onClick={handleLogin}
-                className="px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg"
+                variant="outline"
+                className="px-4 py-2 text-sm"
               >
-                Login
+                Sign In
               </Button>
             )}
           </div>
 
-          {/* Mobile Profile Picture - Only on mobile */}
-          {session && (
-            <div className="lg:hidden absolute right-4 top-4">
-              <Image
-                className="w-8 h-8 rounded-2xl"
-                src={session.user?.image || "https://placehold.co/32x32"}
-                alt="Profile"
-                width={32}
-                height={32}
-              />
-            </div>
-          )}
+          {/* Mobile Actions - Right side */}
+          <div className="flex lg:hidden items-center space-x-2 ml-auto">
+            {/* Back to Results Button (Mobile) - Next to burger menu */}
+            {isPortfolioPage && (
+              <Button
+                onClick={navigateBackToHome}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 text-xs px-2 py-1 border-gray-300 hover:border-blue-500 hover:text-blue-600 transition-all duration-200"
+              >
+                <ChevronLeft size={14} />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+            )}
+
+            {session?.user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="p-1 rounded-lg">
+                  <Image
+                    src={session.user.image || '/default-avatar.png'}
+                    alt={session.user.name || 'User'}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/portfolio')}>
+                    <User className="mr-2 h-4 w-4" />
+                    My Portfolio
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                onClick={handleLogin}
+                variant="outline"
+                size="sm"
+                className="px-2 py-1 text-xs"
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 

@@ -1,6 +1,20 @@
 using backend_portfolio.DTO;
-using backend_portfolio.DTO.Request;
-using backend_portfolio.DTO.Response;
+using backend_portfolio.DTO.Portfolio.Request;
+using backend_portfolio.DTO.Project.Request;
+using backend_portfolio.DTO.Experience.Request;
+using backend_portfolio.DTO.Skill.Request;
+using backend_portfolio.DTO.BlogPost.Request;
+using backend_portfolio.DTO.Bookmark.Request;
+using backend_portfolio.DTO.PortfolioTemplate.Request;
+using backend_portfolio.DTO.ImageUpload.Request;
+using backend_portfolio.DTO.Portfolio.Response;
+using backend_portfolio.DTO.Project.Response;
+using backend_portfolio.DTO.Experience.Response;
+using backend_portfolio.DTO.Skill.Response;
+using backend_portfolio.DTO.BlogPost.Response;
+using backend_portfolio.DTO.Bookmark.Response;
+using backend_portfolio.DTO.PortfolioTemplate.Response;
+using backend_portfolio.DTO.ImageUpload.Response;
 using backend_portfolio.Repositories;
 using backend_portfolio.Services.Abstractions;
 using backend_portfolio.Services.Mappers;
@@ -17,6 +31,7 @@ namespace backend_portfolio.Services
         private readonly IValidationService<PortfolioCreateRequest> _portfolioValidator;
         private readonly IValidationService<PortfolioUpdateRequest> _portfolioUpdateValidator;
         private readonly PortfolioMapper _portfolioMapper;
+        private readonly ICacheService _cacheService;
         private readonly ILogger<PortfolioCommandService> _logger;
 
         public PortfolioCommandService(
@@ -28,6 +43,7 @@ namespace backend_portfolio.Services
             IValidationService<PortfolioCreateRequest> portfolioValidator,
             IValidationService<PortfolioUpdateRequest> portfolioUpdateValidator,
             PortfolioMapper portfolioMapper,
+            ICacheService cacheService,
             ILogger<PortfolioCommandService> logger)
         {
             _portfolioRepository = portfolioRepository;
@@ -38,7 +54,29 @@ namespace backend_portfolio.Services
             _portfolioValidator = portfolioValidator;
             _portfolioUpdateValidator = portfolioUpdateValidator;
             _portfolioMapper = portfolioMapper;
+            _cacheService = cacheService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Invalidates all portfolio-related cache entries when portfolios are published or updated
+        /// </summary>
+        private async Task InvalidatePortfolioCacheAsync()
+        {
+            try
+            {
+                // Clear all paginated portfolio cache entries (used by home page)
+                await _cacheService.RemoveByPatternAsync("portfolios_paginated:.*");
+                
+                // Clear any other portfolio-related cache entries
+                await _cacheService.RemoveByPatternAsync("portfolios:.*");
+                
+                _logger.LogInformation("Portfolio cache invalidated successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to invalidate portfolio cache");
+            }
         }
 
         public async Task<PortfolioResponse> CreatePortfolioAsync(PortfolioCreateRequest request)
@@ -50,6 +88,13 @@ namespace backend_portfolio.Services
                     throw new ArgumentException($"Validation failed: {string.Join(", ", validationResult.Errors)}");
 
                 var portfolio = await _portfolioRepository.CreatePortfolioAsync(request);
+                
+                // Invalidate cache if portfolio is created as published
+                if (portfolio.IsPublished)
+                {
+                    await InvalidatePortfolioCacheAsync();
+                }
+                
                 return _portfolioMapper.MapToResponseDto(portfolio);
             }
             catch (Exception ex)
@@ -68,6 +113,13 @@ namespace backend_portfolio.Services
                     throw new ArgumentException($"Validation failed: {string.Join(", ", validationResult.Errors)}");
 
                 var portfolio = await _portfolioRepository.CreatePortfolioAsync(request);
+                
+                // Invalidate cache if portfolio is created as published
+                if (portfolio.IsPublished)
+                {
+                    await InvalidatePortfolioCacheAsync();
+                }
+                
                 return _portfolioMapper.MapToResponseDto(portfolio);
             }
             catch (Exception ex)
@@ -130,6 +182,12 @@ namespace backend_portfolio.Services
                     var updateDto = new PortfolioUpdateRequest { IsPublished = true };
                     var updatedPortfolio = await _portfolioRepository.UpdatePortfolioAsync(portfolioId, updateDto);
                     portfolioPublished = updatedPortfolio != null;
+                    
+                    // Invalidate cache when portfolio is published
+                    if (portfolioPublished)
+                    {
+                        await InvalidatePortfolioCacheAsync();
+                    }
                 }
 
                 return new BulkPortfolioContentResponse
@@ -158,6 +216,13 @@ namespace backend_portfolio.Services
                     throw new ArgumentException($"Validation failed: {string.Join(", ", validationResult.Errors)}");
 
                 var portfolio = await _portfolioRepository.UpdatePortfolioAsync(id, request);
+                
+                // Invalidate cache if portfolio was updated successfully and affects public visibility
+                if (portfolio != null && ShouldInvalidateCache(request))
+                {
+                    await InvalidatePortfolioCacheAsync();
+                }
+                
                 return portfolio != null ? _portfolioMapper.MapToResponseDto(portfolio) : null;
             }
             catch (Exception ex)
@@ -167,11 +232,35 @@ namespace backend_portfolio.Services
             }
         }
 
+        /// <summary>
+        /// Determines if cache should be invalidated based on the update request
+        /// </summary>
+        private static bool ShouldInvalidateCache(PortfolioUpdateRequest request)
+        {
+            // Invalidate cache if:
+            // - Portfolio is being published (IsPublished = true)
+            // - Portfolio is being unpublished (IsPublished = false) 
+            // - Visibility is being changed
+            // - Title or Bio is being changed (affects home page display)
+            return request.IsPublished.HasValue || 
+                   request.Visibility.HasValue || 
+                   !string.IsNullOrEmpty(request.Title) || 
+                   !string.IsNullOrEmpty(request.Bio);
+        }
+
         public async Task<bool> DeletePortfolioAsync(Guid id)
         {
             try
             {
-                return await _portfolioRepository.DeletePortfolioAsync(id);
+                var result = await _portfolioRepository.DeletePortfolioAsync(id);
+                
+                // Invalidate cache when portfolio is deleted
+                if (result)
+                {
+                    await InvalidatePortfolioCacheAsync();
+                }
+                
+                return result;
             }
             catch (Exception ex)
             {

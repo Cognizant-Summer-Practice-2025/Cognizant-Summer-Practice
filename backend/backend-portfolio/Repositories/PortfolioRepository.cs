@@ -1,8 +1,16 @@
 using backend_portfolio.Data;
 using backend_portfolio.Models;
 using backend_portfolio.DTO;
-using backend_portfolio.DTO.Request;
+using backend_portfolio.DTO.Portfolio.Request;
+using backend_portfolio.DTO.Project.Request;
+using backend_portfolio.DTO.Experience.Request;
+using backend_portfolio.DTO.Skill.Request;
+using backend_portfolio.DTO.BlogPost.Request;
+using backend_portfolio.DTO.Bookmark.Request;
+using backend_portfolio.DTO.PortfolioTemplate.Request;
+using backend_portfolio.DTO.ImageUpload.Request;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace backend_portfolio.Repositories
 {
@@ -17,41 +25,133 @@ namespace backend_portfolio.Repositories
 
         public async Task<List<Portfolio>> GetAllPortfoliosAsync()
         {
-            return await _context.Portfolios
+            var portfolios = await _context.Portfolios
                 .Include(p => p.Template)
-                .Include(p => p.Projects)
-                .Include(p => p.Experience)
-                .Include(p => p.Skills)
-                .Include(p => p.BlogPosts)
+                .AsNoTracking()
                 .ToListAsync();
+
+            if (!portfolios.Any()) return portfolios;
+
+            var portfolioIds = portfolios.Select(p => p.Id).ToList();
+
+            var projects = await _context.Projects
+                .Where(p => portfolioIds.Contains(p.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var experiences = await _context.Experience
+                .Where(e => portfolioIds.Contains(e.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var skills = await _context.Skills
+                .Where(s => portfolioIds.Contains(s.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var blogPosts = await _context.BlogPosts
+                .Where(b => portfolioIds.Contains(b.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            foreach (var portfolio in portfolios)
+            {
+                portfolio.Projects = projects.Where(p => p.PortfolioId == portfolio.Id).ToList();
+                portfolio.Experience = experiences.Where(e => e.PortfolioId == portfolio.Id).ToList();
+                portfolio.Skills = skills.Where(s => s.PortfolioId == portfolio.Id).ToList();
+                portfolio.BlogPosts = blogPosts.Where(b => b.PortfolioId == portfolio.Id).ToList();
+            }
+
+            return portfolios;
         }
 
         public async Task<Portfolio?> GetPortfolioByIdAsync(Guid id)
         {
-            return await _context.Portfolios
+            var portfolio = await _context.Portfolios
                 .Include(p => p.Template)
-                .Include(p => p.Projects)
-                .Include(p => p.Experience)
-                .Include(p => p.Skills)
-                .Include(p => p.BlogPosts)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (portfolio == null) return null;
+
+            var projects = await _context.Projects
+                .Where(p => p.PortfolioId == id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var experiences = await _context.Experience
+                .Where(e => e.PortfolioId == id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var skills = await _context.Skills
+                .Where(s => s.PortfolioId == id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var blogPosts = await _context.BlogPosts
+                .Where(b => b.PortfolioId == id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            portfolio.Projects = projects;
+            portfolio.Experience = experiences;
+            portfolio.Skills = skills;
+            portfolio.BlogPosts = blogPosts;
+
+            return portfolio;
         }
 
         public async Task<List<Portfolio>> GetPortfoliosByUserIdAsync(Guid userId)
         {
-            return await _context.Portfolios
+            var portfolios = await _context.Portfolios
                 .Include(p => p.Template)
-                .Include(p => p.Projects)
-                .Include(p => p.Experience)
-                .Include(p => p.Skills)
-                .Include(p => p.BlogPosts)
                 .Where(p => p.UserId == userId)
+                .AsNoTracking()
                 .ToListAsync();
+
+            if (!portfolios.Any()) return portfolios;
+
+            var portfolioIds = portfolios.Select(p => p.Id).ToList();
+
+            var projects = await _context.Projects
+                .Where(p => portfolioIds.Contains(p.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var experiences = await _context.Experience
+                .Where(e => portfolioIds.Contains(e.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var skills = await _context.Skills
+                .Where(s => portfolioIds.Contains(s.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var blogPosts = await _context.BlogPosts
+                .Where(b => portfolioIds.Contains(b.PortfolioId))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var projectsLookup = projects.ToLookup(p => p.PortfolioId);
+            var experiencesLookup = experiences.ToLookup(e => e.PortfolioId);
+            var skillsLookup = skills.ToLookup(s => s.PortfolioId);
+            var blogPostsLookup = blogPosts.ToLookup(b => b.PortfolioId);
+
+            foreach (var portfolio in portfolios)
+            {
+                portfolio.Projects = projectsLookup[portfolio.Id].ToList();
+                portfolio.Experience = experiencesLookup[portfolio.Id].ToList();
+                portfolio.Skills = skillsLookup[portfolio.Id].ToList();
+                portfolio.BlogPosts = blogPostsLookup[portfolio.Id].ToList();
+            }
+
+            return portfolios;
         }
 
         public async Task<Portfolio> CreatePortfolioAsync(PortfolioCreateRequest request)
         {
-            // Find template by name
             var template = await _context.PortfolioTemplates
                 .FirstOrDefaultAsync(t => t.Name == request.TemplateName && t.IsActive);
             
@@ -124,6 +224,7 @@ namespace backend_portfolio.Repositories
             return await _context.Portfolios
                 .Include(p => p.Template)
                 .Where(p => p.IsPublished && p.Visibility == Visibility.Public)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -132,6 +233,7 @@ namespace backend_portfolio.Repositories
             return await _context.Portfolios
                 .Include(p => p.Template)
                 .Where(p => p.Visibility == visibility)
+                .AsNoTracking()
                 .ToListAsync();
         }
 

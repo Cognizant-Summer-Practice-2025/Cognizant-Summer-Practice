@@ -139,6 +139,171 @@
   margin-top: 0.25rem;
 }
 
+/* Portfolio Tabs Styles */
+.portfolio-tabs-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  padding: 0 2rem;
+}
+
+.portfolio-tabs {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.portfolio-tab {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+  position: relative;
+  border: none;
+  outline: none;
+}
+
+.portfolio-tab:hover {
+  background: #f8fafc;
+  color: #3498db;
+  transform: translateY(-1px);
+}
+
+.portfolio-tab.active {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  transform: translateY(-1px);
+}
+
+.portfolio-tab.active:hover {
+  background: linear-gradient(135deg, #2980b9, #3498db);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.portfolio-tab.has-data {
+  opacity: 1;
+}
+
+.portfolio-tab.no-data {
+  opacity: 0.5;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.portfolio-tab.no-data:hover {
+  background: transparent;
+  color: #94a3b8;
+  transform: none;
+}
+
+.portfolio-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #3498db;
+}
+
+/* Component visibility animations */
+.component-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.4s ease-in-out;
+  max-height: none;
+  overflow: visible;
+}
+
+.component-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.4s ease-in-out;
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Responsive tabs */
+@media (max-width: 768px) {
+  .portfolio-tabs-container {
+    padding: 0 1rem;
+    margin: 1.5rem 0;
+  }
+  
+  .portfolio-tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .portfolio-tab {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .portfolio-tab:hover {
+    background: #f1f5f9;
+    color: #3498db;
+    transform: translateY(-1px);
+  }
+
+  .portfolio-tab.no-data:hover {
+    background: transparent;
+    color: #94a3b8;
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio-tabs {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .portfolio-tab {
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  
+  .portfolio-tab:hover {
+    background: #f1f5f9;
+    color: #3498db;
+  }
+
+  .portfolio-tab.active:hover {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    color: white;
+  }
+  
+  .portfolio-tab.active::after {
+    display: none;
+  }
+
+  .portfolio-tab.no-data:hover {
+    background: transparent;
+    color: #94a3b8;
+    transform: none;
+  }
+}
+
 /* Content Grid */
 .content-grid {
   display: grid;
@@ -265,8 +430,17 @@
   font-weight: 600;
   color: #1a202c;
   text-align: center;
-  margin: 0 0 3rem 0;
+  margin: 0 0 1rem 0;
   letter-spacing: -0.02em;
+}
+
+.experience-count-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #3498db;
+  text-align: center;
+  margin: 0 0 2rem 0;
+  letter-spacing: 0.02em;
 }
 
 .experience-modern-timeline {
@@ -424,6 +598,11 @@
   .experience-modern-title {
     font-size: 1.8rem;
   }
+
+  .experience-count-text {
+    font-size: 0.9rem;
+    margin: 0 0 1.5rem 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -449,6 +628,128 @@
   .experience-modern-title {
     font-size: 1.5rem;
     margin-bottom: 2rem;
+  }
+
+  .scrollable-timeline {
+    max-height: 500px !important;
+    overflow-y: auto;
+    padding: 1rem 0.5rem;
+  }
+}
+
+/* Scrollable Timeline Styles */
+.scrollable-timeline {
+  max-height: 600px; /* Height for approximately 5 experiences */
+  overflow-y: scroll !important; /* Force scrollbar to always show */
+  overflow-x: hidden;
+  padding-right: 1rem;
+  scroll-behavior: smooth;
+  /* Force scrollbar visibility */
+  scrollbar-gutter: stable;
+}
+
+/* Custom scrollbar styling - Force always visible */
+.scrollable-timeline::-webkit-scrollbar {
+  width: 12px !important;
+  background: #f7fafc;
+  border-radius: 6px;
+  /* Force display */
+  display: block !important;
+  visibility: visible !important;
+}
+
+.scrollable-timeline::-webkit-scrollbar-track {
+  background: #f7fafc !important;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
+  /* Force visibility */
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.scrollable-timeline::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+  /* Force always visible */
+  opacity: 1 !important;
+  visibility: visible !important;
+  min-height: 20px; /* Minimum thumb size */
+}
+
+.scrollable-timeline::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2980b9, #3498db) !important;
+  box-shadow: 0 2px 6px rgba(52, 152, 219, 0.5);
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+.scrollable-timeline::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(135deg, #1f5f8b, #2980b9) !important;
+}
+
+/* Firefox scrollbar styling - Force always visible */
+.scrollable-timeline {
+  scrollbar-width: auto !important; /* Force auto width for visibility */
+  scrollbar-color: #3498db #f7fafc !important;
+}
+
+/* Add a subtle gradient fade at top and bottom to indicate scroll */
+.scrollable-timeline::before,
+.scrollable-timeline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 20px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.scrollable-timeline::before {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), transparent);
+}
+
+.scrollable-timeline::after {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.8), transparent);
+}
+
+/* Scrollable timeline adjustments for better mobile experience */
+@media (max-width: 768px) {
+  .scrollable-timeline {
+    max-height: 450px;
+    padding-right: 1rem;
+    overflow-y: scroll !important; /* Force scrollbar on mobile */
+  }
+
+  .scrollable-timeline::-webkit-scrollbar {
+    width: 10px !important;
+    background: #f7fafc !important;
+    border-radius: 5px;
+    /* Force visibility on mobile */
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .scrollable-timeline::-webkit-scrollbar-track {
+    background: #f7fafc !important;
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .scrollable-timeline::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(52, 152, 219, 0.3);
+    opacity: 1 !important;
+    visibility: visible !important;
+    min-height: 15px;
   }
 }
 

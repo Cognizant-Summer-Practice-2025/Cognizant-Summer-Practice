@@ -109,9 +109,9 @@ namespace backend_portfolio.Controllers
                 var fileInfo = new FileInfo(filePath);
                 var contentType = GetContentType(fileExtension);
 
-                Response.Headers.Add("Content-Type", contentType);
-                Response.Headers.Add("Content-Length", fileInfo.Length.ToString());
-                Response.Headers.Add("Last-Modified", fileInfo.LastWriteTimeUtc.ToString("R"));
+                Response.Headers["Content-Type"] = contentType;
+                Response.Headers["Content-Length"] = fileInfo.Length.ToString();
+                Response.Headers["Last-Modified"] = fileInfo.LastWriteTimeUtc.ToString("R");
 
                 return Ok();
             }

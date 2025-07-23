@@ -15,7 +15,9 @@ import {
 import { 
   getUserPortfolioComprehensive,
   getPortfolioComprehensive,
-  incrementViewCount 
+  incrementViewCount,
+  getUserPortfolioInfo,
+  UserPortfolioInfo
 } from '@/lib/portfolio/api';
 
 interface PortfolioContextType {
@@ -30,6 +32,8 @@ interface PortfolioContextType {
     blogPosts: BlogPost[];
     bookmarks: Bookmark[];
   } | null;
+  // Portfolio owner information (when viewing someone else's portfolio)
+  currentPortfolioOwner: UserPortfolioInfo | null;
   // Loading states
   loading: boolean;
   portfolioLoading: boolean;
@@ -54,6 +58,24 @@ interface PortfolioContextType {
   getUserBookmarks: () => Bookmark[];
   getUserPortfolios: () => Portfolio[];
   getPortfolioTemplates: () => PortfolioTemplate[];
+  // Navigation support for home page cache
+  setHomePageReturnContext: (context: HomePageReturnContext) => void;
+  getHomePageReturnContext: () => HomePageReturnContext | null;
+  clearHomePageReturnContext: () => void;
+}
+
+interface HomePageReturnContext {
+  page: number;
+  scrollPosition: number;
+  timestamp: number;
+  filters?: {
+    searchTerm?: string;
+    sortBy?: string;
+    sortDirection?: string;
+    selectedSkills?: string[];
+    selectedRoles?: string[];
+    featuredOnly?: boolean;
+  };
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
@@ -75,8 +97,12 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     blogPosts: BlogPost[];
     bookmarks: Bookmark[];
   } | null>(null);
+  const [currentPortfolioOwner, setCurrentPortfolioOwner] = useState<UserPortfolioInfo | null>(null);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
+
+  // Home page return context for navigation
+  const [homePageReturnContext, setHomePageReturnContextState] = useState<HomePageReturnContext | null>(null);
 
   // Load user's comprehensive portfolio data
   const loadUserPortfolios = useCallback(async () => {
@@ -110,8 +136,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         setPortfolioError(`No published portfolio found for user ${userId}`);
         setCurrentPortfolio(null);
         setCurrentPortfolioEntities(null);
+        setCurrentPortfolioOwner(null);
         return;
       }
+
+      // Fetch portfolio owner information
+      const portfolioOwner = await getUserPortfolioInfo(userId);
+      setCurrentPortfolioOwner(portfolioOwner);
       
       setCurrentPortfolio(publishedPortfolio);
       
@@ -137,6 +168,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       setPortfolioError(err instanceof Error ? err.message : `No portfolio found for user ${userId}`);
       setCurrentPortfolio(null);
       setCurrentPortfolioEntities(null);
+      setCurrentPortfolioOwner(null);
     } finally {
       setPortfolioLoading(false);
     }
@@ -155,8 +187,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
           setPortfolioError(`Portfolio ${portfolioId} is not published`);
           setCurrentPortfolio(null);
           setCurrentPortfolioEntities(null);
+          setCurrentPortfolioOwner(null);
           return;
         }
+
+        // Fetch portfolio owner information
+        const portfolioOwner = await getUserPortfolioInfo(comprehensiveData.portfolio.userId);
+        setCurrentPortfolioOwner(portfolioOwner);
         
         setCurrentPortfolio(comprehensiveData.portfolio);
         
@@ -182,6 +219,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       setPortfolioError(err instanceof Error ? err.message : `Portfolio ${portfolioId} not found`);
       setCurrentPortfolio(null);
       setCurrentPortfolioEntities(null);
+      setCurrentPortfolioOwner(null);
     } finally {
       setPortfolioLoading(false);
     }
@@ -197,6 +235,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   const clearCurrentPortfolio = useCallback(() => {
     setCurrentPortfolio(null);
     setCurrentPortfolioEntities(null);
+    setCurrentPortfolioOwner(null);
     setPortfolioError(null);
   }, []);
 
@@ -205,8 +244,22 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     setUserPortfolioData(null);
     setCurrentPortfolio(null);
     setCurrentPortfolioEntities(null);
+    setCurrentPortfolioOwner(null);
     setError(null);
     setPortfolioError(null);
+  }, []);
+
+  // Home page return context management
+  const setHomePageReturnContext = useCallback((context: HomePageReturnContext) => {
+    setHomePageReturnContextState(context);
+  }, []);
+
+  const getHomePageReturnContext = useCallback(() => {
+    return homePageReturnContext;
+  }, [homePageReturnContext]);
+
+  const clearHomePageReturnContext = useCallback(() => {
+    setHomePageReturnContextState(null);
   }, []);
 
   // Load user portfolio data when user changes
@@ -214,7 +267,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     if (!userLoading && user?.id && !userPortfolioData) {
       loadUserPortfolios();
     }
-  }, [user, userLoading, userPortfolioData]);
+  }, [user, userLoading, userPortfolioData, loadUserPortfolios]);
 
   // Computed values
   const hasPublishedPortfolio = userPortfolioData?.portfolios?.some(p => p.isPublished) ?? false;
@@ -270,6 +323,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     userPortfolioData,
     currentPortfolio,
     currentPortfolioEntities,
+    currentPortfolioOwner,
     // Loading states
     loading: loading || userLoading,
     portfolioLoading,
@@ -294,6 +348,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     getUserBookmarks,
     getUserPortfolios,
     getPortfolioTemplates,
+    // Home page navigation support
+    setHomePageReturnContext,
+    getHomePageReturnContext,
+    clearHomePageReturnContext,
   };
 
 

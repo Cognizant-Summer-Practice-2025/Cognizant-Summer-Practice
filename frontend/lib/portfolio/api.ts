@@ -18,6 +18,7 @@ export interface UserPortfolioInfo {
   professionalTitle: string;
   location: string;
   avatarUrl?: string;
+  email: string;
 }
 
 // Portfolio Card DTO for home page display
