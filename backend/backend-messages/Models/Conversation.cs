@@ -27,7 +27,6 @@ namespace backend_messages.Models
         [Column("last_message_at")]
         public DateTime? LastMessageAt { get; set; }
 
-        // Navigation properties
         public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
     }
 } 

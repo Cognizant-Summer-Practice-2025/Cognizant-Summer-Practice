@@ -5,10 +5,35 @@ import {
   OAuthProvider,
   OAuthProviderSummary,
   RegisterOAuthUserRequest,
-  CheckOAuthProviderResponse
+  CheckOAuthProviderResponse,
+  SearchUser
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5200';
+
+// Search users by username, first name, last name, or full name
+export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching users:', error);
+    throw error;
+  }
+}
+
+// Backward compatibility alias
+export const searchUsersByUsername = searchUsers;
 
 // Check if user exists by email
 export async function checkUserExists(email: string): Promise<CheckEmailResponse> {

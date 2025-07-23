@@ -39,7 +39,6 @@ namespace backend_portfolio.Controllers
         {
             try
             {
-                // Validate inputs
                 if (imageFile == null || imageFile.Length == 0)
                 {
                     return BadRequest(new ImageUploadErrorResponse
@@ -71,7 +70,6 @@ namespace backend_portfolio.Controllers
                     });
                 }
 
-                // Upload the image
                 var imagePath = await _imageUploadUtility.SaveImageAsync(imageFile, subfolder);
 
                 var response = new ImageUploadResponse

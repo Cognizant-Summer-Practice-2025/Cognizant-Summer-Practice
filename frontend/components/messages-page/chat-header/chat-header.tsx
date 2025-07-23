@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Avatar, Button, Dropdown } from "antd";
 import type { MenuProps } from 'antd';
 import { UserOutlined, MoreOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 import "./style.css";
 
 interface Contact {
@@ -11,7 +12,9 @@ interface Contact {
   lastMessage: string;
   timestamp: string;
   isActive?: boolean;
-  isOnline: boolean;
+  isOnline?: boolean;
+  userId?: string;
+  professionalTitle?: string;
 }
 
 interface ChatHeaderProps {
@@ -20,6 +23,7 @@ interface ChatHeaderProps {
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const router = useRouter();
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     const { key } = e;
@@ -78,8 +82,12 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
   ];
 
   const handleViewProfile = () => {
-    console.log('View profile:', selectedContact.name);
-    // Add view profile logic here - could open a modal or navigate to profile page
+    if (selectedContact.userId) {
+      // Navigate to the user's portfolio page (using 'user' param that portfolio page expects)
+      router.push(`/portfolio?user=${selectedContact.userId}`);
+    } else {
+      console.log('No user ID available for:', selectedContact.name);
+    }
   };
 
   return (
@@ -93,7 +101,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
         <div className="contact-info">
           <h3 className="contact-name">{selectedContact.name}</h3>
           <div className="contact-status">
-            <span className="contact-role">UI/UX Designer</span>
+            <span className="contact-role">{selectedContact.professionalTitle || 'Professional'}</span>
             <span className="status-separator">•</span>
             <span className={`online-status ${selectedContact.isOnline ? 'online' : 'offline'}`}>
               <span className="status-dot"></span>
@@ -105,11 +113,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
       
       <div className="chat-header-right">
         <Button 
-          className="view-profile-btn"
+          className="view-portfolio-btn"
           onClick={handleViewProfile}
           icon={<UserOutlined />}
         >
-          View Profile
+          View Portfolio
         </Button>
         
         <Dropdown

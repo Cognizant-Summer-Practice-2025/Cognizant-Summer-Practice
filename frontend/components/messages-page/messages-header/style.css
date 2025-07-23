@@ -1,0 +1,32 @@
+.messages-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #E2E8F0;
+  background: white;
+  min-height: 72px;
+}
+
+.contact-avatar {
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.contact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #020817;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-button {
+  flex-shrink: 0;
+  margin-left: 12px;
+} 

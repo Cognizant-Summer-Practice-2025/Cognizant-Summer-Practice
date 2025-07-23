@@ -15,7 +15,7 @@ namespace backend_user.Controllers
     /// <summary>
     /// UsersController for managing user-related operations.
     /// </summary>
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -71,7 +71,16 @@ namespace backend_user.Controllers
         [HttpGet("email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest("Email parameter is required.");
+            }
             var user = await _userService.GetUserByEmailAsync(email);
+            
+            if (user == null)
+            {
+                return NotFound($"User with email {email} not found.");
+            }
             return Ok(user);
         }
 
@@ -80,6 +89,46 @@ namespace backend_user.Controllers
         {
             var user = await _userService.GetUserByEmailAsync(email);
             return Ok(new { exists = user != null, user = user });
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return BadRequest(new { message = "Search query parameter 'q' is required" });
+            }
+
+            try
+            {
+                var users = await _userService.SearchUsersAsync(q);
+                var response = users.Select(u => new
+                {
+                    id = u.Id,
+                    username = u.Username,
+                    firstName = u.FirstName,
+                    lastName = u.LastName,
+                    fullName = $"{u.FirstName} {u.LastName}".Trim(),
+                    professionalTitle = u.ProfessionalTitle,
+                    avatarUrl = u.AvatarUrl,
+                    isActive = u.IsActive
+                }).Where(u => u.isActive);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                // Log the detailed error for debugging
+                Console.WriteLine($"Error in SearchUsers: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                return BadRequest(new
+                {
+                    message = ex.Message,
+                    details = ex.InnerException?.Message,
+                    type = ex.GetType().Name
+                });
+            }
         }
 
         [HttpPost]
@@ -319,6 +368,6 @@ namespace backend_user.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
+
     }
 }

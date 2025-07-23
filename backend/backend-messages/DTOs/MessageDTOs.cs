@@ -1,13 +1,11 @@
 namespace backend_messages.DTOs
 {
-    // Request DTOs
     public class SendMessageRequest
     {
         public Guid ReceiverId { get; set; }
         public string Content { get; set; } = string.Empty;
     }
 
-    // Response DTOs
     public class MessageResponse
     {
         public Guid Id { get; set; }

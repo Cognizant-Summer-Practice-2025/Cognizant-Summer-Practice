@@ -13,6 +13,17 @@ export interface User {
   lastLoginAt?: string;
 }
 
+export interface SearchUser {
+  id: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  fullName: string;
+  professionalTitle?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+}
+
 export interface CheckEmailResponse {
   exists: boolean;
   user: User | null;
