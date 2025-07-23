@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Select, Row, Col, Spin, Empty } from 'antd';
 import PortfolioCard from './portfolio-card';
 import PaginationControls from './pagination-controls';
@@ -19,6 +19,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
     loading,
     error,
     sortBy,
+    sortDirection,
     setSort,
     pagination
   } = useHomePageCache();
@@ -26,6 +27,15 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
   const handleSortChange = (value: string) => {
     const [sortBy, sortDirection] = value.split(':');
     setSort(sortBy, sortDirection || 'desc');
+  };
+
+  const getSortValue = () => {
+    // Default to 'most-recent:desc' if sortBy is not set
+    if (!sortBy) return 'most-recent:desc';
+    
+    // Use the actual sortDirection from context, fallback to 'desc'
+    const direction = sortDirection || 'desc';
+    return `${sortBy}:${direction}`;
   };
 
   const sortedPortfolios = useMemo(() => {
@@ -85,10 +95,18 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
           return dateB.getTime() - dateA.getTime();
         });
 
+      case 'name':
+        return sorted.sort((a, b) => {
+          const nameA = a.name.toLowerCase();
+          const nameB = b.name.toLowerCase();
+          const comparison = nameA.localeCompare(nameB);
+          return sortDirection === 'desc' ? -comparison : comparison;
+        });
+
       default:
         return sorted;
     }
-  }, [portfolios, sortBy]);
+  }, [portfolios, sortBy, sortDirection]);
 
   return (
     <div className={`portfolio-grid ${className}`}>
@@ -124,7 +142,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
       </div>
 
       <div className="portfolio-grid-content">
-        {loading && portfolios.length === 0 ? (
+        {loading && sortedPortfolios.length === 0 ? (
           <div className="portfolio-grid-loading">
             <Spin size="large" />
             <p>Loading amazing portfolios...</p>
@@ -140,7 +158,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
               } 
             />
           </div>
-        ) : portfolios.length === 0 ? (
+        ) : sortedPortfolios.length === 0 ? (
           <div className="portfolio-grid-empty">
             <Empty 
               description="No portfolios found. Try adjusting your filters or be the first to create one!"
@@ -149,7 +167,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
         ) : (
           <>
             <Row gutter={[24, 24]} className="portfolio-row">
-              {portfolios.map((portfolio) => (
+              {sortedPortfolios.map((portfolio) => (
                 <Col 
                   key={portfolio.id} 
                   xs={24} 
@@ -179,7 +197,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
             </Row>
             
             {/* Loading overlay for pagination changes */}
-            {loading && portfolios.length > 0 && (
+            {loading && sortedPortfolios.length > 0 && (
               <div className="portfolio-grid-loading-overlay">
                 <Spin size="small" />
               </div>
@@ -189,7 +207,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
       </div>
 
       {/* Pagination Controls */}
-      {pagination && portfolios.length > 0 && (
+      {pagination && sortedPortfolios.length > 0 && (
         <PaginationControls 
           showQuickJumper
           showTotal
