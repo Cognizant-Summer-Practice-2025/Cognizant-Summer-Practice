@@ -13,7 +13,7 @@ import time
 from typing import List, Dict, Any
 
 USER_API_BASE = "http://localhost:5200/api/Users"
-PORTFOLIO_SCRIPT_PATH = "/Users/theo/Documents/Cognizant-Summer-Practice/scripts/generate-portfolio-test-data.py"
+PORTFOLIO_SCRIPT_PATH = "./generate-portfolio-test-data.py"
 
 # Test data arrays
 FIRST_NAMES = [
@@ -103,33 +103,33 @@ def create_portfolio_for_user(user_id: str) -> tuple[bool, str]:
 
 def main():
     """Main function to orchestrate mass user and portfolio creation"""
-    print("🚀 Starting Mass User and Portfolio Creation (100 users)")
+    print("Starting Mass User and Portfolio Creation (100 users)")
     print("=" * 56)
     
     created_count = 0
     failed_count = 0
     created_users = []
     
-    print("📊 Progress tracking:")
+    print("Progress tracking:")
     print("=" * 20)
     
     for i in range(1, 101):
         user_data = generate_user_data()
-        print(f"👤 Creating user {i}/100: {user_data['firstName']} {user_data['lastName']}... ", end="")
+        print(f"Creating user {i}/100: {user_data['firstName']} {user_data['lastName']}... ", end="")
         
         # Create user
         user_success, user_result = create_user(user_data)
         
         if user_success:
             user_id = user_result
-            print(f"✅ Created (ID: {user_id[:8]}...)")
+            print(f"Created (ID: {user_id[:8]}...)")
             
             # Immediately create portfolio
-            print("  📁 Creating portfolio for user... ", end="")
+            print("  Creating portfolio for user... ", end="")
             portfolio_success, portfolio_result = create_portfolio_for_user(user_id)
             
             if portfolio_success:
-                print("✅ Portfolio created!")
+                print("Portfolio created!")
                 created_count += 1
                 created_users.append({
                     "userId": user_id,
@@ -137,50 +137,46 @@ def main():
                     "email": user_data['email']
                 })
             else:
-                print("❌ Portfolio failed")
+                print("Portfolio failed")
                 print(f"     Error: {portfolio_result}")
                 failed_count += 1
         else:
-            print("❌ User creation failed")
+            print("User creation failed")
             print(f"   Error: {user_result}")
             failed_count += 1
         
         # Progress update every 10 users
         if i % 10 == 0:
-            print(f"📈 Progress: {i}/100 users processed, {created_count} successful, {failed_count} failed")
+            print(f"Progress: {i}/100 users processed, {created_count} successful, {failed_count} failed")
             print()
         
         # Small delay to avoid overwhelming the server
         time.sleep(0.1)
     
     # Final summary
-    print("\n🎉 Mass Creation Complete!")
+    print("\nMass Creation Complete!")
     print("=" * 26)
-    print("📊 Final Summary:")
-    print(f"   👥 Total users attempted: 100")
-    print(f"   ✅ Successful creations: {created_count}")
-    print(f"   ❌ Failed creations: {failed_count}")
-    print(f"   📈 Success rate: {(created_count * 100) // 100}%")
+    print("Final Summary:")
+    print(f"   Total users attempted: 100")
+    print(f"   Successful creations: {created_count}")
+    print(f"   Failed creations: {failed_count}")
+    print(f"   Success rate: {(created_count * 100) // 100}%")
     print()
-    print("🔍 Each successful user has:")
-    print("   👤 User account created")
-    print("   📁 Test portfolio with 100 projects, 100 experiences, 100 skills, 100 blog posts")
+    print("Each successful user has:")
+    print("   User account created")
+    print("   Test portfolio with 100 projects, 100 experiences, 100 skills, 100 blog posts")
     print()
-    print("🌐 Access portfolios via: http://localhost:3000/portfolio/[PORTFOLIO_ID]")
-    print("🔧 Backend APIs running on: User (5200), Portfolio (5201)")
+    print("Access portfolios via: http://localhost:3000/portfolio/[PORTFOLIO_ID]")
+    print("Backend APIs running on: User (5200), Portfolio (5201)")
     
-    # Save user list for reference
-    if created_users:
-        with open('/Users/theo/Documents/Cognizant-Summer-Practice/scripts/created_users.json', 'w') as f:
-            json.dump(created_users, f, indent=2)
-        print(f"\n💾 Created user list saved to: created_users.json")
+    # User list saving removed as requested
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n⚠️  Process interrupted by user")
+        print("\nProcess interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Unexpected error: {str(e)}")
+        print(f"\nUnexpected error: {str(e)}")
         sys.exit(1)

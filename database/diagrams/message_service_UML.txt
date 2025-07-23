@@ -6,68 +6,24 @@
 !define EXTERNAL_REF(x) <color:#red><&warning></color> x
 
 ' === MESSAGES SERVICE TABLES ===
-entity "conversations" as conversations {
-  PRIMARY_KEY(id) : UUID
-  --
-  FOREIGN_KEY(last_message_id) : UUID
-  type : ENUM
-  title : VARCHAR
-  last_activity_at : TIMESTAMP
-  created_at : TIMESTAMP
-  updated_at : TIMESTAMP
-}
-
-entity "conversation_participants" as participants {
-  PRIMARY_KEY(id) : UUID
-  --
-  FOREIGN_KEY(conversation_id) : UUID
-  EXTERNAL_REF(user_id) : UUID
-  FOREIGN_KEY(last_read_message_id) : UUID
-  joined_at : TIMESTAMP
-  left_at : TIMESTAMP
-  is_muted : BOOLEAN
-  role : ENUM
-}
+' Note: Enum values stored as integers for Entity Framework compatibility
+' message_type: 0=Text, 1=Image, 2=File, 3=Audio, 4=Video, 5=System
 
 entity "messages" as messages {
   PRIMARY_KEY(id) : UUID
   --
-  FOREIGN_KEY(conversation_id) : UUID
   EXTERNAL_REF(sender_id) : UUID
+  EXTERNAL_REF(receiver_id) : UUID
   FOREIGN_KEY(reply_to_message_id) : UUID
   content : TEXT
-  message_type : ENUM
-  attachment_url : TEXT
-  attachment_filename : VARCHAR
-  attachment_size : INTEGER
-  is_edited : BOOLEAN
-  edited_at : TIMESTAMP
+  message_type : INTEGER
+  is_read : BOOLEAN
   created_at : TIMESTAMP
   updated_at : TIMESTAMP
   deleted_at : TIMESTAMP
 }
 
-entity "message_reads" as message_reads {
-  PRIMARY_KEY(id) : UUID
-  --
-  FOREIGN_KEY(message_id) : UUID
-  EXTERNAL_REF(user_id) : UUID
-  read_at : TIMESTAMP
-}
-
-entity "user_cache" as user_cache {
-  PRIMARY_KEY(user_id) : UUID
-  --
-  first_name : VARCHAR
-  last_name : VARCHAR
-  avatar_url : TEXT
-  is_active : BOOLEAN
-  last_updated : TIMESTAMP
-}
-
 ' Messages service relationships
-conversations ||--o{ participants : "has"
-conversations ||--o{ messages : "contains"
-messages ||--o{ message_reads : "read_by"
+messages }o--|| messages : "replies_to"
 
 @enduml

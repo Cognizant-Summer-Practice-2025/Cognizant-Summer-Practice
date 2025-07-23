@@ -95,7 +95,8 @@ namespace backend_user.Services.Mappers
                 name = $"{user.FirstName} {user.LastName}".Trim(),
                 professionalTitle = user.ProfessionalTitle ?? "Portfolio Creator",
                 location = user.Location ?? "Location not specified",
-                avatarUrl = user.AvatarUrl
+                avatarUrl = user.AvatarUrl,
+                email = user.Email
             };
         }
 

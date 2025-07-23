@@ -19,10 +19,16 @@ export function Experience({ data: experience }: ExperienceProps) {
     return `${start} - ${end}`;
   };
 
+  // Check if we need scrolling (more than 5 experiences)
+  const needsScrolling = experience.length > 5;
+
   return (
     <section className="gb-experience-modern">
       <h3 className="experience-modern-title">Work experience</h3>
-      <div className="experience-modern-timeline">
+      <p className="experience-count-text">
+        {experience.length} {experience.length === 1 ? 'position' : 'positions'} in my career
+      </p>
+      <div className={`experience-modern-timeline ${needsScrolling ? 'scrollable-timeline' : ''}`}>
         {experience.map((item, index) => (
           <div 
             key={item.id} 
