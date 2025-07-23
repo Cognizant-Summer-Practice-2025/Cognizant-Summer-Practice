@@ -3,7 +3,6 @@
   flex-direction: column;
   flex: 1; 
   min-height: 80vh; 
-  padding-top: 4rem;
   background: white;
   position: relative;
 }

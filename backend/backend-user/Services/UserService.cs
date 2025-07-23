@@ -48,10 +48,19 @@ namespace backend_user.Services
         public async Task<IEnumerable<User>> SearchUsersAsync(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return new List<User>();
+                return new List<User>();  
+            try
+            {
+                searchTerm = searchTerm.Trim().ToLowerInvariant();
 
-            var users = await _userRepository.SearchUsers(searchTerm);
-            return users;
+                var users = await _userRepository.SearchUsers(searchTerm);
+                return users;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return new List<User>();
+            }
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
