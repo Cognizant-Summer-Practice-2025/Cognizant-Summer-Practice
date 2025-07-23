@@ -1,63 +1,29 @@
+
 using Microsoft.EntityFrameworkCore;
-using backend_messages.Data;
-using backend_messages.Data.Repositories;
-using backend_messages.Services;
-using backend_messages;
+using BackendMessages.Data; 
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000") 
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
-
-builder.Services.AddDbContext<MessageDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
-builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddScoped<IConversationService, ConversationService>();
-builder.Services.AddScoped<IMessageService, MessageService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+// Add DB Context
+builder.Services.AddDbContext<MessagesDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MessagesDatabase")));
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowFrontend");
-
 app.UseAuthorization();
 app.MapControllers();
-
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var context = scope.ServiceProvider.GetRequiredService<MessageDbContext>();
-        try
-        {
-            await context.Database.EnsureCreatedAsync();
-            await TestData.SeedTestDataAsync(context);
-            Console.WriteLine("Test data seeded successfully!");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error seeding test data: {ex.Message}");
-        }
-    }
-}
 
 app.Run();
