@@ -21,7 +21,6 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ portfolios, loading, erro
     setSortBy(value);
   };
 
-  // 🔄 SORTING LOGIC - Sort portfolios based on selected criteria
   const sortedPortfolios = useMemo(() => {
     if (!portfolios || portfolios.length === 0) {
       return portfolios;

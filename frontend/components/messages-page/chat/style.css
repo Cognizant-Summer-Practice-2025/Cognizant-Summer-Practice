@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   flex: 1; 
-  min-height: 80vh; /* Ensures the chat container takes at least 80% of the viewport height */
+  min-height: 80vh; 
   padding-top: 4rem;
   background: white;
   position: relative;
@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   gap: clamp(1rem, 2vw, 1.5rem);
-  min-height: 0; /* Important for flex containers */
+  min-height: 0; 
 }
 
 .message-wrapper {
@@ -205,7 +205,6 @@
   }
 }
 
-/* Container queries for better component-level responsiveness */
 @container (max-width: 600px) {
   .message-wrapper.user-message,
   .message-wrapper.other-message {
@@ -213,14 +212,12 @@
   }
 }
 
-/* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .send-button {
     transition: none;
   }
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
   .message-bubble {
     border-width: 2px;

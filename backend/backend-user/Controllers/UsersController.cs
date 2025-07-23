@@ -71,7 +71,16 @@ namespace backend_user.Controllers
         [HttpGet("email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest("Email parameter is required.");
+            }
             var user = await _userService.GetUserByEmailAsync(email);
+            
+            if (user == null)
+            {
+                return NotFound($"User with email {email} not found.");
+            }
             return Ok(user);
         }
 
@@ -112,8 +121,9 @@ namespace backend_user.Controllers
                 // Log the detailed error for debugging
                 Console.WriteLine($"Error in SearchUsers: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                
-                return BadRequest(new { 
+
+                return BadRequest(new
+                {
                     message = ex.Message,
                     details = ex.InnerException?.Message,
                     type = ex.GetType().Name
@@ -358,6 +368,6 @@ namespace backend_user.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
+
     }
 }

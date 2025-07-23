@@ -115,11 +115,8 @@ const MessagesPage = () => {
     let status: "read" | "delivered" | "sent" = "sent";
     
     if (msg.senderId === user?.id) {
-      // For user's own messages, show if they've been read by the other person
       status = msg.isRead ? "read" : "delivered";
     } else {
-      // For other person's messages, they're always "delivered" to us
-      // (we don't show read status for messages we receive)
       status = "delivered";
     }
     
@@ -176,7 +173,7 @@ const MessagesPage = () => {
     if (conversation) {
       setSelectedContact({
         ...contact,
-        lastMessage: conversation.lastMessage?.content || "No messages yet", // Use latest message
+        lastMessage: conversation.lastMessage?.content || "No messages yet",
         timestamp: formatTimestamp(conversation.updatedAt)
       });
       selectConversation(conversation);
@@ -285,7 +282,7 @@ const MessagesPage = () => {
       
       <div
         className="messages-chat"
-        style={{ flex: 1, display: "flex", flexDirection: "column" }}
+        style={{ flex: 1, display: "flex", flexDirection: "column", padding: "4rem 0 0 0" }}
       >
 
         {messagesError && (
