@@ -13,7 +13,7 @@ from typing import List, Dict, Any
 
 # Accept USER_ID as command line argument
 if len(sys.argv) != 2:
-    print("❌ Error: User ID is required as argument")
+    print("Error: User ID is required as argument")
     print("Usage: python3 generate-portfolio-test-data.py <USER_ID>")
     sys.exit(1)
 
@@ -225,7 +225,7 @@ Implementing these practices will significantly improve your application's perfo
 def create_portfolio() -> str:
     """Create a new portfolio and return its ID"""
     
-    print("📝 Step 1: Creating a new portfolio...")
+    print("Step 1: Creating a new portfolio...")
     
     portfolio_data = {
         "userId": USER_ID,
@@ -252,29 +252,29 @@ def create_portfolio() -> str:
         if not portfolio_id:
             raise Exception(f"No portfolio ID in response: {portfolio}")
         
-        print(f"✅ Portfolio created successfully with ID: {portfolio_id}")
+        print(f"Portfolio created successfully with ID: {portfolio_id}")
         return portfolio_id
         
     except requests.exceptions.RequestException as e:
-        print(f"❌ Failed to create portfolio: {e}")
+        print(f"Failed to create portfolio: {e}")
         raise
 
 def save_bulk_content(portfolio_id: str):
     """Save bulk content to the portfolio"""
     
-    print("📊 Step 2: Generating and saving bulk content (100 items each)...")
+    print("Step 2: Generating and saving bulk content (100 items each)...")
     
     # Generate all content
-    print("  📁 Generating 100 projects...")
+    print("  Generating 100 projects...")
     projects = generate_projects(portfolio_id, 100)
     
-    print("  💼 Generating 100 experiences...")
+    print("  Generating 100 experiences...")
     experiences = generate_experiences(portfolio_id, 100)
     
-    print("  🛠️ Generating 100 skills...")
+    print("  Generating 100 skills...")
     skills = generate_skills(portfolio_id, 100)
     
-    print("  📝 Generating 100 blog posts...")
+    print("  Generating 100 blog posts...")
     blog_posts = generate_blog_posts(portfolio_id, 100)
     
     # Create bulk content request
@@ -287,7 +287,7 @@ def save_bulk_content(portfolio_id: str):
         "publishPortfolio": True
     }
     
-    print("💾 Step 3: Saving bulk content to portfolio...")
+    print("Step 3: Saving bulk content to portfolio...")
     
     try:
         url = f"{PORTFOLIO_API_BASE}/{portfolio_id}/save-content"
@@ -295,12 +295,12 @@ def save_bulk_content(portfolio_id: str):
         response.raise_for_status()
         
         result = response.json()
-        print("✅ Bulk content saved successfully!")
+        print("Bulk content saved successfully!")
         
         return result
         
     except requests.exceptions.RequestException as e:
-        print(f"❌ Failed to save bulk content: {e}")
+        print(f"Failed to save bulk content: {e}")
         if hasattr(e, 'response') and e.response is not None:
             print(f"Response: {e.response.text}")
         raise
@@ -308,7 +308,7 @@ def save_bulk_content(portfolio_id: str):
 def main():
     """Main function to orchestrate the portfolio creation"""
     
-    print("🚀 Starting Portfolio Test Data Generation for User:", USER_ID)
+    print("Starting Portfolio Test Data Generation for User:", USER_ID)
     print("=" * 63)
     
     try:
@@ -319,22 +319,22 @@ def main():
         save_bulk_content(portfolio_id)
         
         # Summary
-        print("\n📊 Portfolio Summary:")
-        print("   📁 Projects: 100 (10 featured)")
-        print("   💼 Experience: 100 entries (spanning 25 years)")
-        print("   🛠️ Skills: 100 (across 10 categories)")
-        print("   📝 Blog Posts: 100 (33% published)")
+        print("\nPortfolio Summary:")
+        print("   Projects: 100 (10 featured)")
+        print("   Experience: 100 entries (spanning 25 years)")
+        print("   Skills: 100 (across 10 categories)")
+        print("   Blog Posts: 100 (33% published)")
         print()
-        print(f"🌐 Portfolio URL: http://localhost:3000/portfolio/{portfolio_id}")
-        print(f"🔧 Admin Panel: http://localhost:3000/admin/portfolio/{portfolio_id}")
+        print(f"Portfolio URL: http://localhost:3000/portfolio/{portfolio_id}")
+        print(f"Admin Panel: http://localhost:3000/admin/portfolio/{portfolio_id}")
         print()
-        print("🎉 Portfolio test data generation completed successfully!")
-        print(f"📋 Portfolio ID: {portfolio_id}")
-        print(f"👤 User ID: {USER_ID}")
+        print("Portfolio test data generation completed successfully!")
+        print(f"Portfolio ID: {portfolio_id}")
+        print(f"User ID: {USER_ID}")
         print("=" * 63)
         
     except Exception as e:
-        print(f"\n❌ Error during portfolio generation: {e}")
+        print(f"\nError during portfolio generation: {e}")
         return 1
     
     return 0
