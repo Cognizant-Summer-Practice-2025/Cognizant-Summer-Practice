@@ -42,7 +42,7 @@ export function LoadingOverlay({
       {/* Backdrop */}
       {showBackdrop && (
         <div 
-          className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" 
+          className="absolute inset-0 bg-transparent backdrop-blur-sm" 
           onClick={onClose}
         />
       )}
