@@ -19,25 +19,30 @@ interface Contact {
   lastMessage: string;
   timestamp: string;
   isActive?: boolean;
-  isOnline: boolean;
+  isOnline?: boolean;
+  userId?: string;
+  professionalTitle?: string;
 }
 
 interface ChatProps {
   messages: Message[];
   selectedContact: Contact;
+  currentUserAvatar?: string;
+  onSendMessage?: (content: string) => Promise<void>;
+  sendingMessage?: boolean;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, selectedContact }) => {
+const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false }) => {
   const [newMessage, setNewMessage] = useState("");
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "read":
-        return "√√";
+        return "✓✓"; // Double check for read
       case "delivered":
-        return "√√";
+        return "✓✓"; // Double check for delivered
       case "sent":
-        return "√";
+        return "✓"; // Single check for sent
       default:
         return "";
     }
@@ -45,15 +50,30 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact }) => {
 
   const getStatusColor = (status: string, sender: string) => {
     if (sender === "user") {
-      return status === "read" ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.8)";
+      // Only show status for user's own messages
+      switch (status) {
+        case "read":
+          return "#22c55e"; // Green for read (seen)
+        case "delivered":
+          return "rgba(255, 255, 255, 0.7)"; // Light white for delivered
+        case "sent":
+          return "rgba(255, 255, 255, 0.5)"; // Faded white for sent
+        default:
+          return "rgba(255, 255, 255, 0.8)";
+      }
     }
-    return status === "read" ? "#22c55e" : "#6b7280";
+    return "transparent"; // Hide status for other user's messages
   };
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      // Handle sending message logic here
-      setNewMessage("");
+  const handleSendMessage = async () => {
+    if (newMessage.trim() && onSendMessage && !sendingMessage) {
+      try {
+        await onSendMessage(newMessage.trim());
+        setNewMessage("");
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        // Message will stay in input field if sending fails
+      }
     }
   };
 
@@ -72,7 +92,9 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact }) => {
                 size={32}
                 src={selectedContact.avatar}
                 className="message-avatar"
-              />
+              >
+                {selectedContact.name.charAt(0).toUpperCase()}
+              </Avatar>
             )}
             
             <div className={`message-bubble ${message.sender === "user" ? "user-bubble" : "other-bubble"}`}>
@@ -95,9 +117,11 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact }) => {
             {message.sender === "user" && (
               <Avatar
                 size={32}
-                src="https://placehold.co/32x32"
+                src={currentUserAvatar || "https://placehold.co/32x32"}
                 className="message-avatar"
-              />
+              >
+                {!currentUserAvatar && "You"}
+              </Avatar>
             )}
           </div>
         ))}
@@ -117,6 +141,8 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact }) => {
             type="primary"
             icon={<SendOutlined />}
             onClick={handleSendMessage}
+            disabled={sendingMessage || !newMessage.trim()}
+            loading={sendingMessage}
             className="send-button"
           />
         </div>

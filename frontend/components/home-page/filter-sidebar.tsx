@@ -26,16 +26,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
   const [skillsSearchTerm, setSkillsSearchTerm] = useState('');
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
-  // Sync with activeFilters prop
   useEffect(() => {
     setSelectedFilters(activeFilters);
   }, [activeFilters]);
 
-  // Calculate portfolio filter counts from actual data
   const calculatePortfolioFilters = (): FilterOption[] => {
     const totalCount = portfolios.length;
     const featuredCount = portfolios.filter(p => p.featured).length;
-    // For "new this week", we'll approximate based on recent dates
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const newThisWeekCount = portfolios.filter(p => {
@@ -59,7 +56,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
       roleCounts.set(role, (roleCounts.get(role) || 0) + 1);
     });
 
-    // Create filters for the most common roles
     const roleFilters: FilterOption[] = [];
     
     // Add predefined common roles if they exist in data
@@ -88,7 +84,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
       }
     });
 
-    // Add any other roles that don't fit the common categories
     roleCounts.forEach((count, role) => {
       const isAlreadyIncluded = commonRoles.some(roleGroup => 
         roleGroup.labels.includes(role)
@@ -107,14 +102,12 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
       }
     });
 
-    // Sort by count (descending)
     return roleFilters.sort((a, b) => b.count - a.count);
   };
 
   const portfolioFilters: FilterOption[] = calculatePortfolioFilters();
   const roleFilters: FilterOption[] = calculateRoleFilters();
 
-  // Calculate skill counts from actual portfolio data
   const calculateSkillCounts = (): Map<string, number> => {
     const skillCounts = new Map<string, number>();
     
@@ -271,9 +264,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
       })).filter(skill => skill.count > 0) // Only show skills that exist in portfolios
       .sort((a, b) => {
         if (a.count !== b.count) {
-          return b.count - a.count; // Higher counts first
+          return b.count - a.count; 
         }
-        return a.label.localeCompare(b.label); // Then alphabetical
+        return a.label.localeCompare(b.label);
       });
 
       // Only add subcategory if it has skills that exist in portfolios
@@ -327,7 +320,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
       categories.push({
         id: 'other-skills',
         label: 'Other Skills',
-        type: 'hard', // Default to hard skills
+        type: 'hard', 
         subcategories: [{
           id: 'uncategorized',
           label: 'Uncategorized',

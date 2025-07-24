@@ -97,18 +97,30 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Desktop Actions - Right Side */}
-          <div className="hidden lg:flex items-center space-x-4 ml-auto">
-            <button className="p-2 text-[#64748B] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-              <MessageCircle size={20} />
-            </button>
-            
-            <Link href="/publish">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                <Plus size={16} className="mr-2" />
-                Publish
-              </Button>
-            </Link>
+          {/* Right side items - Hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Message Icon - Only show when logged in */}
+            {session && (
+              <button
+                className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-transform transition-colors active:scale-90 duration-150"
+                onClick={() => router.push('/messages')}
+                aria-label="Messages"
+              >
+                <div className="flex justify-center items-start">
+                <MessageCircle className="w-[13.3px] h-[13.33px] text-[#64748B] group-hover:text-[#2563EB] transition-colors" />
+                </div>
+              </button>
+            )}
+
+            {/* Publish Button */}
+            <Button 
+              onClick={() => router.push('/publish')}
+                              className="px-3 xl:px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg flex justify-start items-center gap-1 xl:gap-2"
+            >
+              <Plus className="w-[14px] h-[14px]" />
+              <span className="hidden lg:inline">Publish</span>
+              <span className="lg:hidden">+</span>
+            </Button>
 
             {session?.user ? (
               <DropdownMenu>
@@ -233,6 +245,22 @@ export default function Header() {
               />
             </div>
           </div>
+
+          {/* Messages Button - Only for logged in users */}
+          {session && (
+            <div className="p-4 border-b border-[#E2E8F0]">
+              <Button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  router.push('/messages');
+                }}
+                className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-normal rounded-lg flex justify-center items-center gap-2 border border-gray-200"
+              >
+                <MessageCircle className="w-[14px] h-[14px]" />
+                Messages
+              </Button>
+            </div>
+          )}
 
           {/* Publish Button */}
           <div className="p-4 border-b border-[#E2E8F0]">

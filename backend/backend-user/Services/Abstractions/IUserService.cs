@@ -24,6 +24,20 @@ namespace backend_user.Services.Abstractions
         Task<User?> GetUserByEmailAsync(string email);
         
         /// <summary>
+        /// Retrieves a user by their username.
+        /// </summary>
+        /// <param name="username">The username</param>
+        /// <returns>The user or null if not found</returns>
+        Task<User?> GetUserByUsernameAsync(string username);
+        
+        /// <summary>
+        /// Searches for users by username, first name, last name, or full name (partial match).
+        /// </summary>
+        /// <param name="searchTerm">The search term to match against username and names</param>
+        /// <returns>A list of matching users</returns>
+        Task<IEnumerable<User>> SearchUsersAsync(string searchTerm);
+        
+        /// <summary>
         /// Retrieves all users in the system.
         /// </summary>
         /// <returns>A list of all users</returns>

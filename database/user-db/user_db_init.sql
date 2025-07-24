@@ -76,6 +76,17 @@ CREATE TABLE user_reports (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- Bookmarks table
+CREATE TABLE bookmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    portfolio_id VARCHAR(255) NOT NULL,
+    portfolio_title VARCHAR(255),
+    portfolio_owner_name VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, portfolio_id)
+);
+
 -- Create indexes for performance
 CREATE INDEX idx_oauth_providers_user_id ON oauth_providers(user_id);
 CREATE INDEX idx_newsletters_user_id ON newsletters(user_id);
@@ -85,7 +96,21 @@ CREATE INDEX idx_user_analytics_created_at ON user_analytics(created_at);
 CREATE INDEX idx_user_reports_reporter_id ON user_reports(reporter_id);
 CREATE INDEX idx_user_reports_reported_service_id ON user_reports(reported_service, reported_id);
 CREATE INDEX idx_user_reports_status ON user_reports(status);
+CREATE INDEX idx_bookmarks_user_id ON bookmarks(user_id);
+CREATE INDEX idx_bookmarks_created_at ON bookmarks(created_at);
+
+-- Insert sample users for testing
+INSERT INTO users (id, email, username, first_name, last_name, professional_title, bio, location, avatar_url, is_active, is_admin) VALUES 
+(gen_random_uuid(), 'john.doe@example.com', 'johndoe', 'John', 'Doe', 'Software Engineer', 'Passionate full-stack developer with 5 years of experience.', 'San Francisco, CA', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'jane.smith@example.com', 'janesmith', 'Jane', 'Smith', 'UX Designer', 'Creative designer focused on user experience and interface design.', 'New York, NY', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'bob.wilson@example.com', 'bobwilson', 'Bob', 'Wilson', 'DevOps Engineer', 'Infrastructure and automation specialist.', 'Austin, TX', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'alice.brown@example.com', 'alicebrown', 'Alice', 'Brown', 'Product Manager', 'Product strategy and roadmap planning expert.', 'Seattle, WA', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'mike.davis@example.com', 'mikedavis', 'Mike', 'Davis', 'Data Scientist', 'Machine learning and analytics professional.', 'Boston, MA', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'sarah.johnson@example.com', 'sarahjohnson', 'Sarah', 'Johnson', 'Frontend Developer', 'React and Vue.js specialist with design background.', 'Los Angeles, CA', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'david.lee@example.com', 'davidlee', 'David', 'Lee', 'Backend Developer', 'API design and microservices architecture expert.', 'Chicago, IL', 'https://placehold.co/100x100', true, false),
+(gen_random_uuid(), 'emily.taylor@example.com', 'emilytaylor', 'Emily', 'Taylor', 'QA Engineer', 'Test automation and quality assurance specialist.', 'Denver, CO', 'https://placehold.co/100x100', true, false);
 
 -- Success message
 \echo 'User service database initialized successfully!'
-\echo 'Created tables: users, oauth_providers, newsletters, user_analytics, user_reports' 
+\echo 'Created tables: users, oauth_providers, newsletters, user_analytics, user_reports, bookmarks' 
+\echo 'Inserted 8 sample users for testing' 

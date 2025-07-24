@@ -11,6 +11,10 @@
   flex-shrink: 0;
 }
 
+.messages-sidebar-container{
+  padding-top:4rem;
+}
+
 @media (max-width: 1920px) {
     .messages-container {
         width: 100%;

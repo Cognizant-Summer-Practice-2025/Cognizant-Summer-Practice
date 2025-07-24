@@ -24,6 +24,33 @@ namespace backend_user.Repositories
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public async Task<User?> GetUserByUsername(string username)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        }
+
+        public async Task<List<User>> SearchUsers(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return new List<User>();
+
+            var lowerSearchTerm = searchTerm.ToLower();
+
+            return await _context.Users
+                .Where(u => u.IsActive && (
+                    u.Username.ToLower().Contains(lowerSearchTerm) ||
+                    u.FirstName != null && u.FirstName.ToLower().Contains(lowerSearchTerm) ||
+                    u.LastName != null && u.LastName.ToLower().Contains(lowerSearchTerm) ||
+                    (u.FirstName != null && u.LastName != null && 
+                     (u.FirstName + " " + u.LastName).ToLower().Contains(lowerSearchTerm))
+                ))
+                .OrderBy(u => u.Username.ToLower().StartsWith(lowerSearchTerm) ? 0 : 1) // Prioritize matches that start with the search term
+                .ThenBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .Take(20) // Limit results to 20 users
+                .ToListAsync();
+        }
+
         public async Task<List<User>> GetAllUsers()
         {
             return await _context.Users.ToListAsync();

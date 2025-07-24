@@ -28,7 +28,6 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -36,7 +35,6 @@ builder.Services.AddControllers()
     });
 builder.Services.AddOpenApi();
 
-// Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -55,7 +53,6 @@ builder.Services.AddDbContext<PortfolioDbContext>(options =>
     options.UseNpgsql(dataSource)
            .UseSnakeCaseNamingConvention());
 
-// Add HttpClient for external service calls
 builder.Services.AddHttpClient();
 
 // Add Memory Cache
@@ -71,23 +68,18 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
 
-// Add Mappers
 builder.Services.AddScoped<PortfolioMapper>();
 builder.Services.AddScoped<ProjectMapper>();
 
-// Add Validators
 builder.Services.AddScoped<IValidationService<PortfolioCreateRequest>, PortfolioValidator>();
 builder.Services.AddScoped<IValidationService<PortfolioUpdateRequest>, PortfolioUpdateValidator>();
 builder.Services.AddScoped<IValidationService<ProjectCreateRequest>, ProjectValidator>();
 builder.Services.AddScoped<IValidationService<ProjectUpdateRequest>, ProjectUpdateValidator>();
 
-// Add External Services
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 
-// Add Utility Services
 builder.Services.AddScoped<ImageUploadUtility>();
 
-// Add SOLID-compliant Service layer (following ISP)
 builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
 builder.Services.AddScoped<IPortfolioCommandService, PortfolioCommandService>();
 builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();
@@ -95,12 +87,10 @@ builder.Services.AddScoped<IProjectCommandService, ProjectCommandService>();
 
 
 
-// Register data source for disposal
 builder.Services.AddSingleton(dataSource);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -112,7 +102,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Use CORS
 app.UseCors("AllowFrontend");
 
 app.UseAuthorization();

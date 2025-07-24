@@ -68,7 +68,6 @@ namespace backend_portfolio.Controllers
 
                 if (bookmarkExists)
                 {
-                    // Remove bookmark
                     var result = await _bookmarkRepository.DeleteBookmarkByUserAndPortfolioAsync(request.UserId, request.PortfolioId);
                     if (!result)
                         return BadRequest("Failed to remove bookmark");
@@ -77,7 +76,6 @@ namespace backend_portfolio.Controllers
                 }
                 else
                 {
-                    // Add bookmark
                     var createRequest = new BookmarkCreateRequest
                     {
                         UserId = request.UserId,

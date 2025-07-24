@@ -11,9 +11,17 @@ namespace backend_messages.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Conversation>()
+                .ToTable("conversations");
+
+            modelBuilder.Entity<Message>()
+                .ToTable("messages");
+
+            modelBuilder.Entity<Notification>()
+                .ToTable("notifications");
         }
 
+        public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
     }

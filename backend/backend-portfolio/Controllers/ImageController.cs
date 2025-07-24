@@ -14,7 +14,6 @@ namespace backend_portfolio.Controllers
         public ImageController(ILogger<ImageController> logger, IConfiguration configuration)
         {
             _logger = logger;
-            // Get the absolute path to the server folder
             _serverPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "server", "portfolio");
         }
 
@@ -29,7 +28,6 @@ namespace backend_portfolio.Controllers
         {
             try
             {
-                // Validate subfolder
                 var allowedSubfolders = new[] { "blog_posts", "projects", "profile_images" };
                 if (!allowedSubfolders.Contains(subfolder, StringComparer.OrdinalIgnoreCase))
                 {
@@ -37,7 +35,6 @@ namespace backend_portfolio.Controllers
                     return BadRequest(new { message = "Invalid subfolder" });
                 }
 
-                // Validate filename and extension
                 if (string.IsNullOrEmpty(filename) || filename.Contains("..") || filename.Contains("/") || filename.Contains("\\"))
                 {
                     _logger.LogWarning("Invalid filename requested: {Filename}", filename);
@@ -51,20 +48,16 @@ namespace backend_portfolio.Controllers
                     return BadRequest(new { message = "Invalid file type" });
                 }
 
-                // Build the full file path
                 var filePath = Path.Combine(_serverPath, subfolder, filename);
 
-                // Check if file exists
                 if (!System.IO.File.Exists(filePath))
                 {
                     _logger.LogWarning("Image file not found: {FilePath}", filePath);
                     return NotFound(new { message = "Image not found" });
                 }
 
-                // Determine content type based on file extension
                 var contentType = GetContentType(fileExtension);
 
-                // Read and return the file
                 var fileBytes = System.IO.File.ReadAllBytes(filePath);
                 
                 _logger.LogInformation("Serving image: {Subfolder}/{Filename}", subfolder, filename);
@@ -89,7 +82,6 @@ namespace backend_portfolio.Controllers
         {
             try
             {
-                // Use the same validation logic as GetImage
                 var allowedSubfolders = new[] { "blog_posts", "projects", "profile_images" };
                 if (!allowedSubfolders.Contains(subfolder, StringComparer.OrdinalIgnoreCase))
                 {
