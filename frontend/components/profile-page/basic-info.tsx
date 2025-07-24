@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/lib/contexts/user-context';
+import { Loading } from '@/components/loader';
 
 export default function BasicInfo() {
   const { user, loading, error, updateUserData } = useUser();
@@ -77,8 +78,8 @@ export default function BasicInfo() {
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 spinner-app-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading user information...</p>
+          <Loading className="scale-50" backgroundColor="white" />
+          <p className="text-gray-600 mt-4">Loading user information...</p>
         </div>
       </div>
     );

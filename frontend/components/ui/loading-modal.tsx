@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Loading } from "../loader";
 
 interface LoadingModalProps {
   isOpen: boolean;
@@ -41,10 +42,9 @@ export function LoadingModal({
       {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-in fade-in duration-200">
         <div className="text-center">
-          {/* Loading Spinner */}
-          <div className="mx-auto mb-6 w-16 h-16 relative">
-            <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+          {/* Loading Animation */}
+          <div className="mx-auto mb-6 flex justify-center">
+            <Loading className="scale-50" backgroundColor="white" />
           </div>
           
           {/* Title */}

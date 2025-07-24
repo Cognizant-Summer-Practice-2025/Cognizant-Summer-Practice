@@ -10,6 +10,7 @@ import { ComponentConfig } from '@/lib/portfolio'
 import { TemplateManager } from '@/lib/template-manager'
 import { updatePortfolio } from '@/lib/portfolio/api'
 import { usePortfolio } from '@/lib/contexts/portfolio-context'
+import { Loading } from '@/components/loader'
 
 interface PortfolioSettingsProps {
   portfolioId?: string;
@@ -134,8 +135,8 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       <div className="space-y-6">
         <h2 className="text-xl font-semibold mb-4">Portfolio Settings</h2>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2">Loading settings...</span>
+          <Loading className="scale-50" backgroundColor="white" />
+          <span className="ml-4">Loading settings...</span>
         </div>
       </div>
     );

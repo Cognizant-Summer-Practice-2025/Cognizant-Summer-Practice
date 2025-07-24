@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { Loading } from '@/components/loader';
 import { getSafeImageUrl } from '@/lib/image';
 import { Project } from '@/lib/portfolio';
 import { createProject, updateProject, deleteProject } from '@/lib/portfolio/api';
@@ -275,8 +276,8 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 spinner-app-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading projects...</p>
+          <Loading className="scale-50" backgroundColor="white" />
+          <p className="text-gray-600 mt-4">Loading projects...</p>
         </div>
       </div>
     );
