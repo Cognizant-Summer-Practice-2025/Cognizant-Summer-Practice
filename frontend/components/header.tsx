@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
+import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft, Bookmark } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
@@ -31,6 +31,19 @@ export default function Header() {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   const handleLogin = () => {
     router.push('/login');
@@ -152,8 +165,18 @@ export default function Header() {
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleMyPortfolioClick}>
-                    <User className="mr-2 h-4 w-4" />
+                    <Image
+                      src="/icons/documentText.svg"
+                      alt="My Portfolio"
+                      width={16}
+                      height={16}
+                      className="mr-2 h-4 w-4"
+                    />
                     My Portfolio
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/bookmarks')}>
+                    <Bookmark className="mr-2 h-4 w-4" />
+                    Bookmarks
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push('/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
@@ -192,35 +215,15 @@ export default function Header() {
             )}
 
             {session?.user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="p-1 rounded-lg">
-                  <Image
-                    src={session.user.image || '/default-avatar.png'}
-                    alt={session.user.name || 'User'}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => router.push('/profile')}>
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleMyPortfolioClick}>
-                    <User className="mr-2 h-4 w-4" />
-                    My Portfolio
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="p-1">
+                <Image
+                  src={session.user.image || '/default-avatar.png'}
+                  alt={session.user.name || 'User'}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              </div>
             ) : (
               <Button 
                 onClick={handleLogin}
@@ -313,8 +316,24 @@ export default function Header() {
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
                 >
-                  <User className="w-4 h-4" />
+                  <Image
+                    src="/icons/documentText.svg"
+                    alt="My Portfolio"
+                    width={16}
+                    height={16}
+                    className="w-4 h-4"
+                  />
                   <span className="text-sm">My Portfolio</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    router.push('/bookmarks');
+                  }}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <Bookmark className="w-4 h-4" />
+                  <span className="text-sm">Bookmarks</span>
                 </button>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}

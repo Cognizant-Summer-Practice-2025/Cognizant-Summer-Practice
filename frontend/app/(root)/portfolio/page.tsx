@@ -17,6 +17,7 @@ function TemplateLoader() {
       message="Please wait while we load your portfolio"
       showBackdrop={false}
       preventBodyScroll={false}
+      textColor="black"
     />
   );
 }

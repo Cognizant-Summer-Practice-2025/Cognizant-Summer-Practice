@@ -431,6 +431,7 @@ export default function Publish() {
         isOpen={showLoadingModal}
         title="Publishing Portfolio..."
         message="Please wait while we publish your portfolio and save all your content. This may take a few moments."
+        textColor="black"
       />
     </div>
   )

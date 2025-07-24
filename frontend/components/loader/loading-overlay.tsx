@@ -11,6 +11,7 @@ interface LoadingOverlayProps {
   preventBodyScroll?: boolean;
   onClose?: () => void;
   className?: string;
+  textColor?: string;
 }
 
 export function LoadingOverlay({ 
@@ -20,7 +21,8 @@ export function LoadingOverlay({
   showBackdrop = true,
   preventBodyScroll = true,
   onClose,
-  className = ""
+  className = "",
+  textColor = "white"
 }: LoadingOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
@@ -87,13 +89,13 @@ export function LoadingOverlay({
         {(title || message) && (
           <div className="mt-8 text-center max-w-md animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
             {title && (
-              <h3 className="text-lg font-semibold text-white mb-2 drop-shadow-lg">
+              <h3 className="text-lg font-semibold mb-2 drop-shadow-lg" style={{ color: textColor }}>
                 {title}
               </h3>
             )}
             
             {message && (
-              <p className="text-sm text-white/80 drop-shadow-lg">
+              <p className="text-sm drop-shadow-lg" style={{ color: textColor, opacity: 0.8 }}>
                 {message}
               </p>
             )}
