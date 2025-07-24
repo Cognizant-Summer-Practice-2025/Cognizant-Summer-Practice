@@ -489,17 +489,15 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ portfolios, onFiltersChan
           </button>
         </div>
         
-        {!isMainCollapsed && (
-          <div className="skills-search">
-            <Input
-              placeholder="Search skills..."
-              prefix={<SearchOutlined />}
-              value={skillsSearchTerm}
-              onChange={(e) => setSkillsSearchTerm(e.target.value)}
-              allowClear
-            />
-          </div>
-        )}
+        <div className={`skills-search ${isMainCollapsed ? 'collapsed' : ''}`}>
+          <Input
+            placeholder="Search skills..."
+            prefix={<SearchOutlined />}
+            value={skillsSearchTerm}
+            onChange={(e) => setSkillsSearchTerm(e.target.value)}
+            allowClear
+          />
+        </div>
         
         <div className={`skills-categories ${isMainCollapsed ? 'collapsed' : ''}`}>
           {filteredSkillCategories.map((category) => {

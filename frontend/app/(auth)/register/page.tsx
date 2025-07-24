@@ -88,7 +88,7 @@ const RegisterPage = () => {
       setIsModalOpen(false);
       
       await signIn(provider, { 
-        callbackUrl: '/profile',
+        callbackUrl: '/',
         redirect: true 
       });
 

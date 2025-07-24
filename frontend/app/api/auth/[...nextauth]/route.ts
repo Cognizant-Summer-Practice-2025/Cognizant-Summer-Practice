@@ -97,8 +97,8 @@ export const authOptions = {
       if (url.includes('/register')) {
         return url;
       }
-      // Otherwise, default behavior
-      return url.startsWith(baseUrl) ? url : `${baseUrl}/profile`;
+      // Always redirect to home page (root) instead of profile
+      return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
     },
     async session({ session, token }: any) {
       // Add OAuth provider info to session if available

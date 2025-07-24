@@ -92,6 +92,55 @@
   flex-direction: column;
 }
 
+/* Smooth expand/collapse animations */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes skillsExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    max-height: 3000px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes skillsCollapse {
+  from {
+    opacity: 1;
+    max-height: 3000px;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-20px);
+  }
+}
+
 .filter-sidebar-content {
   padding: 1.5rem;
   overflow-y: auto;
@@ -101,6 +150,26 @@
 
 .filter-group {
   margin-bottom: 2rem;
+  transition: margin 0.3s ease;
+}
+
+.filter-group.skills-filter {
+  position: relative;
+  overflow: hidden;
+}
+
+/* When skills filter is fully collapsed, reduce spacing */
+.filter-group.skills-filter:has(.skills-categories.collapsed) {
+  margin-bottom: 1rem;
+}
+
+/* Alternative for browsers that don't support :has() */
+.filter-group.skills-filter .skills-categories.collapsed {
+  margin-bottom: 0;
+}
+
+.filter-group.skills-filter .skills-categories.collapsed + * {
+  margin-top: 0;
 }
 
 .filter-group-header {
@@ -141,30 +210,49 @@
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 0.25rem;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .filter-group-toggle:hover {
   color: #3b82f6;
   background-color: #f3f4f6;
+  transform: scale(1.1);
 }
 
 .filter-group-toggle.collapsed {
   transform: rotate(-90deg);
 }
 
+.filter-group-toggle.collapsed:hover {
+  transform: rotate(-90deg) scale(1.1);
+}
+
 .filter-options {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  max-height: none;
-  height: auto;
-  overflow: visible;
+  max-height: 1000px;
+  overflow: hidden;
+  opacity: 1;
   padding-right: 0;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease, 
+              padding 0.3s ease;
+}
+
+.filter-options:not(.collapsed) .filter-option {
+  animation: slideInDown 0.3s ease forwards;
 }
 
 .filter-options.collapsed {
-  display: none;
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.filter-options.collapsed .filter-option {
+  animation: slideOutUp 0.2s ease forwards;
 }
 
 .filter-option {
@@ -173,13 +261,22 @@
   align-items: center;
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid transparent;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.filter-options.collapsed .filter-option {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .filter-option:hover {
   background-color: #f8fafc;
   border-color: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .filter-option .ant-checkbox-wrapper {
@@ -232,22 +329,69 @@
   height: auto;
 }
 
+.filter-group.skills-filter {
+  transition: all 0.3s ease;
+}
+
+/* When skills are collapsed, ensure no residual space */
+.filter-group.skills-filter .skills-categories.collapsed,
+.filter-group.skills-filter .skills-search.collapsed {
+  height: 0 !important;
+  min-height: 0 !important;
+  line-height: 0;
+  font-size: 0;
+}
+
+/* Enhanced skills animations */
+.skills-categories:not(.collapsed) {
+  animation: skillsExpand 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.skill-category {
+  transform: translateY(0);
+  opacity: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skills-categories.collapsed .skill-category {
+  transform: translateY(-15px);
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
 /* Skills categories structure */
 .skills-categories {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  max-height: none;
-  height: auto;
-  overflow: visible;
+  max-height: 3000px;
+  overflow: hidden;
+  opacity: 1;
   padding-right: 0;
   padding-bottom: 2rem;
   contain: layout;
   position: relative;
+  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.4s ease 0.1s, 
+              padding 0.4s ease;
+  transform: translateY(0);
+  visibility: visible;
 }
 
 .skills-categories.collapsed {
-  display: none;
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  transform: translateY(-20px);
+  visibility: hidden;
+  border: none;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease, 
+              padding 0.3s ease,
+              margin 0.3s ease,
+              transform 0.4s ease,
+              visibility 0s linear 0.5s;
 }
 
 /* Skill category styling */
@@ -261,12 +405,28 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
   contain: layout;
+  transform: scale(1);
+  margin-bottom: 1.25rem;
+}
+
+/* When skill category subcategories are collapsed, reduce bottom margin */
+.skill-category:has(.skill-subcategories.collapsed) {
+  margin-bottom: 0.5rem;
+}
+
+/* Alternative for browsers that don't support :has() */
+.skill-category .skill-subcategories.collapsed {
+  margin-bottom: 0;
+}
+
+.skill-category .skill-subcategories.collapsed + * {
+  margin-top: 0;
 }
 
 .skill-category:hover {
   border-color: #3b82f6;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.01);
 }
 
 .skill-category.hard-skills {
@@ -407,13 +567,34 @@
 /* Skill subcategories */
 .skill-subcategories {
   padding: 0.75rem 0;
-  max-height: 900px;
-  overflow-y: auto;
+  max-height: 1200px;
+  overflow: hidden;
+  opacity: 1;
   scroll-behavior: smooth;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease 0.1s, 
+              padding 0.3s ease;
+  transform: translateY(0);
+  visibility: visible;
 }
 
 .skill-subcategories.collapsed {
-  display: none;
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  transform: translateY(-10px);
+  visibility: hidden;
+  border: none !important;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.2s ease, 
+              padding 0.3s ease,
+              margin 0.3s ease,
+              height 0.3s ease,
+              transform 0.3s ease,
+              visibility 0s linear 0.4s;
 }
 
 .skill-subcategories::-webkit-scrollbar {
@@ -452,6 +633,22 @@
   position: relative;
   contain: layout;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+/* When subcategory options are collapsed, reduce spacing */
+.skill-subcategory:has(.skill-subcategory-options.collapsed) {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Alternative for browsers that don't support :has() */
+.skill-subcategory .skill-subcategory-options.collapsed {
+  margin-bottom: 0;
+}
+
+.skill-subcategory .skill-subcategory-options.collapsed + * {
+  margin-top: 0;
 }
 
 .skill-subcategory:last-child {
@@ -610,15 +807,37 @@
   margin-left: 1rem;
   border-left: 2px solid #f1f5f9;
   padding-left: 1rem;
-  max-height: 500px;
-  overflow-y: auto;
+  max-height: 600px;
+  overflow: hidden;
+  opacity: 1;
   scroll-behavior: smooth;
   contain: layout;
   position: relative;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease 0.05s, 
+              padding 0.3s ease;
+  transform: translateY(0);
+  visibility: visible;
 }
 
 .skill-subcategory-options.collapsed {
-  display: none;
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  transform: translateY(-5px);
+  visibility: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.2s ease, 
+              padding 0.2s ease,
+              margin 0.2s ease,
+              height 0.2s ease,
+              border 0.2s ease,
+              transform 0.2s ease,
+              visibility 0s linear 0.3s;
 }
 
 .skill-subcategory-options::-webkit-scrollbar {
@@ -811,6 +1030,25 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.95) 100%);
   backdrop-filter: blur(10px);
   overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animation for skill options */
+.skill-subcategory-options:not(.collapsed) .skill-option {
+  animation: slideInDown 0.3s ease forwards;
+}
+
+.skill-subcategory-options:not(.collapsed) .skill-option:nth-child(1) { animation-delay: 0.05s; }
+.skill-subcategory-options:not(.collapsed) .skill-option:nth-child(2) { animation-delay: 0.1s; }
+.skill-subcategory-options:not(.collapsed) .skill-option:nth-child(3) { animation-delay: 0.15s; }
+.skill-subcategory-options:not(.collapsed) .skill-option:nth-child(4) { animation-delay: 0.2s; }
+.skill-subcategory-options:not(.collapsed) .skill-option:nth-child(5) { animation-delay: 0.25s; }
+
+.skill-subcategory-options.collapsed .skill-option {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
 }
 
 .skill-option::before {
@@ -917,11 +1155,34 @@
   backdrop-filter: blur(20px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  max-height: 200px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
 }
 
 .skills-search:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Hide skills search when main skills section is collapsed */
+.filter-group.skills-filter .skills-categories.collapsed ~ .skills-search,
+.skills-search.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  transform: translateY(-20px);
+  visibility: hidden;
+  border: none;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.2s ease, 
+              padding 0.3s ease,
+              margin 0.3s ease,
+              transform 0.3s ease,
+              visibility 0s linear 0.3s;
 }
 
 .skills-search .ant-input {
@@ -1061,11 +1322,16 @@
 
 .mobile-filter-button-arrow {
   color: #6b7280;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+}
+
+.mobile-filter-button:hover .mobile-filter-button-arrow {
+  color: #3b82f6;
 }
 
 .mobile-filter-button.open .mobile-filter-button-arrow {
   transform: rotate(180deg);
+  color: #3b82f6;
 }
 
 .mobile-filter-badge {

@@ -37,8 +37,10 @@ export default function Header() {
   const handleSignOut = async () => {
     try {
       console.log('Attempting to sign out...');
+      // Stay on current page after sign out
+      const currentPath = window.location.pathname + window.location.search;
       await signOut({ 
-        callbackUrl: '/',
+        callbackUrl: currentPath,
         redirect: true 
       });
     } catch (error) {
@@ -79,7 +81,7 @@ export default function Header() {
 
           {/* Logo - Center on mobile, positioned after back button on desktop */}
           <div className="flex-shrink-0 flex items-center lg:mr-auto">
-            <Link href="/home">
+            <Link href="/">
               <h1 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
                 GoalKeeper
               </h1>

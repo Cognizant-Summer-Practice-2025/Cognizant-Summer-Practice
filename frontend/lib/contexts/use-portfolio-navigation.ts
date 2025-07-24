@@ -83,7 +83,7 @@ export function usePortfolioNavigation() {
         }
         
         // Navigate to home page
-        router.push('/home');
+        router.push('/');
         
         // Wait for navigation and then restore page and scroll
         setTimeout(async () => {
@@ -108,11 +108,11 @@ export function usePortfolioNavigation() {
       } else {
         // Context is too old, just navigate to home without restoration
         console.log('⏰ Context expired, navigating to home without restoration');
-        router.push('/home');
+        router.push('/');
       }
     } else {
       // No context or cache available, just navigate
-      router.push('/home');
+      router.push('/');
     }
 
     // Clear the context after use
@@ -122,7 +122,7 @@ export function usePortfolioNavigation() {
   // Simple navigation to home page without state restoration
   const navigateToHome = useCallback(() => {
     clearHomePageReturnContext();
-    router.push('/home');
+    router.push('/');
   }, [router, clearHomePageReturnContext]);
 
   // Check if we have a return context
