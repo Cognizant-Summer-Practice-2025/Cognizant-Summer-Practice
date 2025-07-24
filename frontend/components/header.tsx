@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
+import { useUser } from '@/lib/contexts/user-context';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +20,7 @@ import {
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session } = useSession();
+  const { user } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const { navigateBackToHome } = usePortfolioNavigation();
@@ -32,6 +34,15 @@ export default function Header() {
 
   const handleLogin = () => {
     router.push('/login');
+  };
+
+  const handleMyPortfolioClick = () => {
+    if (user?.id) {
+      router.push(`/portfolio?user=${user.id}`);
+    } else {
+      // Fallback to profile page if no user ID available
+      router.push('/login');
+    }
   };
 
   const handleSignOut = async () => {
@@ -140,7 +151,7 @@ export default function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/portfolio')}>
+                  <DropdownMenuItem onClick={handleMyPortfolioClick}>
                     <User className="mr-2 h-4 w-4" />
                     My Portfolio
                   </DropdownMenuItem>
@@ -196,7 +207,7 @@ export default function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/portfolio')}>
+                  <DropdownMenuItem onClick={handleMyPortfolioClick}>
                     <User className="mr-2 h-4 w-4" />
                     My Portfolio
                   </DropdownMenuItem>
@@ -294,6 +305,16 @@ export default function Header() {
                 >
                   <User className="w-4 h-4" />
                   <span className="text-sm">Profile</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleMyPortfolioClick();
+                  }}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">My Portfolio</span>
                 </button>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}

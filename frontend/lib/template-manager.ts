@@ -13,6 +13,12 @@ export class TemplateManager {
 
   // Get visible components sorted by order
   getVisibleComponents(components: ComponentConfig[]): ComponentConfig[] {
+    // Defensive check to ensure components is an array
+    if (!Array.isArray(components)) {
+      console.warn('getVisibleComponents received non-array value:', components);
+      return [];
+    }
+    
     const visibleComponents = components
       .filter(component => component.isVisible)
       .sort((a, b) => a.order - b.order);
@@ -27,7 +33,14 @@ export class TemplateManager {
 
   // Render components dynamically
   renderComponents(portfolioData: PortfolioDataFromDB) {
-    const visibleComponents = this.getVisibleComponents(portfolioData.portfolio.components || []);
+    const portfolioComponents = portfolioData.portfolio.components || [];
+    // Ensure we have an array before proceeding
+    if (!Array.isArray(portfolioComponents)) {
+      console.warn('renderComponents: portfolio.components is not an array:', portfolioComponents);
+      return [];
+    }
+    
+    const visibleComponents = this.getVisibleComponents(portfolioComponents);
     
     return visibleComponents.map((componentConfig) => {
       const Component = this.getComponent(componentConfig.type);
