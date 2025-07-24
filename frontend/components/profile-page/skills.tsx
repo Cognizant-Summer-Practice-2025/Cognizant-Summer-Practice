@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { SkillDropdown } from "@/components/ui/skill-dropdown"
 import { Skill } from '@/lib/portfolio';
 import { getSkillsByPortfolioId, createSkill, updateSkill, deleteSkill } from '@/lib/portfolio/api';
+import { Loading } from '@/components/loader';
 
 interface SkillsProps {
   portfolioId?: string;
@@ -170,9 +171,9 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false, o
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
         <h2 className="text-2xl font-bold mb-4">Skills</h2>
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2">Loading skills...</span>
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loading className="scale-50" backgroundColor="white" />
+          <span className="mt-4 text-gray-600">Loading skills...</span>
         </div>
       </div>
     );

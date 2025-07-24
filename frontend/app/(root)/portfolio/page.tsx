@@ -6,16 +6,18 @@ import { useUser } from '@/lib/contexts/user-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
 import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
+import { LoadingOverlay } from '@/components/loader';
 
 // Loading component
 function TemplateLoader() {
   return (
-    <div className="portfolio-loading">
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading portfolio...</p>
-      </div>
-    </div>
+    <LoadingOverlay 
+      isOpen={true}
+      title="Loading Portfolio..."
+      message="Please wait while we load your portfolio"
+      showBackdrop={false}
+      preventBodyScroll={false}
+    />
   );
 }
 

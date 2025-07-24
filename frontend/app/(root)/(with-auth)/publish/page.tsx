@@ -14,7 +14,7 @@ import { AddBlogPost } from "@/components/publish-page/add-blog-post"
 import { BlogPostsList } from "@/components/publish-page/blog-posts-list"
 import { PortfolioSettings } from "@/components/publish-page/portfolio-settings"
 import { PublishSidebar } from "@/components/publish-page/publish-sidebar"
-import { LoadingModal } from "@/components/ui/loading-modal"
+import { LoadingOverlay } from "@/components/loader"
 import { usePortfolio } from "@/lib/contexts/portfolio-context"
 import { useDraft } from "@/lib/contexts/draft-context"
 import { useUser } from "@/lib/contexts/user-context"
@@ -426,8 +426,8 @@ export default function Publish() {
         </div>
       </div>
 
-      {/* Loading Modal */}
-      <LoadingModal 
+      {/* Loading Overlay */}
+      <LoadingOverlay 
         isOpen={showLoadingModal}
         title="Publishing Portfolio..."
         message="Please wait while we publish your portfolio and save all your content. This may take a few moments."
