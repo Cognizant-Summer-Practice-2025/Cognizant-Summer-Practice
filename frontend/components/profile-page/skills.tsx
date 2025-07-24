@@ -228,7 +228,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false, o
                 <Button
                   onClick={addSkill}
                   disabled={!selectedSkillData || loading}
-                  className="w-full"
+                  className="w-full bg-app-blue hover:bg-app-blue-hover text-white"
                 >
                   {loading ? 'Adding...' : 'Add Skill'}
                 </Button>
@@ -278,7 +278,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false, o
                   />
                 </div>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={saveEdit} disabled={loading}>
+                      <Button size="sm" onClick={saveEdit} disabled={loading} className="bg-app-blue hover:bg-app-blue-hover text-white">
                         Save
                       </Button>
                       <Button size="sm" variant="outline" onClick={cancelEditing}>
@@ -297,6 +297,7 @@ export default function Skills({ portfolioId, initialSkills, readOnly = false, o
                             variant="ghost"
                             onClick={() => startEditing(skill)}
                             disabled={loading}
+                            className="text-app-blue hover:bg-app-blue-hover hover:text-white"
                           >
                             Edit
                           </Button>

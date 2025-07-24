@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +51,55 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
     featured: false
   });
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+
+  // Animation state management
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addModalAnimatingOut, setAddModalAnimatingOut] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editModalAnimatingOut, setEditModalAnimatingOut] = useState(false);
+
+  // Handle Add Modal animations
+  useEffect(() => {
+    if (isAddDialogOpen) {
+      setAddModalVisible(true);
+      setAddModalAnimatingOut(false);
+    } else if (addModalVisible) {
+      setAddModalAnimatingOut(true);
+      const timer = setTimeout(() => {
+        setAddModalVisible(false);
+        setAddModalAnimatingOut(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isAddDialogOpen, addModalVisible]);
+
+  // Handle Edit Modal animations
+  useEffect(() => {
+    if (isEditDialogOpen) {
+      setEditModalVisible(true);
+      setEditModalAnimatingOut(false);
+    } else if (editModalVisible) {
+      setEditModalAnimatingOut(true);
+      const timer = setTimeout(() => {
+        setEditModalVisible(false);
+        setEditModalAnimatingOut(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isEditDialogOpen, editModalVisible]);
+
+  // Backdrop click handlers
+  const handleAddModalBackdropClick = () => {
+    if (!addModalAnimatingOut) {
+      setIsAddDialogOpen(false);
+    }
+  };
+
+  const handleEditModalBackdropClick = () => {
+    if (!editModalAnimatingOut) {
+      setIsEditDialogOpen(false);
+    }
+  };
 
   // Update local projects when props change
   React.useEffect(() => {
@@ -274,10 +323,11 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Projects</h1>
+        <div className="flex flex-col items-center justify-center py-8">
           <Loading className="scale-50" backgroundColor="white" />
-          <p className="text-gray-600 mt-4">Loading projects...</p>
+          <span className="mt-4 text-gray-600">Loading projects...</span>
         </div>
       </div>
     );
@@ -293,7 +343,7 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
         <div>
           <Button
             onClick={() => setIsAddDialogOpen(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-app-blue hover:bg-app-blue-hover text-white"
           >
             <Plus className="w-4 h-4" />
             Add Project
@@ -301,9 +351,19 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
         </div>
 
         {/* Add Project Dialog */}
-        {isAddDialogOpen && (
-          <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border">
+        {addModalVisible && (
+          <div 
+            className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-[70]"
+            onClick={handleAddModalBackdropClick}
+          >
+            <div 
+              className={`bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border transition-all duration-300 ${
+                addModalAnimatingOut 
+                  ? 'animate-out fade-out zoom-out-75 slide-out-to-top-2' 
+                  : 'animate-in fade-in zoom-in-95 slide-in-from-top-2'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h2 className="text-xl font-semibold mb-4">Add New Project</h2>
               <p className="text-gray-600 mb-6">Add a new project to your portfolio</p>
               
@@ -407,7 +467,11 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
                 <Button variant="outline" onClick={handleAddCancel}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddProject} disabled={actionLoading}>
+                <Button 
+                  onClick={handleAddProject} 
+                  disabled={actionLoading}
+                  className="bg-app-blue hover:bg-app-blue-hover text-white"
+                >
                   {actionLoading ? "Adding..." : "Add Project"}
                 </Button>
               </div>
@@ -416,9 +480,19 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
         )}
 
         {/* Edit Project Dialog */}
-        {isEditDialogOpen && (
-          <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border">
+        {editModalVisible && (
+          <div 
+            className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-[70]"
+            onClick={handleEditModalBackdropClick}
+          >
+            <div 
+              className={`bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border transition-all duration-300 ${
+                editModalAnimatingOut 
+                  ? 'animate-out fade-out zoom-out-75 slide-out-to-top-2' 
+                  : 'animate-in fade-in zoom-in-95 slide-in-from-top-2'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h2 className="text-xl font-semibold mb-4">Edit Project</h2>
               <p className="text-gray-600 mb-6">Update your project details</p>
               
@@ -522,7 +596,11 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
                 <Button variant="outline" onClick={handleEditCancel}>
                   Cancel
                 </Button>
-                <Button onClick={handleEditProject} disabled={actionLoading}>
+                <Button 
+                  onClick={handleEditProject} 
+                  disabled={actionLoading}
+                  className="bg-app-blue hover:bg-app-blue-hover text-white"
+                >
                   {actionLoading ? "Updating..." : "Update Project"}
                 </Button>
               </div>
@@ -585,7 +663,7 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
                   <div className="w-full pt-2 flex flex-col sm:flex-row justify-start items-start gap-2">
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-app-blue text-app-blue hover:bg-app-blue-hover hover:text-white text-sm font-normal flex items-center gap-2"
                       onClick={() => openEditDialog(project)}
                       disabled={actionLoading}
                     >
@@ -594,7 +672,7 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-sm font-normal flex items-center gap-2"
                       onClick={() => handleDeleteProject(project.id)}
                       disabled={actionLoading}
                     >

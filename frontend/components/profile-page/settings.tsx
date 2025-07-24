@@ -289,6 +289,7 @@ export default function Settings({ portfolioId: propPortfolioId, initialData, on
           <Button 
             onClick={handleSave}
             disabled={loading || !portfolioId}
+            className="bg-app-blue hover:bg-app-blue-hover text-white"
           >
             {loading ? 'Saving...' : 'Save Settings'}
           </Button>

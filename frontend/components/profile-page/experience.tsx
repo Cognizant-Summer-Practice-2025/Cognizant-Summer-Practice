@@ -249,10 +249,11 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
+        <h2 className="text-2xl font-bold mb-4">Experience</h2>
+        <div className="flex flex-col items-center justify-center py-8">
           <Loading className="scale-50" backgroundColor="white" />
-          <p className="text-gray-600 mt-4">Loading experience...</p>
+          <span className="mt-4 text-gray-600">Loading experience...</span>
         </div>
       </div>
     );
@@ -339,7 +340,7 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
                   <div className="w-full sm:w-auto flex flex-col sm:flex-row justify-start items-start gap-2 sm:gap-[4.5px]">
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-app-blue text-app-blue hover:bg-app-blue-hover hover:text-white text-sm font-normal flex items-center gap-2"
                       onClick={() => openEditDialog(experience)}
                       disabled={actionLoading}
                     >
@@ -348,7 +349,7 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-sm font-normal flex items-center gap-2"
                       onClick={() => handleDeleteExperience(experience.id)}
                       disabled={actionLoading}
                     >

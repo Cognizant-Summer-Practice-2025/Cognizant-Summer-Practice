@@ -76,10 +76,11 @@ export default function BasicInfo() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] flex items-center justify-center">
-        <div className="text-center">
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
+        <h2 className="text-2xl font-bold mb-4">Basic Information</h2>
+        <div className="flex flex-col items-center justify-center py-8">
           <Loading className="scale-50" backgroundColor="white" />
-          <p className="text-gray-600 mt-4">Loading user information...</p>
+          <span className="mt-4 text-gray-600">Loading user information...</span>
         </div>
       </div>
     );
