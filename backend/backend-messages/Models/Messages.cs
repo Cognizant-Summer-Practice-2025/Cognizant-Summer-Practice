@@ -21,6 +21,9 @@ namespace BackendMessages.Models
         public Guid Id { get; set; }
 
         [Required]
+        public Guid ConversationId { get; set; }
+
+        [Required]
         public Guid SenderId { get; set; }
 
         [Required]

@@ -1,4 +1,2 @@
-// Messages module exports
-export * from './api';
-export * from './interfaces';
-export * from './test-data'; 
+export { default } from './messages';
+export type { Message, Conversation } from './messages'; 

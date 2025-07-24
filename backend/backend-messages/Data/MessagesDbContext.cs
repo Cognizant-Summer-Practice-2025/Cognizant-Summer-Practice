@@ -11,6 +11,7 @@ namespace BackendMessages.Data
         }
 
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,7 @@ namespace BackendMessages.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("id");
                 
+                entity.Property(e => e.ConversationId).HasColumnName("conversation_id");
                 entity.Property(e => e.SenderId).HasColumnName("sender_id");
                 entity.Property(e => e.ReceiverId).HasColumnName("receiver_id");
                 entity.Property(e => e.ReplyToMessageId).HasColumnName("reply_to_message_id");
@@ -32,6 +34,33 @@ namespace BackendMessages.Data
                 entity.Property(e => e.CreatedAt).HasColumnName("created_at");
                 entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
                 entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+                
+                // Foreign key relationships
+                entity.HasOne<Conversation>()
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(m => m.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Conversation>(entity =>
+            {
+                entity.ToTable("conversations");
+                
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                
+                entity.Property(e => e.InitiatorId).HasColumnName("initiator_id");
+                entity.Property(e => e.ReceiverId).HasColumnName("receiver_id");
+                entity.Property(e => e.LastMessageTimestamp).HasColumnName("last_message_timestamp");
+                entity.Property(e => e.LastMessageId).HasColumnName("last_message_id");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+                entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+                
+                // Foreign key relationship for last message
+                entity.HasOne(c => c.LastMessage)
+                    .WithMany()
+                    .HasForeignKey(c => c.LastMessageId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

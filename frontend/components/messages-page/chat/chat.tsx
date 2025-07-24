@@ -38,11 +38,11 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "read":
-        return "✓✓"; // Double check for read
+        return "✓✓"; 
       case "delivered":
-        return "✓✓"; // Double check for delivered
+        return "✓✓"; 
       case "sent":
-        return "✓"; // Single check for sent
+        return "✓"; 
       default:
         return "";
     }
@@ -50,19 +50,19 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
 
   const getStatusColor = (status: string, sender: string) => {
     if (sender === "user") {
-      // Only show status for user's own messages
+
       switch (status) {
         case "read":
-          return "#22c55e"; // Green for read (seen)
+          return "#22c55e"; 
         case "delivered":
-          return "rgba(255, 255, 255, 0.7)"; // Light white for delivered
+          return "rgba(255, 255, 255, 0.7)"; 
         case "sent":
-          return "rgba(255, 255, 255, 0.5)"; // Faded white for sent
+          return "rgba(255, 255, 255, 0.5)"; 
         default:
           return "rgba(255, 255, 255, 0.8)";
       }
     }
-    return "transparent"; // Hide status for other user's messages
+    return "transparent"; 
   };
 
   const handleSendMessage = async () => {
@@ -72,7 +72,6 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
         setNewMessage("");
       } catch (error) {
         console.error('Failed to send message:', error);
-        // Message will stay in input field if sending fails
       }
     }
   };

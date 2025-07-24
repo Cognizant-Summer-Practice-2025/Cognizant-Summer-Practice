@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
-import { useMessages } from "@/lib/contexts/messages-context";
 import { useUser } from "@/lib/contexts/user-context";
 import { SearchUser } from "@/lib/user";
+import useMessages from "@/lib/messages";
 import "./style.css";
 
 interface Contact {
@@ -213,7 +213,7 @@ const MessagesPage = () => {
         });
         selectConversation(existingConversation);
       } else {
-        const newConversation = await createConversation(searchUser.id);
+        const newConversation = await createConversation(searchUser);
         if (newConversation) {
           setEnhancedContacts(prev => new Map(prev).set(newConversation.id, {
             name: searchUser.fullName,

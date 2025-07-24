@@ -1,181 +1,175 @@
-// Messages API functions
-// This file contains API calls for messaging operations
+const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5300';
 
-const API_BASE_URL = 'http://localhost:5093'; // Messages service URL
-
-// Request/Response interfaces
-export interface SendMessageRequest {
-  senderId: string;
-  receiverId: string;
-  conversationId?: string;
-  content: string;
-}
-
-export interface MessageResponse {
+export interface ApiMessage {
   id: string;
+  conversationId: string;
   senderId: string;
   receiverId: string;
   content: string;
+  messageType: number;
+  replyToMessageId?: string;
+  isRead: boolean;
   createdAt: string;
-  conversationId?: string;
-  isRead?: boolean;
+  updatedAt: string;
 }
 
-export interface ConversationResponse {
+export interface ApiConversation {
   id: string;
   otherUserId: string;
-  otherUserName: string;
-  otherUserAvatar?: string;
-  otherUserProfessionalTitle?: string;
-  lastMessage?: MessageResponse;
+  isInitiator: boolean;
+  lastMessageTimestamp: string;
+  lastMessage?: ApiMessage;
   unreadCount: number;
+  createdAt: string;
   updatedAt: string;
-  isOnline?: boolean;
+  isExisting?: boolean;
 }
 
 export interface CreateConversationRequest {
-  user1Id: string;
-  user2Id: string;
+  initiatorId: string;
+  receiverId: string;
 }
 
-export interface NotificationResponse {
-  id: string;
+export interface SendMessageRequest {
+  conversationId: string;
+  senderId: string;
+  content: string;
+  messageType?: number;
+  replyToMessageId?: string;
+}
+
+export interface MarkMessagesReadRequest {
+  conversationId: string;
   userId: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
 }
 
-// API error handling
-async function handleApiResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API Error ${response.status}: ${errorText}`);
-  }
-  return await response.json();
+export interface MessagesResponse {
+  messages: ApiMessage[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
 }
 
-// Message API functions
-export const messageApi = {
-  /**
-   * Send a message
-   */
-  async sendMessage(request: SendMessageRequest): Promise<MessageResponse> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/Message/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
+export const messagesApi = {
+  // Conversations
+  async getUserConversations(userId: string): Promise<ApiConversation[]> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/conversations/user/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-      return await handleApiResponse<MessageResponse>(response);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to get user conversations: ${response.statusText}`);
     }
+
+    return response.json();
   },
 
-  /**
-   * Get messages for a conversation
-   */
-  async getMessages(conversationId: string): Promise<MessageResponse[]> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/Message/${conversationId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+  async createOrGetConversation(request: CreateConversationRequest): Promise<ApiConversation> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/conversations/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
 
-      return await handleApiResponse<MessageResponse[]>(response);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to create conversation: ${response.statusText}`);
     }
-  }
-};
 
-// Conversation API functions
-export const conversationApi = {
-  /**
-   * Create a new conversation
-   */
-  async createConversation(request: CreateConversationRequest): Promise<ConversationResponse> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/Conversation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      });
-
-      return await handleApiResponse<ConversationResponse>(response);
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-      throw error;
-    }
+    return response.json();
   },
 
-  /**
-   * Get conversation history for a user
-   */
-  async getConversationHistory(userId: string): Promise<ConversationResponse[]> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/Conversation/user/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+  async getConversation(conversationId: string): Promise<ApiConversation> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/conversations/${conversationId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-      return await handleApiResponse<ConversationResponse[]>(response);
-    } catch (error) {
-      console.error('Error fetching conversation history:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to get conversation: ${response.statusText}`);
     }
+
+    return response.json();
   },
 
-  /**
-   * Get messages for a specific conversation
-   */
-  async getConversation(conversationId: string): Promise<MessageResponse[]> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/Conversation/${conversationId}`, {
+  // Messages
+  async sendMessage(request: SendMessageRequest): Promise<ApiMessage> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to send message: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  async getConversationMessages(
+    conversationId: string,
+    page: number = 1,
+    pageSize: number = 50
+  ): Promise<MessagesResponse> {
+    const response = await fetch(
+      `${MESSAGES_API_BASE}/api/messages/conversation/${conversationId}?page=${page}&pageSize=${pageSize}`,
+      {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      });
+      }
+    );
 
-      return await handleApiResponse<MessageResponse[]>(response);
-    } catch (error) {
-      console.error('Error fetching conversation:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`Failed to get conversation messages: ${response.statusText}`);
     }
-  }
-};
 
-// Notification API functions
-export const notificationApi = {
-  /**
-   * Get notifications for a user
-   */
-  async getNotifications(userId: string): Promise<NotificationResponse[]> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/Notification/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+    return response.json();
+  },
 
-      return await handleApiResponse<NotificationResponse[]>(response);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      throw error;
+  async markMessagesAsRead(request: MarkMessagesReadRequest): Promise<{ markedCount: number }> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/mark-read`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to mark messages as read: ${response.statusText}`);
     }
-  }
+
+    return response.json();
+  },
+
+  async deleteMessage(messageId: string, userId: string): Promise<{ message: string }> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/${messageId}?userId=${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete message: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
 }; 

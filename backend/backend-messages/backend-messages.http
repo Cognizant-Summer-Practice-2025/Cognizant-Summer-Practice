@@ -1,6 +1,23 @@
 @backend_messages_HostAddress = http://localhost:5093
 
-GET {{backend_messages_HostAddress}}/weatherforecast/
+### Test if the service is running
+GET {{backend_messages_HostAddress}}/api/users/test
+Accept: application/json
+
+### Search users with query "john"
+GET {{backend_messages_HostAddress}}/api/users/search?q=john
+Accept: application/json
+
+### Search users with query "test"
+GET {{backend_messages_HostAddress}}/api/users/search?q=test
+Accept: application/json
+
+### Search users with query "b" (single letter)
+GET {{backend_messages_HostAddress}}/api/users/search?q=b
+Accept: application/json
+
+### Test empty query (should return error)
+GET {{backend_messages_HostAddress}}/api/users/search?q=
 Accept: application/json
 
 ###
