@@ -323,90 +323,459 @@
   border-color: #e2e8f0;
 }
 
-/* Skills filter specific styling */
-.filter-group.skills-filter .filter-options {
-  max-height: none;
-  height: auto;
-}
+/* =============================================================================
+   SKILLS FILTER - Clean Shadcn-inspired Design
+   ============================================================================= */
 
+/* Skills Filter Container */
 .filter-group.skills-filter {
-  transition: all 0.3s ease;
+  position: relative;
+  overflow: visible;
+  margin-bottom: 1.5rem;
 }
 
-/* When skills are collapsed, ensure no residual space */
-.filter-group.skills-filter .skills-categories.collapsed,
-.filter-group.skills-filter .skills-search.collapsed {
+/* Modern Search Component */
+.skills-search-modern {
+  margin-bottom: 1rem;
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-out;
+  max-height: 200px;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+}
+
+.skills-search-modern:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.skills-search-modern.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
   height: 0 !important;
   min-height: 0 !important;
-  line-height: 0;
-  font-size: 0;
+  border: none !important;
+  visibility: hidden;
+  overflow: hidden !important;
+  transition: all 0.2s ease-in;
 }
 
-/* Enhanced skills animations */
-.skills-categories:not(.collapsed) {
-  animation: skillsExpand 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.search-container {
+  width: 100%;
 }
 
-.skill-category {
-  transform: translateY(0);
-  opacity: 1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
-.skills-categories.collapsed .skill-category {
-  transform: translateY(-15px);
-  opacity: 0;
-  transition: all 0.2s ease;
+.search-input {
+  flex: 1;
+  height: 36px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  padding: 8px 12px 8px 32px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  outline: none;
+  color: #1f2937;
 }
 
-/* Skills categories structure */
+.search-input::placeholder {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: #6b7280;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.clear-button {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  color: #6b7280;
+}
+
+.clear-button:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.clear-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Skills Categories Container */
 .skills-categories {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  max-height: 3000px;
+  gap: 0.75rem;
+  max-height: 2000px;
   overflow: hidden;
   opacity: 1;
-  padding-right: 0;
-  padding-bottom: 2rem;
-  contain: layout;
-  position: relative;
-  transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.4s ease 0.1s, 
-              padding 0.4s ease;
-  transform: translateY(0);
   visibility: visible;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease;
 }
 
 .skills-categories.collapsed {
   max-height: 0 !important;
   opacity: 0;
+  visibility: hidden;
   padding: 0 !important;
   margin: 0 !important;
-  transform: translateY(-20px);
-  visibility: hidden;
-  border: none;
-  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.3s ease, 
-              padding 0.3s ease,
-              margin 0.3s ease,
-              transform 0.4s ease,
-              visibility 0s linear 0.5s;
+  height: 0 !important;
+  min-height: 0 !important;
+  gap: 0 !important;
+  transition: max-height 0.25s ease-in, opacity 0.15s ease, visibility 0s linear 0.25s;
 }
 
-/* Skill category styling */
+/* When categories are inside collapsed skills-categories */
+.skills-categories.collapsed .skill-category {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  visibility: hidden;
+  overflow: hidden !important;
+}
+
+/* Skill Category Variants */
+.skill-category.hard-skills {
+  border-left: 3px solid #3b82f6;
+}
+
+.skill-category.soft-skills {
+  border-left: 3px solid #10b981;
+}
+
+.skill-category:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Category Header */
+.skill-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: #ffffff;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.skill-category-header:hover {
+  background: #f9fafb;
+}
+
+.skill-category-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.skill-category-icon {
+  font-size: 1rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.skill-category-icon.hard {
+  background: #3b82f6;
+  color: white;
+}
+
+.skill-category-icon.soft {
+  background: #10b981;
+  color: white;
+}
+
+.skill-category-title {
+  color: #1f2937;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.skill-category-toggle {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skill-category-toggle:hover {
+  color: #3b82f6;
+  background: #f3f4f6;
+}
+
+.skill-category-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* Subcategories Container */
+.skill-subcategories {
+  max-height: 600px;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  padding: 0;
+  margin: 0;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease;
+}
+
+.skill-subcategories.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  visibility: hidden;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  transition: max-height 0.25s ease-in, opacity 0.15s ease, visibility 0s linear 0.25s;
+}
+
+/* Subcategory Item */
+.skill-subcategory {
+  border-bottom: 1px solid #f3f4f6;
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-subcategory:last-child {
+  border-bottom: none;
+}
+
+/* When subcategory is inside collapsed subcategories */
+.skill-subcategories.collapsed .skill-subcategory {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  visibility: hidden;
+  overflow: hidden !important;
+}
+
+.skill-subcategory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background: #fafafa;
+  margin: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.skill-subcategory-header:hover {
+  background: #f3f4f6;
+}
+
+.skill-subcategory-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.skill-subcategory-title {
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.skill-subcategory-count {
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #3b82f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+.skill-subcategory-toggle {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skill-subcategory-toggle:hover {
+  color: #3b82f6;
+  background: #f3f4f6;
+}
+
+.skill-subcategory-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* Subcategory Options */
+.skill-subcategory-options {
+  padding: 0.5rem 0 0.75rem 0;
+  margin-left: 1rem;
+  border-left: 2px solid #f3f4f6;
+  padding-left: 1rem;
+  max-height: 400px;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease;
+}
+
+.skill-subcategory-options.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  visibility: hidden;
+  transition: max-height 0.25s ease-in, opacity 0.15s ease, visibility 0s linear 0.25s;
+}
+
+/* Individual Skill Option */
+.skill-option {
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.skill-option:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.skill-option .filter-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.skill-option .filter-count {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: #3b82f6;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* When skill options are inside collapsed subcategory options */
+.skill-subcategory-options.collapsed .skill-option {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  border: none !important;
+  visibility: hidden;
+  overflow: hidden !important;
+  transition: none !important;
+}
+
+/* Skills Count Badge */
+.skills-count-badge {
+  background: #3b82f6;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  margin-left: 0.5rem;
+}
+
+/* End of Skills Filter Styles */
+/* ============================================================================= */
+
+/* Skill Category */
 .skill-category {
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: #ffffff;
   position: relative;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  flex-shrink: 0;
-  contain: layout;
-  transform: scale(1);
-  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.skill-category:last-child {
+  margin-bottom: 0;
 }
 
 /* When skill category subcategories are collapsed, reduce bottom margin */
@@ -439,39 +808,7 @@
   background: linear-gradient(135deg, #f0fdf4 0%, #f1f5f9 100%);
 }
 
-.skill-category-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  backdrop-filter: blur(10px);
-}
-
-.skill-category-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.skill-category-header:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(248, 250, 252, 0.95) 100%);
-  backdrop-filter: blur(20px);
-}
-
-.skill-category-header:hover::before {
-  opacity: 1;
-}
+/* OLD CATEGORY HEADER CSS REMOVED - Using new clean structure above */
 
 .skill-category-header-left {
   display: flex;
@@ -564,38 +901,7 @@
   transform: rotate(-90deg) scale(1.1);
 }
 
-/* Skill subcategories */
-.skill-subcategories {
-  padding: 0.75rem 0;
-  max-height: 1200px;
-  overflow: hidden;
-  opacity: 1;
-  scroll-behavior: smooth;
-  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.3s ease 0.1s, 
-              padding 0.3s ease;
-  transform: translateY(0);
-  visibility: visible;
-}
-
-.skill-subcategories.collapsed {
-  max-height: 0 !important;
-  opacity: 0;
-  padding: 0 !important;
-  margin: 0 !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  transform: translateY(-10px);
-  visibility: hidden;
-  border: none !important;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              opacity 0.2s ease, 
-              padding 0.3s ease,
-              margin 0.3s ease,
-              height 0.3s ease,
-              transform 0.3s ease,
-              visibility 0s linear 0.4s;
-}
+/* OLD CSS REMOVED - Using new clean structure above */
 
 .skill-subcategories::-webkit-scrollbar {
   width: 6px;
@@ -617,24 +923,9 @@
   background: #94a3b8;
 }
 
-/* Enhanced scrolling for both hard and soft skills */
-.skill-category .skill-subcategories {
-  max-height: 700px !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-right: 8px;
-  padding-bottom: 0.75rem;
-  scroll-behavior: smooth !important;
-  -webkit-overflow-scrolling: touch;
-}
+/* OLD ENHANCED SCROLLING REMOVED - Using new clean structure */
 
-.skill-subcategory {
-  border-bottom: 1px solid #f1f5f9;
-  position: relative;
-  contain: layout;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-}
+/* OLD SUBCATEGORY CSS REMOVED - Using new clean structure above */
 
 /* When subcategory options are collapsed, reduce spacing */
 .skill-subcategory:has(.skill-subcategory-options.collapsed) {
@@ -663,44 +954,7 @@
   margin-bottom: 3rem; /* Extra margin for last category */
 }
 
-.skill-subcategory-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.875rem 1.25rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.9) 100%);
-  border-radius: 8px;
-  margin: 0.25rem 0.5rem;
-}
-
-.skill-subcategory-header::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
-  border-radius: 0 4px 4px 0;
-  opacity: 0;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-}
-
-.skill-subcategory-header:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(248, 250, 252, 0.95) 100%);
-  transform: translateX(4px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.skill-subcategory-header:hover::before {
-  opacity: 1;
-  width: 5px;
-}
+/* OLD COMPLEX SUBCATEGORY HEADER REMOVED - Using new clean structure above */
 
 .skill-subcategory-header-left {
   display: flex;
@@ -1019,20 +1273,7 @@
   scroll-behavior: smooth;
 }
 
-/* Skill option specific styling */
-.skill-option {
-  padding: 0.625rem 1rem;
-  margin: 0.25rem 0.5rem;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.95) 100%);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  opacity: 1;
-  transform: translateY(0);
-}
+/* OLD COMPLEX SKILL OPTION STYLING REMOVED - Using new clean structure above */
 
 /* Staggered animation for skill options */
 .skill-subcategory-options:not(.collapsed) .skill-option {
