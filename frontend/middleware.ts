@@ -14,7 +14,10 @@ export default async function middleware(request: NextRequest) {
     );
 
     if (isProtectedRoute && !token) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        // Preserve the current URL when redirecting to login
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("callbackUrl", request.url);
+        return NextResponse.redirect(loginUrl);
     }
 
     return NextResponse.next();

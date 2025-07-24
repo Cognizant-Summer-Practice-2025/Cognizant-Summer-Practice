@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { FormDialog, EditFormDialog, FormField } from '@/components/ui/form-dialog';
 import { Experience as ExperienceType } from '@/lib/portfolio';
 import { createExperience, updateExperience, deleteExperience } from '@/lib/portfolio/api';
+import { Loading } from '@/components/loader';
 
 interface ExperienceProps {
   experiences?: ExperienceType[];
@@ -248,10 +249,11 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 spinner-app-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading experience...</p>
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
+        <h2 className="text-2xl font-bold mb-4">Experience</h2>
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loading className="scale-50" backgroundColor="white" />
+          <span className="mt-4 text-gray-600">Loading experience...</span>
         </div>
       </div>
     );
@@ -338,7 +340,7 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
                   <div className="w-full sm:w-auto flex flex-col sm:flex-row justify-start items-start gap-2 sm:gap-[4.5px]">
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-app-blue text-app-blue hover:bg-app-blue-hover hover:text-white text-sm font-normal flex items-center gap-2"
                       onClick={() => openEditDialog(experience)}
                       disabled={actionLoading}
                     >
@@ -347,7 +349,7 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-[#E2E8F0] text-[#020817] text-sm font-normal flex items-center gap-2"
+                      className="w-full sm:w-auto px-[17px] py-[9px] rounded-lg border border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-sm font-normal flex items-center gap-2"
                       onClick={() => handleDeleteExperience(experience.id)}
                       disabled={actionLoading}
                     >

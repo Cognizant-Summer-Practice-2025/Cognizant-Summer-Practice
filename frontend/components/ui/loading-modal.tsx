@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Loading } from "../loader";
 
 interface LoadingModalProps {
   isOpen: boolean;
@@ -15,9 +16,28 @@ export function LoadingModal({
   message = "Please wait while we publish your portfolio",
   onClose 
 }: LoadingModalProps) {
-  // Prevent body scroll when modal is open
+  const [isVisible, setIsVisible] = useState(false);
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+
+  // Handle opening animation
   useEffect(() => {
     if (isOpen) {
+      setIsVisible(true);
+      setIsAnimatingOut(false);
+    } else if (isVisible) {
+      // Start closing animation
+      setIsAnimatingOut(true);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setIsAnimatingOut(false);
+      }, 300); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isVisible]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isVisible) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -26,25 +46,36 @@ export function LoadingModal({
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isVisible]);
 
-  if (!isOpen) return null;
+  const handleBackdropClick = () => {
+    if (onClose && !isAnimatingOut) {
+      onClose();
+    }
+  };
+
+  if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" 
-        onClick={onClose}
+        className={`absolute inset-0 bg-transparent backdrop-blur-sm transition-opacity duration-300 ${
+          isAnimatingOut ? 'opacity-0' : 'opacity-100'
+        }`}
+        onClick={handleBackdropClick}
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-in fade-in duration-200">
+      <div className={`relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 transition-all duration-300 ${
+        isAnimatingOut 
+          ? 'animate-out fade-out zoom-out-75 slide-out-to-top-2' 
+          : 'animate-in fade-in zoom-in-95 slide-in-from-top-2'
+      }`}>
         <div className="text-center">
-          {/* Loading Spinner */}
-          <div className="mx-auto mb-6 w-16 h-16 relative">
-            <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+          {/* Loading Animation */}
+          <div className="mx-auto mb-6 flex justify-center">
+            <Loading className="scale-50" backgroundColor="white" />
           </div>
           
           {/* Title */}

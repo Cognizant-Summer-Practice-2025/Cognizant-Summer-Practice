@@ -8,6 +8,7 @@ import { ComponentOrdering } from "@/components/ui/component-ordering"
 import { ComponentConfig } from '@/lib/portfolio';
 import { TemplateManager } from '@/lib/template-manager';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
+import { Loading } from '@/components/loader';
 import { updatePortfolio } from '@/lib/portfolio/api';
 
 interface SettingsProps {
@@ -134,9 +135,9 @@ export default function Settings({ portfolioId: propPortfolioId, initialData, on
     return (
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full h-full overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4">Settings</h2>
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2">Loading settings...</span>
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loading className="scale-50" backgroundColor="white" />
+          <span className="mt-4 text-gray-600">Loading settings...</span>
         </div>
       </div>
     );
@@ -288,6 +289,7 @@ export default function Settings({ portfolioId: propPortfolioId, initialData, on
           <Button 
             onClick={handleSave}
             disabled={loading || !portfolioId}
+            className="bg-app-blue hover:bg-app-blue-hover text-white"
           >
             {loading ? 'Saving...' : 'Save Settings'}
           </Button>

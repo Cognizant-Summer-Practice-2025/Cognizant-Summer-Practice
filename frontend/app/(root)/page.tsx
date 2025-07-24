@@ -11,7 +11,7 @@ const LandingPage: React.FC = () => {
           <h1>Welcome to GoalKeeper</h1>
           <p>Discover amazing portfolios from talented professionals</p>
           <div className="landing-actions">
-            <Link href="/home">
+            <Link href="/">
               <Button type="primary" size="large">
                 Explore Portfolios
               </Button>

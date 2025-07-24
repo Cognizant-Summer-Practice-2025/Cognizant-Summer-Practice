@@ -4,25 +4,29 @@ import React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const LoginPage = () => {
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get the callback URL from query params or default to home
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   // Redirect if already authenticated
   React.useEffect(() => {
     if (session) {
-      router.push('/profile');
+      router.push(callbackUrl);
     }
-  }, [session, router]);
+  }, [session, router, callbackUrl]);
 
   const handleGitHubSignIn = async () => {
-    await signIn('github', { callbackUrl: '/profile' });
+    await signIn('github', { callbackUrl });
   };
 
   const handleGoogleSignIn = async () => {
-    await signIn('google', { callbackUrl: '/profile' });
+    await signIn('google', { callbackUrl });
   };
 
   return (
