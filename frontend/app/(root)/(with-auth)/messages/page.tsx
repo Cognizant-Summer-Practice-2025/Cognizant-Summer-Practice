@@ -247,7 +247,7 @@ const MessagesPage = () => {
     if (!currentConversation || !user) return;
     
     try {
-      await sendMessage(content, currentConversation.otherUserId);
+      await sendMessage(content);
     } catch (error) {
       console.error('Failed to send message:', error);
     }

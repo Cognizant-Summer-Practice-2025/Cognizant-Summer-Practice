@@ -46,7 +46,9 @@ const ContactItem: React.FC<{
           <div className="contact-timestamp">{contact.timestamp}</div>
         </div>
         <div className="contact-message">
-          {contact.lastMessage}
+          {contact.lastMessage && contact.lastMessage.length > 100 
+            ? `${contact.lastMessage.substring(0, 100)}...` 
+            : contact.lastMessage}
         </div>
         <div className="contact-status">
           {contact.unreadCount && contact.unreadCount > 0 ? (

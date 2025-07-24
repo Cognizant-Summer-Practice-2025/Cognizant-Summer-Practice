@@ -1,4 +1,4 @@
-const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5300';
+const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5093';
 
 export interface ApiMessage {
   id: string;
@@ -53,6 +53,20 @@ export interface MessagesResponse {
     hasNext: boolean;
     hasPrevious: boolean;
   };
+}
+
+export interface ApiUser {
+  id: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  professionalTitle?: string;
+  bio?: string;
+  location?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  isAdmin: boolean;
+  lastLoginAt?: string;
 }
 
 export const messagesApi = {
@@ -168,6 +182,23 @@ export const messagesApi = {
 
     if (!response.ok) {
       throw new Error(`Failed to delete message: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  // User details
+  async getUserById(userId: string): Promise<ApiUser> {
+    const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+    const response = await fetch(`${USER_API_BASE}/api/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user: ${response.statusText}`);
     }
 
     return response.json();

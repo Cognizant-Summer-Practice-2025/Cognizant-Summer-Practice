@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, Button, Dropdown } from "antd";
 import type { MenuProps } from 'antd';
 import { UserOutlined, MoreOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import "./style.css";
 
 interface Contact {
@@ -23,6 +24,7 @@ interface ChatHeaderProps {
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const router = useRouter();
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
@@ -81,12 +83,37 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
     },
   ];
 
+  // Check if user has a portfolio when selectedContact changes
+  useEffect(() => {
+    const checkUserPortfolio = async () => {
+      if (selectedContact.userId) {
+        try {
+          const portfolios = await getPortfoliosByUserId(selectedContact.userId);
+          // Find the first published portfolio and get its ID
+          const publishedPortfolio = portfolios.find(portfolio => portfolio.isPublished);
+          setPortfolioId(publishedPortfolio ? publishedPortfolio.id : null);
+        } catch (error) {
+          console.error('Error checking user portfolio:', error);
+          setPortfolioId(null);
+        }
+      } else {
+        setPortfolioId(null);
+      }
+    };
+
+    checkUserPortfolio();
+  }, [selectedContact.userId]);
+
   const handleViewProfile = () => {
-    if (selectedContact.userId) {
-      // Navigate to the user's portfolio page (using 'user' param that portfolio page expects)
-      router.push(`/portfolio?user=${selectedContact.userId}`);
+    console.log('View Portfolio clicked for:', selectedContact.name);
+    console.log('Selected contact data:', selectedContact);
+    
+    if (portfolioId) {
+      console.log('Navigating to portfolio with portfolioId:', portfolioId);
+      // Navigate to the user's portfolio page using portfolio ID
+      router.push(`/portfolio?portfolio=${portfolioId}`);
     } else {
-      console.log('No user ID available for:', selectedContact.name);
+      console.log('❌ No portfolio ID available for:', selectedContact.name);
     }
   };
 
@@ -112,13 +139,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
       </div>
       
       <div className="chat-header-right">
-        <Button 
-          className="view-portfolio-btn"
-          onClick={handleViewProfile}
-          icon={<UserOutlined />}
-        >
-          View Portfolio
-        </Button>
+        {portfolioId && (
+          <Button 
+            className="view-portfolio-btn"
+            onClick={handleViewProfile}
+            icon={<UserOutlined />}
+          >
+            View Portfolio
+          </Button>
+        )}
         
         <Dropdown
           menu={{ items: menuItems, onClick: handleMenuClick }}
