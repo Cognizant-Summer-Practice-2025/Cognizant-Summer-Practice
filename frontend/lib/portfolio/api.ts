@@ -401,6 +401,7 @@ function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromD
       id: dto.id,
       userId: dto.userId,
       templateId: dto.templateId,
+      templateName: dto.template?.name, // Include template name for easier access
       title: dto.title,
       bio: dto.bio,
       isPublished: dto.isPublished,
@@ -532,44 +533,83 @@ export async function getPortfolioComprehensive(portfolioId: string): Promise<{
   return result;
 }
 
+// Template cache for efficient lookups
+const templateCache = new Map<string, string>(); // templateId -> templateName
+
+// Helper function to get template name by ID with caching
+async function getTemplateNameById(templateId: string): Promise<string | undefined> {
+  // Check cache first
+  if (templateCache.has(templateId)) {
+    return templateCache.get(templateId);
+  }
+  
+  try {
+    const template = await getTemplateById(templateId);
+    if (template) {
+      templateCache.set(templateId, template.name);
+      return template.name;
+    }
+  } catch (error) {
+    console.error('Error fetching template name:', error);
+  }
+  
+  return undefined;
+}
+
 export async function getPortfoliosByUserId(userId: string): Promise<UserPortfolio[]> {
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/user/${userId}`);
   const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
   
-  return data.map(dto => ({
-    id: dto.id,
-    userId: dto.userId,
-    templateId: dto.templateId,
-    title: dto.title,
-    bio: dto.bio,
-    isPublished: dto.isPublished,
-    visibility: dto.visibility,
-    viewCount: dto.viewCount,
-    likeCount: dto.likeCount,
-    components: dto.components ? JSON.parse(dto.components) : undefined,
-    createdAt: dto.createdAt,
-    updatedAt: dto.updatedAt
+  // Resolve template names efficiently
+  const portfolios = await Promise.all(data.map(async (dto) => {
+    const templateName = await getTemplateNameById(dto.templateId);
+    
+    return {
+      id: dto.id,
+      userId: dto.userId,
+      templateId: dto.templateId,
+      templateName: templateName, // Resolved template name
+      title: dto.title,
+      bio: dto.bio,
+      isPublished: dto.isPublished,
+      visibility: dto.visibility,
+      viewCount: dto.viewCount,
+      likeCount: dto.likeCount,
+      components: dto.components ? JSON.parse(dto.components) : undefined,
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt
+    };
   }));
+  
+  return portfolios;
 }
 
 export async function getAllPortfolios(): Promise<UserPortfolio[]> {
   const response = await fetch(`${API_BASE_URL}/api/Portfolio`);
   const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
   
-  return data.map(dto => ({
-    id: dto.id,
-    userId: dto.userId,
-    templateId: dto.templateId,
-    title: dto.title,
-    bio: dto.bio,
-    isPublished: dto.isPublished,
-    visibility: dto.visibility,
-    viewCount: dto.viewCount,
-    likeCount: dto.likeCount,
-    components: dto.components ? JSON.parse(dto.components) : undefined,
-    createdAt: dto.createdAt,
-    updatedAt: dto.updatedAt
+  // Resolve template names efficiently
+  const portfolios = await Promise.all(data.map(async (dto) => {
+    const templateName = await getTemplateNameById(dto.templateId);
+    
+    return {
+      id: dto.id,
+      userId: dto.userId,
+      templateId: dto.templateId,
+      templateName: templateName, // Resolved template name
+      title: dto.title,
+      bio: dto.bio,
+      isPublished: dto.isPublished,
+      visibility: dto.visibility,
+      viewCount: dto.viewCount,
+      likeCount: dto.likeCount,
+      components: dto.components ? JSON.parse(dto.components) : undefined,
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt
+    };
   }));
+  
+  return portfolios;
 }
 
 export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
@@ -763,6 +803,19 @@ export async function getTemplateByName(name: string): Promise<PortfolioTemplate
     return handleApiResponse<PortfolioTemplate>(response);
   } catch (error) {
     console.error('Error fetching template by name:', error);
+    return null;
+  }
+}
+
+export async function getTemplateById(id: string): Promise<PortfolioTemplate | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${id}`);
+    if (response.status === 404) {
+      return null;
+    }
+    return handleApiResponse<PortfolioTemplate>(response);
+  } catch (error) {
+    console.error('Error fetching template by id:', error);
     return null;
   }
 }

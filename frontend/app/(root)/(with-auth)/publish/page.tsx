@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { PublishHeader } from "@/components/publish-page/publish-header"
 import { PortfolioInformation } from "@/components/publish-page/portfolio-information"
@@ -19,12 +19,17 @@ import { usePortfolio } from "@/lib/contexts/portfolio-context"
 import { useDraft } from "@/lib/contexts/draft-context"
 import { useUser } from "@/lib/contexts/user-context"
 import { TemplateManager } from "@/lib/template-manager"
+import { templateRegistry } from "@/lib/template-registry"
+import { getPortfolioTemplates, getDefaultTemplate } from "@/lib/templates"
+import { TemplateConfig } from "@/lib/portfolio"
 import { updatePortfolio, savePortfolioContent, createPortfolioAndGetId } from "@/lib/portfolio/api"
 
 export default function Publish() {
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
   const [showLoadingModal, setShowLoadingModal] = useState(false)
+  const [templates, setTemplates] = useState<TemplateConfig[]>([])
+  const [templatesLoaded, setTemplatesLoaded] = useState(false)
   
   const { user } = useUser()
   
@@ -54,6 +59,32 @@ export default function Publish() {
   
   const currentPortfolio = portfolios[0]
 
+  // Load templates from template registry
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        console.log('🎨 Loading templates in publish page...');
+        
+        // Initialize template registry and get dynamic templates
+        await templateRegistry.initialize();
+        const portfolioTemplates = await getPortfolioTemplates();
+        
+        setTemplates(portfolioTemplates);
+        console.log('📋 Loaded templates in publish page:', portfolioTemplates.map(t => `${t.name} (${t.id})`));
+        
+      } catch (error) {
+        console.error('❌ Failed to load templates in publish page:', error);
+        // Fallback to default template
+        const defaultTemplate = getDefaultTemplate();
+        setTemplates([defaultTemplate]);
+      } finally {
+        setTemplatesLoaded(true);
+      }
+    };
+
+    loadTemplates();
+  }, []);
+
   // Combined data (existing + draft)
   const totalProjects = projects.length + draftProjects.length
   const totalExperience = experience.length + draftExperience.length
@@ -78,6 +109,36 @@ export default function Publish() {
     
     return errors
   }
+
+  // Helper function to get selected template name using template registry
+  const getSelectedTemplateName = () => {
+    // Priority order:
+    // 1. Current portfolio's template name (if portfolio exists)
+    // 2. Check for any recently selected template in session storage
+    // 3. Use template registry to get default template name
+    
+    if (currentPortfolio?.templateName) {
+      return currentPortfolio.templateName;
+    }
+    
+    // Check session storage for recently selected template
+    try {
+      const savedTemplate = sessionStorage.getItem('selectedTemplateName');
+      if (savedTemplate && savedTemplate !== 'undefined') {
+        return savedTemplate;
+      }
+    } catch (error) {
+      console.warn('Could not read from session storage:', error);
+    }
+    
+    // Use template registry to get default template name
+    if (templatesLoaded && templates.length > 0) {
+      return templates[0].name; // First template as default
+    }
+    
+    // Final fallback
+    return 'Gabriel Bârzu';
+  };
 
   const handlePublish = async () => {
     console.log('🚀 Starting publish process...')
@@ -108,7 +169,7 @@ export default function Publish() {
           // Create basic portfolio data
           const portfolioData = {
             userId: user?.id || 'default-user-id',
-            templateName: 'Gabriel Bârzu', // Will be updated when user selects a template
+            templateName: getSelectedTemplateName(),
             title: 'My Portfolio',
             bio: 'Welcome to my portfolio',
             visibility: 0 as 0 | 1 | 2, // Public
@@ -228,7 +289,7 @@ export default function Publish() {
           console.log('No portfolio exists and no draft data. Creating basic portfolio...')
           const portfolioData = {
             userId: user?.id || 'default-user-id',
-            templateName: 'Gabriel Bârzu', // Will be updated when user selects a template
+            templateName: getSelectedTemplateName(),
             title: 'My Portfolio',
             bio: 'Welcome to my portfolio',
             visibility: 0 as 0 | 1 | 2, // Public
@@ -372,13 +433,15 @@ export default function Publish() {
                   <TabsContent value="settings" className="space-y-6">
                     <PortfolioSettings 
                       portfolioId={currentPortfolio?.id}
+                      templates={templates}
+                      templatesLoaded={templatesLoaded}
                       onSave={async (settingsData) => {
                         try {
                           if (!currentPortfolio) {
                             // Create a basic portfolio first with the settings data
                             const portfolioData = {
                               userId: user?.id || 'default-user-id',
-                              templateName: settingsData.templateName || 'Gabriel Bârzu',
+                              templateName: settingsData.templateName || getSelectedTemplateName(),
                               title: 'My Portfolio', // Default title, will be set in basic info
                               bio: 'Welcome to my portfolio', // Default bio, will be set in basic info
                               visibility: 0 as 0 | 1 | 2, // Default visibility, will be set in basic info
@@ -388,12 +451,29 @@ export default function Publish() {
                             
                             await createPortfolioAndGetId(portfolioData);
                           } else {
-                            // Update existing portfolio with template and components only
-                            const updateData = {
+                            // Update existing portfolio with template and components
+                            const updateData: { components?: string; templateName?: string } = {
                               components: settingsData.components
                             };
                             
-                            // Note: Template changes might need special handling
+                            // Update template name if provided
+                            if (settingsData.templateName) {
+                              updateData.templateName = settingsData.templateName;
+                              
+                              // Save to session storage for cross-component access
+                              try {
+                                sessionStorage.setItem('selectedTemplateName', settingsData.templateName);
+                                
+                                // Find and save template ID as well
+                                const template = templates.find(t => t.name === settingsData.templateName);
+                                if (template) {
+                                  sessionStorage.setItem('selectedTemplateId', template.id);
+                                }
+                              } catch (sessionError) {
+                                console.warn('Could not save to session storage:', sessionError);
+                              }
+                            }
+                            
                             await updatePortfolio(currentPortfolio.id, updateData);
                           }
                           
