@@ -225,7 +225,7 @@ const PortfolioPage = () => {
         
         // Get template ID from portfolio configuration, converting UUID to string ID if needed
         const rawTemplateId = currentPortfolio.templateId || getDefaultTemplate().id;
-        const templateId = convertTemplateUuidToId(rawTemplateId);
+        const templateId = await convertTemplateUuidToId(rawTemplateId);
         
 
         

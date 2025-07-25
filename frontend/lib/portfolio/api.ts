@@ -744,56 +744,37 @@ export async function decrementLikeCount(portfolioId: string): Promise<boolean> 
 
 // ============= PORTFOLIO TEMPLATE API FUNCTIONS =============
 
-export async function getAllTemplates(): Promise<PortfolioTemplateResponseDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`);
-  return handleApiResponse<PortfolioTemplateResponseDto[]>(response);
-}
-
-export async function getTemplateById(templateId: string): Promise<PortfolioTemplateResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${templateId}`);
-  return handleApiResponse<PortfolioTemplateResponseDto>(response);
-}
-
-export async function getActiveTemplates(): Promise<PortfolioTemplateSummaryDto[]> {
+export async function getActiveTemplates(): Promise<PortfolioTemplate[]> {
   const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/active`);
-  return handleApiResponse<PortfolioTemplateSummaryDto[]>(response);
+  return handleApiResponse<PortfolioTemplate[]>(response);
 }
 
-export async function createTemplate(templateData: PortfolioTemplateRequestDto): Promise<PortfolioTemplateResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`, {
+export async function getAllTemplates(): Promise<PortfolioTemplate[]> {
+  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`);
+  return handleApiResponse<PortfolioTemplate[]>(response);
+}
+
+export async function getTemplateByName(name: string): Promise<PortfolioTemplate | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/name/${encodeURIComponent(name)}`);
+    if (response.status === 404) {
+      return null;
+    }
+    return handleApiResponse<PortfolioTemplate>(response);
+  } catch (error) {
+    console.error('Error fetching template by name:', error);
+    return null;
+  }
+}
+
+export async function seedDefaultTemplates(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/seed`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(templateData),
   });
-  
-  return handleApiResponse<PortfolioTemplateResponseDto>(response);
-}
-
-export async function updateTemplate(templateId: string, templateData: PortfolioTemplateUpdateDto): Promise<PortfolioTemplateResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${templateId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(templateData),
-  });
-  
-  return handleApiResponse<PortfolioTemplateResponseDto>(response);
-}
-
-export async function deleteTemplate(templateId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${templateId}`, {
-    method: 'DELETE',
-  });
-  
-  if (response.status === 204) {
-    return true;
-  }
-  
-  await handleApiResponse(response);
-  return false;
+  await handleApiResponse<{ message: string }>(response);
 }
 
 // ============= INDIVIDUAL ENTITY API FUNCTIONS =============

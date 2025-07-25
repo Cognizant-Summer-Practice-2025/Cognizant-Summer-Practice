@@ -108,7 +108,7 @@ export default function Publish() {
           // Create basic portfolio data
           const portfolioData = {
             userId: user?.id || 'default-user-id',
-            templateName: 'Gabriel Bârzu', // Default template name
+            templateName: 'Gabriel Bârzu', // Will be updated when user selects a template
             title: 'My Portfolio',
             bio: 'Welcome to my portfolio',
             visibility: 0 as 0 | 1 | 2, // Public
@@ -228,7 +228,7 @@ export default function Publish() {
           console.log('No portfolio exists and no draft data. Creating basic portfolio...')
           const portfolioData = {
             userId: user?.id || 'default-user-id',
-            templateName: 'Gabriel Bârzu', // Default template name
+            templateName: 'Gabriel Bârzu', // Will be updated when user selects a template
             title: 'My Portfolio',
             bio: 'Welcome to my portfolio',
             visibility: 0 as 0 | 1 | 2, // Public
