@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendMessages.Data;
 using BackendMessages.Models;
+using BackendMessages.Services;
 
 namespace BackendMessages.Controllers
 {
@@ -11,11 +12,13 @@ namespace BackendMessages.Controllers
     {
         private readonly MessagesDbContext _context;
         private readonly ILogger<ConversationsController> _logger;
+        private readonly IConversationService _conversationService;
 
-        public ConversationsController(MessagesDbContext context, ILogger<ConversationsController> logger)
+        public ConversationsController(MessagesDbContext context, ILogger<ConversationsController> logger, IConversationService conversationService)
         {
             _context = context;
             _logger = logger;
+            _conversationService = conversationService;
         }
 
         /// <summary>
@@ -29,7 +32,10 @@ namespace BackendMessages.Controllers
             try
             {
                 var conversations = await _context.Conversations
-                    .Where(c => c.InitiatorId == userId || c.ReceiverId == userId)
+                    .Where(c => (c.InitiatorId == userId || c.ReceiverId == userId) &&
+                               // Filter out conversations deleted by this user
+                               ((c.InitiatorId == userId && !c.InitiatorDeletedAt.HasValue) ||
+                                (c.ReceiverId == userId && !c.ReceiverDeletedAt.HasValue)))
                     .Include(c => c.LastMessage)
                     .OrderByDescending(c => c.LastMessageTimestamp)
                     .Select(c => new
@@ -200,6 +206,76 @@ namespace BackendMessages.Controllers
             {
                 _logger.LogError(ex, "Error getting conversation {ConversationId}", conversationId);
                 return StatusCode(500, "An error occurred while retrieving the conversation");
+            }
+        }
+
+        /// <summary>
+        /// Delete a conversation and all its messages
+        /// </summary>
+        /// <param name="conversationId">The conversation ID to delete</param>
+        /// <param name="userId">The ID of the user requesting the deletion</param>
+        /// <returns>Success or error response</returns>
+        [HttpDelete("{conversationId}")]
+        public async Task<IActionResult> DeleteConversation(Guid conversationId, [FromQuery] Guid userId)
+        {
+            _logger.LogInformation("DELETE request received for conversation {ConversationId} by user {UserId}", 
+                conversationId, userId);
+
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    _logger.LogWarning("Delete conversation failed: User ID is empty");
+                    return BadRequest("User ID is required");
+                }
+
+                _logger.LogInformation("Calling DeleteConversationAsync service method...");
+                var success = await _conversationService.DeleteConversationAsync(conversationId, userId);
+                _logger.LogInformation("DeleteConversationAsync returned: {Success}", success);
+
+                if (!success)
+                {
+                    _logger.LogWarning("Delete conversation service returned false, checking reasons...");
+                    
+                    // Check if conversation exists
+                    _logger.LogInformation("Checking if conversation exists...");
+                    var conversationExists = await _context.Conversations
+                        .AnyAsync(c => c.Id == conversationId);
+                    _logger.LogInformation("Conversation exists: {Exists}", conversationExists);
+
+                    if (!conversationExists)
+                    {
+                        _logger.LogWarning("Conversation {ConversationId} not found", conversationId);
+                        return NotFound("Conversation not found");
+                    }
+
+                    // Check if user has permission
+                    _logger.LogInformation("Checking user permissions...");
+                    var hasPermission = await _conversationService.IsUserPartOfConversationAsync(conversationId, userId);
+                    _logger.LogInformation("User has permission: {HasPermission}", hasPermission);
+                    
+                    if (!hasPermission)
+                    {
+                        _logger.LogWarning("User {UserId} does not have permission to delete conversation {ConversationId}", 
+                            userId, conversationId);
+                        return Forbid("You don't have permission to delete this conversation");
+                    }
+
+                    _logger.LogError("Delete conversation failed for unknown reason. Conversation exists: {Exists}, User has permission: {HasPermission}", 
+                        conversationExists, hasPermission);
+                    return StatusCode(500, "An error occurred while deleting the conversation");
+                }
+
+                _logger.LogInformation("Conversation {ConversationId} deleted successfully by user {UserId}", 
+                    conversationId, userId);
+                return Ok(new { message = "Conversation removed from your chat list" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred while deleting conversation {ConversationId} for user {UserId}. " +
+                    "Exception type: {ExceptionType}, Message: {ExceptionMessage}, StackTrace: {StackTrace}", 
+                    conversationId, userId, ex.GetType().Name, ex.Message, ex.StackTrace);
+                return StatusCode(500, $"An error occurred while deleting the conversation: {ex.Message}");
             }
         }
     }

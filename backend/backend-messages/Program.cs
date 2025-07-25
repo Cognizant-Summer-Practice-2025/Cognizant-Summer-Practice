@@ -21,6 +21,7 @@ builder.Services.AddHttpClient<IUserSearchService, UserSearchService>(client =>
 
 // Register services
 builder.Services.AddScoped<IUserSearchService, UserSearchService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
 
 // Add DB Context
 builder.Services.AddDbContext<MessagesDbContext>(options =>

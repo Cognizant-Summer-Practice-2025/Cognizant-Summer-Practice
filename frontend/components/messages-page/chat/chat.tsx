@@ -30,9 +30,10 @@ interface ChatProps {
   currentUserAvatar?: string;
   onSendMessage?: (content: string) => Promise<void>;
   sendingMessage?: boolean;
+  onDeleteConversation?: (conversationId: string) => Promise<void>;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false }) => {
+const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation }) => {
   const [newMessage, setNewMessage] = useState("");
 
   const getStatusIcon = (status: string) => {
@@ -79,7 +80,7 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
   return (
     <div className="chat-container">
       {/* Messages Area */}
-      <ChatHeader selectedContact={selectedContact} />
+      <ChatHeader selectedContact={selectedContact} onDeleteConversation={onDeleteConversation} />
       <div className="messages-area">
         {messages.map((message, index) => (
           <div

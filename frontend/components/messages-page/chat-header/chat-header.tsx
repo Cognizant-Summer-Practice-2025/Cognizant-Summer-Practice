@@ -1,9 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Avatar, Button, Dropdown } from "antd";
-import type { MenuProps } from 'antd';
-import { UserOutlined, MoreOutlined } from "@ant-design/icons";
+import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import "./style.css";
 
 interface Contact {
@@ -20,68 +36,51 @@ interface Contact {
 
 interface ChatHeaderProps {
   selectedContact: Contact;
+  onDeleteConversation?: (conversationId: string) => Promise<void>;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation }) => {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
-  const handleMenuClick: MenuProps['onClick'] = (e) => {
-    const { key } = e;
-    
-    switch (key) {
-      case 'block':
-        console.log('Block user:', selectedContact.name);
-        // Add block user logic here
-        break;
-      case 'report':
-        console.log('Report user:', selectedContact.name);
-        // Add report user logic here
-        break;
-      case 'mute':
-        console.log('Mute user:', selectedContact.name);
-        // Add mute user logic here
-        break;
-      case 'delete':
-        console.log('Delete conversation with:', selectedContact.name);
-        // Add delete conversation logic here
-        break;
-      default:
-        break;
-    }
-    
-    setDropdownOpen(false);
+  const handleMuteNotifications = () => {
+    console.log('Mute user:', selectedContact.name);
+    // Add mute user logic here
   };
 
-  const menuItems: MenuProps['items'] = [
-    {
-      key: 'mute',
-      label: 'Mute notifications',
-      icon: '🔇',
-    },
-    {
-      key: 'block',
-      label: 'Block user',
-      icon: '🚫',
-      danger: true,
-    },
-    {
-      key: 'report',
-      label: 'Report user',
-      icon: '⚠️',
-      danger: true,
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'delete',
-      label: 'Delete conversation',
-      icon: '🗑️',
-      danger: true,
-    },
-  ];
+  const handleBlockUser = () => {
+    console.log('Block user:', selectedContact.name);
+    // Add block user logic here
+  };
+
+  const handleReportUser = () => {
+    console.log('Report user:', selectedContact.name);
+    // Add report user logic here
+  };
+
+  const handleDeleteClick = () => {
+    console.log('Delete conversation clicked for:', selectedContact.name);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!onDeleteConversation) return;
+    
+    console.log('Confirming delete for conversation:', selectedContact.id);
+    setIsDeleting(true);
+    try {
+      console.log('Calling onDeleteConversation...');
+      await onDeleteConversation(selectedContact.id);
+      console.log('Delete successful, closing dialog');
+      setShowDeleteDialog(false);
+    } catch (error) {
+      console.error('Delete conversation error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Check if user has a portfolio when selectedContact changes
   useEffect(() => {
@@ -120,9 +119,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
   return (
     <div className="chat-header">
       <div className="chat-header-left">
-        <Avatar 
-          size={40} 
+        <img 
+          width={40}
+          height={40}
           src={selectedContact.avatar} 
+          alt={selectedContact.name}
           className="contact-avatar"
         />
         <div className="contact-info">
@@ -141,28 +142,78 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact }) => {
       <div className="chat-header-right">
         {portfolioId && (
           <Button 
+            variant="outline"
             className="view-portfolio-btn"
             onClick={handleViewProfile}
-            icon={<UserOutlined />}
           >
+            <User className="w-4 h-4 mr-2" />
             View Portfolio
           </Button>
         )}
         
-        <Dropdown
-          menu={{ items: menuItems, onClick: handleMenuClick }}
-          trigger={['click']}
-          open={dropdownOpen}
-          onOpenChange={setDropdownOpen}
-          placement="bottomRight"
-        >
-          <Button 
-            className="more-options-btn"
-            icon={<MoreOutlined />}
-            onClick={(e) => e.preventDefault()}
-          />
-        </Dropdown>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline"
+              size="icon"
+              className="more-options-btn"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={handleMuteNotifications}>
+              <Volume2 className="mr-2 h-4 w-4" />
+              Mute notifications
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={handleBlockUser}
+              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Block user
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={handleReportUser}
+              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Report user
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={handleDeleteClick}
+              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete for me
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+      
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the conversation with {selectedContact.name}? 
+              This will remove the conversation from your chat list, but {selectedContact.name} will still see it. 
+              You can restore it by sending a new message.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

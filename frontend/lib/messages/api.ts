@@ -187,6 +187,31 @@ export const messagesApi = {
     return response.json();
   },
 
+  async deleteConversation(conversationId: string, userId: string): Promise<{ message: string }> {
+    const url = `${MESSAGES_API_BASE}/api/conversations/${conversationId}?userId=${userId}`;
+    console.log('Making DELETE request to:', url);
+    
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('Delete conversation response status:', response.status);
+    console.log('Delete conversation response headers:', Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Delete conversation failed:', errorText);
+      throw new Error(`Failed to delete conversation: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Delete conversation successful:', result);
+    return result;
+  },
+
   // User details
   async getUserById(userId: string): Promise<ApiUser> {
     const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';

@@ -41,7 +41,8 @@ const MessagesPage = () => {
     messagesError,
     selectConversation,
     sendMessage,
-    createConversation
+    createConversation,
+    deleteConversation
   } = useMessages();
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -253,6 +254,21 @@ const MessagesPage = () => {
     }
   };
 
+  const handleDeleteConversation = async (conversationId: string) => {
+    console.log("handleDeleteConversation called with ID:", conversationId);
+    try {
+      console.log("Calling deleteConversation from useMessages...");
+      await deleteConversation(conversationId);
+      console.log("Delete conversation successful");
+      // If the deleted conversation was selected, clear the selection
+      if (selectedContact?.id === conversationId) {
+        setSelectedContact(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: 32, color: "#888", textAlign: "center" }}>
@@ -302,6 +318,7 @@ const MessagesPage = () => {
               currentUserAvatar={user?.avatarUrl}
               onSendMessage={handleSendMessage}
               sendingMessage={sendingMessage}
+              onDeleteConversation={handleDeleteConversation}
             />
           )
         ) : (

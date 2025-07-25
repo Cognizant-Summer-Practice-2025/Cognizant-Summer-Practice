@@ -17,6 +17,7 @@
 .contact-avatar {
   flex-shrink: 0;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .contact-info {
@@ -88,46 +89,7 @@
   gap: clamp(0.5rem, 1vw, 0.75rem);
 }
 
-.view-portfolio-btn {
-  padding: clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 2vw, 1rem);
-  border: 1px solid #e5e7eb;
-  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
-  background: white;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  gap: clamp(0.375rem, 0.75vw, 0.5rem);
-  font-size: clamp(0.75rem, 1.5vw, 0.875rem);
-  font-family: 'Inter', sans-serif;
-  height: auto;
-  transition: all 0.2s ease;
-}
 
-.view-portfolio-btn:hover {
-  border-color: #d1d5db;
-  background: #f9fafb;
-  color: #1f2937;
-}
-
-.more-options-btn {
-  padding: clamp(0.625rem, 1.25vw, 0.75rem);
-  border: 1px solid #e5e7eb;
-  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
-  background: white;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: clamp(2.25rem, 4vw, 2.75rem);
-  height: clamp(2.25rem, 4vw, 2.75rem);
-  transition: all 0.2s ease;
-}
-
-.more-options-btn:hover {
-  border-color: #d1d5db;
-  background: #f9fafb;
-  color: #1f2937;
-}
 
 /* Responsive design */
 @media (max-width: 768px) {
@@ -158,24 +120,12 @@
   }
 }
 
-/* Custom dropdown styles */
-.ant-dropdown-menu {
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
-}
-
-.ant-dropdown-menu-item {
-  padding: 0.75rem 1rem;
+/* Custom styles for shadcn components */
+.view-portfolio-btn, .more-options-btn {
   font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
 }
 
-.ant-dropdown-menu-item:hover {
-  background-color: #f3f4f6;
-}
-
-.ant-dropdown-menu-item-danger:hover {
-  background-color: #fef2f2;
-  color: #dc2626;
+.more-options-btn {
+  width: 40px;
+  height: 40px;
 }

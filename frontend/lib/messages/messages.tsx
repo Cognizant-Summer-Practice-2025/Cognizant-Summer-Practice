@@ -244,6 +244,34 @@ const useMessages = () => {
     }
   }, [user?.id]);
 
+  const deleteConversation = useCallback(async (conversationId: string) => {
+    if (!user?.id) {
+      console.error('No user ID available for delete conversation');
+      return;
+    }
+
+    console.log('deleteConversation called with:', { conversationId, userId: user.id });
+
+    try {
+      console.log('Making API call to delete conversation...');
+      await messagesApi.deleteConversation(conversationId, user.id);
+      console.log('API call successful, updating state...');
+      
+      // Remove conversation from state
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      
+      // Clear current conversation if it was the deleted one
+      if (currentConversation?.id === conversationId) {
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+      console.log('State updated successfully');
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      throw error;
+    }
+  }, [user?.id, currentConversation?.id]);
+
   const sendMessage = useCallback(async (content: string) => {
     if (!user?.id || !currentConversation) return;
     
@@ -312,7 +340,8 @@ const useMessages = () => {
     messagesError,
     selectConversation,
     sendMessage,
-    createConversation
+    createConversation,
+    deleteConversation
   };
 };
 

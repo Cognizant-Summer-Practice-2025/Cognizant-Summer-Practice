@@ -14,10 +14,12 @@ CREATE TABLE conversations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     initiator_id UUID NOT NULL,
     receiver_id UUID NOT NULL,
-    last_message_timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    last_message_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_message_id UUID, -- FK constraint added later
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    initiator_deleted_at TIMESTAMPTZ NULL,
+    receiver_deleted_at TIMESTAMPTZ NULL
 );
 
 -- Create messages table (with FK to conversations)
@@ -32,7 +34,7 @@ CREATE TABLE messages (
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP NULL
 );
 
 -- ===============================================
