@@ -133,9 +133,9 @@ namespace BackendMessages.Controllers
                 {
                     InitiatorId = request.InitiatorId,
                     ReceiverId = request.ReceiverId,
-                    LastMessageTimestamp = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    LastMessageTimestamp = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
                 _context.Conversations.Add(newConversation);

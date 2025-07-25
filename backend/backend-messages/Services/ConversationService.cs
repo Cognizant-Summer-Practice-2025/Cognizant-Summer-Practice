@@ -174,7 +174,7 @@ namespace BackendMessages.Services
 
             if (wasRestored)
             {
-                conversation.UpdatedAt = DateTime.UtcNow;
+                conversation.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
                 _context.Conversations.Update(conversation);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Conversation {ConversationId} restored for user {UserId}", conversationId, userId);

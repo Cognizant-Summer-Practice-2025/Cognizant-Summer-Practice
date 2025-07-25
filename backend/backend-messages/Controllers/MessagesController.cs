@@ -63,8 +63,8 @@ namespace BackendMessages.Controllers
                     MessageType = request.MessageType ?? MessageType.Text,
                     ReplyToMessageId = request.ReplyToMessageId,
                     IsRead = false,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
                 _context.Messages.Add(message);
@@ -72,7 +72,7 @@ namespace BackendMessages.Controllers
                 // Update conversation's last message
                 conversation.LastMessageId = message.Id;
                 conversation.LastMessageTimestamp = message.CreatedAt;
-                conversation.UpdatedAt = DateTime.UtcNow;
+                conversation.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
                 await _context.SaveChangesAsync();
 
@@ -191,7 +191,7 @@ namespace BackendMessages.Controllers
                 foreach (var message in messages)
                 {
                     message.IsRead = true;
-                    message.UpdatedAt = DateTime.UtcNow;
+                    message.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
                 }
 
                 await _context.SaveChangesAsync();
@@ -231,8 +231,8 @@ namespace BackendMessages.Controllers
                     return StatusCode(403, "Only the sender can delete this message");
                 }
 
-                message.DeletedAt = DateTime.UtcNow;
-                message.UpdatedAt = DateTime.UtcNow;
+                message.DeletedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                message.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
                 await _context.SaveChangesAsync();
 
