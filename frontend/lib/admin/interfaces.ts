@@ -11,6 +11,8 @@ export interface AdminUser {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: string;
+  createdAt: string; // Now required from backend
+  updatedAt: string; // Added from backend
 }
 
 export interface AdminPortfolio {

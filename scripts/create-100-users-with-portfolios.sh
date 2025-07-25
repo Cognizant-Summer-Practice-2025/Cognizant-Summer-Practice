@@ -31,6 +31,9 @@ for i in {1..100}; do
     
     EMAIL="$(echo "$FIRST_NAME" | tr '[:upper:]' '[:lower:]').$(echo "$LAST_NAME" | tr '[:upper:]' '[:lower:]')$((RANDOM % 999))@${DOMAIN}"
     
+    # Generate random avatar using the same approach as portfolio components
+    AVATAR_SEED=$((RANDOM % 10000))
+    
     echo -n "👤 Creating user $i/100: $FIRST_NAME $LAST_NAME... "
     
     # Create user
@@ -42,7 +45,8 @@ for i in {1..100}; do
             \"lastName\": \"$LAST_NAME\",
             \"professionalTitle\": \"Software Developer\",
             \"bio\": \"Test user created for portfolio stress testing\",
-            \"location\": \"Test City, TC\"
+            \"location\": \"Test City, TC\",
+            \"profileImage\": \"https://picsum.photos/150/150?random=$AVATAR_SEED\"
         }")
     
     # Check if user creation was successful

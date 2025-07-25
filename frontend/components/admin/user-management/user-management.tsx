@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Download, UserPlus, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Download, UserPlus, Eye, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI } from '@/lib/admin/api';
 import { UserWithPortfolio } from '@/lib/admin/interfaces';
+import UserDetailsDialog from './user-details-dialog';
 import './style.css';
 
 const UserManagement: React.FC = () => {
@@ -13,6 +15,11 @@ const UserManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+  const [selectedUser, setSelectedUser] = useState<UserWithPortfolio | null>(null);
+  const [isUserDetailsOpen, setIsUserDetailsOpen] = useState(false);
   
   const { showAlert, showConfirm } = useAlert();
 
@@ -62,22 +69,46 @@ const UserManagement: React.FC = () => {
     return user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(getUserDisplayName(user))}&size=40&background=f0f0f0&color=666`;
   };
 
-  const handleViewUser = (userId: string) => {
-    // TODO: Implement view user functionality
-    showAlert({
-      title: 'View User',
-      description: 'View functionality will be implemented soon.',
-      type: 'info',
+  // Filter and paginate users
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const searchLower = searchTerm.toLowerCase();
+      const name = getUserDisplayName(user).toLowerCase();
+      const email = user.email.toLowerCase();
+      const role = getUserRole(user).toLowerCase();
+      
+      return name.includes(searchLower) || 
+             email.includes(searchLower) || 
+             role.includes(searchLower);
     });
+  }, [users, searchTerm]);
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  const handleEditUser = (userId: string) => {
-    // TODO: Implement edit user functionality
-    showAlert({
-      title: 'Edit User',
-      description: 'Edit functionality will be implemented soon.',
-      type: 'info',
-    });
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleViewUser = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setSelectedUser(user);
+      setIsUserDetailsOpen(true);
+    }
+  };
+
+  const handleCloseUserDetails = () => {
+    setIsUserDetailsOpen(false);
+    setSelectedUser(null);
   };
 
   const handleDeleteUser = (user: UserWithPortfolio) => {
@@ -202,6 +233,27 @@ This action cannot be undone.`;
           </Button>
         </div>
       </div>
+
+      {/* Search Bar */}
+      <div className="search-container">
+        <div className="search-input-wrapper">
+          <Search className="search-icon" />
+          <Input
+            type="text"
+            placeholder="Search users by name, email, or role..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="search-results-info">
+          {searchTerm && (
+            <span className="text-sm text-gray-600">
+              Found {filteredUsers.length} users
+            </span>
+          )}
+        </div>
+      </div>
       
       <div className="table-container">
         <div className="table-header">
@@ -213,11 +265,12 @@ This action cannot be undone.`;
           <div className="col-actions">Actions</div>
         </div>
         
-        <div className="table-body">
-          {users.map((user) => (
+        <div className="table-body scrollable-table-body">
+          {paginatedUsers.map((user) => (
             <div key={user.id} className="table-row">
               <div className="col-user">
                 <div className="user-cell">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={getUserAvatar(user)} 
                     alt={getUserDisplayName(user)} 
@@ -253,14 +306,6 @@ This action cannot be undone.`;
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => handleEditUser(user.id)}
-                  title="Edit user"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
                   onClick={() => handleDeleteUser(user)}
                   disabled={deletingUserId === user.id}
                   title="Delete user and all related data"
@@ -277,12 +322,92 @@ This action cannot be undone.`;
           ))}
         </div>
 
-        {users.length === 0 && (
+        {/* Pagination Controls */}
+        {filteredUsers.length > 0 && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredUsers.length)} to{' '}
+              {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
+            </div>
+            <div className="pagination-controls">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              
+              <div className="pagination-numbers">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      className="pagination-number"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {paginatedUsers.length === 0 && !loading && (
           <div className="empty-state">
-            <p>No users found.</p>
+            {searchTerm ? (
+              <>
+                <p>No users found matching &ldquo;{searchTerm}&rdquo;</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleSearchChange('')}
+                  className="mt-2"
+                >
+                  Clear search
+                </Button>
+              </>
+            ) : (
+              <p>No users found.</p>
+            )}
           </div>
         )}
       </div>
+
+      {/* User Details Dialog */}
+      <UserDetailsDialog
+        user={selectedUser}
+        isOpen={isUserDetailsOpen}
+        onClose={handleCloseUserDetails}
+      />
     </div>
   );
 };

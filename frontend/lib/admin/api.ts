@@ -117,7 +117,7 @@ export class AdminAPI {
           portfolioStatus,
           portfolioId,
           portfolioTitle,
-          joinedDate: new Date().toISOString(), // Since we don't have this in the user model
+          joinedDate: user.createdAt, // Use the actual creation date from backend
         };
       });
     } catch (error) {
@@ -161,11 +161,12 @@ export class AdminAPI {
       const draftPortfolios = portfolios.filter(p => !p.isPublished);
       const totalViews = portfolios.reduce((sum, p) => sum + p.viewCount, 0);
 
-      // Calculate new users this month (approximation since we don't have createdAt for users)
+      // Calculate new users this month using real user creation dates
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
-      const newPortfoliosThisMonth = portfolios.filter(p => {
-        const createdDate = new Date(p.createdAt);
+      
+      const newUsersThisMonth = users.filter(u => {
+        const createdDate = new Date(u.createdAt);
         return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
       }).length;
 
@@ -173,7 +174,7 @@ export class AdminAPI {
         totalUsers: activeUsers.length,
         activePortfolios: publishedPortfolios.length,
         totalProjects: 0, // We'll need to add project counting when we have the endpoint
-        newThisMonth: newPortfoliosThisMonth,
+        newThisMonth: newUsersThisMonth, // Now using real user creation data
         totalBlogPosts: 0, // We'll need to add blog post counting when we have the endpoint
         publishedPortfolios: publishedPortfolios.length,
         draftPortfolios: draftPortfolios.length,
@@ -181,6 +182,70 @@ export class AdminAPI {
       };
     } catch (error) {
       console.error('Error calculating admin stats:', error);
+      throw error;
+    }
+  }
+
+  // Growth data for charts
+  static async getUserGrowthData(): Promise<{ month: string; users: number; portfolios: number }[]> {
+    try {
+      const [users, portfolios] = await Promise.all([
+        this.getAllUsers(),
+        this.getAllPortfolios()
+      ]);
+
+      // Get last 6 months of data
+      const months: { month: string; users: number; portfolios: number }[] = [];
+      const now = new Date();
+      
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        const usersInMonth = users.filter(u => {
+          const createdDate = new Date(u.createdAt);
+          return createdDate.getMonth() === date.getMonth() && 
+                 createdDate.getFullYear() === date.getFullYear();
+        }).length;
+
+        const portfoliosInMonth = portfolios.filter(p => {
+          const createdDate = new Date(p.createdAt);
+          return createdDate.getMonth() === date.getMonth() && 
+                 createdDate.getFullYear() === date.getFullYear();
+        }).length;
+
+        months.push({
+          month: monthName,
+          users: usersInMonth,
+          portfolios: portfoliosInMonth
+        });
+      }
+
+      return months;
+    } catch (error) {
+      console.error('Error fetching growth data:', error);
+      throw error;
+    }
+  }
+
+  static async getActivityData(): Promise<{ name: string; value: number }[]> {
+    try {
+      const [users, portfolios] = await Promise.all([
+        this.getAllUsers(),
+        this.getAllPortfolios()
+      ]);
+
+      const activeUsers = users.filter(u => u.isActive).length;
+      const publishedPortfolios = portfolios.filter(p => p.isPublished).length;
+      const draftPortfolios = portfolios.filter(p => !p.isPublished).length;
+
+      return [
+        { name: 'Active Users', value: activeUsers },
+        { name: 'Published Portfolios', value: publishedPortfolios },
+        { name: 'Draft Portfolios', value: draftPortfolios },
+      ];
+    } catch (error) {
+      console.error('Error fetching activity data:', error);
       throw error;
     }
   }

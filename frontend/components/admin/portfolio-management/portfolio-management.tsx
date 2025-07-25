@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Download, Eye, Edit, Trash2, AlertTriangle, Zap } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Download, Eye, Edit, Trash2, AlertTriangle, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI } from '@/lib/admin/api';
 import { PortfolioWithOwner } from '@/lib/admin/interfaces';
@@ -13,6 +14,9 @@ const PortfolioManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingPortfolioId, setDeletingPortfolioId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   const { showAlert, showConfirm } = useAlert();
 
@@ -59,13 +63,46 @@ const PortfolioManagement: React.FC = () => {
     return portfolio.ownerAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(portfolio.title)}&size=40&background=f0f0f0&color=666`;
   };
 
-  const handleViewPortfolio = (portfolioId: string, userId: string) => {
+  // Filter and paginate portfolios
+  const filteredPortfolios = useMemo(() => {
+    return portfolios.filter(portfolio => {
+      const searchLower = searchTerm.toLowerCase();
+      const title = portfolio.title.toLowerCase();
+      const ownerName = portfolio.ownerName.toLowerCase();
+      const ownerEmail = portfolio.ownerEmail.toLowerCase();
+      const status = getPortfolioStatus(portfolio).toLowerCase();
+      const bio = (portfolio.bio || '').toLowerCase();
+      
+      return title.includes(searchLower) || 
+             ownerName.includes(searchLower) || 
+             ownerEmail.includes(searchLower) ||
+             status.includes(searchLower) ||
+             bio.includes(searchLower);
+    });
+  }, [portfolios, searchTerm]);
+
+  const totalPages = Math.ceil(filteredPortfolios.length / itemsPerPage);
+  const paginatedPortfolios = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredPortfolios.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredPortfolios, currentPage, itemsPerPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleViewPortfolio = (portfolioId: string, _userId: string) => {
     // Open portfolio in new tab using the portfolio page URL structure
     const portfolioUrl = `/portfolio?portfolio=${portfolioId}`;
     window.open(portfolioUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleEditPortfolio = (portfolioId: string) => {
+  const handleEditPortfolio = (_portfolioId: string) => {
     // TODO: Implement edit portfolio functionality
     showAlert({
       title: 'Edit Portfolio',
@@ -203,6 +240,27 @@ This action cannot be undone.`;
           </Button>
         </div>
       </div>
+
+      {/* Search Bar */}
+      <div className="search-container">
+        <div className="search-input-wrapper">
+          <Search className="search-icon" />
+          <Input
+            type="text"
+            placeholder="Search portfolios by title, owner, status, or description..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="search-results-info">
+          {searchTerm && (
+            <span className="text-sm text-gray-600">
+              Found {filteredPortfolios.length} portfolios
+            </span>
+          )}
+        </div>
+      </div>
       
       <div className="table-container">
         <div className="table-header portfolio-header">
@@ -214,8 +272,8 @@ This action cannot be undone.`;
           <div className="col-p-actions">Actions</div>
         </div>
         
-        <div className="table-body">
-          {portfolios.map((portfolio) => (
+        <div className="table-body scrollable-table-body">
+          {paginatedPortfolios.map((portfolio) => (
             <div key={portfolio.id} className="table-row">
               <div className="col-portfolio">
                 <div className="portfolio-cell">
@@ -280,9 +338,82 @@ This action cannot be undone.`;
           ))}
         </div>
 
-        {portfolios.length === 0 && (
+        {/* Pagination Controls */}
+        {filteredPortfolios.length > 0 && (
+          <div className="pagination-container">
+            <div className="pagination-info">
+              Showing {Math.min((currentPage - 1) * itemsPerPage + 1, filteredPortfolios.length)} to{' '}
+              {Math.min(currentPage * itemsPerPage, filteredPortfolios.length)} of {filteredPortfolios.length} portfolios
+            </div>
+            <div className="pagination-controls">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              
+              <div className="pagination-numbers">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      className="pagination-number"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {paginatedPortfolios.length === 0 && !loading && (
           <div className="empty-state">
-            <p>No portfolios found.</p>
+            {searchTerm ? (
+              <>
+                <p>No portfolios found matching &ldquo;{searchTerm}&rdquo;</p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleSearchChange('')}
+                  className="mt-2"
+                >
+                  Clear search
+                </Button>
+              </>
+            ) : (
+              <p>No portfolios found.</p>
+            )}
           </div>
         )}
       </div>

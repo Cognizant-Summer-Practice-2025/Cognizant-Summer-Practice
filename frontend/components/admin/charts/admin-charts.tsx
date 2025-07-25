@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChartContainer, 
   ChartTooltip, 
@@ -24,8 +24,10 @@ import {
   YAxis, 
   CartesianGrid
 } from 'recharts';
+import { AdminAPI } from '@/lib/admin/api';
 
-const userGrowthData = [
+// Static fallback data for when API fails
+const fallbackUserGrowthData = [
   { month: 'Jan', users: 400, portfolios: 240 },
   { month: 'Feb', users: 600, portfolios: 380 },
   { month: 'Mar', users: 800, portfolios: 520 },
@@ -93,15 +95,37 @@ const activityConfig = {
 } satisfies ChartConfig;
 
 export const UserGrowthChart: React.FC = () => {
+  const [growthData, setGrowthData] = useState(fallbackUserGrowthData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGrowthData = async () => {
+      try {
+        setLoading(true);
+        const data = await AdminAPI.getUserGrowthData();
+        setGrowthData(data);
+      } catch (error) {
+        console.error('Error fetching growth data:', error);
+        // Keep fallback data
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGrowthData();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>User Growth</CardTitle>
-        <CardDescription>Monthly user and portfolio growth</CardDescription>
+        <CardDescription>
+          {loading ? 'Loading growth data...' : 'Monthly user and portfolio growth'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={userGrowthConfig}>
-          <LineChart accessibilityLayer data={userGrowthData}>
+          <LineChart accessibilityLayer data={growthData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
@@ -210,15 +234,37 @@ export const DailyActivityChart: React.FC = () => {
 };
 
 export const TrendChart: React.FC = () => {
+  const [growthData, setGrowthData] = useState(fallbackUserGrowthData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGrowthData = async () => {
+      try {
+        setLoading(true);
+        const data = await AdminAPI.getUserGrowthData();
+        setGrowthData(data);
+      } catch (error) {
+        console.error('Error fetching growth data:', error);
+        // Keep fallback data
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGrowthData();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Growth Trend</CardTitle>
-        <CardDescription>User acquisition over time</CardDescription>
+        <CardDescription>
+          {loading ? 'Loading trend data...' : 'User acquisition over time'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={userGrowthConfig}>
-          <AreaChart accessibilityLayer data={userGrowthData}>
+          <AreaChart accessibilityLayer data={growthData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
