@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI, UserWithPortfolio } from '@/lib/admin';
+import { Loading } from '@/components/loader';
 import UserDetailsDialog from './user-details-dialog';
 import './style.css';
 
@@ -188,6 +189,7 @@ This action cannot be undone.`;
           <h2>User Management</h2>
         </div>
         <div className="loading-container">
+          <Loading className="scale-50" backgroundColor="white" />
           <p>Loading users...</p>
         </div>
       </div>

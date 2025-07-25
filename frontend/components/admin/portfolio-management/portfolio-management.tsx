@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI, PortfolioWithOwner } from '@/lib/admin';
+import { Loading } from '@/components/loader';
 import './style.css';
 
 const PortfolioManagement: React.FC = () => {
@@ -195,6 +196,7 @@ This action cannot be undone.`;
           <h2>Portfolio Management</h2>
         </div>
         <div className="loading-container">
+          <Loading className="scale-50" backgroundColor="white" />
           <p>Loading portfolios...</p>
         </div>
       </div>
