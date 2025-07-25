@@ -303,8 +303,10 @@ const useMessages = () => {
         updatedAt: apiMessage.updatedAt
       };
       
-      // Add message to current conversation
-      setMessages(prev => [...prev, newMessage]);
+      console.log('Message sent via API:', newMessage.id, '- waiting for WebSocket event');
+      
+      // Don't add the message locally - let the WebSocket event handle it
+      // This prevents duplicates and ensures consistent behavior
       
       // Update conversation's last message
       setConversations(prev => 
@@ -355,9 +357,13 @@ const useMessages = () => {
       // Add message to current conversation if it matches
       if (currentConversation && newMessage.conversationId === currentConversation.id) {
         setMessages(prev => {
-          // Check if message already exists to avoid duplicates
+          // Check if message already exists to avoid duplicates (safety check)
           const exists = prev.some(msg => msg.id === newMessage.id);
-          if (exists) return prev;
+          if (exists) {
+            console.log('Duplicate message prevented:', newMessage.id);
+            return prev;
+          }
+          console.log('Adding real-time message:', newMessage.id);
           return [...prev, formattedMessage];
         });
 
