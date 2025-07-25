@@ -24,7 +24,7 @@ import {
   YAxis, 
   CartesianGrid
 } from 'recharts';
-import { AdminAPI } from '@/lib/admin/api';
+import { AdminAPI } from '@/lib/admin';
 
 // Static fallback data for when API fails
 const fallbackUserGrowthData = [

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { UserWithPortfolio } from '@/lib/admin/interfaces';
+import { UserWithPortfolio } from '@/lib/admin';
 
 interface UserDetailsDialogProps {
   user: UserWithPortfolio | null;

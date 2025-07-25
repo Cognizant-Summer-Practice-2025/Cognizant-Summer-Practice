@@ -5,8 +5,7 @@ import { Download, Eye, Edit, Trash2, AlertTriangle, Zap, Search, ChevronLeft, C
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
-import { AdminAPI } from '@/lib/admin/api';
-import { PortfolioWithOwner } from '@/lib/admin/interfaces';
+import { AdminAPI, PortfolioWithOwner } from '@/lib/admin';
 import './style.css';
 
 const PortfolioManagement: React.FC = () => {

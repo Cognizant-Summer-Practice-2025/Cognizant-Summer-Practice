@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserOutlined, FileTextOutlined, ProjectOutlined, PlusOutlined } from '@ant-design/icons';
-import { AdminAPI } from '@/lib/admin/api';
-import { AdminStats } from '@/lib/admin/interfaces';
+import { AdminAPI, AdminStats } from '@/lib/admin';
 import './style.css';
 
 interface StatCardProps {
@@ -73,7 +72,7 @@ const StatsCards: React.FC = () => {
       icon: <UserOutlined /> 
     },
     { 
-      title: 'Active Portfolios', 
+      title: 'Published Portfolios', 
       value: stats ? formatNumber(stats.activePortfolios) : '0', 
       icon: <FileTextOutlined /> 
     },

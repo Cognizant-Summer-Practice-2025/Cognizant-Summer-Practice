@@ -5,8 +5,7 @@ import { Download, UserPlus, Eye, Trash2, Search, ChevronLeft, ChevronRight } fr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
-import { AdminAPI } from '@/lib/admin/api';
-import { UserWithPortfolio } from '@/lib/admin/interfaces';
+import { AdminAPI, UserWithPortfolio } from '@/lib/admin';
 import UserDetailsDialog from './user-details-dialog';
 import './style.css';
 

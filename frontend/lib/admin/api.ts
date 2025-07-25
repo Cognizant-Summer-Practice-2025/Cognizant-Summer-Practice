@@ -1,4 +1,5 @@
 import { AdminUser, AdminPortfolio, AdminStats, UserWithPortfolio, PortfolioWithOwner } from './interfaces';
+import { AdminStatsUtils, AdminChartUtils, AdminTransformUtils } from './utils';
 
 const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200/api/users';
 const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
@@ -93,33 +94,7 @@ export class AdminAPI {
         this.getAllPortfolios()
       ]);
 
-      return users.map(user => {
-        const userPortfolios = portfolios.filter(p => p.userId === user.id);
-        const publishedPortfolio = userPortfolios.find(p => p.isPublished);
-        const draftPortfolio = userPortfolios.find(p => !p.isPublished);
-        
-        let portfolioStatus: 'Published' | 'Draft' | 'None' = 'None';
-        let portfolioId: string | undefined;
-        let portfolioTitle: string | undefined;
-
-        if (publishedPortfolio) {
-          portfolioStatus = 'Published';
-          portfolioId = publishedPortfolio.id;
-          portfolioTitle = publishedPortfolio.title;
-        } else if (draftPortfolio) {
-          portfolioStatus = 'Draft';
-          portfolioId = draftPortfolio.id;
-          portfolioTitle = draftPortfolio.title;
-        }
-
-        return {
-          ...user,
-          portfolioStatus,
-          portfolioId,
-          portfolioTitle,
-          joinedDate: user.createdAt, // Use the actual creation date from backend
-        };
-      });
+      return AdminTransformUtils.transformUsersWithPortfolios(users, portfolios);
     } catch (error) {
       console.error('Error fetching users with portfolios:', error);
       throw error;
@@ -133,15 +108,7 @@ export class AdminAPI {
         this.getAllUsers()
       ]);
 
-      return portfolios.map(portfolio => {
-        const owner = users.find(u => u.id === portfolio.userId);
-        return {
-          ...portfolio,
-          ownerName: owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.username : 'Unknown User',
-          ownerEmail: owner?.email || '',
-          ownerAvatar: owner?.avatarUrl,
-        };
-      });
+      return AdminTransformUtils.transformPortfoliosWithOwners(portfolios, users);
     } catch (error) {
       console.error('Error fetching portfolios with owners:', error);
       throw error;
@@ -156,30 +123,7 @@ export class AdminAPI {
         this.getAllPortfolios()
       ]);
 
-      const activeUsers = users.filter(u => u.isActive);
-      const publishedPortfolios = portfolios.filter(p => p.isPublished);
-      const draftPortfolios = portfolios.filter(p => !p.isPublished);
-      const totalViews = portfolios.reduce((sum, p) => sum + p.viewCount, 0);
-
-      // Calculate new users this month using real user creation dates
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      
-      const newUsersThisMonth = users.filter(u => {
-        const createdDate = new Date(u.createdAt);
-        return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
-      }).length;
-
-      return {
-        totalUsers: activeUsers.length,
-        activePortfolios: publishedPortfolios.length,
-        totalProjects: 0, // We'll need to add project counting when we have the endpoint
-        newThisMonth: newUsersThisMonth, // Now using real user creation data
-        totalBlogPosts: 0, // We'll need to add blog post counting when we have the endpoint
-        publishedPortfolios: publishedPortfolios.length,
-        draftPortfolios: draftPortfolios.length,
-        totalViews,
-      };
+      return AdminStatsUtils.calculateStats(users, portfolios);
     } catch (error) {
       console.error('Error calculating admin stats:', error);
       throw error;
@@ -194,34 +138,7 @@ export class AdminAPI {
         this.getAllPortfolios()
       ]);
 
-      // Get last 6 months of data
-      const months: { month: string; users: number; portfolios: number }[] = [];
-      const now = new Date();
-      
-      for (let i = 5; i >= 0; i--) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-        
-        const usersInMonth = users.filter(u => {
-          const createdDate = new Date(u.createdAt);
-          return createdDate.getMonth() === date.getMonth() && 
-                 createdDate.getFullYear() === date.getFullYear();
-        }).length;
-
-        const portfoliosInMonth = portfolios.filter(p => {
-          const createdDate = new Date(p.createdAt);
-          return createdDate.getMonth() === date.getMonth() && 
-                 createdDate.getFullYear() === date.getFullYear();
-        }).length;
-
-        months.push({
-          month: monthName,
-          users: usersInMonth,
-          portfolios: portfoliosInMonth
-        });
-      }
-
-      return months;
+      return AdminChartUtils.generateGrowthData(users, portfolios, 6);
     } catch (error) {
       console.error('Error fetching growth data:', error);
       throw error;
@@ -235,15 +152,7 @@ export class AdminAPI {
         this.getAllPortfolios()
       ]);
 
-      const activeUsers = users.filter(u => u.isActive).length;
-      const publishedPortfolios = portfolios.filter(p => p.isPublished).length;
-      const draftPortfolios = portfolios.filter(p => !p.isPublished).length;
-
-      return [
-        { name: 'Active Users', value: activeUsers },
-        { name: 'Published Portfolios', value: publishedPortfolios },
-        { name: 'Draft Portfolios', value: draftPortfolios },
-      ];
+      return AdminChartUtils.generateActivityData(users, portfolios);
     } catch (error) {
       console.error('Error fetching activity data:', error);
       throw error;
