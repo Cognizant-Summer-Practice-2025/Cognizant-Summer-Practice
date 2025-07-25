@@ -50,13 +50,17 @@ def generate_user_data() -> Dict[str, str]:
     email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 999)}@{domain}"
     username = f"{first_name.lower()}{last_name.lower()}{random.randint(1, 999)}"
     
+    # Generate random avatar using the same approach as portfolio components
+    avatar_seed = random.randint(1, 10000)
+    
     return {
         "email": email,
         "firstName": first_name,
         "lastName": last_name,
         "professionalTitle": "Software Developer",
         "bio": "Test user created for portfolio stress testing",
-        "location": "Test City, TC"
+        "location": "Test City, TC",
+        "profileImage": f"https://picsum.photos/150/150?random={avatar_seed}"
     }
 
 def create_user(user_data: Dict[str, str]) -> tuple[bool, str]:

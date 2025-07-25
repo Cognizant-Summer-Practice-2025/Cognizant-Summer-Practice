@@ -13,5 +13,6 @@ namespace backend_user.DTO.User.Response
         public string? Location { get; set; }
         public string? AvatarUrl { get; set; }
         public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

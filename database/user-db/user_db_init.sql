@@ -17,7 +17,9 @@ CREATE TABLE users (
     avatar_url TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-    last_login_at TIMESTAMP
+    last_login_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- OAuth Providers table
@@ -88,6 +90,8 @@ CREATE TABLE bookmarks (
 );
 
 -- Create indexes for performance
+CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX idx_users_is_active ON users(is_active);
 CREATE INDEX idx_oauth_providers_user_id ON oauth_providers(user_id);
 CREATE INDEX idx_newsletters_user_id ON newsletters(user_id);
 CREATE INDEX idx_user_analytics_user_id ON user_analytics(user_id);

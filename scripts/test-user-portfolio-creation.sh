@@ -9,25 +9,29 @@ PORTFOLIO_SCRIPT_PATH="/Users/theo/Documents/Cognizant-Summer-Practice/scripts/g
 echo "🧪 Testing User and Portfolio Creation (2 users)"
 echo "==============================================="
 
-# Test user data
-USERS=(
-    "TestUser1:test1@example.com"
-    "TestUser2:test2@example.com"
-)
+# Arrays for generating realistic test data
+FIRST_NAMES=("Alex" "Sarah" "Michael" "Emma" "James" "Olivia" "William" "Ava" "Benjamin" "Isabella" "Lucas" "Sophia" "Henry" "Charlotte" "Alexander" "Mia" "Sebastian" "Amelia" "Jack" "Harper" "Owen" "Evelyn" "Theodore" "Abigail" "Jacob" "Emily" "Leo" "Elizabeth" "Mason" "Sofia" "Ethan" "Avery" "Noah" "Ella" "Logan" "Scarlett" "Elijah" "Grace" "Oliver" "Chloe" "Aiden" "Victoria" "Gabriel" "Riley" "Samuel" "Aria" "David" "Lily" "Carter" "Aubrey" "Wyatt" "Zoey" "Jayden" "Penelope" "John" "Lillian" "Hunter" "Addison" "Luke" "Layla" "Daniel" "Natalie" "Ryan" "Camila" "Matthew" "Hannah" "Caleb" "Brooklyn" "Isaac" "Samantha")
+
+LAST_NAMES=("Smith" "Johnson" "Williams" "Brown" "Jones" "Garcia" "Miller" "Davis" "Rodriguez" "Martinez" "Hernandez" "Lopez" "Gonzalez" "Wilson" "Anderson" "Thomas" "Taylor" "Moore" "Jackson" "Martin" "Lee" "Perez" "Thompson" "White" "Harris" "Sanchez" "Clark" "Ramirez" "Lewis" "Robinson" "Walker" "Young" "Allen" "King" "Wright" "Scott" "Torres" "Nguyen" "Hill" "Flores" "Green" "Adams" "Nelson" "Baker" "Hall" "Rivera" "Campbell" "Mitchell" "Carter" "Roberts" "Gomez" "Phillips" "Evans" "Turner" "Diaz" "Parker" "Cruz" "Edwards" "Collins" "Reyes" "Stewart" "Morris" "Morales" "Murphy")
+
+DOMAINS=("gmail.com" "outlook.com" "yahoo.com" "hotmail.com" "icloud.com" "protonmail.com")
 
 CREATED_COUNT=0
 FAILED_COUNT=0
 
-for i in {0..1}; do
-    IFS=':' read -r -a user_data <<< "${USERS[$i]}"
-    FULL_NAME="${user_data[0]}"
-    EMAIL="${user_data[1]}"
+for i in {1..2}; do
+    # Generate random user data
+    FIRST_NAME=${FIRST_NAMES[$((RANDOM % ${#FIRST_NAMES[@]}))]}
+    LAST_NAME=${LAST_NAMES[$((RANDOM % ${#LAST_NAMES[@]}))]}
+    DOMAIN=${DOMAINS[$((RANDOM % ${#DOMAINS[@]}))]}
     
-    # Split first and last name
-    FIRST_NAME=$(echo "$FULL_NAME" | cut -d' ' -f1)
-    LAST_NAME="User"
+    EMAIL="$(echo "$FIRST_NAME" | tr '[:upper:]' '[:lower:]').$(echo "$LAST_NAME" | tr '[:upper:]' '[:lower:]')$((RANDOM % 999))@${DOMAIN}"
+    FULL_NAME="$FIRST_NAME $LAST_NAME"
     
-    echo "👤 Creating user $((i+1))/2: $FULL_NAME..."
+    echo "👤 Creating user $i/2: $FULL_NAME..."
+    
+    # Generate random avatar using the same approach as portfolio components
+    AVATAR_SEED=$((RANDOM % 10000))
     
     # Create user
     USER_RESPONSE=$(curl -s -X POST "$USER_API_BASE/register" \
@@ -38,7 +42,8 @@ for i in {0..1}; do
             \"lastName\": \"$LAST_NAME\",
             \"professionalTitle\": \"Software Developer\",
             \"bio\": \"Test user created for portfolio testing\",
-            \"location\": \"Test City, TC\"
+            \"location\": \"Test City, TC\",
+            \"profileImage\": \"https://picsum.photos/150/150?random=$AVATAR_SEED\"
         }")
     
     echo "Response: $USER_RESPONSE"
