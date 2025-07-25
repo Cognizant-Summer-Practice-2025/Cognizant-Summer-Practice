@@ -505,24 +505,6 @@ export async function getPortfolioComprehensive(portfolioId: string): Promise<{
   
   const portfolioData = convertPortfolioResponse(data);
   
-  console.log('🔄 API - Converted portfolio data:', {
-    portfolio: {
-      id: portfolioData.portfolio.id,
-      title: portfolioData.portfolio.title,
-      templateId: portfolioData.portfolio.templateId
-    },
-    projectsCount: portfolioData.projects.length,
-    experienceCount: portfolioData.experience.length,
-    skillsCount: portfolioData.skills.length,
-    blogPostsCount: portfolioData.blogPosts.length,
-    skills: portfolioData.skills.map(s => ({
-      id: s.id,
-      name: s.name,
-      category: s.category,
-      proficiencyLevel: s.proficiencyLevel
-    }))
-  });
-  
   // Convert to the format expected by the portfolio context
   const portfolio: Portfolio = {
     id: portfolioData.portfolio.id,
@@ -612,25 +594,16 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
 
 // Get user info for portfolio cards
 export async function getUserPortfolioInfo(userId: string): Promise<UserPortfolioInfo> {
-  console.log(` Fetching user info for userId: ${userId}`);
-  console.log(` Calling: ${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
-  
   const response = await fetch(`${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
-  console.log(` User API response status: ${response.status}`);
   
   const result = await handleApiResponse<UserPortfolioInfo>(response);
-  console.log(` User info received:`, result);
   
   return result;
 }
 
 export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]> {
-  console.log('📡 Starting to fetch portfolio cards...');
-  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards`);
   const portfolioCards = await handleApiResponse<PortfolioCardDto[]>(response);
-  
-  console.log(`📊 Received ${portfolioCards.length} portfolio cards`);
   
   // Fetch user info for each portfolio card
   const enrichedCards = await Promise.all(
@@ -658,13 +631,10 @@ export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]
     })
   );
   
-  console.log('✅ Portfolio cards enriched with user data');
   return enrichedCards;
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {
-  console.log('📤 API: Creating portfolio (regular) with data:', portfolioData);
-  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio`, {
     method: 'POST',
     headers: {
@@ -672,8 +642,6 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
     },
     body: JSON.stringify(portfolioData),
   });
-  
-  console.log('📤 API: Portfolio creation (regular) response status:', response.status);
   
   const data = await handleApiResponse<PortfolioResponseDto>(response);
   
@@ -694,8 +662,6 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
 }
 
 export async function updatePortfolio(portfolioId: string, portfolioData: PortfolioUpdateDto): Promise<UserPortfolio> {
-  console.log('📤 API: Updating portfolio', portfolioId, 'with data:', portfolioData);
-  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
     method: 'PUT',
     headers: {
@@ -704,10 +670,7 @@ export async function updatePortfolio(portfolioId: string, portfolioData: Portfo
     body: JSON.stringify(portfolioData),
   });
   
-  console.log('📤 API: Portfolio update response status:', response.status);
-  
   const data = await handleApiResponse<PortfolioResponseDto>(response);
-  console.log('📤 API: Portfolio update response data:', data);
   
   return {
     id: data.id,
@@ -847,10 +810,8 @@ export async function getProjectsByPortfolioId(portfolioId: string): Promise<Pro
 export async function createProject(projectData: ProjectRequestDto): Promise<ProjectResponseDto> {
   // Filter out undefined values to avoid sending them as empty strings
   const cleanedData = Object.fromEntries(
-    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+    Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectRequestDto;
-
-  console.log('Sending project data:', cleanedData); // Debug log
 
   const response = await fetch(`${API_BASE_URL}/api/Project`, {
     method: 'POST',

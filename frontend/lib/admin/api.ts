@@ -1,7 +1,7 @@
 import { AdminUser, AdminPortfolio, AdminStats, UserWithPortfolio, PortfolioWithOwner } from './interfaces';
 
 const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200/api/users';
-const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201/api/Portfolio';
+const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
 
 export class AdminAPI {
   // User-related API calls
@@ -37,7 +37,7 @@ export class AdminAPI {
 
   // Portfolio-related API calls
   static async getAllPortfolios(): Promise<AdminPortfolio[]> {
-    const response = await fetch(`${PORTFOLIO_API_BASE}`);
+    const response = await fetch(`${PORTFOLIO_API_BASE}/api/Portfolio`);
     if (!response.ok) {
       throw new Error('Failed to fetch portfolios');
     }
@@ -45,7 +45,7 @@ export class AdminAPI {
   }
 
   static async getPortfolioById(id: string): Promise<AdminPortfolio> {
-    const response = await fetch(`${PORTFOLIO_API_BASE}/${id}`);
+    const response = await fetch(`${PORTFOLIO_API_BASE}/api/Portfolio/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch portfolio');
     }
@@ -53,7 +53,7 @@ export class AdminAPI {
   }
 
   static async getPortfoliosByUserId(userId: string): Promise<AdminPortfolio[]> {
-    const response = await fetch(`${PORTFOLIO_API_BASE}/user/${userId}`);
+    const response = await fetch(`${PORTFOLIO_API_BASE}/api/Portfolio/user/${userId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch user portfolios');
     }
@@ -61,24 +61,28 @@ export class AdminAPI {
   }
 
   static async deletePortfolio(portfolioId: string): Promise<boolean> {
-    console.log('🗑️ Admin API: Attempting to delete portfolio:', portfolioId);
-    console.log('🗑️ Admin API: Using URL:', `${PORTFOLIO_API_BASE}/${portfolioId}`);
+    const deleteUrl = `${PORTFOLIO_API_BASE}/api/Portfolio/${portfolioId}`;
     
-    const response = await fetch(`${PORTFOLIO_API_BASE}/${portfolioId}`, {
-      method: 'DELETE',
-    });
-    
-    console.log('🗑️ Admin API: Delete response status:', response.status);
-    console.log('🗑️ Admin API: Delete response ok:', response.ok);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('🗑️ Admin API: Delete error response:', errorText);
-      throw new Error(`Failed to delete portfolio: ${errorText}`);
+    try {
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🗑️ Admin API: Delete error response:', errorText);
+        console.error('🗑️ Admin API: Delete error status text:', response.statusText);
+        throw new Error(`Failed to delete portfolio (${response.status}): ${errorText || response.statusText}`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('🗑️ Admin API: Network or other error:', error);
+      throw error;
     }
-    
-    console.log('🗑️ Admin API: Portfolio deleted successfully');
-    return true;
   }
 
   // Combined data for admin views

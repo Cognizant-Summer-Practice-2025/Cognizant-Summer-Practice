@@ -1,19 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, message } from 'antd';
-import { ExportOutlined, EyeOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Download, Eye, Edit, Trash2, AlertTriangle, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI } from '@/lib/admin/api';
 import { PortfolioWithOwner } from '@/lib/admin/interfaces';
 import './style.css';
-
-const { confirm } = Modal;
 
 const PortfolioManagement: React.FC = () => {
   const [portfolios, setPortfolios] = useState<PortfolioWithOwner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingPortfolioId, setDeletingPortfolioId] = useState<string | null>(null);
+
+  const { showAlert, showConfirm } = useAlert();
 
   useEffect(() => {
     fetchPortfolios();
@@ -66,40 +67,33 @@ const PortfolioManagement: React.FC = () => {
 
   const handleEditPortfolio = (portfolioId: string) => {
     // TODO: Implement edit portfolio functionality
-    console.log('Edit portfolio:', portfolioId);
-    message.info('Edit functionality will be implemented soon');
+    showAlert({
+      title: 'Edit Portfolio',
+      description: 'Edit functionality will be implemented soon.',
+      type: 'info',
+    });
   };
 
   const handleDeletePortfolio = (portfolio: PortfolioWithOwner) => {
-    console.log('🔴 DELETE BUTTON CLICKED - Portfolio:', portfolio.id, portfolio.title);
-    console.log('🔴 DELETE BUTTON CLICKED - Full portfolio object:', portfolio);
+    const deleteMessage = `Are you sure you want to delete the portfolio "${portfolio.title}"?
+
+This action will permanently delete:
+• The portfolio and all its settings
+• All associated projects
+• All associated experiences
+• All associated skills
+• All associated blog posts
+• All bookmarks pointing to this portfolio
+
+This action cannot be undone.`;
     
-    confirm({
+    showConfirm({
       title: 'Delete Portfolio',
-      icon: <ExclamationCircleOutlined />,
-      content: (
-        <div>
-          <p>Are you sure you want to delete the portfolio <strong>"{portfolio.title}"</strong>?</p>
-          <p>This action will permanently delete:</p>
-          <ul style={{ marginLeft: '20px', marginTop: '10px' }}>
-            <li>The portfolio and all its settings</li>
-            <li>All associated projects</li>
-            <li>All associated experiences</li>
-            <li>All associated skills</li>
-            <li>All associated blog posts</li>
-            <li>All bookmarks pointing to this portfolio</li>
-          </ul>
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold', marginTop: '15px' }}>
-            This action cannot be undone.
-          </p>
-        </div>
-      ),
-      okText: 'Delete',
-      okType: 'danger',
+      description: deleteMessage,
+      type: 'error',
+      confirmText: 'Delete Portfolio',
       cancelText: 'Cancel',
-      width: 500,
-      onOk: async () => {
-        console.log('🔴 CONFIRMATION OK CLICKED - Starting deletion process');
+      onConfirm: async () => {
         await performDeletePortfolio(portfolio.id, portfolio.title);
       },
     });
@@ -114,14 +108,27 @@ const PortfolioManagement: React.FC = () => {
       // Remove the deleted portfolio from the local state
       setPortfolios(prev => prev.filter(p => p.id !== portfolioId));
       
-      message.success(`Portfolio "${portfolioTitle}" has been deleted successfully`);
+      showAlert({
+        title: 'Portfolio Deleted',
+        description: `Portfolio "${portfolioTitle}" has been deleted successfully.`,
+        type: 'success',
+      });
     } catch (error) {
-      console.error('Error deleting portfolio:', error);
-      message.error(
-        error instanceof Error 
-          ? `Failed to delete portfolio: ${error.message}`
-          : 'Failed to delete portfolio. Please try again.'
-      );
+      console.error('🔴 PERFORM DELETE - Error occurred:', error);
+      console.error('🔴 PERFORM DELETE - Error type:', typeof error);
+      console.error('🔴 PERFORM DELETE - Error instance:', error instanceof Error);
+      
+      // Show a more detailed error message
+      const errorMessage = error instanceof Error 
+        ? error.message
+        : 'Unknown error occurred';
+      
+      console.error('🔴 PERFORM DELETE - Showing error message:', errorMessage);
+      showAlert({
+        title: 'Delete Failed',
+        description: `Failed to delete portfolio "${portfolioTitle}": ${errorMessage}`,
+        type: 'error',
+      });
     } finally {
       setDeletingPortfolioId(null);
     }
@@ -129,14 +136,20 @@ const PortfolioManagement: React.FC = () => {
 
   const handleExportPortfolios = () => {
     // TODO: Implement export functionality
-    console.log('Export portfolios');
-    message.info('Export functionality will be implemented soon');
+    showAlert({
+      title: 'Export Portfolios',
+      description: 'Export functionality will be implemented soon.',
+      type: 'info',
+    });
   };
 
   const handleModeratePorfolios = () => {
     // TODO: Implement moderation functionality
-    console.log('Moderate portfolios');
-    message.info('Moderation functionality will be implemented soon');
+    showAlert({
+      title: 'Moderate Portfolios',
+      description: 'Moderation functionality will be implemented soon.',
+      type: 'info',
+    });
   };
 
   if (loading) {
@@ -160,7 +173,9 @@ const PortfolioManagement: React.FC = () => {
         </div>
         <div className="error-container">
           <p>{error}</p>
-          <Button onClick={fetchPortfolios}>Retry</Button>
+          <Button onClick={fetchPortfolios} variant="outline">
+            Retry
+          </Button>
         </div>
       </div>
     );
@@ -171,10 +186,19 @@ const PortfolioManagement: React.FC = () => {
       <div className="section-header">
         <h2>Portfolio Management</h2>
         <div className="section-actions">
-          <Button icon={<ExportOutlined />} className="export-btn" onClick={handleExportPortfolios}>
+          <Button 
+            variant="outline"
+            onClick={handleExportPortfolios}
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
             Export
           </Button>
-          <Button type="primary" className="moderate-btn" onClick={handleModeratePorfolios}>
+          <Button 
+            onClick={handleModeratePorfolios}
+            className="flex items-center gap-2"
+          >
+            <Zap className="w-4 h-4" />
             Moderate
           </Button>
         </div>
@@ -218,52 +242,39 @@ const PortfolioManagement: React.FC = () => {
               </div>
               <div className="col-p-actions">
                 <Button 
-                  type="text" 
-                  icon={<EyeOutlined />} 
-                  size="small"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleViewPortfolio(portfolio.id, portfolio.userId)}
                   title="View portfolio in new tab"
-                />
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
                 <Button 
-                  type="text" 
-                  icon={<EditOutlined />} 
-                  size="small"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleEditPortfolio(portfolio.id)}
                   title="Edit portfolio"
-                />
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
                 <Button 
-                  type="text" 
-                  icon={<DeleteOutlined />} 
-                  size="small" 
-                  className="delete-btn"
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
-                    console.log('🔴 DELETE BUTTON RAW CLICK EVENT:', e);
-                    console.log('🔴 DELETE BUTTON RAW CLICK - Portfolio ID:', portfolio.id);
                     e.preventDefault();
                     e.stopPropagation();
                     handleDeletePortfolio(portfolio);
                   }}
-                  loading={deletingPortfolioId === portfolio.id}
+                  disabled={deletingPortfolioId === portfolio.id}
                   title="Delete portfolio and all related data"
-                  style={{ color: '#ff4d4f', border: '1px solid #ff4d4f' }}
-                />
-                {/* Test button to verify click events work */}
-                <button 
-                  onClick={() => {
-                    console.log('🟢 TEST BUTTON CLICKED - Simple button works!');
-                    alert('Test button clicked for portfolio: ' + portfolio.title);
-                  }}
-                  style={{ 
-                    background: 'red', 
-                    color: 'white', 
-                    border: 'none', 
-                    padding: '4px 8px',
-                    cursor: 'pointer',
-                    fontSize: '10px'
-                  }}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
-                  TEST
-                </button>
+                  {deletingPortfolioId === portfolio.id ? (
+                    <div className="w-4 h-4 animate-spin border-2 border-red-600 border-t-transparent rounded-full" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                </Button>
               </div>
             </div>
           ))}

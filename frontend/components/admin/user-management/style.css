@@ -32,28 +32,10 @@
   flex-wrap: wrap;
 }
 
-.export-btn,
-.add-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.section-actions .flex {
+  min-height: 2.5rem;
   font-size: 0.875rem;
   white-space: nowrap;
-  min-height: 2.5rem;
-}
-
-.export-btn {
-  border: 1px solid #e5e7eb;
-  background: white;
-  color: black;
-}
-
-.add-btn {
-  background: #3b82f6;
-  color: white;
-  border: none;
 }
 
 .table-container {
@@ -201,8 +183,12 @@
   align-items: center;
 }
 
-.delete-btn {
-  color: #ef4444;
+.col-actions [data-slot="button"] {
+  transition: all 0.2s ease;
+}
+
+.col-actions [data-slot="button"]:hover {
+  transform: scale(1.05);
 }
 
 .loading-container,
