@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 using BackendMessages.Data;
 using BackendMessages.Models;
+using BackendMessages.Hubs;
 
 namespace BackendMessages.Controllers
 {
@@ -11,11 +13,13 @@ namespace BackendMessages.Controllers
     {
         private readonly MessagesDbContext _context;
         private readonly ILogger<MessagesController> _logger;
+        private readonly IHubContext<MessageHub> _hubContext;
 
-        public MessagesController(MessagesDbContext context, ILogger<MessagesController> logger)
+        public MessagesController(MessagesDbContext context, ILogger<MessagesController> logger, IHubContext<MessageHub> hubContext)
         {
             _context = context;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         /// <summary>
@@ -76,7 +80,8 @@ namespace BackendMessages.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new
+                // Create response object
+                var messageResponse = new
                 {
                     message.Id,
                     message.ConversationId,
@@ -88,7 +93,44 @@ namespace BackendMessages.Controllers
                     message.IsRead,
                     message.CreatedAt,
                     message.UpdatedAt
-                });
+                };
+
+                // Broadcast the new message to both sender and receiver
+                try
+                {
+                    // Send to receiver
+                    await _hubContext.Clients.Group($"user_{receiverId}")
+                        .SendAsync("ReceiveMessage", messageResponse);
+
+                    // Send to sender (for multi-device support)
+                    await _hubContext.Clients.Group($"user_{request.SenderId}")
+                        .SendAsync("ReceiveMessage", messageResponse);
+
+                    // Also broadcast conversation update
+                    var conversationUpdate = new
+                    {
+                        conversation.Id,
+                        conversation.LastMessageTimestamp,
+                        LastMessage = messageResponse,
+                        conversation.UpdatedAt
+                    };
+
+                    await _hubContext.Clients.Group($"user_{receiverId}")
+                        .SendAsync("ConversationUpdated", conversationUpdate);
+                    
+                    await _hubContext.Clients.Group($"user_{request.SenderId}")
+                        .SendAsync("ConversationUpdated", conversationUpdate);
+
+                    _logger.LogInformation("Message {MessageId} broadcasted via SignalR to sender {SenderId} and receiver {ReceiverId}", 
+                        message.Id, request.SenderId, receiverId);
+                }
+                catch (Exception hubEx)
+                {
+                    _logger.LogError(hubEx, "Failed to broadcast message {MessageId} via SignalR", message.Id);
+                    // Don't fail the request if SignalR fails
+                }
+
+                return Ok(messageResponse);
             }
             catch (Exception ex)
             {

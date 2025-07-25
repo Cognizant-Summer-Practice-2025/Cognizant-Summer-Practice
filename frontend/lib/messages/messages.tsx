@@ -3,6 +3,7 @@ import { useUser } from "../contexts/user-context";
 import { SearchUser } from "../user";
 import { messagesApi, ApiConversation, ApiMessage, ApiUser } from "./api";
 import { MessageEncryption } from "../encryption";
+import { useWebSocket } from "../contexts/websocket-context";
 
 // Helper function to safely decrypt messages
 const safeDecrypt = (content: string, senderId: string): string => {
@@ -44,6 +45,7 @@ export interface Conversation {
 
 const useMessages = () => {
   const { user } = useUser();
+  const { onMessageReceived, onConversationUpdated, isConnected } = useWebSocket();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -329,6 +331,97 @@ const useMessages = () => {
     }
   }, [user?.id, loadConversations]);
 
+  // WebSocket event handlers for real-time updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Handle incoming messages
+    const unsubscribeMessage = onMessageReceived((newMessage) => {
+      console.log('Received real-time message:', newMessage);
+      
+      // Decrypt the message content
+      const decryptedContent = safeDecrypt(newMessage.content, newMessage.senderId);
+      
+      const formattedMessage: Message = {
+        id: newMessage.id,
+        senderId: newMessage.senderId,
+        receiverId: newMessage.receiverId,
+        content: decryptedContent,
+        isRead: newMessage.isRead,
+        createdAt: newMessage.createdAt,
+        updatedAt: newMessage.updatedAt
+      };
+
+      // Add message to current conversation if it matches
+      if (currentConversation && newMessage.conversationId === currentConversation.id) {
+        setMessages(prev => {
+          // Check if message already exists to avoid duplicates
+          const exists = prev.some(msg => msg.id === newMessage.id);
+          if (exists) return prev;
+          return [...prev, formattedMessage];
+        });
+
+        // Mark as read if the user is the receiver and viewing this conversation
+        if (newMessage.receiverId === user.id) {
+          setTimeout(async () => {
+            try {
+              await messagesApi.markMessagesAsRead({
+                conversationId: newMessage.conversationId,
+                userId: user.id
+              });
+            } catch (error) {
+              console.error('Failed to mark message as read:', error);
+            }
+          }, 500);
+        }
+      }
+
+      // Update conversations list
+      setConversations(prev => {
+        return prev.map(conv => {
+          if (conv.id === newMessage.conversationId) {
+            return {
+              ...conv,
+              lastMessage: formattedMessage,
+              updatedAt: newMessage.updatedAt,
+              unreadCount: newMessage.receiverId === user.id && currentConversation?.id !== newMessage.conversationId 
+                ? conv.unreadCount + 1 
+                : conv.unreadCount
+            };
+          }
+          return conv;
+        }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      });
+    });
+
+    // Handle conversation updates
+    const unsubscribeConversation = onConversationUpdated((update) => {
+      console.log('Received conversation update:', update);
+      
+      setConversations(prev => {
+        return prev.map(conv => {
+          if (conv.id === update.id) {
+            const decryptedContent = safeDecrypt(update.lastMessage.content, update.lastMessage.senderId);
+            return {
+              ...conv,
+              lastMessage: {
+                ...update.lastMessage,
+                content: decryptedContent
+              },
+              updatedAt: update.updatedAt
+            };
+          }
+          return conv;
+        }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      });
+    });
+
+    return () => {
+      unsubscribeMessage();
+      unsubscribeConversation();
+    };
+  }, [user?.id, currentConversation, onMessageReceived, onConversationUpdated]);
+
   return {
     conversations,
     currentConversation,
@@ -338,6 +431,7 @@ const useMessages = () => {
     sendingMessage,
     error,
     messagesError,
+    isConnected,
     selectConversation,
     sendMessage,
     createConversation,

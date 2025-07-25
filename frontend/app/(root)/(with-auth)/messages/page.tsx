@@ -39,6 +39,7 @@ const MessagesPage = () => {
     sendingMessage,
     error, 
     messagesError,
+    isConnected,
     selectConversation,
     sendMessage,
     createConversation,
@@ -287,6 +288,21 @@ const MessagesPage = () => {
 
   return (
     <div className="messages-page">
+      {/* Connection Status Indicator */}
+      <div style={{ 
+        position: 'fixed', 
+        top: '10px', 
+        right: '10px', 
+        zIndex: 1000,
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        backgroundColor: isConnected ? '#22c55e' : '#ef4444',
+        color: 'white'
+      }}>
+        {isConnected ? '🟢 Live' : '🔴 Offline'}
+      </div>
+      
       <div className="messages-sidebar-container">
         <Sidebar 
           contacts={contacts} 

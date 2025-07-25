@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using BackendMessages.Data;
 using BackendMessages.Services;
+using BackendMessages.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 // Add CORS - allow all for development
 builder.Services.AddCors();
@@ -36,14 +40,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Enable CORS for all origins (development only)
+// Enable CORS for development
 app.UseCors(policy => policy
-    .AllowAnyOrigin()
+    .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:3001") // Add your frontend URLs
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()
+    .AllowCredentials()
+    .WithExposedHeaders("*"));
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map SignalR hub
+app.MapHub<MessageHub>("/messagehub");
 
 app.Run();
