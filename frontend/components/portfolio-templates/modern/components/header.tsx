@@ -2,6 +2,7 @@ import React from 'react';
 import { UserProfile } from '@/lib/portfolio';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Mail } from 'lucide-react';
+import { getSafeImageUrl } from '@/lib/image';
 
 interface HeaderProps {
   basicInfo: UserProfile;
@@ -12,9 +13,13 @@ export function Header({ basicInfo }: HeaderProps) {
     <div className="modern-header">
       {basicInfo.profileImage && (
         <img 
-          src={basicInfo.profileImage} 
+          src={getSafeImageUrl(basicInfo.profileImage)} 
           alt={basicInfo.name}
           className="modern-profile-image"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            e.currentTarget.src = getSafeImageUrl('');
+          }}
         />
       )}
       

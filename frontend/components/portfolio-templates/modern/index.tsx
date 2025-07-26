@@ -11,9 +11,7 @@ import { Experience } from './components/experience';
 import { Projects } from './components/projects';
 import { Skills } from './components/skills';
 import { BlogPosts } from './components/blog-posts';
-import { Footer } from './components/footer';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Moon, Sun } from 'lucide-react';
 import './styles/main.css';
@@ -82,7 +80,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         <div className="modern-particles"></div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Right under app header */}
       <nav className="modern-nav">
         <div className="modern-nav-content">
           <div className="modern-nav-brand">
@@ -116,7 +114,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Main Content */}
       <main className="modern-main">
-        {/* Hero Section */}
+        {/* Hero Section with Header immediately after navigation */}
         <section id="hero" className="modern-hero">
           <Card className="modern-hero-card">
             <Header basicInfo={data.profile} />
@@ -146,9 +144,6 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
             </section>
           );
         })}
-
-        {/* Footer */}
-        <Footer socialLinks={data.socialLinks} />
       </main>
     </div>
   );

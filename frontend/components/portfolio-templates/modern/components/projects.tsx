@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Github, Star } from 'lucide-react';
+import { getSafeImageUrl } from '@/lib/image';
 
 interface ProjectsProps {
   data: Project[];
@@ -35,9 +36,13 @@ export function Projects({ data: projects }: ProjectsProps) {
         <Card key={project.id} className="modern-project-card">
           {project.imageUrl ? (
             <img 
-              src={project.imageUrl} 
+              src={getSafeImageUrl(project.imageUrl)} 
               alt={project.title}
               className="modern-project-image"
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                e.currentTarget.src = getSafeImageUrl('');
+              }}
             />
           ) : (
             <div className="modern-project-image flex items-center justify-center">

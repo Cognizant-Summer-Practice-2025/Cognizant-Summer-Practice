@@ -52,9 +52,9 @@ export function Footer({ socialLinks }: FooterProps) {
       <Card className="modern-section-card">
         <div className="p-8 text-center">
           {socialLinks && socialLinks.length > 0 && (
-            <div className="mb-6">
+            <div>
               <h3 className="text-lg font-semibold text-foreground mb-4">
-                Let's Connect
+                Let&apos;s Connect
               </h3>
               <div className="flex justify-center gap-3 flex-wrap">
                 {socialLinks.map((link) => (
@@ -80,15 +80,6 @@ export function Footer({ socialLinks }: FooterProps) {
               </div>
             </div>
           )}
-          
-          <div className="border-t border-border pt-6">
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Built with Modern Portfolio Template
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Crafted with care and attention to detail
-            </p>
-          </div>
         </div>
       </Card>
     </footer>

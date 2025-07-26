@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
+import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
+import Header from '@/components/header';
 import { PortfolioDataFromDB, PortfolioData, ComponentConfig } from '@/lib/portfolio';
 import { LoadingOverlay } from '@/components/loader';
 
@@ -271,11 +273,14 @@ const PortfolioPage = () => {
   }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <Suspense fallback={<TemplateLoader />}>
-        <TemplateComponent data={templateData} />
-      </Suspense>
-    </div>
+    <>
+      <Header />
+      <div style={{ position: 'relative', paddingTop: '64px' }}>
+        <Suspense fallback={<TemplateLoader />}>
+          <TemplateComponent data={templateData} />
+        </Suspense>
+      </div>
+    </>
   );
 };
 

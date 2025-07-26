@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, ExternalLink, Clock } from 'lucide-react';
+import { getSafeImageUrl } from '@/lib/image';
 
 interface BlogPostsProps {
   data: BlogPost[];
@@ -55,9 +56,13 @@ export function BlogPosts({ data: posts }: BlogPostsProps) {
           {post.featuredImageUrl && (
             <div className="aspect-video overflow-hidden rounded-t-lg">
               <img 
-                src={post.featuredImageUrl} 
+                src={getSafeImageUrl(post.featuredImageUrl)} 
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform hover:scale-105"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  e.currentTarget.src = getSafeImageUrl('');
+                }}
               />
             </div>
           )}
