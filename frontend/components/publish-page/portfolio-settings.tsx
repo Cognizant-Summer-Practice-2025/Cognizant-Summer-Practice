@@ -6,14 +6,18 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { ComponentOrdering } from "@/components/ui/component-ordering"
-import { ComponentConfig } from '@/lib/portfolio'
+import { ComponentConfig, TemplateConfig } from '@/lib/portfolio'
 import { TemplateManager } from '@/lib/template-manager'
 import { updatePortfolio } from '@/lib/portfolio/api'
 import { usePortfolio } from '@/lib/contexts/portfolio-context'
 import { Loading } from '@/components/loader'
+import { getPortfolioTemplates } from '@/lib/templates'
+import { templateRegistry } from '@/lib/template-registry'
 
 interface PortfolioSettingsProps {
   portfolioId?: string;
+  templates?: TemplateConfig[];
+  templatesLoaded?: boolean;
   initialData?: {
     portfolio?: {
       components?: ComponentConfig[];
@@ -27,7 +31,14 @@ interface PortfolioSettingsProps {
   readOnly?: boolean;
 }
 
-export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly = false }: PortfolioSettingsProps = {}) {
+export function PortfolioSettings({ 
+  portfolioId, 
+  templates, 
+  templatesLoaded, 
+  initialData, 
+  onSave, 
+  readOnly = false 
+}: PortfolioSettingsProps = {}) {
   const { getUserPortfolios } = usePortfolio();
   const userPortfolios = getUserPortfolios();
   const currentPortfolioId = portfolioId || userPortfolios[0]?.id;
@@ -65,13 +76,43 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
     }
   }, [currentPortfolio, initialData, initialTemplate, initialComponents]);
   
-  // Available templates from the portfolio-templates folder
-  const availableTemplates = [
+  // Dynamic templates loaded from backend or passed as props
+  const [availableTemplates, setAvailableTemplates] = useState([
     { id: 'gabriel-barzu', name: 'Gabriel Bârzu', description: 'Professional template with sidebar layout' },
     { id: 'modern', name: 'Modern', description: 'Clean and modern design' },
     { id: 'creative', name: 'Creative', description: 'Creative and colorful layout' },
     { id: 'professional', name: 'Professional', description: 'Classic professional design' }
-  ];
+  ]);
+
+  // Load templates from backend or use passed templates
+  useEffect(() => {
+    if (templates && templatesLoaded) {
+      // Use templates passed as props
+      const templateOptions = templates.map(t => ({
+        id: t.id,
+        name: t.name,
+        description: t.description
+      }));
+      setAvailableTemplates(templateOptions);
+      console.log('📋 Using passed templates in PortfolioSettings:', templateOptions.map(t => `${t.name} (${t.id})`));
+    } else {
+      // Fallback to loading templates directly
+      getPortfolioTemplates()
+        .then(templates => {
+          const templateOptions = templates.map(t => ({
+            id: t.id,
+            name: t.name,
+            description: t.description
+          }));
+          setAvailableTemplates(templateOptions);
+          console.log('📋 Loaded templates directly in PortfolioSettings:', templateOptions.map(t => `${t.name} (${t.id})`));
+        })
+        .catch(error => {
+          console.error('Failed to load templates:', error);
+          // Keep default fallback templates
+        });
+    }
+  }, [templates, templatesLoaded]);
 
   // Function to check if there are any changes
   const hasChanges = () => {
@@ -92,8 +133,22 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       setError(null);
       setSuccess(false);
 
+      // Ensure template registry is initialized
+      await templateRegistry.initialize();
+      
+      // Get the actual template name from the backend
+      const selectedTemplate = availableTemplates.find(t => t.id === template);
+      const templateName = selectedTemplate?.name || template;
+
+      // Save selected template to session storage for cross-component access
+      try {
+        sessionStorage.setItem('selectedTemplateName', templateName);
+      } catch (error) {
+        console.warn('Could not save to session storage:', error);
+      }
+
       const dataToSave = {
-        templateName: availableTemplates.find(t => t.id === template)?.name || template,
+        templateName: templateName,
         components: JSON.stringify(components)
       };
 
@@ -106,7 +161,8 @@ export function PortfolioSettings({ portfolioId, initialData, onSave, readOnly =
       } else if (currentPortfolioId) {
         // Note: Template changes might need special handling or separate API call
         await updatePortfolio(currentPortfolioId, { 
-          components: JSON.stringify(components)
+          components: JSON.stringify(components),
+          templateName: templateName // Also update template name if possible
         });
         
         // Update initial values after successful save

@@ -1,0 +1,566 @@
+/* Modern Portfolio Template Styles */
+
+/* Root Variables */
+:root {
+  --modern-primary: #6366f1;
+  --modern-primary-light: #818cf8;
+  --modern-primary-dark: #4f46e5;
+  --modern-background: #ffffff;
+  --modern-surface: rgba(255, 255, 255, 0.8);
+  --modern-text: #1f2937;
+  --modern-text-muted: #6b7280;
+  --modern-border: rgba(255, 255, 255, 0.2);
+  --modern-shadow: rgba(0, 0, 0, 0.1);
+  --modern-glass-bg: rgba(255, 255, 255, 0.1);
+  --modern-glass-border: rgba(255, 255, 255, 0.2);
+}
+
+.dark {
+  --modern-background: #0f172a;
+  --modern-surface: rgba(15, 23, 42, 0.8);
+  --modern-text: #f8fafc;
+  --modern-text-muted: #94a3b8;
+  --modern-border: rgba(255, 255, 255, 0.1);
+  --modern-shadow: rgba(0, 0, 0, 0.3);
+  --modern-glass-bg: rgba(15, 23, 42, 0.3);
+  --modern-glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Base Styles */
+.modern-template {
+  min-height: 100vh;
+  position: relative;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--modern-text);
+  overflow-x: hidden;
+}
+
+/* Animated Background */
+.modern-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: var(--modern-background);
+}
+
+.modern-gradient-1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(168, 85, 247, 0.1) 50%,
+    rgba(236, 72, 153, 0.1) 100%
+  );
+  animation: gradientShift 15s ease-in-out infinite;
+}
+
+.modern-gradient-2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at 70% 30%,
+    rgba(59, 130, 246, 0.15) 0%,
+    transparent 50%
+  );
+  animation: gradientMove 20s ease-in-out infinite alternate;
+}
+
+.modern-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(168, 85, 247, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px, 30px 30px;
+  animation: particleFloat 30s linear infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  33% { transform: rotate(120deg) scale(1.1); }
+  66% { transform: rotate(240deg) scale(0.9); }
+}
+
+@keyframes gradientMove {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-20px, -20px) scale(1.1); }
+}
+
+@keyframes particleFloat {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-50px, -50px); }
+}
+
+/* Navigation */
+.modern-nav {
+  position: sticky;
+  top: 64px; /* Right under the app header */
+  left: 0;
+  right: 0;
+  z-index: 40; /* Lower than app header */
+  padding: 1rem 0;
+  backdrop-filter: blur(20px);
+  background: var(--modern-glass-bg);
+  border-bottom: 1px solid var(--modern-glass-border);
+}
+
+.modern-nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modern-nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.modern-nav-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--modern-primary), var(--modern-primary-light));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.modern-nav-menu {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modern-nav-item {
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.modern-nav-item:hover {
+  transform: translateY(-2px);
+}
+
+.modern-theme-toggle {
+  transition: all 0.3s ease;
+}
+
+.modern-theme-toggle:hover {
+  transform: rotate(180deg);
+}
+
+/* Main Content */
+.modern-main {
+  padding-top: 0; /* Remove padding since navigation handles spacing */
+  padding-bottom: 2rem;
+}
+
+/* Hero Section */
+.modern-hero {
+  padding: 2rem 0 4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.modern-hero-card {
+  max-width: 800px;
+  margin: 0 2rem;
+  background: var(--modern-glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--modern-glass-border);
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 
+    0 25px 50px -12px var(--modern-shadow),
+    0 0 0 1px var(--modern-glass-border);
+  transition: all 0.3s ease;
+}
+
+.modern-hero-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 35px 70px -12px var(--modern-shadow),
+    0 0 0 1px var(--modern-glass-border);
+}
+
+/* Sections */
+.modern-section {
+  padding: 2rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.modern-section-card {
+  max-width: 1000px;
+  margin: 0 2rem;
+  background: var(--modern-glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--modern-glass-border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 
+    0 20px 40px -12px var(--modern-shadow),
+    0 0 0 1px var(--modern-glass-border);
+  transition: all 0.3s ease;
+}
+
+.modern-section-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 25px 50px -12px var(--modern-shadow),
+    0 0 0 1px var(--modern-glass-border);
+}
+
+.modern-section-header {
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid var(--modern-glass-border);
+  background: linear-gradient(135deg, var(--modern-glass-bg), transparent);
+}
+
+.modern-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, var(--modern-text), var(--modern-text-muted));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.modern-section-content {
+  padding: 2rem;
+}
+
+/* Component Overrides */
+.modern-template .modern-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-top: 0; /* Remove padding since nav is now positioned correctly */
+}
+
+.modern-template .modern-profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--modern-glass-border);
+  margin: 0 auto 1.5rem;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.modern-template .modern-profile-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px var(--modern-shadow);
+}
+
+.modern-template .modern-profile-name {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, var(--modern-primary), var(--modern-primary-light));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.modern-template .modern-profile-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--modern-text-muted);
+  margin: 0 0 1rem;
+}
+
+.modern-template .modern-profile-bio {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--modern-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Stats Grid */
+.modern-template .modern-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.modern-template .modern-stat-card {
+  background: var(--modern-glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--modern-glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.modern-template .modern-stat-card:hover {
+  transform: translateY(-4px);
+  background: var(--modern-surface);
+}
+
+.modern-template .modern-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--modern-primary);
+  margin: 0;
+}
+
+.modern-template .modern-stat-label {
+  font-size: 0.875rem;
+  color: var(--modern-text-muted);
+  margin: 0.5rem 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Cards and Lists */
+.modern-template .modern-card {
+  background: var(--modern-glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--modern-glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.modern-template .modern-card:hover {
+  transform: translateY(-2px);
+  background: var(--modern-surface);
+}
+
+.modern-template .modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+/* For single column layouts, ensure consistent width */
+.modern-template .modern-grid.single-column {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Ensure all component containers have consistent width */
+.modern-template .modern-component-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Ensure all grid items have consistent minimum width */
+.modern-template .modern-grid > * {
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Make sure cards have consistent sizing */
+.modern-template .modern-card {
+  width: 100%;
+  min-height: 200px;
+}
+
+/* Skills */
+.modern-template .modern-skill-category {
+  margin-bottom: 2rem;
+}
+
+.modern-template .modern-skill-category-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: var(--modern-text);
+}
+
+.modern-template .modern-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.modern-template .modern-skill-tag {
+  background: var(--modern-glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--modern-glass-border);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--modern-text);
+  transition: all 0.3s ease;
+}
+
+.modern-template .modern-skill-tag:hover {
+  background: var(--modern-primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Projects */
+.modern-template .modern-project-card {
+  background: var(--modern-glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--modern-glass-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.modern-template .modern-project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px var(--modern-shadow);
+}
+
+.modern-template .modern-project-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--modern-primary), var(--modern-primary-light));
+}
+
+.modern-template .modern-project-content {
+  padding: 1.5rem;
+}
+
+.modern-template .modern-project-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--modern-text);
+}
+
+.modern-template .modern-project-description {
+  color: var(--modern-text-muted);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.modern-template .modern-project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.modern-template .modern-tech-tag {
+  background: var(--modern-primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modern-nav-content {
+    padding: 0 1rem;
+  }
+  
+  .modern-nav-menu {
+    display: none;
+  }
+  
+  .modern-hero-card,
+  .modern-section-card {
+    margin: 0 1rem;
+    padding: 2rem 1.5rem;
+  }
+  
+  .modern-template .modern-profile-name {
+    font-size: 2rem;
+  }
+  
+  .modern-template .modern-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-hero-card,
+  .modern-section-card {
+    margin: 0 0.5rem;
+    padding: 1.5rem 1rem;
+  }
+  
+  .modern-section-header {
+    padding: 1.5rem 1rem 1rem;
+  }
+  
+  .modern-section-content {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Animation and Transitions */
+@media (prefers-reduced-motion: no-preference) {
+  .modern-template * {
+    transition: all 0.3s ease;
+  }
+}
+
+/* Scrollbar Styles */
+.modern-template ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modern-template ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modern-template ::-webkit-scrollbar-thumb {
+  background: var(--modern-glass-border);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.modern-template ::-webkit-scrollbar-thumb:hover {
+  background: var(--modern-primary);
+}
+
+/* For Firefox */
+.modern-template * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--modern-glass-border) transparent;
+}
+
+/* Smooth scrolling animation */
+.modern-template [class*="overflow-y-auto"] {
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+/* Scroll fade indicator */
+.modern-template [class*="overflow-y-auto"]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(transparent, var(--modern-background));
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Focus States */
+.modern-template *:focus-visible {
+  outline: 2px solid var(--modern-primary);
+  outline-offset: 2px;
+} 
