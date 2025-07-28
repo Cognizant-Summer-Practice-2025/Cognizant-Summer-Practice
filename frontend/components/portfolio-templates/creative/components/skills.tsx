@@ -1,22 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Code2, Star, TrendingUp, Zap } from 'lucide-react';
 
-interface Skill {
-  id: number;
-  name: string;
-  level: number;
-  category?: string;
-  description?: string;
-  years_experience?: number;
-}
+import { Skill as PortfolioSkill } from '@/lib/portfolio/interfaces';
+
+type Skill = PortfolioSkill;
 
 interface SkillsProps {
   data: Skill[];
 }
 
 export function Skills({ data }: SkillsProps) {
-  const skills = data || [];
-  const [animatedLevels, setAnimatedLevels] = useState<{ [key: number]: number }>({});
+  const skills = React.useMemo(() => data || [], [data]);
+  const [animatedLevels, setAnimatedLevels] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
@@ -25,20 +20,19 @@ export function Skills({ data }: SkillsProps) {
       const timer = setTimeout(() => {
         setAnimatedLevels(prev => ({
           ...prev,
-          [skill.id]: skill.level
+          [skill.id]: skill.proficiencyLevel || 0
         }));
-      }, index * 200); // Stagger the animations
-      
+      }, index * 200);
       timers.push(timer);
     });
 
     return () => timers.forEach(timer => clearTimeout(timer));
   }, [skills]);
 
-  const getSkillColor = (level: number) => {
-    if (level >= 90) return '#43e97b';
-    if (level >= 70) return '#4facfe';
-    if (level >= 50) return '#ffbd2e';
+  const getSkillColor = (proficiencyLevel: number) => {
+    if (proficiencyLevel >= 90) return '#43e97b';
+    if (proficiencyLevel >= 70) return '#4facfe';
+    if (proficiencyLevel >= 50) return '#ffbd2e';
     return '#ff5f57';
   };
 
@@ -91,7 +85,7 @@ export function Skills({ data }: SkillsProps) {
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">averageLevel</span>: 
           <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>
-            {skills.length > 0 ? Math.round(skills.reduce((acc, skill) => acc + skill.level, 0) / skills.length) : 0}%
+            {skills.length > 0 ? Math.round(skills.reduce((acc, skill) => acc + (skill.proficiencyLevel || 0), 0) / skills.length) : 0}%
           </span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
@@ -100,7 +94,7 @@ export function Skills({ data }: SkillsProps) {
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">learning</span>: 
-          <span className="syntax-string">"Always expanding..."</span>
+          <span className="syntax-string">&quot;Always expanding...&quot;</span>
         </div>
         <div className="code-line">{'}'};</div>
       </div>
@@ -186,7 +180,7 @@ export function Skills({ data }: SkillsProps) {
                         <span style={{ 
                           fontSize: '12px',
                           fontWeight: 'bold',
-                          color: getSkillColor(skill.level)
+                          color: getSkillColor(skill.proficiencyLevel || 0)
                         }}>
                           {animatedLevels[skill.id] || 0}%
                         </span>
@@ -209,7 +203,7 @@ export function Skills({ data }: SkillsProps) {
                         className="skill-progress"
                         style={{ 
                           width: `${animatedLevels[skill.id] || 0}%`,
-                          background: `linear-gradient(90deg, ${getSkillColor(skill.level)}, ${getSkillColor(skill.level)}aa)`
+                          background: `linear-gradient(90deg, ${getSkillColor(skill.proficiencyLevel || 0)}, ${getSkillColor(skill.proficiencyLevel || 0)}aa)`
                         }}
                       />
                     </div>
@@ -235,7 +229,7 @@ export function Skills({ data }: SkillsProps) {
       <div style={{ marginTop: '32px' }}>
         <div className="code-block">
           <div className="code-line">
-            <span className="syntax-comment">// Continuous learning loop</span>
+          {/* Continuous learning loop */}
           </div>
           <div className="code-line">
             <span className="syntax-keyword">while</span> (alive) {'{'}
@@ -271,7 +265,7 @@ export function Skills({ data }: SkillsProps) {
         }}>
           <Star size={20} style={{ marginBottom: '4px' }} />
           <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {skills.filter(s => s.level >= 90).length}
+            {skills.filter(s => (s.proficiencyLevel || 0) >= 90).length}
           </div>
           <div style={{ fontSize: '11px', opacity: 0.9 }}>Expert Level</div>
         </div>
@@ -285,7 +279,10 @@ export function Skills({ data }: SkillsProps) {
         }}>
           <TrendingUp size={20} style={{ marginBottom: '4px' }} />
           <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {skills.filter(s => s.level >= 70 && s.level < 90).length}
+            {skills.filter(s => {
+              const lvl = s.proficiencyLevel || 0;
+              return lvl >= 70 && lvl < 90;
+            }).length}
           </div>
           <div style={{ fontSize: '11px', opacity: 0.9 }}>Advanced</div>
         </div>
@@ -299,7 +296,10 @@ export function Skills({ data }: SkillsProps) {
         }}>
           <Zap size={20} style={{ marginBottom: '4px' }} />
           <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {skills.filter(s => s.level >= 50 && s.level < 70).length}
+            {skills.filter(s => {
+              const lvl = s.proficiencyLevel || 0;
+              return lvl >= 50 && lvl < 70;
+            }).length}
           </div>
           <div style={{ fontSize: '11px', opacity: 0.9 }}>Intermediate</div>
         </div>
