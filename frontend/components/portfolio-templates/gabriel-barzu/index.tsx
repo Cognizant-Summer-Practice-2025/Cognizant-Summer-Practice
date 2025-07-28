@@ -40,8 +40,11 @@ export default function GabrielBarzuTemplate({ data }: GabrielBarzuTemplateProps
   // Initialize template manager
   const templateManager = new TemplateManager(componentMap);
   
+  // Validate and transform the data before use
+  const validatedData = TemplateManager.validateAndTransformPortfolioData(data);
+  
   // Get dynamic components based on portfolio configuration
-  const dynamicComponents = templateManager.renderComponents(data);
+  const dynamicComponents = templateManager.renderComponents(validatedData);
 
   // Filter middle components (experience, projects, skills, blog_posts) that should be in the right column
   const middleComponents = dynamicComponents.filter(comp => 
@@ -77,14 +80,14 @@ export default function GabrielBarzuTemplate({ data }: GabrielBarzuTemplateProps
     <div className="gabriel-barzu-template">
       <div className="template-container">
         {/* Fixed Header and Stats */}
-        <Header basicInfo={data.profile} />
-        <Stats stats={data.stats} />
+        <Header basicInfo={validatedData.profile} />
+        <Stats stats={validatedData.stats} />
         
         <div className="content-grid">
           <div className="left-column">
             {/* Contact and About components */}
-            <Contact data={data.contacts} />
-            <About data={data.quotes} />
+            <Contact data={validatedData.contacts} />
+            <About data={validatedData.quotes} />
           </div>
           
           <div className="right-column">
@@ -128,7 +131,7 @@ export default function GabrielBarzuTemplate({ data }: GabrielBarzuTemplateProps
         </div>
         
         {/* Fixed Footer */}
-        <Footer socialLinks={data.socialLinks} />
+        <Footer socialLinks={validatedData.socialLinks} />
       </div>
     </div>
   );

@@ -47,8 +47,11 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
   // Initialize template manager
   const templateManager = new TemplateManager(componentMap);
   
+  // Validate and transform the data before use
+  const validatedData = TemplateManager.validateAndTransformPortfolioData(data);
+  
   // Get dynamic components based on portfolio configuration
-  const dynamicComponents = templateManager.renderComponents(data);
+  const dynamicComponents = templateManager.renderComponents(validatedData);
 
   // Filter components for navigation
   const navComponents = dynamicComponents.filter(comp => 
@@ -84,7 +87,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
       <nav className="modern-nav">
         <div className="modern-nav-content">
           <div className="modern-nav-brand">
-            <span className="modern-nav-name">{data.profile.name}</span>
+            <span className="modern-nav-name">{validatedData.profile.name}</span>
           </div>
           
           <div className="modern-nav-menu">
@@ -117,8 +120,8 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         {/* Hero Section with Header immediately after navigation */}
         <section id="hero" className="modern-hero">
           <Card className="modern-hero-card">
-            <Header basicInfo={data.profile} />
-            <Stats stats={data.stats} />
+            <Header basicInfo={validatedData.profile} />
+            <Stats stats={validatedData.stats} />
           </Card>
         </section>
 
