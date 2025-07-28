@@ -88,31 +88,45 @@ export class TemplateManager {
   static createDefaultComponentConfig(): ComponentConfig[] {
     return [
       {
+        id: 'about-1',
+        type: 'about',
+        order: 1,
+        isVisible: true,
+        settings: {}
+      },
+      {
         id: 'experience-1',
         type: 'experience',
-        order: 1,
+        order: 2,
         isVisible: true,
         settings: {}
       },
       {
         id: 'projects-1',
         type: 'projects',
-        order: 2,
+        order: 3,
         isVisible: true,
         settings: {}
       },
       {
         id: 'skills-1',
         type: 'skills',
-        order: 3,
+        order: 4,
         isVisible: true,
         settings: {}
       },
       {
         id: 'blog_posts-1',
         type: 'blog_posts',
-        order: 4,
+        order: 5,
         isVisible: false, // Hidden by default
+        settings: {}
+      },
+      {
+        id: 'contact-1',
+        type: 'contact',
+        order: 6,
+        isVisible: true,
         settings: {}
       }
     ];
@@ -178,12 +192,12 @@ export class TemplateManager {
       validatedData.profile.profileImage = 'https://placehold.co/120x120';
     }
     if (!validatedData.profile.email || validatedData.profile.email.trim() === '') {
-      validatedData.profile.email = 'contact@example.com';
+      validatedData.profile.email = validatedData.contacts.email || 'contact@example.com';
     }
 
     // Set default contact info if missing
     if (!validatedData.contacts.email || validatedData.contacts.email.trim() === '') {
-      validatedData.contacts.email = validatedData.profile.email;
+      validatedData.contacts.email = validatedData.profile.email || 'contact@example.com';
     }
 
     return validatedData;
