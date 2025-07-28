@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
-import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
 import Header from '@/components/header';
 import { PortfolioDataFromDB, PortfolioData, ComponentConfig } from '@/lib/portfolio';
 import { LoadingOverlay } from '@/components/loader';
@@ -72,7 +71,7 @@ function NoPortfolioFound({
   );
 }
 
-const PortfolioPage = () => {
+const PortfolioContent = () => {
   const [TemplateComponent, setTemplateComponent] = useState<React.ComponentType<{data: PortfolioDataFromDB | PortfolioData}> | null>(null);
   const [templateLoading, setTemplateLoading] = useState(false);
   
@@ -281,6 +280,14 @@ const PortfolioPage = () => {
         </Suspense>
       </div>
     </>
+  );
+};
+
+const PortfolioPage = () => {
+  return (
+    <Suspense fallback={<TemplateLoader />}>
+      <PortfolioContent />
+    </Suspense>
   );
 };
 
