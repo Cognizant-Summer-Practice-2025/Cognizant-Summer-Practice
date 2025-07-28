@@ -43,7 +43,8 @@ const MessagesPage = () => {
     selectConversation,
     sendMessage,
     createConversation,
-    deleteConversation
+    deleteConversation,
+    markMessageAsRead
   } = useMessages();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -120,8 +121,10 @@ const MessagesPage = () => {
     let status: "read" | "delivered" | "sent" = "sent";
     
     if (msg.senderId === user?.id) {
+      // Messages sent by current user
       status = msg.isRead ? "read" : "delivered";
     } else {
+      // Messages received by current user - always show as delivered/sent since they're not our messages to track
       status = "delivered";
     }
     
@@ -400,6 +403,7 @@ const MessagesPage = () => {
               onSendMessage={handleSendMessage}
               sendingMessage={sendingMessage}
               onDeleteConversation={handleDeleteConversation}
+              markMessageAsRead={markMessageAsRead}
             />
           )
         ) : (

@@ -43,6 +43,10 @@ export interface MarkMessagesReadRequest {
   userId: string;
 }
 
+export interface MarkSingleMessageReadRequest {
+  userId: string;
+}
+
 export interface MessagesResponse {
   messages: ApiMessage[];
   pagination: {
@@ -173,6 +177,22 @@ export const messagesApi = {
 
     if (!response.ok) {
       throw new Error(`Failed to mark messages as read: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  async markSingleMessageAsRead(messageId: string, request: MarkSingleMessageReadRequest): Promise<{ messageId: string; isRead: boolean; readAt: string }> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/${messageId}/mark-read`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to mark message as read: ${response.statusText}`);
     }
 
     return response.json();

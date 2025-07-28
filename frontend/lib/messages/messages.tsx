@@ -51,7 +51,7 @@ export interface CacheState {
 
 const useMessages = () => {
   const { user } = useUser();
-  const { onMessageReceived, onConversationUpdated, onUserPresenceUpdate, isConnected } = useWebSocket();
+  const { onMessageReceived, onConversationUpdated, onUserPresenceUpdate, onMessageReadReceipt, markMessageAsRead, isConnected } = useWebSocket();
   
   // Initialize conversations from cache if available
   const [conversations, setConversations] = useState<Conversation[]>(() => {
@@ -767,10 +767,7 @@ const useMessages = () => {
           if (newMessage.receiverId === user.id) {
             setTimeout(async () => {
               try {
-                await messagesApi.markMessagesAsRead({
-                  conversationId: newMessage.conversationId,
-                  userId: user.id
-                });
+                await markMessageAsRead(newMessage.id, user.id);
               } catch (error) {
                 console.error('Failed to mark message as read:', error);
               }
@@ -838,12 +835,48 @@ const useMessages = () => {
       updateConversationOnlineStatus(update.userId, update.isOnline);
     });
 
+    // Handle message read receipts
+    const unsubscribeReadReceipt = onMessageReadReceipt((receipt) => {
+      console.log('Received message read receipt:', receipt);
+      
+      // Update the specific message as read
+      setMessages(prevMessages => {
+        const updatedMessages = prevMessages.map(msg => 
+          msg.id === receipt.messageId ? { ...msg, isRead: true } : msg
+        );
+        
+        // Cache the updated messages if this is the current conversation
+        if (currentConversation?.id === receipt.conversationId) {
+          cacheMessages(receipt.conversationId, updatedMessages);
+        }
+        
+        return updatedMessages;
+      });
+      
+      // Update conversation's last message if it was the one that was read
+      setConversations(prev => prev.map(conv => {
+        if (conv.id === receipt.conversationId && conv.lastMessage?.id === receipt.messageId) {
+          return {
+            ...conv,
+            lastMessage: conv.lastMessage ? {
+              ...conv.lastMessage,
+              isRead: true
+            } : undefined,
+            // Reduce unread count for the sender if this was their message
+            unreadCount: conv.lastMessage?.senderId === user?.id ? Math.max(0, conv.unreadCount - 1) : conv.unreadCount
+          };
+        }
+        return conv;
+      }));
+    });
+
     return () => {
       unsubscribeMessage();
       unsubscribeConversation();
       unsubscribePresence();
+      unsubscribeReadReceipt();
     };
-  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus]);
+  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages]);
 
   return {
     conversations,
@@ -862,7 +895,8 @@ const useMessages = () => {
     deleteConversation,
     clearConversationsCache,
     clearAllMessageCaches,
-    clearMessageCache
+    clearMessageCache,
+    markMessageAsRead
   };
 };
 

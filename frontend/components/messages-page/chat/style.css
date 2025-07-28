@@ -146,6 +146,7 @@
   font-size: clamp(0.75rem, 1.5vw, 0.875rem);
   font-weight: bold;
   font-family: 'Inter', sans-serif;
+  transition: color 0.3s ease;
 }
 
 .message-input-container {

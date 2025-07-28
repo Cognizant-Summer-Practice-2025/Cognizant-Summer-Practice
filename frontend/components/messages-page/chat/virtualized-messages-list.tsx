@@ -17,6 +17,7 @@ interface VirtualizedMessagesListProps {
   currentUserAvatar?: string;
   height: number;
   width: number;
+  markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
 }
 
 // Message height estimation based on content length and layout
@@ -46,7 +47,8 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
   selectedContactName,
   currentUserAvatar,
   height,
-  width
+  width,
+  markMessageAsRead
 }) => {
   const listRef = useRef<List>(null);
   const heightCache = useRef<Record<number, number>>({});
@@ -101,9 +103,10 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
         senderName={selectedContactName}
         currentUserAvatar={currentUserAvatar}
         style={style}
+        markMessageAsRead={markMessageAsRead}
       />
     );
-  }, [messages, selectedContactAvatar, selectedContactName, currentUserAvatar]);
+  }, [messages, selectedContactAvatar, selectedContactName, currentUserAvatar, markMessageAsRead]);
 
 
 

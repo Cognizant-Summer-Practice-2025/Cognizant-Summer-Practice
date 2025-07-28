@@ -30,6 +30,13 @@ export interface UserPresenceUpdate {
   timestamp: string;
 }
 
+export interface MessageReadReceipt {
+  messageId: string;
+  conversationId: string;
+  readByUserId: string;
+  readAt: string;
+}
+
 interface WebSocketContextType {
   connection: signalR.HubConnection | null;
   isConnected: boolean;
@@ -37,6 +44,8 @@ interface WebSocketContextType {
   onMessageReceived: (callback: (message: Message) => void) => () => void;
   onConversationUpdated: (callback: (update: ConversationUpdate) => void) => () => void;
   onUserPresenceUpdate: (callback: (update: UserPresenceUpdate) => void) => () => void;
+  onMessageReadReceipt: (callback: (receipt: MessageReadReceipt) => void) => () => void;
+  markMessageAsRead: (messageId: string, userId: string) => Promise<void>;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
 }
@@ -65,6 +74,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const messageCallbacks = useRef<((message: Message) => void)[]>([]);
   const conversationCallbacks = useRef<((update: ConversationUpdate) => void)[]>([]);
   const presenceCallbacks = useRef<((update: UserPresenceUpdate) => void)[]>([]);
+  const messageReadCallbacks = useRef<((receipt: MessageReadReceipt) => void)[]>([]);
 
   const connect = useCallback(async () => {
     if (!user?.id || isConnecting || isConnected) {
@@ -98,6 +108,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       newConnection.on('UserPresenceUpdate', (update: UserPresenceUpdate) => {
         console.log('User presence updated via SignalR:', update);
         presenceCallbacks.current.forEach(callback => callback(update));
+      });
+
+      newConnection.on('MessageRead', (receipt: MessageReadReceipt) => {
+        console.log('Message read receipt via SignalR:', receipt);
+        messageReadCallbacks.current.forEach(callback => callback(receipt));
       });
 
       // Handle connection events
@@ -198,6 +213,31 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     };
   }, []);
 
+  const onMessageReadReceipt = useCallback((callback: (receipt: MessageReadReceipt) => void) => {
+    messageReadCallbacks.current.push(callback);
+    
+    // Return cleanup function
+    return () => {
+      const index = messageReadCallbacks.current.indexOf(callback);
+      if (index > -1) {
+        messageReadCallbacks.current.splice(index, 1);
+      }
+    };
+  }, []);
+
+  const markMessageAsRead = useCallback(async (messageId: string, userId: string) => {
+    if (!connection) {
+      console.error('SignalR connection not established.');
+      return;
+    }
+    try {
+      await connection.invoke('MarkMessageAsRead', messageId, userId);
+      console.log(`Message with ID ${messageId} marked as read by user ${userId}`);
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+    }
+  }, [connection]);
+
   // Auto connect when user is available
   useEffect(() => {
     if (user?.id && !isConnected && !isConnecting) {
@@ -219,6 +259,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     onMessageReceived,
     onConversationUpdated,
     onUserPresenceUpdate,
+    onMessageReadReceipt,
+    markMessageAsRead,
     connect,
     disconnect
   };

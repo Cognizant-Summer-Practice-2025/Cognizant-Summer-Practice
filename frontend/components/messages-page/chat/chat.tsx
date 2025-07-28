@@ -33,9 +33,10 @@ interface ChatProps {
   onSendMessage?: (content: string) => Promise<void>;
   sendingMessage?: boolean;
   onDeleteConversation?: (conversationId: string) => Promise<void>;
+  markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation }) => {
+const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation, markMessageAsRead }) => {
   const [newMessage, setNewMessage] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -90,6 +91,7 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
             currentUserAvatar={currentUserAvatar}
             height={containerSize.height}
             width={containerSize.width}
+            markMessageAsRead={markMessageAsRead}
           />
         )}
       </div>

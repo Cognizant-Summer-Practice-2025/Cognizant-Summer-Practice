@@ -214,6 +214,76 @@ namespace BackendMessages.Controllers
         }
 
         /// <summary>
+        /// Mark a single message as read
+        /// </summary>
+        /// <param name="messageId">The message ID to mark as read</param>
+        /// <param name="request">Mark single message as read request</param>
+        /// <returns>Success response</returns>
+        [HttpPut("{messageId}/mark-read")]
+        public async Task<IActionResult> MarkSingleMessageAsRead(Guid messageId, [FromBody] MarkSingleMessageReadRequest request)
+        {
+            try
+            {
+                var message = await _context.Messages
+                    .FirstOrDefaultAsync(m => m.Id == messageId && 
+                                         m.ReceiverId == request.UserId && 
+                                         m.DeletedAt == null);
+
+                if (message == null)
+                {
+                    return NotFound("Message not found or user is not the receiver");
+                }
+
+                // Only update if not already read
+                if (!message.IsRead)
+                {
+                    message.IsRead = true;
+                    message.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                    await _context.SaveChangesAsync();
+
+                    // Broadcast the read receipt via SignalR
+                    try
+                    {
+                        var readReceipt = new
+                        {
+                            MessageId = message.Id.ToString(),
+                            ConversationId = message.ConversationId.ToString(),
+                            ReadByUserId = request.UserId.ToString(),
+                            ReadAt = message.UpdatedAt
+                        };
+
+                        // Send read receipt to the sender
+                        await _hubContext.Clients.Group($"user_{message.SenderId}")
+                            .SendAsync("MessageRead", readReceipt);
+
+                        // Also send to the reader (for multi-device support)
+                        await _hubContext.Clients.Group($"user_{request.UserId}")
+                            .SendAsync("MessageRead", readReceipt);
+
+                        _logger.LogInformation("Message {MessageId} marked as read by user {UserId}, receipt sent to sender {SenderId}", 
+                            messageId, request.UserId, message.SenderId);
+                    }
+                    catch (Exception hubEx)
+                    {
+                        _logger.LogError(hubEx, "Failed to broadcast read receipt for message {MessageId}", messageId);
+                        // Don't fail the request if SignalR fails
+                    }
+                }
+
+                return Ok(new { 
+                    MessageId = messageId, 
+                    IsRead = message.IsRead,
+                    ReadAt = message.UpdatedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marking message {MessageId} as read", messageId);
+                return StatusCode(500, "An error occurred while marking the message as read");
+            }
+        }
+
+        /// <summary>
         /// Mark messages as read
         /// </summary>
         /// <param name="request">Mark as read request</param>
@@ -300,6 +370,11 @@ namespace BackendMessages.Controllers
     public class MarkMessagesReadRequest
     {
         public Guid ConversationId { get; set; }
+        public Guid UserId { get; set; }
+    }
+
+    public class MarkSingleMessageReadRequest
+    {
         public Guid UserId { get; set; }
     }
 } 
