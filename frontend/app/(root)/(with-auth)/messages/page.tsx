@@ -86,12 +86,26 @@ const MessagesPage = () => {
   const formatMessageTimestamp = (dateString: string): string => {
     // Backend sends UTC time without timezone indicator, so we need to treat it as UTC
     const utcDate = new Date(dateString + 'Z'); // Add 'Z' to indicate it's UTC
+    const now = new Date();
     
-    return utcDate.toLocaleTimeString(undefined, { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true
-    });
+    // Calculate time difference in hours
+    const diffInHours = (now.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+      // Less than 24 hours: show time only
+      return utcDate.toLocaleTimeString(undefined, { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true
+      });
+    } else {
+      // More than 24 hours: show date
+      return utcDate.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: utcDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      });
+    }
   };
 
   const currentMessages: Message[] = messages.map(msg => {
@@ -121,7 +135,7 @@ const MessagesPage = () => {
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
-      timestamp: formatTimestamp(conv.lastMessageTimestamp),
+      timestamp: formatMessageTimestamp(conv.lastMessageTimestamp),
       isActive: currentConversation?.id === conv.id,
       isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
       unreadCount: conv.unreadCount,
