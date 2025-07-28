@@ -2,11 +2,15 @@
 
 .creative-template {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  height: 100vh;
+  height: calc(100vh - 64px); /* Exact available height = viewport - header */
+  max-height: calc(100vh - 64px); /* Prevent exceeding available space */
+  height: calc(100svh - 64px); /* Better mobile support */
+  max-height: calc(100svh - 64px); /* Prevent mobile overflow */
   overflow: hidden;
   background: var(--bg-primary);
   color: var(--text-primary);
   transition: all 0.3s ease;
+  box-sizing: border-box; /* Include padding/borders in height calculation */
 }
 
 /* Theme Variables */
@@ -42,10 +46,13 @@
 
 /* VS Code Window */
 .vscode-window {
-  height: 100vh;
+  height: 100%; /* Take full height of the creative-template container */
+  max-height: 100%; /* Never exceed parent height */
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Title Bar */
@@ -133,7 +140,9 @@
 .main-layout {
   display: flex;
   flex: 1;
+  max-height: 100%; /* Ensure it fits within VS Code window */
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Sidebar */
@@ -286,9 +295,35 @@
 /* Content Area */
 .content-area {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-primary);
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  overflow-y: auto; /* Allow content area to scroll through header and components */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Portfolio Header Container */
+.portfolio-header-container {
+  flex-shrink: 0; /* Don't shrink the header */
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  /* Header flows naturally in the scrollable content area */
+}
+
+/* Dynamic Content Container */
+.dynamic-content-container {
+  flex: 1; /* Take up remaining space */
+  background: var(--bg-primary);
+  /* Content flows naturally, scrolling handled by parent content-area */
+}
+
+.dynamic-content {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeInUp 0.4s ease-out;
+  /* Remove height constraints to allow natural content flow and scrolling */
 }
 
 .editor-content {
@@ -299,7 +334,7 @@
 
 /* Portfolio Header */
 .portfolio-header {
-  margin-bottom: 32px;
+  margin: 24px;
   padding: 24px;
   background: linear-gradient(135deg, 
     var(--bg-accent) 0%, 
@@ -309,11 +344,7 @@
   color: white;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: fadeInUp 0.6s ease-out;
-}
-
-/* Dynamic Content */
-.dynamic-content {
-  animation: fadeInUp 0.4s ease-out;
+  /* Remove height constraints to allow natural sizing */
 }
 
 /* Ensure dynamic content is scrollable on mobile */
@@ -327,11 +358,18 @@
     margin-bottom: 20px;
   }
   
-  /* Make sure the content area can scroll */
-  .content-area {
+  /* Make sure the dynamic content container can scroll */
+  .dynamic-content-container {
     position: relative;
     overflow-y: scroll !important;
     -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Keep content area as flex container */
+  .content-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 }
 
@@ -344,6 +382,8 @@
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Ensure cards don't get constrained in height */
+  min-height: auto;
 }
 
 .component-card:hover {
@@ -437,10 +477,14 @@
 @media (max-width: 480px) {
   .creative-template {
     font-size: 14px;
+    height: 100vh; /* Mobile takes full viewport */
+    height: 100svh; /* Better mobile viewport support */
+    min-height: 100vh;
+    min-height: 100svh;
   }
   
   .vscode-window {
-    height: 100vh;
+    height: 100%;
   }
   
   /* Hide all VS Code chrome on mobile */
@@ -551,19 +595,22 @@
   
   /* Content area - mobile only shows tabs and content */
   .content-area {
-    height: calc(100vh - 50px); /* Account for tab bar only */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    height: calc(100vh - 50px); /* Account for tab bar only on mobile */
+    height: calc(100svh - 50px); /* Better mobile viewport support */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
   
-  .editor-content {
+  /* Mobile uses the same unified scrolling approach */
+  
+  .dynamic-content {
     padding: 16px;
-    min-height: calc(100vh - 50px);
   }
   
   .portfolio-header {
     padding: 16px;
-    margin-bottom: 16px;
+    margin: 16px;
   }
   
   .code-block {
@@ -628,7 +675,7 @@
   
   .main-layout {
     flex-direction: column;
-    height: calc(100vh - 70px);
+    flex: 1;
   }
   
   .editor-area {
@@ -639,7 +686,10 @@
   
   .content-area {
     height: calc(100% - 35px);
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
   
@@ -668,7 +718,7 @@
     font-size: 12px;
   }
   
-  .editor-content {
+  .dynamic-content {
     padding: 16px;
   }
   
@@ -709,7 +759,7 @@
     padding: 14px;
   }
   
-  .editor-content {
+  .dynamic-content {
     padding: 20px;
   }
   
@@ -730,7 +780,7 @@
     width: 220px;
   }
   
-  .editor-content {
+  .dynamic-content {
     padding: 24px;
     max-width: 1000px;
   }
@@ -747,7 +797,7 @@
     width: 240px;
   }
   
-  .editor-content {
+  .dynamic-content {
     padding: 24px;
     max-width: 1200px;
   }
@@ -773,7 +823,7 @@
 @media (max-width: 768px) and (orientation: landscape) {
   .main-layout {
     flex-direction: row;
-    height: calc(100vh - 70px);
+    flex: 1;
   }
   
   .sidebar {
@@ -804,7 +854,10 @@
   
   .content-area {
     height: calc(100% - 35px);
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
   
@@ -839,9 +892,16 @@
   
   .content-area {
     padding: 0;
+    display: block;
   }
   
-  .editor-content {
+  .portfolio-header-container,
+  .dynamic-content-container {
+    display: block;
+    overflow: visible;
+  }
+  
+  .dynamic-content {
     padding: 20px;
     max-width: none;
   }

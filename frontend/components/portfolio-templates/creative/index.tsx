@@ -49,6 +49,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
   const [darkMode, setDarkMode] = useState(true);
   const [showTerminal, setShowTerminal] = useState(false);
   const [desktopOpenTabs, setDesktopOpenTabs] = useState(['about.md']);
+  const [hasAutoScrolled, setHasAutoScrolled] = useState(false);
 
   // Initialize template manager
   const templateManager = new TemplateManager(componentMap);
@@ -73,7 +74,33 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
   const openTabs = isMobile 
     ? fileStructure.map(file => file.name) // Mobile: all tabs always open
-    : desktopOpenTabs.filter(tab => fileStructure.find(file => file.name === tab)); // Desktop: user-controlled tabs
+    : desktopOpenTabs.filter(tab => fileStructure.find(file => file.name === tab));
+
+  // Auto-scroll to components on desktop load
+  React.useEffect(() => {
+    if (!hasAutoScrolled && typeof window !== 'undefined') {
+      const isDesktop = window.innerWidth > 768; // Desktop breakpoint
+      
+      if (isDesktop) {
+        setTimeout(() => {
+          const contentArea = document.querySelector('.content-area');
+          const dynamicContentContainer = document.querySelector('.dynamic-content-container');
+          
+          if (contentArea && dynamicContentContainer) {
+            // Scroll to the dynamic content section
+            const dynamicContentTop = (dynamicContentContainer as HTMLElement).offsetTop;
+            contentArea.scrollTo({
+              top: dynamicContentTop,
+              behavior: 'smooth'
+            });
+          }
+          setHasAutoScrolled(true);
+        }, 1000); // Delay to allow animations to settle
+      } else {
+        setHasAutoScrolled(true); // Skip auto-scroll on mobile/tablet
+      }
+    }
+  }, [hasAutoScrolled, fileStructure.length]); // Desktop: user-controlled tabs
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
@@ -250,16 +277,17 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                     onClick={() => {
                       setActiveFile(tab);
                       
-                      // Mobile: immediate scroll after tab click
+                      // Mobile: scroll to dynamic content after tab click
                       if (window.innerWidth <= 480) {
                         setTimeout(() => {
                           const contentArea = document.querySelector('.content-area');
-                          const dynamicContent = document.querySelector('.dynamic-content');
+                          const dynamicContentContainer = document.querySelector('.dynamic-content-container');
                           
-                          if (contentArea && dynamicContent) {
-                            const scrollPosition = (dynamicContent as HTMLElement).offsetTop;
+                          if (contentArea && dynamicContentContainer) {
+                            // Scroll to the dynamic content section
+                            const dynamicContentTop = (dynamicContentContainer as HTMLElement).offsetTop;
                             contentArea.scrollTo({
-                              top: scrollPosition,
+                              top: dynamicContentTop,
                               behavior: 'smooth'
                             });
                           }
@@ -283,14 +311,16 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
 
             {/* Content Area */}
             <div className="content-area">
-              <div className="editor-content">
-                {/* Header Section - Always visible */}
+              {/* Fixed Portfolio Header */}
+              <div className="portfolio-header-container">
                 <div className="portfolio-header">
                   <Header basicInfo={data.profile} />
                   <Stats stats={data.stats} />
                 </div>
+              </div>
 
-                {/* Dynamic Content based on active file */}
+              {/* Scrollable Dynamic Content */}
+              <div className="dynamic-content-container">
                 <div className="dynamic-content">
                   {getActiveComponent()}
                 </div>
