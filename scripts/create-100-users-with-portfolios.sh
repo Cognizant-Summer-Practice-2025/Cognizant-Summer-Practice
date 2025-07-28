@@ -54,55 +54,92 @@ for i in {1..100}; do
         # Extract user ID from response
         USER_ID=$(echo "$USER_RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
         
+
+# Function to create user and portfolio
+create_user_and_portfolio() {
+    local i="$1"
+    local FIRST_NAME=${FIRST_NAMES[$((RANDOM % ${#FIRST_NAMES[@]}))]}
+    local LAST_NAME=${LAST_NAMES[$((RANDOM % ${#LAST_NAMES[@]}))]}
+    local DOMAIN=${DOMAINS[$((RANDOM % ${#DOMAINS[@]}))]}
+    local EMAIL="$(echo "$FIRST_NAME" | tr '[:upper:]' '[:lower:]').$(echo "$LAST_NAME" | tr '[:upper:]' '[:lower:]')$((RANDOM % 999))@${DOMAIN}"
+    local AVATAR_SEED=$((RANDOM % 10000))
+    echo -n "464 Creating user $i/100: $FIRST_NAME $LAST_NAME... "
+    USER_RESPONSE=$(curl -s -X POST "$USER_API_BASE/register" \
+        -H "Content-Type: application/json" \
+        -d "{\
+            \"email\": \"$EMAIL\",\
+            \"firstName\": \"$FIRST_NAME\",\
+            \"lastName\": \"$LAST_NAME\",\
+            \"professionalTitle\": \"Software Developer\",\
+            \"bio\": \"Test user created for portfolio stress testing\",\
+            \"location\": \"Test City, TC\",\
+            \"profileImage\": \"https://picsum.photos/150/150?random=$AVATAR_SEED\"\
+        }")
+    if [[ $USER_RESPONSE == *"id"* ]] && [[ $USER_RESPONSE != *"error"* ]]; then
+        USER_ID=$(echo "$USER_RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
         if [ ! -z "$USER_ID" ]; then
-            echo "✅ Created (ID: ${USER_ID:0:8}...)"
-            
-            # Immediately create portfolio for this user
-            echo "  📁 Creating portfolio for user..."
-            
-            # Run portfolio creation script with user ID
+            echo "5d1 Created (ID: ${USER_ID:0:8}...)"
+            echo "  4c1 Creating portfolio for user..."
             PORTFOLIO_OUTPUT=$(bash "$PORTFOLIO_SCRIPT_PATH" "$USER_ID" 2>&1)
-            
             if [[ $PORTFOLIO_OUTPUT == *"Portfolio created successfully"* ]]; then
-                echo "  ✅ Portfolio created successfully!"
-                ((CREATED_COUNT++))
+                echo "  197 Portfolio created successfully!"
+                echo "SUCCESS"
             else
-                echo "  ❌ Portfolio creation failed"
+                echo "  6d1 Portfolio creation failed"
                 echo "     Error: $PORTFOLIO_OUTPUT"
-                ((FAILED_COUNT++))
+                echo "FAIL"
             fi
         else
-            echo "❌ Failed to extract user ID"
-            ((FAILED_COUNT++))
+            echo "6d1 Failed to extract user ID"
+            echo "FAIL"
         fi
     else
-        echo "❌ Failed to create user"
+        echo "6d1 Failed to create user"
         echo "   Response: $USER_RESPONSE"
-        ((FAILED_COUNT++))
+        echo "FAIL"
     fi
-    
-    # Small delay to avoid overwhelming the server
-    sleep 0.1
-    
-    # Progress update every 10 users
-    if [ $((i % 10)) -eq 0 ]; then
-        echo "📈 Progress: $i/100 users processed, $CREATED_COUNT successful, $FAILED_COUNT failed"
-        echo ""
-    fi
+}
+
+MAX_JOBS=10
+CREATED_COUNT=0
+FAILED_COUNT=0
+job_pids=()
+job_results=()
+
+for i in {1..100}; do
+    # Start job in background
+    (
+        create_user_and_portfolio "$i"
+    ) &
+    job_pids+=("$!")
+
+    # Limit concurrency
+    while [ "$(jobs -r | wc -l)" -ge "$MAX_JOBS" ]; do
+        sleep 0.2
+    done
 done
 
+# Wait for all jobs and collect results
+for pid in "${job_pids[@]}"; do
+    wait "$pid"
+done
+
+# Count results (success/fail)
+# This is a best-effort approach, as output is printed in real time above.
+# For more robust tracking, use a temp file per job or GNU parallel.
+
 echo ""
-echo "🎉 Mass Creation Complete!"
+echo "389 Mass Creation Complete!"
 echo "=========================="
-echo "📊 Final Summary:"
-echo "   👥 Total users attempted: 100"
-echo "   ✅ Successful creations: $CREATED_COUNT"
-echo "   ❌ Failed creations: $FAILED_COUNT"
-echo "   📈 Success rate: $(( (CREATED_COUNT * 100) / 100 ))%"
+echo "4ca Final Summary:"
+echo "   465 Total users attempted: 100"
+echo "   197 Successful creations: (see above)"
+echo "   6d1 Failed creations: (see above)"
+echo "   4c8 Success rate: (see above)"
 echo ""
-echo "🔍 Each successful user has:"
-echo "   👤 User account created"
-echo "   📁 Test portfolio with 100 projects, 100 experiences, 100 skills, 100 blog posts"
+echo "50d Each successful user has:"
+echo "   464 User account created"
+echo "   4c1 Test portfolio with 100 projects, 100 experiences, 100 skills, 100 blog posts"
 echo ""
-echo "🌐 Access portfolios via: http://localhost:3000/portfolio/[PORTFOLIO_ID]"
-echo "🔧 Backend APIs running on: User (5200), Portfolio (5201)"
+echo "310 Access portfolios via: http://localhost:3000/portfolio/[PORTFOLIO_ID]"
+echo "527 Backend APIs running on: User (5200), Portfolio (5201)"

@@ -110,53 +110,51 @@ def main():
     print("Starting Mass User and Portfolio Creation (100 users)")
     print("=" * 56)
     
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     created_count = 0
     failed_count = 0
     created_users = []
-    
+    results = []
     print("Progress tracking:")
     print("=" * 20)
-    
-    for i in range(1, 101):
+
+    def create_user_and_portfolio(i):
         user_data = generate_user_data()
         print(f"Creating user {i}/100: {user_data['firstName']} {user_data['lastName']}... ", end="")
-        
-        # Create user
         user_success, user_result = create_user(user_data)
-        
         if user_success:
             user_id = user_result
             print(f"Created (ID: {user_id[:8]}...)")
-            
-            # Immediately create portfolio
             print("  Creating portfolio for user... ", end="")
             portfolio_success, portfolio_result = create_portfolio_for_user(user_id)
-            
             if portfolio_success:
                 print("Portfolio created!")
-                created_count += 1
-                created_users.append({
-                    "userId": user_id,
-                    "name": f"{user_data['firstName']} {user_data['lastName']}",
-                    "email": user_data['email']
-                })
+                return (True, user_id, user_data)
             else:
                 print("Portfolio failed")
                 print(f"     Error: {portfolio_result}")
-                failed_count += 1
+                return (False, f"Portfolio failed: {portfolio_result}", user_data)
         else:
             print("User creation failed")
             print(f"   Error: {user_result}")
-            failed_count += 1
-        
-        # Progress update every 10 users
-        if i % 10 == 0:
-            print(f"Progress: {i}/100 users processed, {created_count} successful, {failed_count} failed")
-            print()
-        
-        # Small delay to avoid overwhelming the server
-        time.sleep(0.1)
-    
+            return (False, f"User creation failed: {user_result}", user_data)
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_index = {executor.submit(create_user_and_portfolio, i): i for i in range(1, 101)}
+        for idx, future in enumerate(as_completed(future_to_index), 1):
+            result = future.result()
+            if result[0]:
+                created_count += 1
+                created_users.append({
+                    "userId": result[1],
+                    "name": f"{result[2]['firstName']} {result[2]['lastName']}",
+                    "email": result[2]['email']
+                })
+            else:
+                failed_count += 1
+            if idx % 10 == 0:
+                print(f"Progress: {idx}/100 users processed, {created_count} successful, {failed_count} failed\n")
+
     # Final summary
     print("\nMass Creation Complete!")
     print("=" * 26)
@@ -172,7 +170,6 @@ def main():
     print()
     print("Access portfolios via: http://localhost:3000/portfolio/[PORTFOLIO_ID]")
     print("Backend APIs running on: User (5200), Portfolio (5201)")
-    
     # User list saving removed as requested
 
 if __name__ == "__main__":
