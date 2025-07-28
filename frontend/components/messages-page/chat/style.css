@@ -40,6 +40,13 @@
   -webkit-transform: translateZ(0);
 }
 
+/* Virtualized messages area - remove padding and gaps for virtualization */
+.messages-area.virtualized-messages-area {
+  padding: 0;
+  gap: 0;
+  overflow: hidden; /* Let react-window handle scrolling */
+}
+
 .message-wrapper {
   display: flex;
   align-items: flex-start;

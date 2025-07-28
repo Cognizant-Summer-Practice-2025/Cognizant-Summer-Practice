@@ -54,7 +54,7 @@ const ContactItem: React.FC<{
           {contact.unreadCount && contact.unreadCount > 0 ? (
             <div className="unread-badge">
               {contact.unreadCount}
-            </div>
+           </div>
           ) : (
             <div className="message-status">✓✓</div>
           )}
@@ -62,7 +62,7 @@ const ContactItem: React.FC<{
       </div>
     </div>
     );
-}
+};
 
 const MessagesSidebar: React.FC<MessagesSidebarProps> = ({
   contacts,

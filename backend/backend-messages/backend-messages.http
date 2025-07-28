@@ -4,6 +4,14 @@
 GET {{backend_messages_HostAddress}}/api/users/test
 Accept: application/json
 
+### Debug: Check what users are currently tracked (remove in production)
+GET {{backend_messages_HostAddress}}/api/users/debug/connections
+Accept: application/json
+
+### Check online status for a specific user (replace with actual user ID)
+GET {{backend_messages_HostAddress}}/api/users/123e4567-e89b-12d3-a456-426614174000/online-status
+Accept: application/json
+
 ### Search users with query "john"
 GET {{backend_messages_HostAddress}}/api/users/search?q=john
 Accept: application/json

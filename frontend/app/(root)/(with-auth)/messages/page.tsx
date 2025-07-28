@@ -39,21 +39,22 @@ const MessagesPage = () => {
     sendingMessage,
     error, 
     messagesError,
-    isConnected,
+    cacheState,
     selectConversation,
     sendMessage,
     createConversation,
     deleteConversation
   } = useMessages();
-  
+
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   
-  const [enhancedContacts, setEnhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
+  // Enhanced contacts storage for additional metadata (keeping for potential future use)
+  const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('enhancedContacts');
-        if (stored) {
-          const parsed = JSON.parse(stored) as Record<string, Partial<Contact>>;
+        const saved = localStorage.getItem('enhancedContacts');
+        if (saved) {
+          const parsed = JSON.parse(saved);
           return new Map(Object.entries(parsed));
         }
       } catch (error) {
@@ -63,6 +64,8 @@ const MessagesPage = () => {
     return new Map();
   });
 
+
+  
   const formatTimestamp = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -133,18 +136,29 @@ const MessagesPage = () => {
 
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
-    return {
+    const result = {
       id: conv.id,
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
       timestamp: formatTimestamp(conv.updatedAt),
       isActive: currentConversation?.id === conv.id,
-      isOnline: enhanced?.isOnline ?? conv.isOnline ?? false,
+      isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
       unreadCount: conv.unreadCount,
       userId: enhanced?.userId || conv.otherUserId,
       professionalTitle: enhanced?.professionalTitle || conv.otherUserProfessionalTitle
     };
+    
+    // Debug logging
+    if (conv.otherUserId === '6677b218-6e92-47b3-9e9f-61bea9f15f8d') {
+      console.log(`getEnhancedContact for user ${conv.otherUserId}:`, {
+        convOnline: conv.isOnline,
+        enhancedOnline: enhanced?.isOnline,
+        resultOnline: result.isOnline
+      });
+    }
+    
+    return result;
   };
 
   const contacts: Contact[] = conversations.map(getEnhancedContact);
@@ -161,16 +175,40 @@ const MessagesPage = () => {
   }, [enhancedContacts]);
 
   useEffect(() => {
-    if (contacts.length > 0 && !selectedContact) {
-      setSelectedContact(contacts[0]);
-      const conversation = conversations.find(conv => conv.id === contacts[0].id);
-      if (conversation) {
-        selectConversation(conversation);
+    const autoSelectFirstContact = async () => {
+      if (contacts.length > 0 && !selectedContact) {
+        setSelectedContact(contacts[0]);
+        const conversation = conversations.find(conv => conv.id === contacts[0].id);
+        if (conversation) {
+          await selectConversation(conversation);
+        }
       }
-    }
+    };
+    
+    autoSelectFirstContact();
   }, [contacts, selectedContact, conversations, selectConversation]);
 
-  const handleSelectContact = (contact: Contact) => {
+  // Simpler approach: Update selectedContact whenever conversations change
+  useEffect(() => {
+    if (selectedContact && conversations.length > 0) {
+      const currentConv = conversations.find(conv => conv.id === selectedContact.id);
+      if (currentConv) {
+        const updatedContact = getEnhancedContact(currentConv);
+        console.log(`Updating selectedContact for ${updatedContact.name}:`, {
+          isOnline: updatedContact.isOnline,
+          conversationOnline: currentConv.isOnline
+        });
+        setSelectedContact(prev => ({
+          ...prev!,
+          isOnline: updatedContact.isOnline,
+          lastMessage: updatedContact.lastMessage,
+          timestamp: updatedContact.timestamp
+        }));
+      }
+    }
+  }, [conversations]);
+
+  const handleSelectContact = async (contact: Contact) => {
     const conversation = conversations.find(conv => conv.id === contact.id);
     if (conversation) {
       setSelectedContact({
@@ -178,72 +216,52 @@ const MessagesPage = () => {
         lastMessage: conversation.lastMessage?.content || "No messages yet",
         timestamp: formatTimestamp(conversation.updatedAt)
       });
-      selectConversation(conversation);
+      await selectConversation(conversation);
     } else {
       setSelectedContact(contact);
     }
   };
 
   const handleNewConversation = async (searchUser: SearchUser) => {
-    if (!user?.id) return;
-    
     try {
-      const existingConversation = conversations.find(conv => 
-        conv.otherUserId === searchUser.id
-      );
-      
-      if (existingConversation) {
-        setEnhancedContacts(prev => new Map(prev).set(existingConversation.id, {
+      const newConversation = await createConversation(searchUser);
+      if (newConversation) {
+        const newContact: Contact = {
+          id: newConversation.id,
           name: searchUser.fullName,
-          avatar: searchUser.avatarUrl,
-          userId: searchUser.id,
-          professionalTitle: searchUser.professionalTitle,
-          isOnline: false
-        }));
-      
-        setSelectedContact({
-          id: existingConversation.id,
-          name: searchUser.fullName, 
-          avatar: searchUser.avatarUrl || existingConversation.otherUserAvatar || "https://placehold.co/40x40",
-          lastMessage: existingConversation.lastMessage?.content || "No messages yet",
-          timestamp: formatTimestamp(existingConversation.updatedAt),
-          isActive: true,
-          isOnline: existingConversation.isOnline || false,
-          unreadCount: existingConversation.unreadCount,
-          userId: searchUser.id, 
-          professionalTitle: searchUser.professionalTitle 
-        });
-        selectConversation(existingConversation);
-      } else {
-        const newConversation = await createConversation(searchUser);
-        if (newConversation) {
-          setEnhancedContacts(prev => new Map(prev).set(newConversation.id, {
-            name: searchUser.fullName,
-            avatar: searchUser.avatarUrl,
-            userId: searchUser.id,
-            professionalTitle: searchUser.professionalTitle,
-            isOnline: false
-          }));
-          
-          setSelectedContact({
-            id: newConversation.id,
-            name: searchUser.fullName,
-            avatar: searchUser.avatarUrl || newConversation.otherUserAvatar || "https://placehold.co/40x40",
-            lastMessage: "No messages yet",
-            timestamp: formatTimestamp(newConversation.updatedAt),
-            isActive: true,
-            isOnline: newConversation.isOnline || false,
-            unreadCount: 0,
-            userId: searchUser.id, 
-            professionalTitle: searchUser.professionalTitle
-          });
-          selectConversation(newConversation);
-        }
+          avatar: searchUser.avatarUrl || "https://placehold.co/40x40",
+          lastMessage: "No messages yet",
+          timestamp: formatTimestamp(newConversation.updatedAt),
+          isActive: false,
+          isOnline: false,
+          unreadCount: 0,
+          userId: newConversation.otherUserId,
+          professionalTitle: searchUser.professionalTitle
+        };
+        
+        setSelectedContact(newContact);
+        await selectConversation(newConversation);
       }
     } catch (error) {
-      console.error('Failed to create or select conversation:', error);
+      console.error('Failed to create conversation:', error);
     }
   };
+
+  // Debug function to test online status (removing for now to fix linter)
+  // const testOnlineStatus = async () => {
+  //   if (selectedContact?.userId) {
+  //     console.log('Testing online status for:', selectedContact.userId);
+  //     try {
+  //       const response = await fetch(`http://localhost:5093/api/users/${selectedContact.userId}/online-status`);
+  //       const data = await response.json();
+  //       console.log('Online status response:', data);
+  //       alert(`User ${selectedContact.name} is ${data.isOnline ? 'ONLINE' : 'OFFLINE'}`);
+  //     } catch (error) {
+  //       console.error('Error testing online status:', error);
+  //       alert('Error checking online status');
+  //     }
+  //   }
+  // };
 
   const handleSendMessage = async (content: string) => {
     if (!currentConversation || !user) return;
@@ -270,13 +288,74 @@ const MessagesPage = () => {
     }
   };
 
-  if (loading) {
+  // Only show loading spinner if there's no cache at all (first visit or cache cleared)
+  if (loading && conversations.length === 0 && !cacheState.isFromCache) {
     return (
-      <div style={{ padding: 32, color: "#888", textAlign: "center" }}>
-        Loading conversations...
+      <div className="messages-page">
+
+        <div className="messages-sidebar-container">
+          {/* Skeleton loader for conversations */}
+          <div style={{ padding: '20px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                height: '40px', 
+                backgroundColor: '#f0f0f0', 
+                borderRadius: '8px',
+                marginBottom: '10px'
+              }}></div>
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px',
+                marginBottom: '8px',
+                backgroundColor: '#f9f9f9',
+                borderRadius: '8px'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '50%',
+                  marginRight: '12px'
+                }}></div>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    height: '16px',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    marginBottom: '6px',
+                    width: '70%'
+                  }}></div>
+                  <div style={{
+                    height: '12px',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    width: '50%'
+                  }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="messages-chat" style={{ 
+          flex: 1, 
+          display: "flex", 
+          flexDirection: "column", 
+          padding: "4rem 0 0 0",
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: '#888'
+        }}>
+          Loading conversations...
+        </div>
       </div>
     );
   }
+
+  // Removed old loading check - now using optimized skeleton loader above
 
   if (error) {
     return (
@@ -288,20 +367,6 @@ const MessagesPage = () => {
 
   return (
     <div className="messages-page">
-      {/* Connection Status Indicator */}
-      <div style={{ 
-        position: 'fixed', 
-        top: '10px', 
-        right: '10px', 
-        zIndex: 1000,
-        padding: '4px 8px',
-        borderRadius: '4px',
-        fontSize: '12px',
-        backgroundColor: isConnected ? '#22c55e' : '#ef4444',
-        color: 'white'
-      }}>
-        {isConnected ? '🟢 Live' : '🔴 Offline'}
-      </div>
       
       <div className="messages-sidebar-container">
         <Sidebar 

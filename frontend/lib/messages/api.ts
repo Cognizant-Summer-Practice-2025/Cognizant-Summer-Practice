@@ -69,6 +69,12 @@ export interface ApiUser {
   lastLoginAt?: string;
 }
 
+export interface UserOnlineStatus {
+  userId: string;
+  isOnline: boolean;
+  timestamp: string;
+}
+
 export const messagesApi = {
   // Conversations
   async getUserConversations(userId: string): Promise<ApiConversation[]> {
@@ -224,6 +230,22 @@ export const messagesApi = {
 
     if (!response.ok) {
       throw new Error(`Failed to get user: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
+  // Online status
+  async getUserOnlineStatus(userId: string): Promise<UserOnlineStatus> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/users/${userId}/online-status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get user online status: ${response.statusText}`);
     }
 
     return response.json();

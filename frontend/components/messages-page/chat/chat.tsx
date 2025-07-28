@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { Avatar, Button, Input } from "antd";
+import React, { useState, useRef, useEffect } from "react";
+import { Button, Input } from "antd";
 import { SendOutlined} from "@ant-design/icons";
 import ChatHeader from "../chat-header/chat-header";
+import VirtualizedMessagesList from "./virtualized-messages-list";
 import "./style.css";
+import "./virtualized-styles.css";
 
 interface Message {
   id: string;
@@ -35,36 +37,31 @@ interface ChatProps {
 
 const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation }) => {
   const [newMessage, setNewMessage] = useState("");
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "read":
-        return "✓✓"; 
-      case "delivered":
-        return "✓✓"; 
-      case "sent":
-        return "✓"; 
-      default:
-        return "";
-    }
-  };
 
-  const getStatusColor = (status: string, sender: string) => {
-    if (sender === "user") {
 
-      switch (status) {
-        case "read":
-          return "#22c55e"; 
-        case "delivered":
-          return "rgba(255, 255, 255, 0.7)"; 
-        case "sent":
-          return "rgba(255, 255, 255, 0.5)"; 
-        default:
-          return "rgba(255, 255, 255, 0.8)";
+  // Handle container resize for virtualized list
+  useEffect(() => {
+    const updateSize = () => {
+      if (messagesContainerRef.current) {
+        const { width, height } = messagesContainerRef.current.getBoundingClientRect();
+        setContainerSize({ width, height });
       }
+    };
+
+    updateSize();
+    
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (messagesContainerRef.current) {
+      resizeObserver.observe(messagesContainerRef.current);
     }
-    return "transparent"; 
-  };
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && onSendMessage && !sendingMessage) {
@@ -81,50 +78,20 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
     <div className="chat-container">
       {/* Messages Area */}
       <ChatHeader selectedContact={selectedContact} onDeleteConversation={onDeleteConversation} />
-      <div className="messages-area">
-        {messages.map((message, index) => (
-          <div
-            key={message.id}
-            className={`message-wrapper ${message.sender === "user" ? "user-message" : "other-message"}`}
-          >
-            {message.sender === "other" && (
-              <Avatar
-                size={32}
-                src={selectedContact.avatar}
-                className="message-avatar"
-              >
-                {selectedContact.name.charAt(0).toUpperCase()}
-              </Avatar>
-            )}
-            
-            <div className={`message-bubble ${message.sender === "user" ? "user-bubble" : "other-bubble"}`}>
-              <div className="message-text">
-                {message.text}
-              </div>
-              <div className="message-footer">
-                <span className="message-timestamp">
-                  {message.timestamp}
-                </span>
-                <span 
-                  className="message-status"
-                  style={{ color: getStatusColor(message.status, message.sender) }}
-                >
-                  {getStatusIcon(message.status)}
-                </span>
-              </div>
-            </div>
-
-            {message.sender === "user" && (
-              <Avatar
-                size={32}
-                src={currentUserAvatar || "https://placehold.co/32x32"}
-                className="message-avatar"
-              >
-                {!currentUserAvatar && "You"}
-              </Avatar>
-            )}
-          </div>
-        ))}
+      <div 
+        ref={messagesContainerRef}
+        className="messages-area virtualized-messages-area"
+      >
+        {containerSize.height > 0 && (
+          <VirtualizedMessagesList
+            messages={messages}
+            selectedContactAvatar={selectedContact.avatar}
+            selectedContactName={selectedContact.name}
+            currentUserAvatar={currentUserAvatar}
+            height={containerSize.height}
+            width={containerSize.width}
+          />
+        )}
       </div>
 
       {/* Message Input */}

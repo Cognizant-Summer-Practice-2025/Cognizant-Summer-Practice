@@ -18,6 +18,8 @@ namespace BackendMessages.Hubs
         {
             try
             {
+                var wasOnline = UserConnections.ContainsKey(userId) && UserConnections[userId].Count > 0;
+
                 // Add this connection to the user's group
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
                 
@@ -29,6 +31,13 @@ namespace BackendMessages.Hubs
                         existingConnections.Add(Context.ConnectionId);
                         return existingConnections;
                     });
+
+                // If user just came online, broadcast presence update
+                if (!wasOnline)
+                {
+                    await BroadcastUserPresenceUpdate(userId, true);
+                    _logger.LogInformation("User {UserId} came online", userId);
+                }
 
                 _logger.LogInformation("User {UserId} joined with connection {ConnectionId}", userId, Context.ConnectionId);
             }
@@ -45,13 +54,22 @@ namespace BackendMessages.Hubs
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
                 
                 // Remove the connection from tracking
+                var userWentOffline = false;
                 if (UserConnections.TryGetValue(userId, out var connections))
                 {
                     connections.Remove(Context.ConnectionId);
                     if (connections.Count == 0)
                     {
                         UserConnections.TryRemove(userId, out _);
+                        userWentOffline = true;
                     }
+                }
+
+                // If user went offline, broadcast presence update
+                if (userWentOffline)
+                {
+                    await BroadcastUserPresenceUpdate(userId, false);
+                    _logger.LogInformation("User {UserId} went offline", userId);
                 }
 
                 _logger.LogInformation("User {UserId} left with connection {ConnectionId}", userId, Context.ConnectionId);
@@ -67,6 +85,8 @@ namespace BackendMessages.Hubs
             try
             {
                 // Clean up all user groups for this connection
+                var usersWentOffline = new List<string>();
+                
                 foreach (var kvp in UserConnections.ToList())
                 {
                     if (kvp.Value.Contains(Context.ConnectionId))
@@ -76,8 +96,16 @@ namespace BackendMessages.Hubs
                         if (kvp.Value.Count == 0)
                         {
                             UserConnections.TryRemove(kvp.Key, out _);
+                            usersWentOffline.Add(kvp.Key);
                         }
                     }
+                }
+
+                // Broadcast offline status for users who went offline
+                foreach (var userId in usersWentOffline)
+                {
+                    await BroadcastUserPresenceUpdate(userId, false);
+                    _logger.LogInformation("User {UserId} went offline due to disconnect", userId);
                 }
 
                 _logger.LogInformation("Connection {ConnectionId} disconnected", Context.ConnectionId);
@@ -88,6 +116,29 @@ namespace BackendMessages.Hubs
             }
 
             await base.OnDisconnectedAsync(exception);
+        }
+
+        // Method to broadcast user presence updates to all connected clients
+        private async Task BroadcastUserPresenceUpdate(string userId, bool isOnline)
+        {
+            try
+            {
+                var presenceUpdate = new
+                {
+                    userId = userId,
+                    isOnline = isOnline,
+                    timestamp = DateTime.UtcNow
+                };
+
+                // Broadcast to all connected users
+                await Clients.All.SendAsync("UserPresenceUpdate", presenceUpdate);
+                
+                _logger.LogInformation("Broadcasted presence update for user {UserId}: {IsOnline}", userId, isOnline);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error broadcasting presence update for user {UserId}", userId);
+            }
         }
 
         // Method to check if a user is online

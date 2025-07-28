@@ -1,4 +1,5 @@
 using BackendMessages.Services;
+using BackendMessages.Hubs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackendMessages.Controllers
@@ -23,6 +24,63 @@ namespace BackendMessages.Controllers
         public IActionResult Test()
         {
             return Ok(new { message = "Messages service is working!", timestamp = DateTime.Now });
+        }
+
+        /// <summary>
+        /// Check if a user is currently online
+        /// </summary>
+        /// <param name="userId">The user ID to check</param>
+        /// <returns>Online status of the user</returns>
+        [HttpGet("{userId}/online-status")]
+        public IActionResult GetUserOnlineStatus(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(userId))
+                {
+                    return BadRequest("User ID cannot be empty");
+                }
+
+                var isOnline = MessageHub.IsUserOnline(userId);
+                
+                _logger.LogInformation("Checked online status for user {UserId}: {IsOnline}", userId, isOnline);
+
+                return Ok(new { 
+                    userId = userId,
+                    isOnline = isOnline,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking online status for user {UserId}", userId);
+                return StatusCode(500, "An error occurred while checking user online status");
+            }
+        }
+
+        /// <summary>
+        /// Debug endpoint to see all tracked connections (remove in production)
+        /// </summary>
+        [HttpGet("debug/connections")]
+        public IActionResult GetDebugConnections()
+        {
+            try
+            {
+                var onlineUsers = MessageHub.GetOnlineUsers().ToList();
+                
+                _logger.LogInformation("Debug: Retrieved {Count} tracked users", onlineUsers.Count);
+
+                return Ok(new {
+                    trackedUsers = onlineUsers,
+                    count = onlineUsers.Count,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving debug connections");
+                return StatusCode(500, "An error occurred while retrieving debug connections");
+            }
         }
 
         /// <summary>

@@ -24,12 +24,19 @@ export interface ConversationUpdate {
   updatedAt: string;
 }
 
+export interface UserPresenceUpdate {
+  userId: string;
+  isOnline: boolean;
+  timestamp: string;
+}
+
 interface WebSocketContextType {
   connection: signalR.HubConnection | null;
   isConnected: boolean;
   isConnecting: boolean;
   onMessageReceived: (callback: (message: Message) => void) => () => void;
   onConversationUpdated: (callback: (update: ConversationUpdate) => void) => () => void;
+  onUserPresenceUpdate: (callback: (update: UserPresenceUpdate) => void) => () => void;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
 }
@@ -57,6 +64,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   // Use refs to store callbacks to avoid dependency issues
   const messageCallbacks = useRef<((message: Message) => void)[]>([]);
   const conversationCallbacks = useRef<((update: ConversationUpdate) => void)[]>([]);
+  const presenceCallbacks = useRef<((update: UserPresenceUpdate) => void)[]>([]);
 
   const connect = useCallback(async () => {
     if (!user?.id || isConnecting || isConnected) {
@@ -87,6 +95,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         conversationCallbacks.current.forEach(callback => callback(update));
       });
 
+      newConnection.on('UserPresenceUpdate', (update: UserPresenceUpdate) => {
+        console.log('User presence updated via SignalR:', update);
+        presenceCallbacks.current.forEach(callback => callback(update));
+      });
+
       // Handle connection events
       newConnection.onreconnecting((error) => {
         console.log('SignalR reconnecting:', error);
@@ -114,8 +127,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       console.log('SignalR connected successfully');
 
       // Join user group
+      console.log(`Attempting to join user group for user ID: ${user.id}`);
       await newConnection.invoke('JoinUserGroup', user.id.toString());
-      console.log(`Joined user group: ${user.id}`);
+      console.log(`Successfully joined user group: ${user.id}`);
 
       setConnection(newConnection);
       setIsConnected(true);
@@ -172,6 +186,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     };
   }, []);
 
+  const onUserPresenceUpdate = useCallback((callback: (update: UserPresenceUpdate) => void) => {
+    presenceCallbacks.current.push(callback);
+    
+    // Return cleanup function
+    return () => {
+      const index = presenceCallbacks.current.indexOf(callback);
+      if (index > -1) {
+        presenceCallbacks.current.splice(index, 1);
+      }
+    };
+  }, []);
+
   // Auto connect when user is available
   useEffect(() => {
     if (user?.id && !isConnected && !isConnecting) {
@@ -192,6 +218,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     isConnecting,
     onMessageReceived,
     onConversationUpdated,
+    onUserPresenceUpdate,
     connect,
     disconnect
   };
