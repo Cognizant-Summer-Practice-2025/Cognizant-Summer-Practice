@@ -22,7 +22,7 @@ export function Projects({ data: projects }: ProjectsProps) {
   const totalCount = projects.length;
 
   return (
-    <div>
+    <div className="modern-component-container">
       {/* Count indicator */}
       <div className="mb-4 pb-2 border-b border-border">
         <p className="text-sm text-muted-foreground">

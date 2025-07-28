@@ -348,8 +348,33 @@
 
 .modern-template .modern-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 1.5rem;
+}
+
+/* For single column layouts, ensure consistent width */
+.modern-template .modern-grid.single-column {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Ensure all component containers have consistent width */
+.modern-template .modern-component-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Ensure all grid items have consistent minimum width */
+.modern-template .modern-grid > * {
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Make sure cards have consistent sizing */
+.modern-template .modern-card {
+  width: 100%;
+  min-height: 200px;
 }
 
 /* Skills */

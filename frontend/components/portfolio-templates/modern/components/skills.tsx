@@ -1,6 +1,7 @@
 import React from 'react';
 import { Skill } from '@/lib/portfolio';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface SkillsProps {
   data: Skill[];
@@ -52,33 +53,50 @@ export function Skills({ data: skills }: SkillsProps) {
     return categoryLabels[category.toLowerCase()] || category;
   };
 
+  const totalCount = skills.length;
+
   return (
-    <div className="space-y-8">
-      {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-        <div key={category} className="modern-skill-category">
-          <h3 className="modern-skill-category-title">
-            {getCategoryLabel(category)}
-          </h3>
-          
-          <div className="modern-skills-list">
-            {categorySkills.map((skill) => (
-              <Badge 
-                key={skill.id} 
-                variant="secondary" 
-                className="modern-skill-tag"
-                title={skill.proficiencyLevel ? `Proficiency: ${skill.proficiencyLevel}%` : undefined}
-              >
-                {skill.name}
-                {skill.proficiencyLevel && skill.proficiencyLevel > 0 && (
-                  <span className="ml-1 text-xs opacity-70">
-                    {skill.proficiencyLevel}%
-                  </span>
-                )}
-              </Badge>
-            ))}
-          </div>
+    <div className="modern-component-container">
+      {/* Count indicator */}
+      <div className="mb-4 pb-2 border-b border-border">
+        <p className="text-sm text-muted-foreground">
+          {totalCount} skill{totalCount !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      <div className="max-h-[800px] overflow-y-auto pr-2">
+        <div className="modern-grid">
+          {Object.entries(groupedSkills).map(([category, categorySkills]) => (
+            <Card key={category} className="modern-card">
+              <CardContent className="p-6">
+                <div className="modern-skill-category">
+                  <h3 className="modern-skill-category-title">
+                    {getCategoryLabel(category)}
+                  </h3>
+                  
+                  <div className="modern-skills-list">
+                    {categorySkills.map((skill) => (
+                      <Badge 
+                        key={skill.id} 
+                        variant="secondary" 
+                        className="modern-skill-tag"
+                        title={skill.proficiencyLevel ? `Proficiency: ${skill.proficiencyLevel}%` : undefined}
+                      >
+                        {skill.name}
+                        {skill.proficiencyLevel && skill.proficiencyLevel > 0 && (
+                          <span className="ml-1 text-xs opacity-70">
+                            {skill.proficiencyLevel}%
+                          </span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 } 
