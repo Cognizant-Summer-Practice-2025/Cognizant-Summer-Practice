@@ -22,12 +22,12 @@ interface ModernTemplateProps {
 
 // Component mapping for the template manager
 const componentMap: ComponentMap = {
-  experience: Experience,
-  projects: Projects,
-  skills: Skills,
-  blog_posts: BlogPosts,
-  contact: Contact,
-  about: About
+  experience: Experience as React.ComponentType<{ data: unknown }>,
+  projects: Projects as React.ComponentType<{ data: unknown }>,
+  skills: Skills as React.ComponentType<{ data: unknown }>,
+  blog_posts: BlogPosts as React.ComponentType<{ data: unknown }>,
+  contact: Contact as React.ComponentType<{ data: unknown }>,
+  about: About as React.ComponentType<{ data: unknown }>
 };
 
 // Tab labels mapping
@@ -55,7 +55,7 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
 
   // Filter components for navigation
   const navComponents = dynamicComponents.filter(comp => 
-    ['about', 'experience', 'projects', 'skills', 'blog_posts', 'contact'].includes(comp.type)
+    comp && ['about', 'experience', 'projects', 'skills', 'blog_posts', 'contact'].includes(comp.type)
   );
 
   useEffect(() => {
@@ -91,15 +91,15 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
           </div>
           
           <div className="modern-nav-menu">
-            {navComponents.map((comp) => (
+            {navComponents.filter(comp => comp).map((comp) => (
               <Button
-                key={comp.type}
-                variant={activeSection === comp.type ? "default" : "ghost"}
+                key={comp!.type}
+                variant={activeSection === comp!.type ? "default" : "ghost"}
                 size="sm"
-                onClick={() => scrollToSection(comp.type)}
+                onClick={() => scrollToSection(comp!.type)}
                 className="modern-nav-item"
               >
-                {tabLabels[comp.type] || comp.type}
+                {tabLabels[comp!.type] || comp!.type}
               </Button>
             ))}
           </div>
@@ -126,22 +126,22 @@ export default function ModernTemplate({ data }: ModernTemplateProps) {
         </section>
 
         {/* Dynamic Sections */}
-        {dynamicComponents.map((componentInfo) => {
-          const Component = componentInfo.component;
+        {dynamicComponents.filter(componentInfo => componentInfo).map((componentInfo) => {
+          const Component = componentInfo!.component;
           return (
             <section
-              key={componentInfo.id}
-              id={componentInfo.type}
+              key={componentInfo!.id}
+              id={componentInfo!.type}
               className="modern-section"
             >
               <Card className="modern-section-card">
                 <div className="modern-section-header">
                   <h2 className="modern-section-title">
-                    {tabLabels[componentInfo.type] || componentInfo.type}
+                    {tabLabels[componentInfo!.type] || componentInfo!.type}
                   </h2>
                 </div>
                 <div className="modern-section-content">
-                  <Component data={componentInfo.data} />
+                  <Component data={componentInfo!.data} />
                 </div>
               </Card>
             </section>

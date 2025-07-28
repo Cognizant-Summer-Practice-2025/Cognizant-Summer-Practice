@@ -58,11 +58,11 @@ export function Projects({ data: projects }: ProjectsProps) {
               <h4 className="project-title">{project.title}</h4>
               <p className="project-description">{project.description}</p>
               <div className="project-technologies">
-                {project.technologies.map((tech, index) => (
+                {project.technologies?.map((tech, index) => (
                   <span key={index} className="tech-tag">
                     {tech}
                   </span>
-                ))}
+                )) || null}
               </div>
             </div>
           </div>

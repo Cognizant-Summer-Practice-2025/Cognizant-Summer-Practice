@@ -62,11 +62,6 @@ interface HomePageCacheContextType {
   dateTo: Date | null;
   
   // Cache management
-  cacheStats: {
-    totalEntries: number;
-    hitRate: number;
-    lastClearTime: Date | null;
-  };
   
   // Actions
   loadPage: (page: number, useCache?: boolean) => Promise<void>;
@@ -85,7 +80,7 @@ interface HomePageCacheContextType {
   // Cache management
   clearCache: () => void;
   preloadPage: (page: number) => Promise<void>;
-  getCacheStats: () => void;
+
 }
 
 const HomePageCacheContext = createContext<HomePageCacheContextType | undefined>(undefined);
@@ -147,14 +142,7 @@ class PageCache {
     this.lastClearTime = new Date();
   }
 
-  getStats() {
-    const total = this.hits + this.misses;
-    return {
-      totalEntries: this.cache.size,
-      hitRate: total > 0 ? this.hits / total : 0,
-      lastClearTime: this.lastClearTime
-    };
-  }
+
 
   // Clean expired entries
   cleanup(): void {
@@ -456,10 +444,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     console.log('🗑️ Cache cleared');
   }, [cache]);
 
-  const getCacheStats = useCallback(() => {
-    cache.cleanup(); // Clean expired entries
-    return cache.getStats();
-  }, [cache]);
+
 
   const value: HomePageCacheContextType = {
     // State
@@ -480,8 +465,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     dateFrom,
     dateTo,
     
-    // Cache stats
-    cacheStats: getCacheStats(),
+
     
     // Actions
     loadPage,
@@ -500,7 +484,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     // Cache management
     clearCache,
     preloadPage,
-    getCacheStats,
+
   };
 
   return (

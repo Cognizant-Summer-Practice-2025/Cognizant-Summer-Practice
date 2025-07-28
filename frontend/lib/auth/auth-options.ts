@@ -1,40 +1,19 @@
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
 import { checkUserExists, checkOAuthProvider, addOAuthProvider, getUserByEmail } from "@/lib/user"
+import type { AuthOptions } from "next-auth"
 
-interface AuthUser {
-  id?: string;
-  email?: string | null;
-  name?: string | null;
-  image?: string | null;
-}
-
-interface AuthAccount {
-  provider: string;
-  providerAccountId: string;
-  access_token?: string;
-  refresh_token?: string;
-  expires_at?: number;
-}
-
-interface AuthToken {
-  provider?: string;
-  providerId?: string;
-  accessToken?: string;
-  refreshToken?: string;
-  tokenExpiresAt?: number;
-  userData?: unknown;
-}
-
-interface AuthSession {
-  user?: AuthUser;
+// Extend the Session type to include custom properties
+declare module "next-auth" {
+  interface Session {
   provider?: string;
   providerId?: string;
   accessToken?: string;
   userData?: unknown;
+  }
 }
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.AUTH_GITHUB_ID!,
@@ -49,7 +28,7 @@ export const authOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async signIn({ user, account }: { user: AuthUser, account: AuthAccount }) {
+    async signIn({ user, account }) {
       try {
         if (user.email) {
           const { exists, user: existingUser } = await checkUserExists(user.email);
@@ -131,7 +110,7 @@ export const authOptions = {
         return false;
       }
     },
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+    async redirect({ url, baseUrl }) {
       // If redirecting to registration, allow it
       if (url.includes('/register')) {
         return url;
@@ -139,12 +118,12 @@ export const authOptions = {
       // Always redirect to home page (root) instead of profile
       return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
     },
-    async session({ session, token }: { session: AuthSession, token: AuthToken }) {
+    async session({ session, token }) {
       // Add OAuth provider info to session if available
       if (token.provider) {
-        session.provider = token.provider;
-        session.providerId = token.providerId;
-        session.accessToken = token.accessToken;
+        session.provider = token.provider as string;
+        session.providerId = token.providerId as string;
+        session.accessToken = token.accessToken as string;
       }
       
       // Add full user data to session if available in token
@@ -154,7 +133,7 @@ export const authOptions = {
       
       return session;
     },
-    async jwt({ token, user, account }: { token: AuthToken, user?: AuthUser, account?: AuthAccount }) {
+    async jwt({ token, user, account }) {
       // Store OAuth provider info in JWT token
       if (account) {
         token.provider = account.provider;

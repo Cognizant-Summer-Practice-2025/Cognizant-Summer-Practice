@@ -19,13 +19,20 @@ interface CreativeTemplateProps {
   data: PortfolioDataFromDB;
 }
 
+interface ComponentInfo {
+  component: React.ComponentType<{ data: unknown }>;
+  data: unknown;
+  id: string;
+  type: string;
+}
+
 // Component mapping for the template manager
 const componentMap: ComponentMap = {
-  experience: Experience,
-  projects: Projects,
-  skills: Skills,
-  blog_posts: BlogPosts,
-  about: About
+  experience: Experience as React.ComponentType<{ data: unknown }>,
+  projects: Projects as React.ComponentType<{ data: unknown }>,
+  skills: Skills as React.ComponentType<{ data: unknown }>,
+  blog_posts: BlogPosts as React.ComponentType<{ data: unknown }>,
+  about: About as React.ComponentType<{ data: unknown }>
 };
 
 // File structure mapping
@@ -51,7 +58,9 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
 
   // Create component lookup
   const componentLookup = dynamicComponents.reduce((acc, comp) => {
+    if (comp) {
     acc[comp.type] = comp;
+    }
     return acc;
   }, {} as Record<string, unknown>);
 
@@ -89,7 +98,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
         
         if (contentArea && dynamicContentElement) {
           // Method 1: Try scrolling to the dynamic content element position
-          const elementPosition = dynamicContentElement.offsetTop;
+          const elementPosition = (dynamicContentElement as HTMLElement).offsetTop;
           
           // Try both scrollTo and scrollTop for maximum compatibility
           contentArea.scrollTo({ 
@@ -104,7 +113,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
           
         } else if (contentArea && portfolioHeader) {
           // Method 2: Scroll past header
-          const headerHeight = portfolioHeader.offsetHeight + portfolioHeader.offsetTop;
+          const headerHeight = (portfolioHeader as HTMLElement).offsetHeight + (portfolioHeader as HTMLElement).offsetTop;
           contentArea.scrollTo({ 
             top: headerHeight + 20, 
             behavior: 'smooth' 
@@ -158,7 +167,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
     const fileInfo = fileStructure.find(f => f.name === activeFile);
     if (!fileInfo) return null;
     
-    const componentInfo = componentLookup[fileInfo.component];
+    const componentInfo = componentLookup[fileInfo.component] as ComponentInfo;
     if (!componentInfo) return null;
 
     const Component = componentInfo.component;
@@ -248,7 +257,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                           const dynamicContent = document.querySelector('.dynamic-content');
                           
                           if (contentArea && dynamicContent) {
-                            const scrollPosition = dynamicContent.offsetTop;
+                            const scrollPosition = (dynamicContent as HTMLElement).offsetTop;
                             contentArea.scrollTo({
                               top: scrollPosition,
                               behavior: 'smooth'

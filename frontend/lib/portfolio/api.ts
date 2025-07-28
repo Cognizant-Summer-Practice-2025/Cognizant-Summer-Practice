@@ -4,7 +4,14 @@
 import { 
   PortfolioDataFromDB, 
   UserPortfolio,
-  UserPortfolioComprehensive
+  UserPortfolioComprehensive,
+  Portfolio,
+  Project,
+  Experience,
+  Skill,
+  BlogPost,
+  Bookmark,
+  PortfolioTemplate
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL

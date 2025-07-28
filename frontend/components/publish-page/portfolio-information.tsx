@@ -37,8 +37,8 @@ export function PortfolioInformation() {
     // 2. Check for any recently selected template in session storage
     // 3. Default to Gabriel Bârzu
     
-    if (currentPortfolio?.templateName) {
-      return currentPortfolio.templateName;
+    if (currentPortfolio?.template) {
+      return currentPortfolio.template.name;
     }
     
     // Check session storage for recently selected template

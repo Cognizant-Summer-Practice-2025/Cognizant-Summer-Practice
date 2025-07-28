@@ -53,23 +53,18 @@ export default function Template() {
   useEffect(() => {
     if (templates.length === 0) return;
 
-    if (currentPortfolio?.templateName) {
+    if (currentPortfolio?.template) {
       // Find template by name first
-      const templateByName = templates.find(t => t.name === currentPortfolio.templateName);
+      const templateByName = templates.find(t => t.name === currentPortfolio.template!.name);
       if (templateByName) {
         setSelectedTemplate(templateByName.id);
         return;
       }
       
-      // Try to convert template name using registry
-      try {
-        const mappedId = templateRegistry.getIdFromName(currentPortfolio.templateName);
-        if (mappedId && templates.find(t => t.id === mappedId)) {
-          setSelectedTemplate(mappedId);
+      // Use template ID directly if available
+      if (currentPortfolio.template!.id && templates.find(t => t.id === currentPortfolio.template!.id)) {
+        setSelectedTemplate(currentPortfolio.template!.id);
           return;
-        }
-      } catch {
-        console.warn('Could not map template name:', currentPortfolio.templateName);
       }
     }
     
@@ -156,9 +151,9 @@ export default function Template() {
   const hasChanges = () => {
     if (!currentPortfolio || templates.length === 0) return selectedTemplate !== "gabriel-barzu";
     
-    // Check by template name first
-    if (currentPortfolio.templateName) {
-      const currentTemplateId = templates.find(t => t.name === currentPortfolio.templateName)?.id;
+    // Check by template first
+    if (currentPortfolio.template) {
+      const currentTemplateId = currentPortfolio.template.id;
       return selectedTemplate !== currentTemplateId;
     }
     
@@ -229,7 +224,7 @@ export default function Template() {
         {currentPortfolio && (
           <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
             <span className="text-sm">
-              Current template: <strong>{currentPortfolio.templateName || 'Unknown'}</strong>
+              Current template: <strong>{currentPortfolio.template?.name || 'Unknown'}</strong>
             </span>
           </div>
         )}
@@ -289,7 +284,7 @@ export default function Template() {
               )}
 
               {/* Current Portfolio Badge */}
-              {currentPortfolio && templates.find(t => t.name === currentPortfolio.templateName)?.id === template.id && selectedTemplate !== template.id && (
+              {currentPortfolio && currentPortfolio.template?.id === template.id && selectedTemplate !== template.id && (
                 <div className="absolute top-2 right-2 bg-gray-500 rounded-md px-2 py-[3.5px] z-10">
                   <span className="text-xs font-medium text-white leading-[19.2px]">
                     Current

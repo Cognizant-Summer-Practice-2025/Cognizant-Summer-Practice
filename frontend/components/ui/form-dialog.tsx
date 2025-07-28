@@ -97,7 +97,7 @@ const FormContent = React.memo<{
         return (
           <Textarea
             id={fieldId}
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onFormChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             rows={field.rows || 3}
@@ -123,7 +123,7 @@ const FormContent = React.memo<{
           <Input
             id={fieldId}
             type="date"
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onFormChange(field.name, e.target.value)}
             disabled={loading}
           />
@@ -136,7 +136,7 @@ const FormContent = React.memo<{
           <Input
             id={fieldId}
             type={field.type === 'url' ? 'url' : 'text'}
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onFormChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             disabled={loading}
@@ -197,7 +197,7 @@ const FormContent = React.memo<{
 
 FormContent.displayName = 'FormContent'
 
-export function FormDialog<T = Record<string, unknown>>({
+export function FormDialog<T extends Record<string, unknown> = Record<string, unknown>>({
   title,
   description,
   triggerLabel,
@@ -250,7 +250,7 @@ export function FormDialog<T = Record<string, unknown>>({
 }
 
 // Helper function to create a simple dialog for editing (without trigger)
-export function EditFormDialog<T = Record<string, unknown>>({
+export function EditFormDialog<T extends Record<string, unknown> = Record<string, unknown>>({
   title,
   description,
   isOpen,

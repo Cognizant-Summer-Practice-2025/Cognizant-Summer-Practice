@@ -1,5 +1,13 @@
 import { ComponentConfig, PortfolioDataFromDB } from './portfolio/interfaces';
 
+// Simple, flexible component map that accepts any React component with data prop
+// Runtime type safety is maintained by the template manager's data routing:
+// - Experience components receive Experience[] data
+// - Projects components receive Project[] data  
+// - Skills components receive Skill[] data
+// - BlogPosts components receive BlogPost[] data
+// - About components receive Quote[] data
+// - Contact components receive ContactInfo data
 export interface ComponentMap {
   [key: string]: React.ComponentType<{ data: unknown }>;
 }
@@ -42,7 +50,7 @@ export class TemplateManager {
     
     const visibleComponents = this.getVisibleComponents(portfolioComponents);
     
-    return visibleComponents.map((componentConfig) => {
+    const componentInfos = visibleComponents.map((componentConfig) => {
       const Component = this.getComponent(componentConfig.type);
       
       if (!Component) {
@@ -61,7 +69,10 @@ export class TemplateManager {
         data: componentData,
         settings: componentConfig.settings || {}
       };
-    }).filter(Boolean);
+    });
+    
+    // Filter out null values with explicit type guard
+    return componentInfos.filter((item): item is NonNullable<typeof item> => item !== null);
   }
 
   // Get data for specific component type

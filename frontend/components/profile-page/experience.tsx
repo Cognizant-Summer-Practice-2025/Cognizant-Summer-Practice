@@ -15,7 +15,7 @@ interface ExperienceProps {
   onExperiencesUpdate?: (experiences: ExperienceType[]) => void;
 }
 
-interface ExperienceFormData {
+interface ExperienceFormData extends Record<string, unknown> {
   jobTitle: string;
   companyName: string;
   startDate: string;
@@ -121,7 +121,7 @@ export default function Experience({ experiences = [], portfolioId, loading = fa
     setError(null);
   }, []);
 
-  const handleFormChange = React.useCallback((field: string, value: string | boolean) => {
+  const handleFormChange = React.useCallback((field: string, value: unknown) => {
     setExperienceForm(prev => ({ ...prev, [field]: value }));
     if (error) setError(null);
   }, [error]);

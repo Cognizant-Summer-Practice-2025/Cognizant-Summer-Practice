@@ -184,17 +184,7 @@ export function Skills({ data }: SkillsProps) {
                         }}>
                           {animatedLevels[skill.id] || 0}%
                         </span>
-                        {skill.years_experience && (
-                          <span style={{ 
-                            fontSize: '10px',
-                            color: 'var(--text-secondary)',
-                            background: 'var(--bg-secondary)',
-                            padding: '2px 6px',
-                            borderRadius: '10px'
-                          }}>
-                            {skill.years_experience}y
-                          </span>
-                        )}
+
                       </div>
                     </div>
 
@@ -208,16 +198,7 @@ export function Skills({ data }: SkillsProps) {
                       />
                     </div>
 
-                    {skill.description && (
-                      <div style={{ 
-                        marginTop: '8px',
-                        fontSize: '12px',
-                        color: 'var(--text-secondary)',
-                        lineHeight: '1.4'
-                      }}>
-                        {skill.description}
-                      </div>
-                    )}
+
                   </div>
                 ))}
               </div>

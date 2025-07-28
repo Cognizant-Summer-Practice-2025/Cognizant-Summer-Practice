@@ -8,7 +8,7 @@ import Skills from '@/components/profile-page/skills';
 import Template from '@/components/profile-page/template';
 import Settings from '@/components/profile-page/settings';
 import { Loading } from '@/components/loader';
-import { useProfile } from './layout';
+import { useProfile } from '@/lib/contexts/profile-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { useUser } from '@/lib/contexts/user-context';
 
