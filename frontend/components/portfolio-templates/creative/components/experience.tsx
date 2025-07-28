@@ -92,19 +92,19 @@ export function Experience({ data }: ExperienceProps) {
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">totalExperience</span>: 
-          <span className="syntax-string">"{experiences.length} positions"</span>,
+          <span className="syntax-string">&quot;{experiences.length} positions&quot;</span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">currentStatus</span>: 
-          <span className="syntax-string">"Building the future"</span>,
+          <span className="syntax-string">&quot;Building the future&quot;</span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">philosophy</span>: 
-          <span className="syntax-string">"Code with purpose, learn with passion"</span>,
+          <span className="syntax-string">&quot;Code with purpose, learn with passion&quot;</span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">nextGoal</span>: 
-          <span className="syntax-string">"Creating impact through technology"</span>
+          <span className="syntax-string">&quot;Creating impact through technology&quot;</span>
         </div>
         <div className="code-line">{'}'};</div>
       </div>
@@ -135,7 +135,7 @@ export function Experience({ data }: ExperienceProps) {
             zIndex: 1
           }} />
 
-          {sortedExperiences.map((exp, index) => (
+          {sortedExperiences.map((exp) => (
             <div key={exp.id} style={{ 
               position: 'relative',
               marginBottom: '32px',
@@ -336,7 +336,7 @@ export function Experience({ data }: ExperienceProps) {
       <div style={{ marginTop: '32px' }}>
         <div className="code-block">
           <div className="code-line">
-            <span className="syntax-comment">// Career progression algorithm</span>
+            <span className="syntax-comment">{'// Career progression algorithm'}</span>
           </div>
           <div className="code-line">
             <span className="syntax-keyword">function</span> <span className="syntax-highlight">buildCareer</span>() {'{'}
@@ -345,13 +345,13 @@ export function Experience({ data }: ExperienceProps) {
             <span className="syntax-keyword">return</span> experiences
           </div>
           <div className="code-line" style={{ marginLeft: '40px' }}>
-            .<span className="syntax-highlight">map</span>(role => role.<span className="syntax-highlight">learnAndGrow</span>())
+            .<span className="syntax-highlight">map</span>(role {'=>'} role.<span className="syntax-highlight">learnAndGrow</span>())
           </div>
           <div className="code-line" style={{ marginLeft: '40px' }}>
-            .<span className="syntax-highlight">filter</span>(exp => exp.<span className="syntax-highlight">addedValue</span>)
+            .<span className="syntax-highlight">filter</span>(exp {'=>'} exp.<span className="syntax-highlight">addedValue</span>)
           </div>
           <div className="code-line" style={{ marginLeft: '40px' }}>
-            .<span className="syntax-highlight">reduce</span>(<span className="syntax-string">'wisdom'</span>, <span className="syntax-string">'expertise'</span>);
+            .<span className="syntax-highlight">reduce</span>(<span className="syntax-string">&#39;wisdom&#39;</span>, <span className="syntax-string">&#39;expertise&#39;</span>);
           </div>
           <div className="code-line">{'}'}</div>
         </div>

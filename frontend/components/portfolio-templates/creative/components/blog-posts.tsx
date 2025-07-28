@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Calendar, Clock, Tag, ExternalLink, Eye } from 'lucide-react';
+import { BookOpen, Calendar, Clock, ExternalLink, Eye } from 'lucide-react';
 
 interface BlogPost {
   id: number;
@@ -73,11 +73,11 @@ export function BlogPosts({ data }: BlogPostsProps) {
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">topics</span>: 
-          <span className="syntax-string">"Tech, Development, Innovation"</span>,
+          <span className="syntax-string">&quot;Tech, Development, Innovation&quot;</span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">purpose</span>: 
-          <span className="syntax-string">"Sharing knowledge and insights"</span>
+          <span className="syntax-string">&quot;Sharing knowledge and insights&quot;</span>
         </div>
         <div className="code-line">{'}'};</div>
       </div>
@@ -400,7 +400,7 @@ export function BlogPosts({ data }: BlogPostsProps) {
       <div style={{ marginTop: '32px' }}>
         <div className="code-block">
           <div className="code-line">
-            <span className="syntax-comment">// Content creation loop</span>
+            <span className="syntax-comment">{/* Content creation loop */}</span>
           </div>
           <div className="code-line">
             <span className="syntax-keyword">async function</span> <span className="syntax-highlight">createContent</span>() {'{'}

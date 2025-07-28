@@ -41,7 +41,13 @@ export function FileExplorer({ files, onFileClick, activeFile }: FileExplorerPro
                 onClick={() => onFileClick(file.name, file.component)}
               >
                 <IconComponent size={16} />
-                <span>{file.name}</span>
+                                  <span className="file-name-mobile">
+                    {file.name === 'about.md' ? 'About' :
+                     file.name === 'experience.json' ? 'Work' :
+                     file.name === 'projects/' ? 'Projects' :
+                     file.name === 'skills.js' ? 'Skills' :
+                     file.name === 'blog/' ? 'Blog' : file.name}
+                  </span>
               </li>
             );
           })}

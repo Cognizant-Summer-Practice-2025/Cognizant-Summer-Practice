@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Github, Folder, Calendar, Tag } from 'lucide-react';
+import { ExternalLink, Github, Folder, Calendar } from 'lucide-react';
 
 interface Project {
   id: number;
@@ -63,16 +63,16 @@ export function Projects({ data }: ProjectsProps) {
           <span className="syntax-highlight">projectsData</span> = [
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-comment">// {projects.length} amazing projects and counting...</span>
+          <span className="syntax-comment">{`// ${projects.length} amazing projects and counting...`}</span>
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-string">"Each project tells a unique story"</span>,
+          <span className="syntax-string">&quot;Each project tells a unique story&quot;</span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-string">"Built with passion and attention to detail"</span>,
+          <span className="syntax-string">&quot;Built with passion and attention to detail&quot;</span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-string">"Always pushing the boundaries of what's possible"</span>
+          <span className="syntax-string">&quot;Always pushing the boundaries of what&apos;s possible&quot;</span>
         </div>
         <div className="code-line">];</div>
       </div>
@@ -253,10 +253,10 @@ export function Projects({ data }: ProjectsProps) {
       <div style={{ marginTop: '24px' }}>
         <div className="code-block">
           <div className="code-line">
-            <span className="syntax-comment">// Always working on something new</span>
+            <span className="syntax-comment">{/* Always working on something new */}</span>
           </div>
           <div className="code-line">
-            <span className="syntax-keyword">setInterval</span>(() => {'{'}
+            <span className="syntax-keyword">setInterval</span>(() =&gt; {'{'} 
           </div>
           <div className="code-line" style={{ marginLeft: '20px' }}>
             <span className="syntax-highlight">createAmazingProject</span>();

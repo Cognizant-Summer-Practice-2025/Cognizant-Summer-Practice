@@ -40,8 +40,8 @@ const allFileStructure = [
 export default function CreativeTemplate({ data }: CreativeTemplateProps) {
   const [activeFile, setActiveFile] = useState('about.md');
   const [darkMode, setDarkMode] = useState(true);
-  const [openTabs, setOpenTabs] = useState(['about.md']);
   const [showTerminal, setShowTerminal] = useState(false);
+  const [desktopOpenTabs, setDesktopOpenTabs] = useState(['about.md']);
 
   // Initialize template manager
   const templateManager = new TemplateManager(componentMap);
@@ -60,35 +60,97 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
     componentLookup[file.component]
   );
 
+  // Determine which tabs to show based on screen size
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
+  const openTabs = isMobile 
+    ? fileStructure.map(file => file.name) // Mobile: all tabs always open
+    : desktopOpenTabs.filter(tab => fileStructure.find(file => file.name === tab)); // Desktop: user-controlled tabs
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
   const handleFileClick = (fileName: string, componentType: string) => {
     setActiveFile(fileName);
-    if (!openTabs.includes(fileName)) {
-      setOpenTabs([...openTabs, fileName]);
+    
+    // On desktop, add tab to open tabs if not already open
+    const currentMobile = window.innerWidth <= 480;
+    if (!currentMobile && !desktopOpenTabs.includes(fileName)) {
+      setDesktopOpenTabs([...desktopOpenTabs, fileName]);
     }
     
-    // Auto-scroll to the dynamic content area
+    // Auto-scroll to the dynamic content area (works on all devices)
     setTimeout(() => {
-      const dynamicContentElement = document.querySelector('.dynamic-content');
-      if (dynamicContentElement) {
-        dynamicContentElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
+      if (currentMobile) {
+        // Mobile: Try multiple scroll methods for better compatibility
+        const contentArea = document.querySelector('.content-area');
+        const dynamicContentElement = document.querySelector('.dynamic-content');
+        const portfolioHeader = document.querySelector('.portfolio-header');
+        
+        if (contentArea && dynamicContentElement) {
+          // Method 1: Try scrolling to the dynamic content element position
+          const elementPosition = dynamicContentElement.offsetTop;
+          
+          // Try both scrollTo and scrollTop for maximum compatibility
+          contentArea.scrollTo({ 
+            top: elementPosition, 
+            behavior: 'smooth' 
+          });
+          
+          // Fallback: direct scrollTop assignment
+          setTimeout(() => {
+            contentArea.scrollTop = elementPosition;
+          }, 100);
+          
+        } else if (contentArea && portfolioHeader) {
+          // Method 2: Scroll past header
+          const headerHeight = portfolioHeader.offsetHeight + portfolioHeader.offsetTop;
+          contentArea.scrollTo({ 
+            top: headerHeight + 20, 
+            behavior: 'smooth' 
+          });
+        } else if (contentArea) {
+          // Method 3: Simple scroll down from top
+          contentArea.scrollTo({ 
+            top: 300, // Approximate header height
+            behavior: 'smooth' 
+          });
+        }
+      } else {
+        // Desktop: scroll to the dynamic content section
+        const dynamicContentElement = document.querySelector('.dynamic-content');
+        if (dynamicContentElement) {
+          dynamicContentElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
       }
-    }, 100); // Small delay to ensure content is rendered
+    }, 200); // Longer delay for mobile
   };
 
   const closeTab = (fileName: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newTabs = openTabs.filter(tab => tab !== fileName);
-    setOpenTabs(newTabs);
     
+    // On mobile (≤480px), tabs cannot be closed
+    if (window.innerWidth <= 480) {
+      return;
+    }
+    
+    // Desktop: Remove tab from openTabs and update state
+    const newTabs = desktopOpenTabs.filter(tab => tab !== fileName);
+    setDesktopOpenTabs(newTabs);
+    
+    // If we're closing the active tab, switch to the last remaining tab
     if (activeFile === fileName && newTabs.length > 0) {
       setActiveFile(newTabs[newTabs.length - 1]);
+    }
+    
+    // If no tabs remain, default to the first available component
+    if (newTabs.length === 0 && fileStructure.length > 0) {
+      const firstFile = fileStructure[0].name;
+      setActiveFile(firstFile);
+      setDesktopOpenTabs([firstFile]);
     }
   };
 
@@ -176,18 +238,35 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                   <div
                     key={tab}
                     className={`tab ${activeFile === tab ? 'active' : ''}`}
-                    onClick={() => setActiveFile(tab)}
+                    onClick={() => {
+                      setActiveFile(tab);
+                      
+                      // Mobile: immediate scroll after tab click
+                      if (window.innerWidth <= 480) {
+                        setTimeout(() => {
+                          const contentArea = document.querySelector('.content-area');
+                          const dynamicContent = document.querySelector('.dynamic-content');
+                          
+                          if (contentArea && dynamicContent) {
+                            const scrollPosition = dynamicContent.offsetTop;
+                            contentArea.scrollTo({
+                              top: scrollPosition,
+                              behavior: 'smooth'
+                            });
+                          }
+                        }, 50);
+                      }
+                    }}
                   >
                     <IconComponent size={16} />
                     <span>{tab}</span>
-                    {openTabs.length > 1 && (
-                      <button
-                        className="close-tab"
-                        onClick={(e) => closeTab(tab, e)}
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
+                    {/* Close button hidden on mobile via CSS */}
+                    <button
+                      className="close-tab"
+                      onClick={(e) => closeTab(tab, e)}
+                    >
+                      <X size={12} />
+                    </button>
                   </div>
                 );
               })}

@@ -5,7 +5,7 @@ interface StatsData {
   experience?: number;
   projects?: number;
   clients?: number;
-  [key: string]: any;
+  [key: string]: number | string | undefined;
 }
 
 interface StatsProps {
