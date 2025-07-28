@@ -39,6 +39,7 @@ export interface Conversation {
   lastMessage?: Message;
   isOnline?: boolean;
   unreadCount: number;
+  lastMessageTimestamp: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -384,6 +385,7 @@ const useMessages = () => {
               } : undefined,
               isOnline: false,
               unreadCount: apiConv.unreadCount,
+              lastMessageTimestamp: apiConv.lastMessageTimestamp,
               createdAt: apiConv.createdAt,
               updatedAt: apiConv.updatedAt
             };
@@ -407,6 +409,7 @@ const useMessages = () => {
               } : undefined,
               isOnline: false,
               unreadCount: apiConv.unreadCount,
+              lastMessageTimestamp: apiConv.lastMessageTimestamp,
               createdAt: apiConv.createdAt,
               updatedAt: apiConv.updatedAt
             };
@@ -601,6 +604,7 @@ const useMessages = () => {
         } : undefined,
         isOnline: false,
         unreadCount: apiConversation.unreadCount,
+        lastMessageTimestamp: apiConversation.lastMessageTimestamp,
         createdAt: apiConversation.createdAt,
         updatedAt: apiConversation.updatedAt
       };

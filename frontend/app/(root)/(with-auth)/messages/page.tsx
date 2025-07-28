@@ -84,37 +84,14 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
+    // Backend sends UTC time without timezone indicator, so we need to treat it as UTC
+    const utcDate = new Date(dateString + 'Z'); // Add 'Z' to indicate it's UTC
     
-    if (isToday) {
-      return `Today, ${date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      })}`;
-    } else {
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const isYesterday = date.toDateString() === yesterday.toDateString();
-      
-      if (isYesterday) {
-        return `Yesterday, ${date.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        })}`;
-      } else {
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric',
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        });
-      }
-    }
+    return utcDate.toLocaleTimeString(undefined, { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const currentMessages: Message[] = messages.map(msg => {
@@ -144,7 +121,7 @@ const MessagesPage = () => {
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
-      timestamp: formatTimestamp(conv.updatedAt),
+      timestamp: formatTimestamp(conv.lastMessageTimestamp),
       isActive: currentConversation?.id === conv.id,
       isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
       unreadCount: conv.unreadCount,
