@@ -28,7 +28,7 @@ export function About({ data: quotes }: AboutProps) {
               />
               
               <blockquote className="text-lg leading-relaxed text-foreground italic pl-6">
-                "{quote.text}"
+                &ldquo;{quote.text}&rdquo;
               </blockquote>
               
               {(quote.author || quote.position) && (

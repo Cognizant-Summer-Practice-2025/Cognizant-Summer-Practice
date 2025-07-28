@@ -82,7 +82,7 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
       {/* Messages Area */}
       <ChatHeader selectedContact={selectedContact} />
       <div className="messages-area">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <div
             key={message.id}
             className={`message-wrapper ${message.sender === "user" ? "user-message" : "other-message"}`}

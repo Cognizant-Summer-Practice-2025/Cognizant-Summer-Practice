@@ -72,7 +72,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           let messages: MessageResponse[] = [];
           try {
             messages = await messageApi.getMessages(conv.id);
-          } catch (backendError) {
+          } catch {
             // Fallback to mock data
             messages = getMockMessages(conv.id);
           }

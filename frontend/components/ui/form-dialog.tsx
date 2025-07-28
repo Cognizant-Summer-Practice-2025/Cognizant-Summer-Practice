@@ -26,10 +26,10 @@ export interface FormField {
   required?: boolean
   rows?: number
   dependsOn?: string // For conditional fields
-  dependsOnValue?: any // Value that dependsOn field must have
+  dependsOnValue?: unknown // Value that dependsOn field must have
 }
 
-export interface FormDialogProps<T = Record<string, any>> {
+export interface FormDialogProps<T = Record<string, unknown>> {
   // Dialog props
   title: string
   description: string
@@ -40,7 +40,7 @@ export interface FormDialogProps<T = Record<string, any>> {
   // Form props
   fields: FormField[]
   formData: T
-  onFormChange: (field: string, value: any) => void
+  onFormChange: (field: string, value: unknown) => void
   onSubmit: () => void
   onCancel: () => void
   
@@ -58,8 +58,8 @@ export interface FormDialogProps<T = Record<string, any>> {
 // Separate memoized form component to prevent re-renders
 const FormContent = React.memo<{
   fields: FormField[]
-  formData: Record<string, any>
-  onFormChange: (field: string, value: any) => void
+  formData: Record<string, unknown>
+  onFormChange: (field: string, value: unknown) => void
   onSubmit: () => void
   onCancel: () => void
   isEdit: boolean
@@ -197,7 +197,7 @@ const FormContent = React.memo<{
 
 FormContent.displayName = 'FormContent'
 
-export function FormDialog<T = Record<string, any>>({
+export function FormDialog<T = Record<string, unknown>>({
   title,
   description,
   triggerLabel,
@@ -250,7 +250,7 @@ export function FormDialog<T = Record<string, any>>({
 }
 
 // Helper function to create a simple dialog for editing (without trigger)
-export function EditFormDialog<T = Record<string, any>>({
+export function EditFormDialog<T = Record<string, unknown>>({
   title,
   description,
   isOpen,

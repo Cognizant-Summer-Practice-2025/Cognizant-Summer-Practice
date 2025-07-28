@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Project } from '@/lib/portfolio';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,14 +36,12 @@ export function Projects({ data: projects }: ProjectsProps) {
         {projects.map((project) => (
         <Card key={project.id} className="modern-project-card">
           {project.imageUrl ? (
-            <img 
+            <Image 
               src={getSafeImageUrl(project.imageUrl)} 
               alt={project.title}
               className="modern-project-image"
-              onError={(e) => {
-                // Fallback to placeholder if image fails to load
-                e.currentTarget.src = getSafeImageUrl('');
-              }}
+              width={400}
+              height={200}
             />
           ) : (
             <div className="modern-project-image flex items-center justify-center">

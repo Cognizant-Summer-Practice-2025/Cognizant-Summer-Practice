@@ -76,4 +76,5 @@ export interface RegisterOAuthUserRequest {
 export interface CheckOAuthProviderResponse {
   exists: boolean;
   provider: OAuthProvider | null;
+  user: { id: string } | null;
 }

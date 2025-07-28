@@ -20,7 +20,7 @@ export default function RegisterLayout({
           {/* Subtitle */}
           <div className="flex flex-col items-center opacity-90">
             <p className="text-center text-white text-xl">
-              Welcome! Let's complete your profile<br />
+              Welcome! Let&apos;s complete your profile<br />
               to get you started.
             </p>
           </div>

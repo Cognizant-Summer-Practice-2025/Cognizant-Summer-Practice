@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Project } from '@/lib/portfolio';
 import { getSafeImageUrl } from '@/lib/image';
 
@@ -21,14 +22,12 @@ export function Projects({ data: projects }: ProjectsProps) {
         {displayProjects.map((project) => (
           <div key={project.id} className="project-card">
             <div className="project-image-container">
-              <img 
+              <Image 
                 src={getSafeImageUrl(project.imageUrl)} 
                 alt={project.title}
                 className="project-image"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  e.currentTarget.src = getSafeImageUrl('');
-                }}
+                width={300}
+                height={200}
               />
               <div className="project-overlay">
                 <div className="project-links">

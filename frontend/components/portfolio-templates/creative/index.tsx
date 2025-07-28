@@ -12,7 +12,7 @@ import { Skills } from './components/skills';
 import { BlogPosts } from './components/blog-posts';
 import { FileExplorer } from './components/file-explorer';
 import { TerminalTab } from './components/terminal-tab';
-import { Minimize2, Maximize2, X, Folder, FileText, Code2, Terminal, User, Briefcase, Lightbulb, BookOpen, Mail } from 'lucide-react';
+import { Minimize2, Maximize2, X, Folder, FileText, Code2, Terminal, User } from 'lucide-react';
 import './styles/main.css';
 
 interface CreativeTemplateProps {
@@ -53,7 +53,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
   const componentLookup = dynamicComponents.reduce((acc, comp) => {
     acc[comp.type] = comp;
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, unknown>);
 
   // Filter file structure to only show enabled components
   const fileStructure = allFileStructure.filter(file => 
@@ -70,7 +70,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  const handleFileClick = (fileName: string, componentType: string) => {
+  const handleFileClick = (fileName: string) => {
     setActiveFile(fileName);
     
     // On desktop, add tab to open tabs if not already open

@@ -129,7 +129,17 @@ export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Pro
 // Check if OAuth provider exists
 export async function checkOAuthProvider(provider: string, providerId: string): Promise<CheckOAuthProviderResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/oauth-providers/check?provider=${provider}&providerId=${encodeURIComponent(providerId)}`, {
+    // Convert provider string to proper case expected by backend enum
+    const providerMapping: { [key: string]: string } = {
+      'google': 'Google',
+      'github': 'GitHub',
+      'facebook': 'Facebook',
+      'linkedin': 'LinkedIn'
+    };
+    
+    const formattedProvider = providerMapping[provider.toLowerCase()] || provider;
+    
+    const response = await fetch(`${API_BASE_URL}/api/users/oauth-providers/check?provider=${formattedProvider}&providerId=${encodeURIComponent(providerId)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
@@ -101,10 +102,12 @@ export default function RegistrationModal({
         <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             {userAvatar && (
-              <img
+              <Image
                 src={userAvatar}
                 alt="Profile"
                 className="w-10 h-10 rounded-full"
+                width={40}
+                height={40}
               />
             )}
             <div>

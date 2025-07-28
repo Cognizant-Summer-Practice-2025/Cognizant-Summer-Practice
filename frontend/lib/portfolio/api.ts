@@ -861,7 +861,7 @@ export async function createProject(projectData: ProjectRequestDto): Promise<Pro
 export async function updateProject(projectId: string, projectData: ProjectUpdateDto): Promise<ProjectResponseDto> {
   // Filter out undefined values to avoid sending them as empty strings
   const cleanedData = Object.fromEntries(
-    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+    Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectUpdateDto;
 
   console.log('Sending project update data:', cleanedData); // Debug log

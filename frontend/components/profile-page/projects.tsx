@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Edit2, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -626,14 +627,12 @@ export default function Projects({ projects = [], portfolioId, loading = false, 
                 key={project.id}
                 className="p-[1px] bg-white overflow-hidden rounded-lg border border-[#E2E8F0] flex flex-col justify-start items-start"
               >
-                <img
+                <Image
                   className="w-full h-[150px] sm:h-[200px] object-cover"
                   src={getSafeImageUrl(project.imageUrl)}
                   alt={project.title}
-                  onError={(e) => {
-                    // Fallback to placeholder if image fails to load
-                    e.currentTarget.src = getSafeImageUrl('');
-                  }}
+                  width={400}
+                  height={200}
                 />
                 <div className="w-full pt-4 sm:pt-[23px] pb-4 sm:pb-6 px-4 sm:px-6 flex flex-col justify-start items-start gap-2">
                   <div className="w-full pb-[0.8px] flex flex-col justify-start items-start">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { getPortfolioById, getUserPortfolioInfo, UserPortfolioInfo } from '@/lib/portfolio/api';
 import { getMockPortfolioData } from '@/lib/portfolio/mock-data';
@@ -45,7 +45,7 @@ export default function TestTemplatesPage() {
   };
 
   // Create portfolio data with user info like the real portfolio page does
-  const createPortfolioDataWithUser = (rawData: PortfolioDataFromDB, user: UserPortfolioInfo | null): PortfolioDataFromDB => {
+  const createPortfolioDataWithUser = useCallback((rawData: PortfolioDataFromDB, user: UserPortfolioInfo | null): PortfolioDataFromDB => {
     if (!user) return rawData;
 
     return {
@@ -72,10 +72,10 @@ export default function TestTemplatesPage() {
         }
       ]
     };
-  };
+  }, []);
 
   // Fetch portfolio data
-  const fetchPortfolioData = async (portfolioId: string) => {
+  const fetchPortfolioData = useCallback(async (portfolioId: string) => {
     setLoading(true);
     setError(null);
     setUserInfo(null);
@@ -122,7 +122,7 @@ export default function TestTemplatesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [createPortfolioDataWithUser]);
 
   // Load template component
   const loadTemplate = async (templateId: string) => {
@@ -139,7 +139,7 @@ export default function TestTemplatesPage() {
   // Initial load
   useEffect(() => {
     fetchPortfolioData(selectedPortfolioId);
-  }, [selectedPortfolioId]);
+  }, [selectedPortfolioId, fetchPortfolioData]);
 
   // Load template when selection changes
   useEffect(() => {
