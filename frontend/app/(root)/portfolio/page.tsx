@@ -161,7 +161,7 @@ const PortfolioPage = () => {
         bio: currentPortfolio.bio || 'Welcome to my portfolio',
         profileImage: portfolioOwner?.avatarUrl || 'https://placehold.co/120x120',
         location: portfolioOwner?.location || '',
-        email: 'contact@example.com', // Don't expose real email
+        email: getEmail(portfolioOwner), // Use actual email consistently
       },
       stats: [
         { id: '1', label: 'Portfolio Views', value: currentPortfolio.viewCount?.toString() || '0', icon: '👁️' },
