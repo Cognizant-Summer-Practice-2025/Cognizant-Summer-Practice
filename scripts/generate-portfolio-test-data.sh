@@ -12,9 +12,49 @@ fi
 
 USER_ID="$1"
 PORTFOLIO_API_BASE="http://localhost:5201/api/Portfolio"
+PORTFOLIO_TEMPLATE_API_BASE="http://localhost:5201/api/PortfolioTemplate"
 
 echo "🚀 Starting Portfolio Test Data Generation for User: $USER_ID"
 echo "==============================================================="
+
+# Function to get available templates and select one randomly
+get_random_template() {
+    echo "🎨 Fetching available templates..."
+    
+    TEMPLATES_RESPONSE=$(curl -s "$PORTFOLIO_TEMPLATE_API_BASE/active")
+    
+    if [ $? -ne 0 ] || [ -z "$TEMPLATES_RESPONSE" ]; then
+        echo "⚠️  Warning: Could not fetch templates, using default"
+        echo "Gabriel Bârzu"
+        return
+    fi
+    
+    # Extract template names from JSON response
+    TEMPLATE_NAMES=$(echo "$TEMPLATES_RESPONSE" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
+    
+    if [ -z "$TEMPLATE_NAMES" ]; then
+        echo "⚠️  Warning: No active templates found, using default"
+        echo "Gabriel Bârzu"
+        return
+    fi
+    
+    # Convert to array and select random template
+    TEMPLATES_ARRAY=($TEMPLATE_NAMES)
+    TEMPLATE_COUNT=${#TEMPLATES_ARRAY[@]}
+    RANDOM_INDEX=$((RANDOM % TEMPLATE_COUNT))
+    SELECTED_TEMPLATE="${TEMPLATES_ARRAY[$RANDOM_INDEX]}"
+    
+    echo "📋 Found $TEMPLATE_COUNT available templates:"
+    for template in "${TEMPLATES_ARRAY[@]}"; do
+        echo "   - $template"
+    done
+    
+    echo "🎯 Selected template: $SELECTED_TEMPLATE"
+    echo "$SELECTED_TEMPLATE"
+}
+
+# Get random template
+SELECTED_TEMPLATE=$(get_random_template)
 
 # Step 1: Create a portfolio first
 echo "📝 Step 1: Creating a new portfolio..."
@@ -23,7 +63,7 @@ CREATE_PORTFOLIO_RESPONSE=$(curl -s -X POST "$PORTFOLIO_API_BASE" \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "'$USER_ID'",
-    "templateName": "Gabriel Bârzu",
+    "templateName": "'$SELECTED_TEMPLATE'",
     "title": "Comprehensive Test Portfolio - Full Stack Developer",
     "bio": "This is a comprehensive test portfolio designed to stress-test the template system with maximum data. Contains 100 projects, 100 experiences, 100 skills, and 100 blog posts to validate performance and layout scalability.",
     "visibility": 0,
