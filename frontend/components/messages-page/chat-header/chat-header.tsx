@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2 } from "lucide-react";
+import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,11 @@ interface Contact {
 interface ChatHeaderProps {
   selectedContact: Contact;
   onDeleteConversation?: (conversationId: string) => Promise<void>;
+  onBackToSidebar?: () => void;
+  isMobile?: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation, onBackToSidebar, isMobile = false }) => {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -119,6 +121,17 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConver
   return (
     <div className="chat-header">
       <div className="chat-header-left">
+        {/* Back button for mobile */}
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="back-button"
+            onClick={onBackToSidebar}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        )}
         <img 
           width={40}
           height={40}

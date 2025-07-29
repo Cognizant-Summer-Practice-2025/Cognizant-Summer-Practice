@@ -20,6 +20,9 @@ interface VirtualizedMessagesListProps {
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
 }
 
+// Constant gap between messages
+const MESSAGE_GAP = 12; // px
+
 // Message height estimation based on content length and layout
 const estimateMessageHeight = (message: Message): number => {
   const baseHeight = 60; // Base height for avatar + padding (reduced)
@@ -68,8 +71,11 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
 
   // Get item height for react-window
   const getItemSize = useCallback((index: number) => {
-    return messageHeights[index] || 80;
-  }, [messageHeights]);
+    const baseHeight = messageHeights[index] || 80;
+    // Add fixed gap to all messages except the last one
+    const isLastMessage = index === messages.length - 1;
+    return isLastMessage ? baseHeight : baseHeight + MESSAGE_GAP;
+  }, [messageHeights, messages.length]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -91,6 +97,8 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
     const message = messages[index];
     if (!message) return null;
 
+    const isLastMessage = index === messages.length - 1;
+
     return (
       <VirtualizedMessageItem
         key={message.id}
@@ -103,6 +111,7 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
         senderName={selectedContactName}
         currentUserAvatar={currentUserAvatar}
         style={style}
+        isLastMessage={isLastMessage}
         markMessageAsRead={markMessageAsRead}
       />
     );

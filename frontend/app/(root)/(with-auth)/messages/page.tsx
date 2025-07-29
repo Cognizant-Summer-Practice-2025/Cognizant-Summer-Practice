@@ -28,6 +28,8 @@ interface Message {
   status: "read" | "delivered" | "sent";
 }
 
+type MobileView = 'sidebar' | 'chat';
+
 const MessagesPage = () => {
   const { user } = useUser();
   const { 
@@ -48,6 +50,8 @@ const MessagesPage = () => {
   } = useMessages();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [mobileView, setMobileView] = useState<MobileView>('sidebar');
+  const [isMobile, setIsMobile] = useState(false);
   
   // Enhanced contacts storage for additional metadata (keeping for potential future use)
   const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
@@ -65,8 +69,24 @@ const MessagesPage = () => {
     return new Map();
   });
 
+  // Check if mobile on mount and window resize
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
 
-  
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  // Reset to sidebar view when switching back to desktop
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileView('sidebar');
+    }
+  }, [isMobile]);
+
   const formatTimestamp = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -211,8 +231,15 @@ const MessagesPage = () => {
         timestamp: formatTimestamp(conversation.updatedAt)
       });
       await selectConversation(conversation);
+      // Switch to chat view on mobile when a contact is selected
+      if (isMobile) {
+        setMobileView('chat');
+      }
     } else {
       setSelectedContact(contact);
+      if (isMobile) {
+        setMobileView('chat');
+      }
     }
   };
 
@@ -235,9 +262,20 @@ const MessagesPage = () => {
         
         setSelectedContact(newContact);
         await selectConversation(newConversation);
+        // Switch to chat view on mobile when a new conversation is created
+        if (isMobile) {
+          setMobileView('chat');
+        }
       }
     } catch (error) {
       console.error('Failed to create conversation:', error);
+    }
+  };
+
+  // Handle back button navigation on mobile
+  const handleBackToSidebar = () => {
+    if (isMobile) {
+      setMobileView('sidebar');
     }
   };
 
@@ -360,9 +398,10 @@ const MessagesPage = () => {
   }
 
   return (
-    <div className="messages-page">
+    <div className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}>
       
-      <div className="messages-sidebar-container">
+      {/* Sidebar - visible on desktop or when mobile view is 'sidebar' */}
+      <div className={`messages-sidebar-container ${(!isMobile || mobileView === 'sidebar') ? 'visible' : 'hidden'}`}>
         <Sidebar 
           contacts={contacts} 
           selectedContact={selectedContact}
@@ -371,8 +410,9 @@ const MessagesPage = () => {
         />
       </div>
       
+      {/* Chat - visible on desktop or when mobile view is 'chat' */}
       <div
-        className="messages-chat"
+        className={`messages-chat ${(!isMobile || mobileView === 'chat') ? 'visible' : 'hidden'}`}
         style={{ flex: 1, display: "flex", flexDirection: "column", padding: "4rem 0 0 0" }}
       >
 
@@ -395,6 +435,8 @@ const MessagesPage = () => {
               sendingMessage={sendingMessage}
               onDeleteConversation={handleDeleteConversation}
               markMessageAsRead={markMessageAsRead}
+              onBackToSidebar={handleBackToSidebar}
+              isMobile={isMobile}
             />
           )
         ) : (

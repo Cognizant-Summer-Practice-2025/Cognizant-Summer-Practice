@@ -12,6 +12,7 @@ export interface VirtualizedMessageProps {
   senderName?: string;
   currentUserAvatar?: string;
   style?: React.CSSProperties; // For react-window positioning
+  isLastMessage?: boolean; // To conditionally apply margin
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   senderName,
   currentUserAvatar,
   style,
+  isLastMessage,
   markMessageAsRead
 }) => {
   const { user } = useUser();
@@ -99,7 +101,11 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   };
 
   return (
-    <div ref={messageRef} style={style} className="virtualized-message-container">
+    <div 
+      ref={messageRef} 
+      style={style} 
+      className={`virtualized-message-container ${isLastMessage ? 'last-message' : ''}`}
+    >
       <div
         className={`message-wrapper ${sender === "user" ? "user-message" : "other-message"}`}
       >

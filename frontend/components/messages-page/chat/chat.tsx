@@ -34,9 +34,11 @@ interface ChatProps {
   sendingMessage?: boolean;
   onDeleteConversation?: (conversationId: string) => Promise<void>;
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
+  onBackToSidebar?: () => void;
+  isMobile?: boolean;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation, markMessageAsRead }) => {
+const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation, markMessageAsRead, onBackToSidebar, isMobile = false }) => {
   const [newMessage, setNewMessage] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -78,7 +80,12 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
   return (
     <div className="chat-container">
       {/* Messages Area */}
-      <ChatHeader selectedContact={selectedContact} onDeleteConversation={onDeleteConversation} />
+      <ChatHeader 
+        selectedContact={selectedContact} 
+        onDeleteConversation={onDeleteConversation}
+        onBackToSidebar={onBackToSidebar}
+        isMobile={isMobile}
+      />
       <div 
         ref={messagesContainerRef}
         className="messages-area virtualized-messages-area"

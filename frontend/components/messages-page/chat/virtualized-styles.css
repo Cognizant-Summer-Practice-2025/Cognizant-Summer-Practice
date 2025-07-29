@@ -16,6 +16,12 @@
   padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 12px; /* Visual gap between messages */
+}
+
+/* Remove margin from the last message to avoid extra space before input */
+.virtualized-message-container.last-message {
+  margin-bottom: 0;
 }
 
 /* Override react-window default styles */
