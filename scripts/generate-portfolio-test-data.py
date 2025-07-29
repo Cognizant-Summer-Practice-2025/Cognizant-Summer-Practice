@@ -19,6 +19,7 @@ if len(sys.argv) != 2:
 
 USER_ID = sys.argv[1]
 PORTFOLIO_API_BASE = "http://localhost:5201/api/Portfolio"
+PORTFOLIO_TEMPLATE_API_BASE = "http://localhost:5201/api/PortfolioTemplate"
 
 def generate_projects(portfolio_id: str, count: int = 100) -> List[Dict[str, Any]]:
     """Generate project data"""
@@ -222,14 +223,46 @@ Implementing these practices will significantly improve your application's perfo
     
     return blog_posts
 
+def get_available_templates() -> List[Dict[str, Any]]:
+    """Get available portfolio templates from the API"""
+    try:
+        response = requests.get(f"{PORTFOLIO_TEMPLATE_API_BASE}/active")
+        response.raise_for_status()
+        templates = response.json()
+        
+        if not templates:
+            print("Warning: No active templates found, using default")
+            return [{"name": "Gabriel Bârzu"}]
+        
+        print(f"Found {len(templates)} available templates:")
+        for template in templates:
+            print(f"  - {template['name']}")
+        
+        return templates
+    except Exception as e:
+        print(f"Error fetching templates: {e}")
+        print("Using default template: Gabriel Bârzu")
+        return [{"name": "Gabriel Bârzu"}]
+
+def select_random_template(templates: List[Dict[str, Any]]) -> str:
+    """Select a random template from the available templates"""
+    selected_template = random.choice(templates)
+    template_name = selected_template['name']
+    print(f"Selected template: {template_name}")
+    return template_name
+
 def create_portfolio() -> str:
     """Create a new portfolio and return its ID"""
     
     print("Step 1: Creating a new portfolio...")
     
+    # Get available templates and select one randomly
+    available_templates = get_available_templates()
+    selected_template = select_random_template(available_templates)
+    
     portfolio_data = {
         "userId": USER_ID,
-        "templateName": "Gabriel Bârzu",
+        "templateName": selected_template,
         "title": "Comprehensive Test Portfolio - Full Stack Developer",
         "bio": "This is a comprehensive test portfolio designed to stress-test the template system with maximum data. Contains 100 projects, 100 experiences, 100 skills, and 100 blog posts to validate performance and layout scalability.",
         "visibility": 0,  # Public
