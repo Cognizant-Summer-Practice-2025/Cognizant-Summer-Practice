@@ -217,7 +217,7 @@
 }
 
 .scrollable-table-body::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
   border-radius: 4px;
 }
 

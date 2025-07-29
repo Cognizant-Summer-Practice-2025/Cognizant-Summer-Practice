@@ -462,6 +462,17 @@
   }
 }
 
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -477,14 +488,19 @@
 @media (max-width: 480px) {
   .creative-template {
     font-size: 14px;
-    height: 100vh; /* Mobile takes full viewport */
-    height: 100svh; /* Better mobile viewport support */
-    min-height: 100vh;
-    min-height: 100svh;
+    height: calc(100vh - 64px); /* Account for main header */
+    height: calc(100svh - 64px); /* Better mobile viewport support */
+    min-height: calc(100vh - 64px);
+    min-height: calc(100svh - 64px);
+    max-height: calc(100vh - 64px);
+    max-height: calc(100svh - 64px);
+    overflow: hidden;
   }
   
   .vscode-window {
     height: 100%;
+    display: flex;
+    flex-direction: column;
   }
   
   /* Hide all VS Code chrome on mobile */
@@ -502,19 +518,23 @@
   /* Full height layout for mobile */
   .main-layout {
     flex-direction: column;
-    height: 100vh;
+    flex: 1;
+    overflow: hidden;
   }
   
-  /* Editor takes full space */
+  /* Editor takes remaining space */
   .editor-area {
     flex: 1;
-    height: 100vh;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    min-height: 0; /* Important: Allow flex child to shrink */
   }
   
   /* Mobile tabs styling */
   .tab-bar {
     height: 50px;
+    flex-shrink: 0; /* Don't shrink tab bar */
     display: flex;
     overflow-x: auto;
     scrollbar-width: none;
@@ -593,19 +613,50 @@
     font-size: 11px;
   }
   
-  /* Content area - mobile only shows tabs and content */
+  /* Content area - mobile scrollable content */
   .content-area {
-    height: calc(100vh - 50px); /* Account for tab bar only on mobile */
-    height: calc(100svh - 50px); /* Better mobile viewport support */
+    flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    min-height: 0; /* Important: Allow flex child to shrink */
   }
   
-  /* Mobile uses the same unified scrolling approach */
+  /* Portfolio header flows naturally in scroll */
+  .portfolio-header-container {
+    flex-shrink: 0;
+  }
+  
+  /* Dynamic content flows naturally in scroll */
+  .dynamic-content-container {
+    flex: 1;
+    min-height: 820px; /* Ensure minimum height so content is visible */
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+  }
   
   .dynamic-content {
     padding: 16px;
+    animation: slideInFromRight 0.3s ease-out;
+    /* Ensure content is properly contained */
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    min-height: 300px; /* Ensure minimum content height on mobile */
+    background: var(--bg-primary);
+    flex: 1; /* Take available space */
+    position: relative;
+    z-index: 2;
+    /* Ensure content is always visible */
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-in-out;
   }
   
   .portfolio-header {
@@ -622,11 +673,40 @@
   .component-card {
     padding: 16px;
     margin-bottom: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 100px; /* Ensure minimum height */
+    display: block;
+    overflow: visible;
+    /* Ensure content is visible */
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+  }
+  
+  .component-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   }
   
   .component-title {
     font-size: 16px;
     margin-bottom: 12px;
+    color: var(--text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Ensure all text content is visible */
+  .component-card p,
+  .component-card div,
+  .component-card span {
+    color: var(--text-primary);
+    line-height: 1.4;
   }
   
   /* Hide terminal on mobile */

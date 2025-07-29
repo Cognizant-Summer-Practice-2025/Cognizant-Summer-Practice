@@ -65,10 +65,43 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
     return acc;
   }, {} as Record<string, unknown>);
 
+  // If no components are available, create a default about component
+  if (dynamicComponents.length === 0) {
+    // Add a default about component
+    componentLookup['about'] = {
+      id: 'default-about',
+      type: 'about',
+      order: 1,
+      component: About,
+      data: data.quotes || [
+        {
+          id: 1,
+          text: data.profile.bio || "Welcome to my portfolio. I'm passionate about creating amazing digital experiences.",
+          author: data.profile.name || 'Developer',
+          context: "About me"
+        }
+      ]
+    };
+  }
+
   // Filter file structure to only show enabled components
-  const fileStructure = allFileStructure.filter(file => 
+  let fileStructure = allFileStructure.filter(file => 
     componentLookup[file.component]
   );
+
+  // Ensure we always have at least about.md available
+  if (fileStructure.length === 0) {
+    fileStructure = [{ name: 'about.md', icon: FileText, component: 'about' }];
+  }
+
+  // Ensure we have a valid active file when fileStructure changes
+  React.useEffect(() => {
+    if (fileStructure.length > 0 && !fileStructure.find(f => f.name === activeFile)) {
+      const firstFile = fileStructure[0].name;
+      setActiveFile(firstFile);
+      setDesktopOpenTabs([firstFile]);
+    }
+  }, [fileStructure, activeFile]);
 
   // Determine which tabs to show based on screen size
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
@@ -79,7 +112,8 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
   // Auto-scroll to components on desktop load
   React.useEffect(() => {
     if (!hasAutoScrolled && typeof window !== 'undefined') {
-      const isDesktop = window.innerWidth > 768; // Desktop breakpoint
+      const isMobile = window.innerWidth <= 480;
+      const isDesktop = window.innerWidth > 768;
       
       if (isDesktop) {
         setTimeout(() => {
@@ -96,15 +130,51 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
           }
           setHasAutoScrolled(true);
         }, 1000); // Delay to allow animations to settle
+      } else if (isMobile) {
+        // Auto-scroll on mobile to show content beyond header
+        setTimeout(() => {
+          const contentArea = document.querySelector('.content-area');
+          const portfolioHeader = document.querySelector('.portfolio-header-container');
+          const dynamicContent = document.querySelector('.dynamic-content');
+          
+          if (contentArea) {
+            let scrollTarget = 0;
+            
+            if (portfolioHeader) {
+              // Scroll to just past the header to show dynamic content
+              const headerHeight = (portfolioHeader as HTMLElement).offsetHeight;
+              scrollTarget = Math.max(headerHeight - 20, 0); // Show a bit of header for context
+            } else if (dynamicContent) {
+              // Fallback: scroll to dynamic content
+              scrollTarget = (dynamicContent as HTMLElement).offsetTop - 20;
+            }
+            
+            contentArea.scrollTo({
+              top: scrollTarget,
+              behavior: 'smooth'
+            });
+          }
+          setHasAutoScrolled(true);
+        }, 1500); // Longer delay for mobile to ensure everything is rendered
       } else {
-        setHasAutoScrolled(true); // Skip auto-scroll on mobile/tablet
+        setHasAutoScrolled(true); // Skip auto-scroll on tablet
       }
     }
-  }, [hasAutoScrolled, fileStructure.length]); // Desktop: user-controlled tabs
+  }, [hasAutoScrolled, fileStructure.length]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  // Reset auto-scroll state on window resize to handle device rotation
+  useEffect(() => {
+    const handleResize = () => {
+      setHasAutoScrolled(false);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleFileClick = (fileName: string) => {
     setActiveFile(fileName);
@@ -118,39 +188,43 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
     // Auto-scroll to the dynamic content area (works on all devices)
     setTimeout(() => {
       if (currentMobile) {
-        // Mobile: Try multiple scroll methods for better compatibility
+        // Mobile: Enhanced scrolling with multiple fallback methods
         const contentArea = document.querySelector('.content-area');
         const dynamicContentElement = document.querySelector('.dynamic-content');
-        const portfolioHeader = document.querySelector('.portfolio-header');
+        const dynamicContentContainer = document.querySelector('.dynamic-content-container');
+        const portfolioHeader = document.querySelector('.portfolio-header-container');
         
-        if (contentArea && dynamicContentElement) {
-          // Method 1: Try scrolling to the dynamic content element position
-          const elementPosition = (dynamicContentElement as HTMLElement).offsetTop;
+        if (contentArea) {
+          let scrollTarget = 0;
           
-          // Try both scrollTo and scrollTop for maximum compatibility
+          // Try to find the best scroll target
+          if (portfolioHeader) {
+            // Method 1: Scroll to just past the header (preferred)
+            const headerHeight = (portfolioHeader as HTMLElement).offsetHeight;
+            scrollTarget = headerHeight - 20; // Show a bit of header for context
+          } else if (dynamicContentContainer) {
+            // Method 2: Scroll to dynamic content container
+            scrollTarget = (dynamicContentContainer as HTMLElement).offsetTop;
+          } else if (dynamicContentElement) {
+            // Method 3: Scroll to dynamic content element
+            scrollTarget = (dynamicContentElement as HTMLElement).offsetTop;
+          } else {
+            // Method 4: Simple scroll down from top
+            scrollTarget = 300; // Approximate header height
+          }
+          
+          // Apply smooth scrolling
           contentArea.scrollTo({ 
-            top: elementPosition, 
+            top: scrollTarget, 
             behavior: 'smooth' 
           });
           
-          // Fallback: direct scrollTop assignment
+          // Fallback: direct scrollTop assignment for older browsers
           setTimeout(() => {
-            contentArea.scrollTop = elementPosition;
-          }, 100);
-          
-        } else if (contentArea && portfolioHeader) {
-          // Method 2: Scroll past header
-          const headerHeight = (portfolioHeader as HTMLElement).offsetHeight + (portfolioHeader as HTMLElement).offsetTop;
-          contentArea.scrollTo({ 
-            top: headerHeight + 20, 
-            behavior: 'smooth' 
-          });
-        } else if (contentArea) {
-          // Method 3: Simple scroll down from top
-          contentArea.scrollTo({ 
-            top: 300, // Approximate header height
-            behavior: 'smooth' 
-          });
+            if (contentArea.scrollTop === 0) {
+              contentArea.scrollTop = scrollTarget;
+            }
+          }, 300);
         }
       } else {
         // Desktop: scroll to the dynamic content section
@@ -162,7 +236,7 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
           });
         }
       }
-    }, 200); // Longer delay for mobile
+    }, 200); // Delay for content to update
   };
 
   const closeTab = (fileName: string, e: React.MouseEvent) => {
@@ -192,10 +266,54 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
 
   const getActiveComponent = () => {
     const fileInfo = fileStructure.find(f => f.name === activeFile);
-    if (!fileInfo) return null;
+    if (!fileInfo) {
+      // Fallback to first available component if activeFile not found
+      if (fileStructure.length > 0) {
+        const firstFile = fileStructure[0];
+        const componentInfo = componentLookup[firstFile.component] as ComponentInfo;
+        if (componentInfo) {
+          const Component = componentInfo.component;
+          return <Component data={componentInfo.data} />;
+        }
+      }
+      // Last resort: render about component with default data
+      return (
+        <div className="component-card">
+          <div className="component-title">
+            <User size={20} />
+            About Me
+          </div>
+          <div className="code-block">
+            <div className="code-line">
+              <span className="syntax-comment">{`// Welcome to my portfolio`}</span>
+            </div>
+            <div className="code-line">
+              <span className="syntax-keyword">const</span>{' '}
+              <span className="syntax-highlight">about</span> = {'{'}
+            </div>
+            <div className="code-line" style={{ marginLeft: '20px' }}>
+              <span className="syntax-highlight">message</span>: 
+              <span className="syntax-string">&quot;{data.profile?.bio || 'Portfolio content loading...'}&quot;</span>
+            </div>
+            <div className="code-line" style={{ marginLeft: '20px' }}>
+              <span className="syntax-highlight">name</span>: 
+              <span className="syntax-string">&quot;{data.profile?.name || 'Developer'}&quot;</span>
+            </div>
+            <div className="code-line">{'}'}</div>
+          </div>
+        </div>
+      );
+    }
     
     const componentInfo = componentLookup[fileInfo.component] as ComponentInfo;
-    if (!componentInfo) return null;
+    if (!componentInfo) {
+      return (
+        <div className="component-card">
+          <div className="component-title">Component Not Found</div>
+          <p>The component &quot;{fileInfo.component}&quot; could not be loaded.</p>
+        </div>
+      );
+    }
 
     const Component = componentInfo.component;
     return <Component data={componentInfo.data} />;
@@ -282,16 +400,26 @@ export default function CreativeTemplate({ data }: CreativeTemplateProps) {
                         setTimeout(() => {
                           const contentArea = document.querySelector('.content-area');
                           const dynamicContentContainer = document.querySelector('.dynamic-content-container');
+                          const portfolioHeader = document.querySelector('.portfolio-header-container');
                           
-                          if (contentArea && dynamicContentContainer) {
-                            // Scroll to the dynamic content section
-                            const dynamicContentTop = (dynamicContentContainer as HTMLElement).offsetTop;
+                          if (contentArea) {
+                            let scrollTarget = 0;
+                            
+                            if (portfolioHeader) {
+                              // Scroll to just past the header to show dynamic content
+                              const headerHeight = (portfolioHeader as HTMLElement).offsetHeight;
+                              scrollTarget = headerHeight - 20; // Show a bit of header for context
+                            } else if (dynamicContentContainer) {
+                              // Fallback: scroll to dynamic content container
+                              scrollTarget = (dynamicContentContainer as HTMLElement).offsetTop;
+                            }
+                            
                             contentArea.scrollTo({
-                              top: dynamicContentTop,
+                              top: scrollTarget,
                               behavior: 'smooth'
                             });
                           }
-                        }, 50);
+                        }, 100); // Short delay for tab change to complete
                       }
                     }}
                   >
