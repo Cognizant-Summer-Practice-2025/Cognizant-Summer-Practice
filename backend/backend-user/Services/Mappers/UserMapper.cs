@@ -30,7 +30,9 @@ namespace backend_user.Services.Mappers
                 AvatarUrl = user.AvatarUrl,
                 IsActive = user.IsActive,
                 IsAdmin = user.IsAdmin,
-                LastLoginAt = user.LastLoginAt
+                LastLoginAt = user.LastLoginAt,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
             };
         }
 
@@ -77,6 +79,28 @@ namespace backend_user.Services.Mappers
                 Bio = request.Bio,
                 Location = request.Location,
                 AvatarUrl = request.ProfileImage
+            };
+        }
+
+        /// <summary>
+        /// Maps User entity to UserSummaryDto.
+        /// </summary>
+        public static UserSummaryDto ToSummaryDto(User user)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
+            return new UserSummaryDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ProfessionalTitle = user.ProfessionalTitle,
+                Location = user.Location,
+                AvatarUrl = user.AvatarUrl,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
             };
         }
 

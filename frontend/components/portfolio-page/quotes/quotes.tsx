@@ -10,7 +10,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, author }) => {
   return (
     <div className="quote-card">
       <div className="quote-text-container">
-        <div className="quote-text">"{quote}"</div>
+        <div className="quote-text">&ldquo;{quote}&rdquo;</div>
       </div>
       <div className="quote-author">- {author}</div>
     </div>

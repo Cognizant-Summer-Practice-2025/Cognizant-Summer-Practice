@@ -1,6 +1,7 @@
 // Test data utilities for development and testing
 
-import { ConversationResponse, MessageResponse } from './interfaces';
+
+import { MessageResponse, ConversationResponse } from './api';
 
 // Mock conversations for development
 export const mockConversations: ConversationResponse[] = [

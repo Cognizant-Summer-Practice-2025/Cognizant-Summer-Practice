@@ -48,7 +48,9 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
   const toggleBookmark = useCallback(async (portfolioId: string, portfolioTitle?: string): Promise<boolean> => {
     // Check if user is logged in
     if (!user?.id) {
-      router.push('/login');
+      // Preserve current page when redirecting to login
+      const currentPath = window.location.pathname + window.location.search;
+      router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
       return false;
     }
 

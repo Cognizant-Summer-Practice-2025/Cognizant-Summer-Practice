@@ -85,6 +85,7 @@ namespace backend_portfolio.Services.Mappers
                 LikeCount = entity.LikeCount,
                 Visibility = entity.Visibility,
                 IsPublished = entity.IsPublished,
+                CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt,
                 Components = entity.Components,
                 Template = entity.Template != null ? new PortfolioTemplateSummaryResponse

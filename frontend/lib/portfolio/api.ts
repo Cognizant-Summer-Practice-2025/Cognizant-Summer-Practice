@@ -4,7 +4,14 @@
 import { 
   PortfolioDataFromDB, 
   UserPortfolio,
-  UserPortfolioComprehensive
+  UserPortfolioComprehensive,
+  Portfolio,
+  Project,
+  Experience,
+  Skill,
+  BlogPost,
+  Bookmark,
+  PortfolioTemplate
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
@@ -401,6 +408,7 @@ function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromD
       id: dto.id,
       userId: dto.userId,
       templateId: dto.templateId,
+      templateName: dto.template?.name, // Include template name for easier access
       title: dto.title,
       bio: dto.bio,
       isPublished: dto.isPublished,
@@ -505,24 +513,6 @@ export async function getPortfolioComprehensive(portfolioId: string): Promise<{
   
   const portfolioData = convertPortfolioResponse(data);
   
-  console.log('🔄 API - Converted portfolio data:', {
-    portfolio: {
-      id: portfolioData.portfolio.id,
-      title: portfolioData.portfolio.title,
-      templateId: portfolioData.portfolio.templateId
-    },
-    projectsCount: portfolioData.projects.length,
-    experienceCount: portfolioData.experience.length,
-    skillsCount: portfolioData.skills.length,
-    blogPostsCount: portfolioData.blogPosts.length,
-    skills: portfolioData.skills.map(s => ({
-      id: s.id,
-      name: s.name,
-      category: s.category,
-      proficiencyLevel: s.proficiencyLevel
-    }))
-  });
-  
   // Convert to the format expected by the portfolio context
   const portfolio: Portfolio = {
     id: portfolioData.portfolio.id,
@@ -550,44 +540,83 @@ export async function getPortfolioComprehensive(portfolioId: string): Promise<{
   return result;
 }
 
+// Template cache for efficient lookups
+const templateCache = new Map<string, string>(); // templateId -> templateName
+
+// Helper function to get template name by ID with caching
+async function getTemplateNameById(templateId: string): Promise<string | undefined> {
+  // Check cache first
+  if (templateCache.has(templateId)) {
+    return templateCache.get(templateId);
+  }
+  
+  try {
+    const template = await getTemplateById(templateId);
+    if (template) {
+      templateCache.set(templateId, template.name);
+      return template.name;
+    }
+  } catch (error) {
+    console.error('Error fetching template name:', error);
+  }
+  
+  return undefined;
+}
+
 export async function getPortfoliosByUserId(userId: string): Promise<UserPortfolio[]> {
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/user/${userId}`);
   const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
   
-  return data.map(dto => ({
-    id: dto.id,
-    userId: dto.userId,
-    templateId: dto.templateId,
-    title: dto.title,
-    bio: dto.bio,
-    isPublished: dto.isPublished,
-    visibility: dto.visibility,
-    viewCount: dto.viewCount,
-    likeCount: dto.likeCount,
-    components: dto.components ? JSON.parse(dto.components) : undefined,
-    createdAt: dto.createdAt,
-    updatedAt: dto.updatedAt
+  // Resolve template names efficiently
+  const portfolios = await Promise.all(data.map(async (dto) => {
+    const templateName = await getTemplateNameById(dto.templateId);
+    
+    return {
+      id: dto.id,
+      userId: dto.userId,
+      templateId: dto.templateId,
+      templateName: templateName, // Resolved template name
+      title: dto.title,
+      bio: dto.bio,
+      isPublished: dto.isPublished,
+      visibility: dto.visibility,
+      viewCount: dto.viewCount,
+      likeCount: dto.likeCount,
+      components: dto.components ? JSON.parse(dto.components) : undefined,
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt
+    };
   }));
+  
+  return portfolios;
 }
 
 export async function getAllPortfolios(): Promise<UserPortfolio[]> {
   const response = await fetch(`${API_BASE_URL}/api/Portfolio`);
   const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
   
-  return data.map(dto => ({
-    id: dto.id,
-    userId: dto.userId,
-    templateId: dto.templateId,
-    title: dto.title,
-    bio: dto.bio,
-    isPublished: dto.isPublished,
-    visibility: dto.visibility,
-    viewCount: dto.viewCount,
-    likeCount: dto.likeCount,
-    components: dto.components ? JSON.parse(dto.components) : undefined,
-    createdAt: dto.createdAt,
-    updatedAt: dto.updatedAt
+  // Resolve template names efficiently
+  const portfolios = await Promise.all(data.map(async (dto) => {
+    const templateName = await getTemplateNameById(dto.templateId);
+    
+    return {
+      id: dto.id,
+      userId: dto.userId,
+      templateId: dto.templateId,
+      templateName: templateName, // Resolved template name
+      title: dto.title,
+      bio: dto.bio,
+      isPublished: dto.isPublished,
+      visibility: dto.visibility,
+      viewCount: dto.viewCount,
+      likeCount: dto.likeCount,
+      components: dto.components ? JSON.parse(dto.components) : undefined,
+      createdAt: dto.createdAt,
+      updatedAt: dto.updatedAt
+    };
   }));
+  
+  return portfolios;
 }
 
 export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
@@ -612,25 +641,16 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
 
 // Get user info for portfolio cards
 export async function getUserPortfolioInfo(userId: string): Promise<UserPortfolioInfo> {
-  console.log(` Fetching user info for userId: ${userId}`);
-  console.log(` Calling: ${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
-  
   const response = await fetch(`${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
-  console.log(` User API response status: ${response.status}`);
   
   const result = await handleApiResponse<UserPortfolioInfo>(response);
-  console.log(` User info received:`, result);
   
   return result;
 }
 
 export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]> {
-  console.log('📡 Starting to fetch portfolio cards...');
-  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards`);
   const portfolioCards = await handleApiResponse<PortfolioCardDto[]>(response);
-  
-  console.log(`📊 Received ${portfolioCards.length} portfolio cards`);
   
   // Fetch user info for each portfolio card
   const enrichedCards = await Promise.all(
@@ -658,13 +678,10 @@ export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]
     })
   );
   
-  console.log('✅ Portfolio cards enriched with user data');
   return enrichedCards;
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {
-  console.log('📤 API: Creating portfolio (regular) with data:', portfolioData);
-  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio`, {
     method: 'POST',
     headers: {
@@ -672,8 +689,6 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
     },
     body: JSON.stringify(portfolioData),
   });
-  
-  console.log('📤 API: Portfolio creation (regular) response status:', response.status);
   
   const data = await handleApiResponse<PortfolioResponseDto>(response);
   
@@ -694,8 +709,6 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
 }
 
 export async function updatePortfolio(portfolioId: string, portfolioData: PortfolioUpdateDto): Promise<UserPortfolio> {
-  console.log('📤 API: Updating portfolio', portfolioId, 'with data:', portfolioData);
-  
   const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
     method: 'PUT',
     headers: {
@@ -704,10 +717,7 @@ export async function updatePortfolio(portfolioId: string, portfolioData: Portfo
     body: JSON.stringify(portfolioData),
   });
   
-  console.log('📤 API: Portfolio update response status:', response.status);
-  
   const data = await handleApiResponse<PortfolioResponseDto>(response);
-  console.log('📤 API: Portfolio update response data:', data);
   
   return {
     id: data.id,
@@ -781,56 +791,50 @@ export async function decrementLikeCount(portfolioId: string): Promise<boolean> 
 
 // ============= PORTFOLIO TEMPLATE API FUNCTIONS =============
 
-export async function getAllTemplates(): Promise<PortfolioTemplateResponseDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`);
-  return handleApiResponse<PortfolioTemplateResponseDto[]>(response);
-}
-
-export async function getTemplateById(templateId: string): Promise<PortfolioTemplateResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${templateId}`);
-  return handleApiResponse<PortfolioTemplateResponseDto>(response);
-}
-
-export async function getActiveTemplates(): Promise<PortfolioTemplateSummaryDto[]> {
+export async function getActiveTemplates(): Promise<PortfolioTemplate[]> {
   const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/active`);
-  return handleApiResponse<PortfolioTemplateSummaryDto[]>(response);
+  return handleApiResponse<PortfolioTemplate[]>(response);
 }
 
-export async function createTemplate(templateData: PortfolioTemplateRequestDto): Promise<PortfolioTemplateResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`, {
+export async function getAllTemplates(): Promise<PortfolioTemplate[]> {
+  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`);
+  return handleApiResponse<PortfolioTemplate[]>(response);
+}
+
+export async function getTemplateByName(name: string): Promise<PortfolioTemplate | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/name/${encodeURIComponent(name)}`);
+    if (response.status === 404) {
+      return null;
+    }
+    return handleApiResponse<PortfolioTemplate>(response);
+  } catch (error) {
+    console.error('Error fetching template by name:', error);
+    return null;
+  }
+}
+
+export async function getTemplateById(id: string): Promise<PortfolioTemplate | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${id}`);
+    if (response.status === 404) {
+      return null;
+    }
+    return handleApiResponse<PortfolioTemplate>(response);
+  } catch (error) {
+    console.error('Error fetching template by id:', error);
+    return null;
+  }
+}
+
+export async function seedDefaultTemplates(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/seed`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(templateData),
   });
-  
-  return handleApiResponse<PortfolioTemplateResponseDto>(response);
-}
-
-export async function updateTemplate(templateId: string, templateData: PortfolioTemplateUpdateDto): Promise<PortfolioTemplateResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${templateId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(templateData),
-  });
-  
-  return handleApiResponse<PortfolioTemplateResponseDto>(response);
-}
-
-export async function deleteTemplate(templateId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${templateId}`, {
-    method: 'DELETE',
-  });
-  
-  if (response.status === 204) {
-    return true;
-  }
-  
-  await handleApiResponse(response);
-  return false;
+  await handleApiResponse<{ message: string }>(response);
 }
 
 // ============= INDIVIDUAL ENTITY API FUNCTIONS =============
@@ -847,10 +851,8 @@ export async function getProjectsByPortfolioId(portfolioId: string): Promise<Pro
 export async function createProject(projectData: ProjectRequestDto): Promise<ProjectResponseDto> {
   // Filter out undefined values to avoid sending them as empty strings
   const cleanedData = Object.fromEntries(
-    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+    Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectRequestDto;
-
-  console.log('Sending project data:', cleanedData); // Debug log
 
   const response = await fetch(`${API_BASE_URL}/api/Project`, {
     method: 'POST',
@@ -866,7 +868,7 @@ export async function createProject(projectData: ProjectRequestDto): Promise<Pro
 export async function updateProject(projectId: string, projectData: ProjectUpdateDto): Promise<ProjectResponseDto> {
   // Filter out undefined values to avoid sending them as empty strings
   const cleanedData = Object.fromEntries(
-    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+    Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectUpdateDto;
 
   console.log('Sending project update data:', cleanedData); // Debug log

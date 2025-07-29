@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { BasicInfo } from '@/lib/portfolio';
 import { getSafeImageUrl } from '@/lib/image';
 
@@ -12,14 +13,12 @@ export function Header({ basicInfo }: HeaderProps) {
       <div className="header-content">
         <div className="profile-section">
           <div className="profile-image-container">
-            <img 
+            <Image 
               src={getSafeImageUrl(basicInfo.profileImage)} 
               alt={basicInfo.name}
               className="profile-image"
-              onError={(e) => {
-                // Fallback to placeholder if image fails to load
-                e.currentTarget.src = getSafeImageUrl('');
-              }}
+              width={150}
+              height={150}
             />
           </div>
           <div className="profile-info">

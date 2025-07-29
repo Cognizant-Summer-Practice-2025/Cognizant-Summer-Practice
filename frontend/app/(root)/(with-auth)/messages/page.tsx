@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
+import { Loading } from "@/components/loader";
 import { useMessages } from "@/lib/contexts/messages-context";
 import { useUser } from "@/lib/contexts/user-context";
 import { SearchUser } from "@/lib/user";
@@ -255,8 +256,12 @@ const MessagesPage = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: 32, color: "#888", textAlign: "center" }}>
-        Loading conversations...
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
+        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Messages</h1>
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loading className="scale-50" backgroundColor="white" />
+          <span className="mt-4 text-gray-600">Loading conversations...</span>
+        </div>
       </div>
     );
   }

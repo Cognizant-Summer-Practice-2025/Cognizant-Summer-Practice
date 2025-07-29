@@ -58,13 +58,10 @@ interface HomePageCacheContextType {
   selectedSkills: string[];
   selectedRoles: string[];
   featuredOnly: boolean;
+  dateFrom: Date | null;
+  dateTo: Date | null;
   
   // Cache management
-  cacheStats: {
-    totalEntries: number;
-    hitRate: number;
-    lastClearTime: Date | null;
-  };
   
   // Actions
   loadPage: (page: number, useCache?: boolean) => Promise<void>;
@@ -83,7 +80,7 @@ interface HomePageCacheContextType {
   // Cache management
   clearCache: () => void;
   preloadPage: (page: number) => Promise<void>;
-  getCacheStats: () => void;
+
 }
 
 const HomePageCacheContext = createContext<HomePageCacheContextType | undefined>(undefined);
@@ -145,14 +142,7 @@ class PageCache {
     this.lastClearTime = new Date();
   }
 
-  getStats() {
-    const total = this.hits + this.misses;
-    return {
-      totalEntries: this.cache.size,
-      hitRate: total > 0 ? this.hits / total : 0,
-      lastClearTime: this.lastClearTime
-    };
-  }
+
 
   // Clean expired entries
   cleanup(): void {
@@ -183,6 +173,8 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
 
   // Create request object
   const createRequest = useCallback((page: number): PaginationRequest => {
@@ -195,8 +187,10 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
       skills: selectedSkills.length > 0 ? selectedSkills : undefined,
       roles: selectedRoles.length > 0 ? selectedRoles : undefined,
       featured: featuredOnly || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
     };
-  }, [pageSize, sortBy, sortDirection, searchTerm, selectedSkills, selectedRoles, featuredOnly]);
+  }, [pageSize, sortBy, sortDirection, searchTerm, selectedSkills, selectedRoles, featuredOnly, dateFrom, dateTo]);
 
   // Preload single page function
   const preloadPage = useCallback(async (page: number) => {
@@ -222,6 +216,8 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
       if (request.skills) request.skills.forEach(skill => queryParams.append('skills', skill));
       if (request.roles) request.roles.forEach(role => queryParams.append('roles', role));
       if (request.featured !== undefined) queryParams.append('featured', request.featured.toString());
+      if (request.dateFrom) queryParams.append('dateFrom', request.dateFrom.toISOString().split('T')[0]);
+      if (request.dateTo) queryParams.append('dateTo', request.dateTo.toISOString().split('T')[0]);
 
       const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards/paginated?${queryParams}`);
       
@@ -298,7 +294,6 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     if (useCache) {
       const cachedData = cache.get<PortfolioCardDto>(cacheKey);
       if (cachedData) {
-        console.log(`📦 Cache HIT for page ${page}`);
         setPortfolios(cachedData.data);
         setPagination(cachedData.pagination);
         setCurrentPage(page);
@@ -332,8 +327,11 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
       if (request.skills) request.skills.forEach(skill => queryParams.append('skills', skill));
       if (request.roles) request.roles.forEach(role => queryParams.append('roles', role));
       if (request.featured !== undefined) queryParams.append('featured', request.featured.toString());
+      if (request.dateFrom) queryParams.append('dateFrom', request.dateFrom.toISOString().split('T')[0]);
+      if (request.dateTo) queryParams.append('dateTo', request.dateTo.toISOString().split('T')[0]);
 
-      const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards/paginated?${queryParams}`);
+      const fullUrl = `${API_BASE_URL}/api/Portfolio/home-page-cards/paginated?${queryParams}`;
+      const response = await fetch(fullUrl);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -351,8 +349,6 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
       
       // Scroll to top when page changes
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      console.log(`🌐 API call for page ${page} - loaded ${data.data.length} portfolios`);
       
       // Trigger preloading after successful load (use data from response)
       setTimeout(() => {
@@ -375,8 +371,11 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     if (filters.skills !== undefined) setSelectedSkills(filters.skills);
     if (filters.roles !== undefined) setSelectedRoles(filters.roles);
     if (filters.featured !== undefined) setFeaturedOnly(filters.featured);
+    if (filters.dateFrom !== undefined) setDateFrom(filters.dateFrom || null);
+    if (filters.dateTo !== undefined) setDateTo(filters.dateTo || null);
     
     // Reset to page 1 when filters change
+    setCurrentPage(1);
     loadPage(1, false); // Skip cache when filters change
   }, [loadPage]);
 
@@ -396,6 +395,8 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     setSelectedSkills([]);
     setSelectedRoles([]);
     setFeaturedOnly(false);
+    setDateFrom(null);
+    setDateTo(null);
     setSortByState('most-recent');
     setSortDirectionState('desc');
     loadPage(1, false);
@@ -443,10 +444,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     console.log('🗑️ Cache cleared');
   }, [cache]);
 
-  const getCacheStats = useCallback(() => {
-    cache.cleanup(); // Clean expired entries
-    return cache.getStats();
-  }, [cache]);
+
 
   const value: HomePageCacheContextType = {
     // State
@@ -464,9 +462,10 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     selectedSkills,
     selectedRoles,
     featuredOnly,
+    dateFrom,
+    dateTo,
     
-    // Cache stats
-    cacheStats: getCacheStats(),
+
     
     // Actions
     loadPage,
@@ -485,7 +484,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
     // Cache management
     clearCache,
     preloadPage,
-    getCacheStats,
+
   };
 
   return (

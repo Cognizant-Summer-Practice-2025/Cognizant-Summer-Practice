@@ -17,5 +17,7 @@ namespace backend_user.DTO.User.Response
         public bool IsActive { get; set; }
         public bool IsAdmin { get; set; }
         public DateTime? LastLoginAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

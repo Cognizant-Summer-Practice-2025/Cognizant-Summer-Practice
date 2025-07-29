@@ -1,13 +1,8 @@
 "use client";
 
 import React from 'react';
-import { PortfolioData } from '@/lib/portfolio';
 
-interface ProfessionalTemplateProps {
-  data?: PortfolioData;
-}
-
-export default function ProfessionalTemplate({ data }: ProfessionalTemplateProps) {
+export default function ProfessionalTemplate() {
   return (
     <div style={{ 
       minHeight: '100vh', 
