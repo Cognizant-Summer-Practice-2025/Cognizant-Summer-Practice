@@ -3,6 +3,8 @@
   height: 100vh;
   width: 100%;
   position: relative;
+  /* Enable container queries for modern responsive design */
+  container-type: inline-size;
 }
 
 .messages-page.desktop {
@@ -23,8 +25,28 @@
   transition: transform 0.3s ease-in-out;
 }
 
-/* Desktop styles */
-@media (min-width: 769px) {
+/* Large Desktop styles (1200px+) */
+@media (min-width: 1200px) {
+  .messages-sidebar-container {
+    width: 380px;
+    border-right: 1px solid #E2E8F0;
+    background: white;
+  }
+  
+  .messages-chat {
+    flex: 1;
+  }
+  
+  .messages-sidebar-container.visible,
+  .messages-sidebar-container.hidden,
+  .messages-chat.visible,
+  .messages-chat.hidden {
+    display: flex !important;
+  }
+}
+
+/* Desktop styles (1025px-1199px) */
+@media (min-width: 1025px) and (max-width: 1199px) {
   .messages-sidebar-container {
     width: 350px;
     border-right: 1px solid #E2E8F0;
@@ -43,8 +65,30 @@
   }
 }
 
-/* Mobile styles */
-@media (max-width: 768px) {
+/* Tablet/Medium Desktop styles (769px-1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .messages-sidebar-container {
+    width: 320px;
+    border-right: 1px solid #E2E8F0;
+    background: white;
+    min-width: 300px;
+  }
+  
+  .messages-chat {
+    flex: 1;
+    min-width: 0; /* Prevent overflow */
+  }
+  
+  .messages-sidebar-container.visible,
+  .messages-sidebar-container.hidden,
+  .messages-chat.visible,
+  .messages-chat.hidden {
+    display: flex !important;
+  }
+}
+
+/* Specific 769px breakpoint */
+@media (max-width: 769px) {
   .messages-page {
     overflow: hidden;
   }
@@ -76,6 +120,112 @@
   .messages-chat.hidden {
     transform: translateX(100%);
     z-index: 1;
+  }
+}
+
+/* Large Mobile/Small Tablet styles (481px-768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .messages-page {
+    overflow: hidden;
+  }
+  
+  .messages-sidebar-container,
+  .messages-chat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .messages-sidebar-container.visible {
+    transform: translateX(0);
+    z-index: 10;
+  }
+  
+  .messages-sidebar-container.hidden {
+    transform: translateX(-100%);
+    z-index: 1;
+  }
+  
+  .messages-chat.visible {
+    transform: translateX(0);
+    z-index: 10;
+  }
+  
+  .messages-chat.hidden {
+    transform: translateX(100%);
+    z-index: 1;
+  }
+}
+
+/* Mobile styles (≤480px) */
+@media (max-width: 480px) {
+  .messages-page {
+    overflow: hidden;
+  }
+  
+  .messages-sidebar-container,
+  .messages-chat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .messages-sidebar-container.visible {
+    transform: translateX(0);
+    z-index: 10;
+  }
+  
+  .messages-sidebar-container.hidden {
+    transform: translateX(-100%);
+    z-index: 1;
+  }
+  
+  .messages-chat.visible {
+    transform: translateX(0);
+    z-index: 10;
+  }
+  
+  .messages-chat.hidden {
+    transform: translateX(100%);
+    z-index: 1;
+  }
+}
+
+/* Container queries for modern responsive design */
+@container (min-width: 1200px) {
+  .messages-sidebar-container {
+    width: 380px;
+  }
+}
+
+@container (min-width: 900px) and (max-width: 1199px) {
+  .messages-sidebar-container {
+    width: clamp(320px, 30vw, 350px);
+  }
+}
+
+@container (min-width: 700px) and (max-width: 899px) {
+  .messages-sidebar-container {
+    width: clamp(280px, 35vw, 320px);
+  }
+}
+
+/* Accessibility and reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .messages-sidebar-container,
+  .messages-chat {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .messages-sidebar-container {
+    border-right: 2px solid #000;
   }
 }
 

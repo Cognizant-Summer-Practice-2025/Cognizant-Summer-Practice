@@ -72,7 +72,19 @@ const MessagesPage = () => {
   // Check if mobile on mount and window resize
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const width = window.innerWidth;
+      setIsMobile(width <= 769); // Updated to 769px breakpoint
+      
+      // Optional: Add additional responsive logic for different screen sizes
+      if (width > 1024) {
+        // Large desktop - could add specific logic here
+      } else if (width > 769) {
+        // Tablet - could add specific logic here
+      } else if (width > 480) {
+        // Large mobile - could add specific logic here
+      } else {
+        // Small mobile - could add specific logic here
+      }
     };
 
     checkIsMobile();
