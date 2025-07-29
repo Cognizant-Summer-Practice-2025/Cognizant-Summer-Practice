@@ -69,7 +69,7 @@ export const MOCK_PORTFOLIO_DATA: PortfolioDataFromDB = {
       jobTitle: 'Senior Full Stack Developer',
       companyName: 'TechCorp Solutions',
       startDate: '2022-01-15',
-      endDate: null,
+      endDate: undefined,
       isCurrent: true,
       description: 'Lead development of microservices architecture serving 1M+ users. Built and maintained React/Node.js applications with 99.9% uptime. Mentored junior developers and established coding standards for the team.',
       skillsUsed: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS', 'Docker', 'Kubernetes'],

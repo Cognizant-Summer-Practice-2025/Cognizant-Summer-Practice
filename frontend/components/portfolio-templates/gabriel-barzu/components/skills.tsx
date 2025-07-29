@@ -1,5 +1,6 @@
 import React from 'react';
 import { Skill } from '@/lib/portfolio';
+import { AnimatedNumber, AnimatedProgressBar } from '@/components/ui/animated-number';
 
 interface SkillsProps {
   data: Skill[];
@@ -84,16 +85,18 @@ export function Skills({ data: skills }: SkillsProps) {
                       <div key={skill.id} className="skill-item">
                         <div className="skill-header">
                           <span className="skill-name">{skill.name}</span>
-                          <span className="skill-percentage">{skill.proficiencyLevel || 0}%</span>
+                          <span className="skill-percentage">
+                            <AnimatedNumber value={skill.proficiencyLevel || 0} />%
+                          </span>
                         </div>
                         <div className="skill-bar">
-                          <div 
-                            className="skill-progress" 
-                            style={{ 
-                              width: `${skill.proficiencyLevel || 0}%`,
+                          <AnimatedProgressBar 
+                            percentage={skill.proficiencyLevel || 0}
+                            className="skill-progress"
+                            style={{
                               background: getProficiencyColor(skill.proficiencyLevel || 0)
                             }}
-                          ></div>
+                          />
                         </div>
                       </div>
                     ))}

@@ -1,13 +1,16 @@
 import React from 'react';
-import './style.css';
+import Image from 'next/image';
+import './profile.css';
 
 const ProfileSection = () => {
   return (
     <div className="profile-container">
-      <img 
+      <Image 
         className="profile-image" 
         src="https://placehold.co/150x150" 
         alt="Profile"
+        width={150}
+        height={150}
       />
       <div className="profile-info">
         <div className="profile-name-container">

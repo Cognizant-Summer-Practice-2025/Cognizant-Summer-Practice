@@ -117,8 +117,8 @@ export default function Publish() {
     // 2. Check for any recently selected template in session storage
     // 3. Use template registry to get default template name
     
-    if (currentPortfolio?.templateName) {
-      return currentPortfolio.templateName;
+    if (currentPortfolio?.template?.name) {
+      return currentPortfolio.template.name;
     }
     
     // Check session storage for recently selected template

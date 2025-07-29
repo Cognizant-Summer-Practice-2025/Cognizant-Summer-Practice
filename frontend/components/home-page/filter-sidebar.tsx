@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Divider } from 'antd';
 import { FilterOutlined, UserOutlined } from '@ant-design/icons';
-import { PortfolioCardDto } from '@/lib/portfolio/api';
 import FilterGroup from './filter-group';
 import SelectedFilters from './selected-filters';
 import SkillsFilter from './skills-filter';

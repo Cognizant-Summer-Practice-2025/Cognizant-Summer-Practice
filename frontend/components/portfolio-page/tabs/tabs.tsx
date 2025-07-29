@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import './style.css';
 
 interface ProjectCardProps {
@@ -18,7 +19,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   return (
     <div className="project-card">
-      <img className="project-image" src={image} alt={title} />
+      <Image className="project-image" src={image} alt={title} width={300} height={200} />
       <div className="project-content">
         <div className="project-title-container">
           <div className="project-title">{title}</div>

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, Eye, Edit, Trash2, AlertTriangle, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { Download, Eye, Edit, Trash2, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
@@ -96,13 +97,13 @@ const PortfolioManagement: React.FC = () => {
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  const handleViewPortfolio = (portfolioId: string, _userId: string) => {
+  const handleViewPortfolio = (portfolioId: string) => {
     // Open portfolio in new tab using the portfolio page URL structure
     const portfolioUrl = `/portfolio?portfolio=${portfolioId}`;
     window.open(portfolioUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleEditPortfolio = (_portfolioId: string) => {
+  const handleEditPortfolio = () => {
     // TODO: Implement edit portfolio functionality
     showAlert({
       title: 'Edit Portfolio',
@@ -278,10 +279,12 @@ This action cannot be undone.`;
             <div key={portfolio.id} className="table-row">
               <div className="col-portfolio">
                 <div className="portfolio-cell">
-                  <img 
+                  <Image 
                     src={getThumbnail(portfolio)} 
                     alt={portfolio.title} 
-                    className="portfolio-thumbnail" 
+                    className="portfolio-thumbnail"
+                    width={48}
+                    height={48}
                   />
                   <div className="portfolio-info">
                     <div className="portfolio-title">{portfolio.title}</div>
@@ -303,7 +306,7 @@ This action cannot be undone.`;
                 <Button 
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleViewPortfolio(portfolio.id, portfolio.userId)}
+                  onClick={() => handleViewPortfolio(portfolio.id)}
                   title="View portfolio in new tab"
                 >
                   <Eye className="w-4 h-4" />
@@ -311,7 +314,7 @@ This action cannot be undone.`;
                 <Button 
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleEditPortfolio(portfolio.id)}
+                  onClick={() => handleEditPortfolio()}
                   title="Edit portfolio"
                 >
                   <Edit className="w-4 h-4" />

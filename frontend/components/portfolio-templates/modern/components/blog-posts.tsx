@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { BlogPost } from '@/lib/portfolio';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,14 +56,12 @@ export function BlogPosts({ data: posts }: BlogPostsProps) {
         <Card key={post.id} className="modern-card">
           {post.featuredImageUrl && (
             <div className="aspect-video overflow-hidden rounded-t-lg">
-              <img 
+              <Image 
                 src={getSafeImageUrl(post.featuredImageUrl)} 
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform hover:scale-105"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  e.currentTarget.src = getSafeImageUrl('');
-                }}
+                width={400}
+                height={225}
               />
             </div>
           )}

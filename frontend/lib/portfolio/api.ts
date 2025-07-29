@@ -4,7 +4,14 @@
 import { 
   PortfolioDataFromDB, 
   UserPortfolio,
-  UserPortfolioComprehensive
+  UserPortfolioComprehensive,
+  Portfolio,
+  Project,
+  Experience,
+  Skill,
+  BlogPost,
+  Bookmark,
+  PortfolioTemplate
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
@@ -861,7 +868,7 @@ export async function createProject(projectData: ProjectRequestDto): Promise<Pro
 export async function updateProject(projectId: string, projectData: ProjectUpdateDto): Promise<ProjectResponseDto> {
   // Filter out undefined values to avoid sending them as empty strings
   const cleanedData = Object.fromEntries(
-    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+    Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectUpdateDto;
 
   console.log('Sending project update data:', cleanedData); // Debug log

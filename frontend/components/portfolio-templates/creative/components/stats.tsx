@@ -1,56 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { TrendingUp, Users, Award, Coffee } from 'lucide-react';
-
-interface StatsData {
-  experience?: number;
-  projects?: number;
-  clients?: number;
-  [key: string]: any;
-}
+import React from 'react';
+import { StatData } from '@/lib/portfolio/interfaces';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 
 interface StatsProps {
-  stats: StatsData;
+  stats: StatData[];
 }
 
 export function Stats({ stats }: StatsProps) {
-  const [animatedStats, setAnimatedStats] = useState({
-    experience: 0,
-    projects: 0,
-    clients: 0
-  });
-
-  useEffect(() => {
-    const duration = 2000; // 2 seconds
-    const steps = 60;
-    const stepDuration = duration / steps;
-
-    const targets = {
-      experience: stats.experience || 3,
-      projects: stats.projects || 50,
-      clients: stats.clients || 100
-    };
-
-    let currentStep = 0;
-
-    const timer = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
-
-      setAnimatedStats({
-        experience: Math.floor(targets.experience * progress),
-        projects: Math.floor(targets.projects * progress),
-        clients: Math.floor(targets.clients * progress)
-      });
-
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setAnimatedStats(targets);
-      }
-    }, stepDuration);
-
-    return () => clearInterval(timer);
-  }, [stats]);
-
   return (
     <div className="creative-stats">
       <div className="code-block">
@@ -58,22 +14,15 @@ export function Stats({ stats }: StatsProps) {
           <span className="syntax-keyword">const</span>{' '}
           <span className="syntax-highlight">achievements</span> = {'{'}
         </div>
-        <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-highlight">yearsOfExperience</span>: 
-          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>{animatedStats.experience}+</span>,
+        {stats.map((stat, index) => (
+          <div key={stat.id} className="code-line" style={{ marginLeft: '20px' }}>
+            <span className="syntax-highlight">{stat.label.toLowerCase().replace(/\s+/g, '')}</span>: 
+            <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>
+              <AnimatedNumber value={stat.value} />
+            </span>
+            {index < stats.length - 1 ? ',' : ''}
         </div>
-        <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-highlight">projectsCompleted</span>: 
-          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>{animatedStats.projects}+</span>,
-        </div>
-        <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-highlight">happyClients</span>: 
-          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>{animatedStats.clients}+</span>,
-        </div>
-        <div className="code-line" style={{ marginLeft: '20px' }}>
-          <span className="syntax-highlight">coffeeConsumed</span>: 
-          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>∞</span>
-        </div>
+        ))}
         <div className="code-line">{'}'};</div>
       </div>
 
@@ -83,7 +32,8 @@ export function Stats({ stats }: StatsProps) {
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
         gap: '16px' 
       }}>
-        <div className="stat-card gradient-bg-1" style={{ 
+        {stats.map((stat, index) => (
+          <div key={stat.id} className={`stat-card gradient-bg-${(index % 4) + 1}`} style={{ 
           padding: '16px', 
           borderRadius: '8px', 
           color: 'white',
@@ -91,63 +41,15 @@ export function Stats({ stats }: StatsProps) {
           alignItems: 'center',
           gap: '12px'
         }}>
-          <TrendingUp size={24} />
+            <span style={{ fontSize: '20px' }}>{stat.icon || '📊'}</span>
           <div>
             <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {animatedStats.experience}+
+              <AnimatedNumber value={stat.value} />
             </div>
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>Years Experience</div>
-          </div>
-        </div>
-
-        <div className="stat-card gradient-bg-2" style={{ 
-          padding: '16px', 
-          borderRadius: '8px', 
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <Award size={24} />
-          <div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {animatedStats.projects}+
+              <div style={{ fontSize: '12px', opacity: 0.9 }}>{stat.label}</div>
             </div>
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>Projects Completed</div>
           </div>
-        </div>
-
-        <div className="stat-card gradient-bg-3" style={{ 
-          padding: '16px', 
-          borderRadius: '8px', 
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <Users size={24} />
-          <div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {animatedStats.clients}+
-            </div>
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>Happy Clients</div>
-          </div>
-        </div>
-
-        <div className="stat-card gradient-bg-4" style={{ 
-          padding: '16px', 
-          borderRadius: '8px', 
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <Coffee size={24} />
-          <div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>∞</div>
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>Coffee Cups</div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { AlertTriangle, CheckCircle, XCircle, Info, X } from 'lucide-react';
+import React, { useState, createContext, useContext } from 'react';
+import { AlertTriangle, CheckCircle, XCircle, Info } from 'lucide-react';
 import { Button } from './button';
 import {
   Dialog,

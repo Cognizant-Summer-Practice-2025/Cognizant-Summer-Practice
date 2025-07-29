@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { X, Image as ImageIcon } from "lucide-react";
@@ -104,14 +105,12 @@ export function ImageUpload({
         {preview && previewUrl && (
           <div className="relative w-full max-w-xs">
             <div className="relative aspect-video w-full rounded-lg border border-slate-200 overflow-hidden bg-slate-50">
-              <img
+              <Image
                 src={createImagePreviewUrl(previewUrl)}
                 alt="Preview"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  e.currentTarget.src = 'https://placehold.co/400x300?text=Image+Error';
-                }}
+                width={400}
+                height={300}
               />
               <button
                 type="button"

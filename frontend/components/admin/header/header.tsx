@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { EyeOutlined, BarChartOutlined, TeamOutlined } from '@ant-design/icons';
@@ -54,7 +55,13 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
           <Button icon={<EyeOutlined />} className="view-site-btn" onClick={handleViewSite}>
             View Site
           </Button>
-          <img className="admin-avatar" src="https://placehold.co/32x32" alt="Admin" />
+          <Image 
+            className="admin-avatar" 
+            src="https://placehold.co/32x32" 
+            alt="Admin" 
+            width={32}
+            height={32}
+          />
         </div>
       </div>
     </div>

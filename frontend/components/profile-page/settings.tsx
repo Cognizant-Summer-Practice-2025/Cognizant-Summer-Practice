@@ -55,8 +55,11 @@ export default function Settings({ portfolioId: propPortfolioId, initialData, on
       return initialData.portfolio.components;
     }
     if (currentPortfolio?.components) {
+      if (Array.isArray(currentPortfolio.components)) {
+        return currentPortfolio.components;
+      }
       try {
-        return JSON.parse(currentPortfolio.components);
+        return JSON.parse(currentPortfolio.components as string);
       } catch {
         return TemplateManager.createDefaultComponentConfig();
       }
@@ -75,11 +78,15 @@ export default function Settings({ portfolioId: propPortfolioId, initialData, on
     if (currentPortfolio && !initialData) {
       setVisibility(currentPortfolio.visibility);
       if (currentPortfolio.components) {
+        if (Array.isArray(currentPortfolio.components)) {
+          setComponents(currentPortfolio.components);
+        } else {
         try {
-          const parsedComponents = JSON.parse(currentPortfolio.components);
+            const parsedComponents = JSON.parse(currentPortfolio.components as string);
           setComponents(parsedComponents);
         } catch {
           setComponents(TemplateManager.createDefaultComponentConfig());
+          }
         }
       }
     }
@@ -267,8 +274,11 @@ export default function Settings({ portfolioId: propPortfolioId, initialData, on
               const resetVisibility = currentPortfolio?.visibility ?? initialData?.portfolio?.visibility ?? 0;
               const resetComponents = (() => {
                 if (currentPortfolio?.components) {
+                  if (Array.isArray(currentPortfolio.components)) {
+                    return currentPortfolio.components;
+                  }
                   try {
-                    return JSON.parse(currentPortfolio.components);
+                    return JSON.parse(currentPortfolio.components as string);
                   } catch {
                     return TemplateManager.createDefaultComponentConfig();
                   }

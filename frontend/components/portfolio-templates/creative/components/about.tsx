@@ -39,15 +39,15 @@ export function About({ data }: AboutProps) {
         </div>
         <div className="code-line" style={{ marginLeft: '40px' }}>
           <span className="syntax-keyword">this</span>.<span className="syntax-highlight">passion</span> = 
-          <span className="syntax-string">"Creating digital experiences"</span>;
+          <span className="syntax-string">&quot;Creating digital experiences&quot;</span>;
         </div>
         <div className="code-line" style={{ marginLeft: '40px' }}>
           <span className="syntax-keyword">this</span>.<span className="syntax-highlight">philosophy</span> = 
-          <span className="syntax-string">"Always learning, always growing"</span>;
+          <span className="syntax-string">&quot;Always learning, always growing&quot;</span>;
         </div>
         <div className="code-line" style={{ marginLeft: '40px' }}>
           <span className="syntax-keyword">this</span>.<span className="syntax-highlight">goal</span> = 
-          <span className="syntax-string">"Building the future, one line at a time"</span>;
+          <span className="syntax-string">&quot;Building the future, one line at a time&quot;</span>;
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>{'}'}</div>
         <div className="code-line">{'}'}</div>
@@ -73,10 +73,10 @@ export function About({ data }: AboutProps) {
               position: 'relative'
             }}>
               <div className="code-line">
-                <span className="syntax-comment">/*</span>
+                <span className="syntax-comment">{`/*`}</span>
               </div>
               <div className="code-line" style={{ marginLeft: '4px' }}>
-                <span className="syntax-comment">* "{quote.text}"</span>
+                <span className="syntax-comment">{`* \"${quote.text}\"`}</span>
               </div>
               {quote.author && (
                 <div className="code-line" style={{ marginLeft: '4px' }}>
@@ -89,7 +89,7 @@ export function About({ data }: AboutProps) {
                 </div>
               )}
               <div className="code-line">
-                <span className="syntax-comment">*/</span>
+                <span className="syntax-comment">{`*/`}</span>
               </div>
             </div>
           ))}
@@ -99,22 +99,22 @@ export function About({ data }: AboutProps) {
       <div style={{ marginTop: '24px' }}>
         <div className="code-block">
           <div className="code-line">
-            <span className="syntax-comment">// Fun fact generator</span>
+            <span className="syntax-comment">{/* Fun fact generator */}</span>
           </div>
           <div className="code-line">
             <span className="syntax-keyword">const</span> <span className="syntax-highlight">funFacts</span> = [
           </div>
           <div className="code-line" style={{ marginLeft: '20px' }}>
-            <span className="syntax-string">"I debug with console.log and I'm not ashamed"</span>,
+            <span className="syntax-string">&quot;I debug with console.log and I&apos;m not ashamed&quot;</span>,
           </div>
           <div className="code-line" style={{ marginLeft: '20px' }}>
-            <span className="syntax-string">"My code compiles on the first try... sometimes"</span>,
+            <span className="syntax-string">&quot;My code compiles on the first try... sometimes&quot;</span>,
           </div>
           <div className="code-line" style={{ marginLeft: '20px' }}>
-            <span className="syntax-string">"I speak fluent JavaScript and broken English"</span>,
+            <span className="syntax-string">&quot;I speak fluent JavaScript and broken English&quot;</span>,
           </div>
           <div className="code-line" style={{ marginLeft: '20px' }}>
-            <span className="syntax-string">"Stack Overflow is my second home"</span>
+            <span className="syntax-string">&quot;Stack Overflow is my second home&quot;</span>
           </div>
           <div className="code-line">];</div>
         </div>
@@ -130,7 +130,7 @@ export function About({ data }: AboutProps) {
       }}>
         <Heart size={20} style={{ marginBottom: '8px' }} />
         <div style={{ fontWeight: '600', marginBottom: '4px' }}>
-          Let's create something amazing together!
+          Let&apos;s create something amazing together!
         </div>
         <div style={{ fontSize: '14px', opacity: 0.9 }}>
           Always open to new opportunities and exciting projects

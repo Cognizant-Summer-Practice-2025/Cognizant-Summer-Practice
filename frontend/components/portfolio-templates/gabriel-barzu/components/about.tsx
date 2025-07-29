@@ -16,7 +16,7 @@ export function About({ data: quotes }: AboutProps) {
       <div className="quotes-container">
         {quotes.map((quote) => (
           <blockquote key={quote.id} className="quote-item">
-            <div className="quote-text">"{quote.text}"</div>
+            <div className="quote-text">&ldquo;{quote.text}&rdquo;</div>
             {quote.author && (
               <cite className="quote-author">
                 — {quote.author}

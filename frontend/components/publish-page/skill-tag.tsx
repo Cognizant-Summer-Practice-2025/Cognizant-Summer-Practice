@@ -8,7 +8,7 @@ interface SkillTagProps {
   showDetails?: boolean;
 }
 
-export function SkillTag({ skill, onRemove, onUpdateProficiency, onUpdateCategory, showDetails = false }: SkillTagProps) {
+export function SkillTag({ skill, onRemove, onUpdateProficiency, showDetails = false }: SkillTagProps) {
   if (showDetails) {
     return (
       <div className="relative bg-white border border-slate-200 rounded-lg p-3 flex flex-col gap-2">

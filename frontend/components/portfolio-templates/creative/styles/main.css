@@ -2,11 +2,15 @@
 
 .creative-template {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  height: 100vh;
+  height: calc(100vh - 64px); /* Exact available height = viewport - header */
+  max-height: calc(100vh - 64px); /* Prevent exceeding available space */
+  height: calc(100svh - 64px); /* Better mobile support */
+  max-height: calc(100svh - 64px); /* Prevent mobile overflow */
   overflow: hidden;
   background: var(--bg-primary);
   color: var(--text-primary);
   transition: all 0.3s ease;
+  box-sizing: border-box; /* Include padding/borders in height calculation */
 }
 
 /* Theme Variables */
@@ -42,10 +46,13 @@
 
 /* VS Code Window */
 .vscode-window {
-  height: 100vh;
+  height: 100%; /* Take full height of the creative-template container */
+  max-height: 100%; /* Never exceed parent height */
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Title Bar */
@@ -133,7 +140,9 @@
 .main-layout {
   display: flex;
   flex: 1;
+  max-height: 100%; /* Ensure it fits within VS Code window */
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Sidebar */
@@ -176,6 +185,7 @@
   width: 240px;
   padding: 16px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .file-explorer h3 {
@@ -285,8 +295,35 @@
 /* Content Area */
 .content-area {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-primary);
+  overflow-y: auto; /* Allow content area to scroll through header and components */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Portfolio Header Container */
+.portfolio-header-container {
+  flex-shrink: 0; /* Don't shrink the header */
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  /* Header flows naturally in the scrollable content area */
+}
+
+/* Dynamic Content Container */
+.dynamic-content-container {
+  flex: 1; /* Take up remaining space */
+  background: var(--bg-primary);
+  /* Content flows naturally, scrolling handled by parent content-area */
+}
+
+.dynamic-content {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeInUp 0.4s ease-out;
+  /* Remove height constraints to allow natural content flow and scrolling */
 }
 
 .editor-content {
@@ -297,7 +334,7 @@
 
 /* Portfolio Header */
 .portfolio-header {
-  margin-bottom: 32px;
+  margin: 24px;
   padding: 24px;
   background: linear-gradient(135deg, 
     var(--bg-accent) 0%, 
@@ -307,11 +344,33 @@
   color: white;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: fadeInUp 0.6s ease-out;
+  /* Remove height constraints to allow natural sizing */
 }
 
-/* Dynamic Content */
-.dynamic-content {
-  animation: fadeInUp 0.4s ease-out;
+/* Ensure dynamic content is scrollable on mobile */
+@media (max-width: 768px) {
+  .dynamic-content {
+    overflow-y: visible;
+    min-height: auto;
+  }
+  
+  .component-card {
+    margin-bottom: 20px;
+  }
+  
+  /* Make sure the dynamic content container can scroll */
+  .dynamic-content-container {
+    position: relative;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Keep content area as flex container */
+  .content-area {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 }
 
 /* Component Cards */
@@ -323,6 +382,8 @@
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Ensure cards don't get constrained in height */
+  min-height: auto;
 }
 
 .component-card:hover {
@@ -401,6 +462,17 @@
   }
 }
 
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -411,35 +483,516 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+
+/* Mobile First - Base styles (320px+) */
+@media (max-width: 480px) {
+  .creative-template {
+    font-size: 14px;
+    height: calc(100vh - 64px); /* Account for main header */
+    height: calc(100svh - 64px); /* Better mobile viewport support */
+    min-height: calc(100vh - 64px);
+    min-height: calc(100svh - 64px);
+    max-height: calc(100vh - 64px);
+    max-height: calc(100svh - 64px);
+    overflow: hidden;
+  }
+  
+  .vscode-window {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Hide all VS Code chrome on mobile */
+  .title-bar,
+  .menu-bar,
+  .status-bar {
+    display: none;
+  }
+  
+  /* Hide sidebar completely on mobile */
+  .sidebar {
+    display: none;
+  }
+  
+  /* Full height layout for mobile */
   .main-layout {
     flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  /* Editor takes remaining space */
+  .editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0; /* Important: Allow flex child to shrink */
+  }
+  
+  /* Mobile tabs styling */
+  .tab-bar {
+    height: 50px;
+    flex-shrink: 0; /* Don't shrink tab bar */
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background: var(--bg-secondary);
+    border-bottom: 2px solid var(--border-color);
+  }
+  
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tab {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .tab:last-child {
+    border-right: none;
+  }
+  
+  .tab.active {
+    background: var(--tab-active);
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--bg-accent);
+    margin-bottom: -2px;
+  }
+  
+  .tab:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+  }
+  
+  .tab.active:hover {
+    background: var(--tab-active);
+  }
+  
+  /* Hide close buttons on mobile tabs */
+  .close-tab {
+    display: none;
+  }
+  
+  /* Hide tab icons on mobile to save space */
+  .tab svg {
+    display: none;
+  }
+  
+  /* Tab bar improvements */
+  .tab-bar {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tab {
+    min-width: 80px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  
+  /* Content area - mobile scrollable content */
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    min-height: 0; /* Important: Allow flex child to shrink */
+  }
+  
+  /* Portfolio header flows naturally in scroll */
+  .portfolio-header-container {
+    flex-shrink: 0;
+  }
+  
+  /* Dynamic content flows naturally in scroll */
+  .dynamic-content-container {
+    flex: 1;
+    min-height: 820px; /* Ensure minimum height so content is visible */
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .dynamic-content {
+    padding: 16px;
+    animation: slideInFromRight 0.3s ease-out;
+    /* Ensure content is properly contained */
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    min-height: 300px; /* Ensure minimum content height on mobile */
+    background: var(--bg-primary);
+    flex: 1; /* Take available space */
+    position: relative;
+    z-index: 2;
+    /* Ensure content is always visible */
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .portfolio-header {
+    padding: 16px;
+    margin: 16px;
+  }
+  
+  .code-block {
+    font-size: 11px;
+    padding: 12px;
+    margin: 12px 0;
+  }
+  
+  .component-card {
+    padding: 16px;
+    margin-bottom: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 100px; /* Ensure minimum height */
+    display: block;
+    overflow: visible;
+    /* Ensure content is visible */
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+  }
+  
+  .component-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .component-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Ensure all text content is visible */
+  .component-card p,
+  .component-card div,
+  .component-card span {
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+  
+  /* Hide terminal on mobile */
+  .terminal-section {
+    display: none;
+  }
+  
+  /* Projects grid - single column */
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .project-card {
+    padding: 16px;
+  }
+  
+  /* Skills grid adjustments */
+  .skill-progress {
+    height: 6px;
+  }
+  
+  /* Stats grid - 2 columns */
+  .creative-stats > div:last-child {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .stat-card {
+    padding: 12px !important;
+  }
+  
+  /* Status bar */
+  .status-bar {
+    font-size: 10px;
+    height: 20px;
+    padding: 0 8px;
+  }
+}
+
+/* Small tablets and large phones (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .creative-template {
+    font-size: 14px;
+  }
+  
+  .main-layout {
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  .editor-area {
+    flex: 1;
+    height: calc(100vh - 250px);
+    overflow: hidden;
+  }
+  
+  .content-area {
+    height: calc(100% - 35px);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
   
   .sidebar {
     flex-direction: row;
     height: auto;
+    max-height: 180px;
   }
   
   .activity-bar {
-    width: auto;
-    flex-direction: row;
-    height: 48px;
-    padding: 0 16px;
+    width: 60px;
+    flex-direction: column;
+    height: 180px;
+    padding: 8px 0;
   }
   
   .file-explorer {
-    width: auto;
     flex: 1;
-    padding: 8px 16px;
-  }
-  
-  .tab-bar {
-    overflow-x: scroll;
+    padding: 12px;
+    max-height: 180px;
+    overflow-y: auto;
   }
   
   .tab {
     min-width: 100px;
+    font-size: 12px;
+  }
+  
+  .dynamic-content {
+    padding: 16px;
+  }
+  
+  .portfolio-header {
+    padding: 20px;
+  }
+  
+  /* Projects grid - 2 columns */
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  
+  /* Terminal can be shown but smaller */
+  .terminal-section {
+    height: 150px;
+  }
+  
+  .terminal-content {
+    font-size: 12px;
+  }
+}
+
+/* Tablets (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .activity-bar {
+    width: 48px;
+    flex-direction: column;
+  }
+  
+  .file-explorer {
+    width: 200px;
+    padding: 14px;
+  }
+  
+  .dynamic-content {
+    padding: 20px;
+  }
+  
+  /* Projects grid - 2-3 columns */
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .tab {
+    min-width: 110px;
+  }
+}
+
+/* Large tablets and small desktops (1025px - 1200px) */
+@media (min-width: 1025px) and (max-width: 1200px) {
+  .file-explorer {
+    width: 220px;
+  }
+  
+  .dynamic-content {
+    padding: 24px;
+    max-width: 1000px;
+  }
+  
+  /* Projects grid - 2-3 columns */
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Large desktops (1201px+) */
+@media (min-width: 1201px) {
+  .file-explorer {
+    width: 240px;
+  }
+  
+  .dynamic-content {
+    padding: 24px;
+    max-width: 1200px;
+  }
+  
+  /* Projects grid - 3+ columns */
+  .projects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .code-block {
+    font-size: 13px;
+  }
+  
+  .syntax-highlight, .syntax-keyword, .syntax-string, .syntax-comment {
+    font-weight: 500;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main-layout {
+    flex-direction: row;
+    flex: 1;
+  }
+  
+  .sidebar {
+    flex-direction: column;
+    width: 250px;
+    height: 100%;
+    max-height: none;
+  }
+  
+  .activity-bar {
+    width: 40px;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .file-explorer {
+    width: 210px;
+    max-height: none;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .editor-area {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+  }
+  
+  .content-area {
+    height: calc(100% - 35px);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .terminal-section {
+    display: flex;
+    height: 120px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .creative-template {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .title-bar, .menu-bar, .activity-bar, .tab-bar, .terminal-section, .status-bar {
+    display: none !important;
+  }
+  
+  .main-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    display: none;
+  }
+  
+  .editor-area {
+    width: 100%;
+  }
+  
+  .content-area {
+    padding: 0;
+    display: block;
+  }
+  
+  .portfolio-header-container,
+  .dynamic-content-container {
+    display: block;
+    overflow: visible;
+  }
+  
+  .dynamic-content {
+    padding: 20px;
+    max-width: none;
+  }
+  
+  .component-card {
+    break-inside: avoid;
+    margin-bottom: 20px;
+  }
+  
+  .projects-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -454,6 +1007,7 @@
   margin: 16px 0;
   overflow-x: auto;
   position: relative;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .code-line {
@@ -463,6 +1017,26 @@
 
 .code-line:last-child {
   margin-bottom: 0;
+}
+
+/* Touch-friendly interactions */
+@media (pointer: coarse) {
+  .tab, .file-item, .activity-item, .control {
+    min-height: 44px; /* iOS/Android touch target minimum */
+    touch-action: manipulation;
+  }
+  
+  .file-item {
+    padding: 12px 8px;
+  }
+  
+  .tab {
+    padding: 12px 16px;
+  }
+  
+  .activity-item {
+    min-width: 44px;
+  }
 }
 
 .syntax-highlight {

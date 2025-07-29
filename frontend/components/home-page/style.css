@@ -908,7 +908,7 @@
 }
 
 .skill-subcategories::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: transparent;
   border-radius: 3px;
   margin: 4px 0;
 }

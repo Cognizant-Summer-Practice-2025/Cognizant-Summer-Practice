@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { User, Folder, Briefcase, Code, Layout, Settings, FileText } from 'lucide-react';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { useUser } from '@/lib/contexts/user-context';
@@ -92,10 +93,12 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
       <div className="self-stretch h-[296px] lg:h-[296px] md:h-[250px] sm:h-[220px] rounded-lg border border-[#E2E8F0] flex flex-col justify-between items-center p-4 sm:p-6">
         <div className="flex flex-col items-center">
           {/* Profile Picture */}
-          <img 
+          <Image 
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mb-3 sm:mb-4" 
             src={getUserAvatar()} 
             alt="Profile"
+            width={80}
+            height={80}
           />
           
           {/* Name */}

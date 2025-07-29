@@ -2,6 +2,7 @@ import React from 'react';
 import { Skill } from '@/lib/portfolio';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 
 interface SkillsProps {
   data: Skill[];
@@ -85,7 +86,7 @@ export function Skills({ data: skills }: SkillsProps) {
                         {skill.name}
                         {skill.proficiencyLevel && skill.proficiencyLevel > 0 && (
                           <span className="ml-1 text-xs opacity-70">
-                            {skill.proficiencyLevel}%
+                            <AnimatedNumber value={skill.proficiencyLevel} />%
                           </span>
                         )}
                       </Badge>

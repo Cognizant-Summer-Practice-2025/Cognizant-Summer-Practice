@@ -7,21 +7,18 @@ import {
   ChevronRight, 
   ChevronsLeft, 
   ChevronsRight,
-  RotateCcw,
-  Database
+  RotateCcw
 } from 'lucide-react';
 import { useHomePageCache } from '@/lib/contexts/home-page-cache-context';
 import { cn } from '@/lib/utils';
 
 interface PaginationControlsProps {
   showTotal?: boolean;
-  showCacheStats?: boolean;
   className?: string;
 }
 
 const PaginationControls: React.FC<PaginationControlsProps> = ({
   showTotal = true,
-  showCacheStats = true,
   className = ''
 }) => {
   const {
@@ -33,12 +30,12 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
     goToPreviousPage,
     goToFirstPage,
     goToLastPage,
-    clearCache,
-    getCacheStats,
+
+  
     loadPage
   } = useHomePageCache();
 
-  const cacheStats = getCacheStats();
+
 
   const handlePageChange = (page: number) => {
     goToPage(page);
@@ -48,10 +45,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
     loadPage(currentPage, false); // Force refresh without cache
   };
 
-  const handleClearCache = () => {
-    clearCache();
-    loadPage(currentPage, false); // Reload current page
-  };
+
 
   if (!pagination) {
     return null;
@@ -90,27 +84,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      {/* Cache Stats */}
-      {showCacheStats && (
-        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            <span>Cache: {cacheStats.totalEntries} pages</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>Hit Rate: {(cacheStats.hitRate * 100).toFixed(1)}%</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClearCache}
-            className="h-7 px-2 text-xs"
-          >
-            <RotateCcw className="h-3 w-3 mr-1" />
-            Clear Cache
-          </Button>
-        </div>
-      )}
+
 
       {/* Main Pagination */}
       <div className="flex items-center justify-center gap-2">
