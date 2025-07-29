@@ -1,47 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StatData } from '@/lib/portfolio/interfaces';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 
 interface StatsProps {
   stats: StatData[];
 }
 
 export function Stats({ stats }: StatsProps) {
-  const [animatedStats, setAnimatedStats] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    const duration = 2000; // 2 seconds
-    const steps = 60;
-    const stepDuration = duration / steps;
-
-    // Convert StatData array to targets
-    const targets: Record<string, number> = {};
-    stats.forEach(stat => {
-      const numValue = parseInt(stat.value) || 0;
-      targets[stat.id] = numValue;
-    });
-
-    let currentStep = 0;
-
-    const timer = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
-
-      const newAnimatedStats: Record<string, number> = {};
-      Object.entries(targets).forEach(([key, target]) => {
-        newAnimatedStats[key] = Math.floor(target * progress);
-      });
-      
-      setAnimatedStats(newAnimatedStats);
-
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setAnimatedStats(targets);
-      }
-    }, stepDuration);
-
-    return () => clearInterval(timer);
-  }, [stats]);
-
   return (
     <div className="creative-stats">
       <div className="code-block">
@@ -52,7 +17,9 @@ export function Stats({ stats }: StatsProps) {
         {stats.map((stat, index) => (
           <div key={stat.id} className="code-line" style={{ marginLeft: '20px' }}>
             <span className="syntax-highlight">{stat.label.toLowerCase().replace(/\s+/g, '')}</span>: 
-            <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>{animatedStats[stat.id] || 0}</span>
+            <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>
+              <AnimatedNumber value={stat.value} />
+            </span>
             {index < stats.length - 1 ? ',' : ''}
         </div>
         ))}
@@ -77,7 +44,7 @@ export function Stats({ stats }: StatsProps) {
             <span style={{ fontSize: '20px' }}>{stat.icon || '📊'}</span>
           <div>
             <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                {animatedStats[stat.id] || 0}
+              <AnimatedNumber value={stat.value} />
             </div>
               <div style={{ fontSize: '12px', opacity: 0.9 }}>{stat.label}</div>
             </div>

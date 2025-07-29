@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Code2, Star, TrendingUp, Zap } from 'lucide-react';
-
 import { Skill as PortfolioSkill } from '@/lib/portfolio/interfaces';
+import { AnimatedNumber, AnimatedProgressBar } from '@/components/ui/animated-number';
 
 type Skill = PortfolioSkill;
 
@@ -11,23 +11,6 @@ interface SkillsProps {
 
 export function Skills({ data }: SkillsProps) {
   const skills = React.useMemo(() => data || [], [data]);
-  const [animatedLevels, setAnimatedLevels] = useState<{ [key: string]: number }>({});
-
-  useEffect(() => {
-    const timers: NodeJS.Timeout[] = [];
-    
-    skills.forEach((skill, index) => {
-      const timer = setTimeout(() => {
-        setAnimatedLevels(prev => ({
-          ...prev,
-          [skill.id]: skill.proficiencyLevel || 0
-        }));
-      }, index * 200);
-      timers.push(timer);
-    });
-
-    return () => timers.forEach(timer => clearTimeout(timer));
-  }, [skills]);
 
   const getSkillColor = (proficiencyLevel: number) => {
     if (proficiencyLevel >= 90) return '#43e97b';
@@ -80,17 +63,23 @@ export function Skills({ data }: SkillsProps) {
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">totalSkills</span>: 
-          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>{skills.length}</span>,
+          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>
+            <AnimatedNumber value={skills.length} />
+          </span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">averageLevel</span>: 
           <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>
-            {skills.length > 0 ? Math.round(skills.reduce((acc, skill) => acc + (skill.proficiencyLevel || 0), 0) / skills.length) : 0}%
+            <AnimatedNumber 
+              value={skills.length > 0 ? Math.round(skills.reduce((acc, skill) => acc + (skill.proficiencyLevel || 0), 0) / skills.length) : 0} 
+            />%
           </span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">categories</span>: 
-          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>{Object.keys(groupedSkills).length}</span>,
+          <span style={{ color: '#79c0ff', fontWeight: 'bold' }}>
+            <AnimatedNumber value={Object.keys(groupedSkills).length} />
+          </span>,
         </div>
         <div className="code-line" style={{ marginLeft: '20px' }}>
           <span className="syntax-highlight">learning</span>: 
@@ -182,17 +171,17 @@ export function Skills({ data }: SkillsProps) {
                           fontWeight: 'bold',
                           color: getSkillColor(skill.proficiencyLevel || 0)
                         }}>
-                          {animatedLevels[skill.id] || 0}%
+                          <AnimatedNumber value={skill.proficiencyLevel || 0} />%
                         </span>
 
                       </div>
                     </div>
 
                     <div className="skill-bar">
-                      <div 
+                      <AnimatedProgressBar 
+                        percentage={skill.proficiencyLevel || 0}
                         className="skill-progress"
-                        style={{ 
-                          width: `${animatedLevels[skill.id] || 0}%`,
+                        style={{
                           background: `linear-gradient(90deg, ${getSkillColor(skill.proficiencyLevel || 0)}, ${getSkillColor(skill.proficiencyLevel || 0)}aa)`
                         }}
                       />
