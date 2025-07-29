@@ -106,7 +106,7 @@
 
 /* Navigation */
 .modern-nav {
-  position: sticky;
+  position: fixed;
   top: 64px; /* Right under the app header */
   left: 0;
   right: 0;
@@ -164,19 +164,19 @@
 
 /* Main Content */
 .modern-main {
-  padding-top: 0; /* Remove padding since navigation handles spacing */
+  padding-top: calc(64px + 1rem + 1rem); /* App header height + nav padding + nav height */
   padding-bottom: 2rem;
 }
 
 /* Hero Section */
 .modern-hero {
-  padding: 2rem 0 4rem;
+  padding: 2rem 0 6rem; /* Increased bottom padding for more space before about section */
   display: flex;
   justify-content: center;
 }
 
 .modern-hero-card {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 2rem;
   background: var(--modern-glass-bg);
   backdrop-filter: blur(20px);
@@ -352,11 +352,17 @@
   gap: 1.5rem;
 }
 
+/* When grid has only one item, make it take full width */
+.modern-template .modern-grid.single-item {
+  grid-template-columns: 1fr;
+}
+
 /* For single column layouts, ensure consistent width */
 .modern-template .modern-grid.single-column {
   grid-template-columns: 1fr;
   max-width: 800px;
   margin: 0 auto;
+  gap: 1.5rem; /* Consistent spacing between cards in single column */
 }
 
 /* Ensure all component containers have consistent width */
@@ -364,6 +370,12 @@
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
+}
+
+/* When component container is inside a section, remove width constraints */
+.modern-template .modern-section-content .modern-component-container {
+  max-width: none;
+  margin: 0;
 }
 
 /* Ensure all grid items have consistent minimum width */
@@ -469,12 +481,20 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .modern-nav {
+    padding: 0.75rem 0; /* Reduce nav padding on mobile */
+  }
+  
   .modern-nav-content {
     padding: 0 1rem;
   }
   
   .modern-nav-menu {
     display: none;
+  }
+  
+  .modern-main {
+    padding-top: calc(64px + 0.75rem + 0.75rem); /* Adjust for smaller mobile nav padding */
   }
   
   .modern-hero-card,
@@ -493,6 +513,14 @@
 }
 
 @media (max-width: 480px) {
+  .modern-nav {
+    padding: 0.5rem 0; /* Further reduce nav padding on extra small screens */
+  }
+  
+  .modern-main {
+    padding-top: calc(64px + 0.5rem + 0.5rem); /* Further adjust for extra small screens */
+  }
+  
   .modern-hero-card,
   .modern-section-card {
     margin: 0 0.5rem;

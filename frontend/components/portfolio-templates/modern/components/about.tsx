@@ -17,38 +17,42 @@ export function About({ data: quotes }: AboutProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {quotes.map((quote) => (
-        <Card key={quote.id} className="modern-card">
-          <CardContent className="p-6">
-            <div className="relative">
-              <QuoteIcon 
-                size={24} 
-                className="absolute -top-2 -left-2 text-primary/20 transform rotate-180" 
-              />
-              
-              <blockquote className="text-lg leading-relaxed text-foreground italic pl-6">
-                &ldquo;{quote.text}&rdquo;
-              </blockquote>
-              
-              {(quote.author || quote.position) && (
-                <footer className="mt-4 text-right">
-                  {quote.author && (
-                    <cite className="text-sm font-medium text-foreground not-italic">
-                      — {quote.author}
-                    </cite>
+    <div className="modern-component-container">
+      <div className="max-h-[800px] overflow-y-auto pr-2">
+        <div className="modern-grid">
+          {quotes.map((quote) => (
+            <Card key={quote.id} className="modern-card">
+              <CardContent className="p-6">
+                <div className="relative">
+                  <QuoteIcon 
+                    size={24} 
+                    className="absolute -top-2 -left-2 text-primary/20 transform rotate-180" 
+                  />
+                  
+                  <blockquote className="text-lg leading-relaxed text-foreground italic pl-6">
+                    &ldquo;{quote.text}&rdquo;
+                  </blockquote>
+                  
+                  {(quote.author || quote.position) && (
+                    <footer className="mt-4 text-right">
+                      {quote.author && (
+                        <cite className="text-sm font-medium text-foreground not-italic">
+                          — {quote.author}
+                        </cite>
+                      )}
+                      {quote.position && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {quote.position}
+                        </div>
+                      )}
+                    </footer>
                   )}
-                  {quote.position && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {quote.position}
-                    </div>
-                  )}
-                </footer>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 } 
