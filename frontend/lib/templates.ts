@@ -26,6 +26,24 @@ const FALLBACK_TEMPLATES: TemplateConfig[] = [
     name: 'Professional',
     description: 'Corporate and structured',
     previewImage: '/templates/professional/preview.jpg'
+  },
+  {
+    id: 'cyberpunk',
+    name: 'Cyberpunk',
+    description: 'Futuristic neon-themed design with dark backgrounds and matrix-style effects',
+    previewImage: '/templates/cyberpunk/preview.jpg'
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    description: 'Command-line interface inspired design with monospace fonts and terminal aesthetics',
+    previewImage: '/templates/terminal/preview.jpg'
+  },
+  {
+    id: 'retro-gaming',
+    name: 'Retro Gaming',
+    description: '8-bit inspired pixel art design with retro gaming aesthetics and classic arcade vibes',
+    previewImage: '/templates/retro-gaming/preview.jpg'
   }
 ];
 

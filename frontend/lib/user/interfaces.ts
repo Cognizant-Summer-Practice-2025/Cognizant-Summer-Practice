@@ -65,7 +65,7 @@ export interface RegisterOAuthUserRequest {
   bio?: string;
   location?: string;
   profileImage?: string;
-  provider: 'Google' | 'GitHub' | 'Facebook' | 'LinkedIn';
+  provider: number; // OAuthProviderType enum: 0=Google, 1=GitHub, 2=LinkedIn, 3=Facebook
   providerId: string;
   providerEmail: string;
   accessToken: string;

@@ -116,6 +116,9 @@ CREATE INDEX idx_bookmarks_portfolio_id ON bookmarks(portfolio_id);
 -- Insert default portfolio templates
 INSERT INTO portfolio_templates (name, description, preview_image_url) VALUES
 ('Gabriel Bârzu', 'Modern minimalist design with clean typography and structured layout', '/templates/gabriel-barzu/preview.jpg'),
-('Modern', 'Clean and minimal design', '/templates/modern/preview.jpg'),
+('Modern', 'Contemporary design with glassmorphism effects, dark mode support, and smooth animations', '/templates/modern/preview.jpg'),
 ('Creative', 'Bold and artistic layout', '/templates/creative/preview.jpg'),
-('Professional', 'Corporate and structured', '/templates/professional/preview.jpg');
+('Professional', 'Corporate and structured', '/templates/professional/preview.jpg'),
+('Cyberpunk', 'Futuristic neon-themed design with dark backgrounds and matrix-style effects', '/templates/cyberpunk/preview.jpg'),
+('Terminal', 'Command-line interface inspired design with monospace fonts and terminal aesthetics', '/templates/terminal/preview.jpg'),
+('Retro Gaming', '8-bit inspired pixel art design with retro gaming aesthetics and classic arcade vibes', '/templates/retro-gaming/preview.jpg');
