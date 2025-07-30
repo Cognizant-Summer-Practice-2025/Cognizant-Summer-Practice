@@ -51,12 +51,10 @@ const ContactItem: React.FC<{
             : contact.lastMessage}
         </div>
         <div className="contact-status">
-          {contact.unreadCount && contact.unreadCount > 0 ? (
+          {(contact.unreadCount || 0) > 0 && (
             <div className="unread-badge">
               {contact.unreadCount}
            </div>
-          ) : (
-            <div className="message-status">✓✓</div>
           )}
         </div>
       </div>
