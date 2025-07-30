@@ -348,6 +348,34 @@ namespace BackendMessages.Controllers
 
                 await _context.SaveChangesAsync();
 
+                // Broadcast the message deletion to both users via SignalR
+                try
+                {
+                    var messageDeletedEvent = new
+                    {
+                        MessageId = messageId.ToString(),
+                        ConversationId = message.ConversationId.ToString(),
+                        DeletedBy = userId.ToString(),
+                        DeletedAt = message.DeletedAt
+                    };
+
+                    // Send to receiver
+                    await _hubContext.Clients.Group($"user_{message.ReceiverId}")
+                        .SendAsync("MessageDeleted", messageDeletedEvent);
+
+                    // Send to sender (for multi-device support)
+                    await _hubContext.Clients.Group($"user_{message.SenderId}")
+                        .SendAsync("MessageDeleted", messageDeletedEvent);
+
+                    _logger.LogInformation("Message {MessageId} deletion broadcasted via SignalR to sender {SenderId} and receiver {ReceiverId}", 
+                        messageId, message.SenderId, message.ReceiverId);
+                }
+                catch (Exception hubEx)
+                {
+                    _logger.LogError(hubEx, "Failed to broadcast message deletion {MessageId} via SignalR", messageId);
+                    // Don't fail the request if SignalR fails
+                }
+
                 return Ok(new { Message = "Message deleted successfully" });
             }
             catch (Exception ex)

@@ -52,7 +52,7 @@ export interface CacheState {
 
 const useMessages = () => {
   const { user } = useUser();
-  const { onMessageReceived, onConversationUpdated, onUserPresenceUpdate, onMessageReadReceipt, markMessageAsRead, isConnected } = useWebSocket();
+  const { onMessageReceived, onConversationUpdated, onUserPresenceUpdate, onMessageReadReceipt, onMessageDeleted, markMessageAsRead, deleteMessage: deleteMessageViaWebSocket, isConnected } = useWebSocket();
   
   // Initialize conversations from cache if available
   const [conversations, setConversations] = useState<Conversation[]>(() => {
@@ -673,7 +673,7 @@ const useMessages = () => {
 
     try {
       console.log('Making API call to delete message...');
-      await messagesApi.deleteMessage(messageId, user.id);
+      await deleteMessageViaWebSocket(messageId, user.id);
       console.log('API call successful, updating state...');
       
       // Remove message from state
@@ -689,7 +689,7 @@ const useMessages = () => {
       console.error('Failed to delete message:', error);
       throw error;
     }
-  }, [user?.id, currentConversation?.id, clearMessageCache]);
+  }, [user?.id, currentConversation?.id, clearMessageCache, deleteMessageViaWebSocket]);
 
   const reportMessage = useCallback(async (messageId: string) => {
     if (!user?.id) {
@@ -730,7 +730,7 @@ const useMessages = () => {
         messageType: 0 // Text message
       });
       
-      // Decrypt the message content for display using the sender's user ID
+      // Decrypt the message content
       const decryptedContent = safeDecrypt(apiMessage.content, apiMessage.senderId);
       
       const newMessage: Message = {
@@ -925,13 +925,27 @@ const useMessages = () => {
       }));
     });
 
+    // Handle message deletion
+    const unsubscribeMessageDeleted = onMessageDeleted((deletedMessage) => {
+      console.log('Received message deleted event:', deletedMessage);
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== deletedMessage.messageId));
+      clearMessageCache(deletedMessage.conversationId);
+      setConversations(prev => prev.map(conv => 
+        conv.id === deletedMessage.conversationId ? {
+          ...conv,
+          unreadCount: conv.lastMessage?.id === deletedMessage.messageId ? Math.max(0, conv.unreadCount - 1) : conv.unreadCount
+        } : conv
+      ));
+    });
+
     return () => {
       unsubscribeMessage();
       unsubscribeConversation();
       unsubscribePresence();
       unsubscribeReadReceipt();
+      unsubscribeMessageDeleted();
     };
-  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages]);
+  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages, onMessageDeleted]);
 
   return {
     conversations,

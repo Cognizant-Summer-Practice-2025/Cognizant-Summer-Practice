@@ -7,7 +7,7 @@ namespace BackendMessages.Hubs
 {
     public class MessageHub : Hub
     {
-        // Store user connections - in production, you might want to use Redis or a database
+        // Store user connections
         private static readonly ConcurrentDictionary<string, HashSet<string>> UserConnections = new();
         private readonly ILogger<MessageHub> _logger;
         private readonly MessagesDbContext _context;
@@ -16,6 +16,69 @@ namespace BackendMessages.Hubs
         {
             _logger = logger;
             _context = context;
+        }
+
+        /// <summary>
+        /// Delete a message and broadcast the deletion to all relevant users
+        /// </summary>
+        /// <param name="messageId">The ID of the message to delete</param>
+        /// <param name="userId">The ID of the user requesting deletion</param>
+        public async Task DeleteMessage(string messageId, string userId)
+        {
+            try
+            {
+                if (!Guid.TryParse(messageId, out var messageGuid) || !Guid.TryParse(userId, out var userGuid))
+                {
+                    _logger.LogWarning("Invalid messageId {MessageId} or userId {UserId}", messageId, userId);
+                    return;
+                }
+
+                // Find the message
+                var message = await _context.Messages
+                    .FirstOrDefaultAsync(m => m.Id == messageGuid && m.DeletedAt == null);
+
+                if (message == null)
+                {
+                    _logger.LogWarning("Message {MessageId} not found", messageId);
+                    return;
+                }
+
+                // Only sender can delete message
+                if (message.SenderId != userGuid)
+                {
+                    _logger.LogWarning("User {UserId} attempted to delete message {MessageId} they didn't send", userId, messageId);
+                    return;
+                }
+
+                // Soft delete the message
+                message.DeletedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                message.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                await _context.SaveChangesAsync();
+
+                // Broadcast the deletion event
+                var messageDeletedEvent = new
+                {
+                    MessageId = messageId,
+                    ConversationId = message.ConversationId.ToString(),
+                    DeletedBy = userId,
+                    DeletedAt = message.DeletedAt
+                };
+
+                // Send to receiver
+                await Clients.Group($"user_{message.ReceiverId}")
+                    .SendAsync("MessageDeleted", messageDeletedEvent);
+
+                // Send to sender (for multi-device support)
+                await Clients.Group($"user_{message.SenderId}")
+                    .SendAsync("MessageDeleted", messageDeletedEvent);
+
+                _logger.LogInformation("Message {MessageId} deleted by user {UserId} and broadcasted to sender {SenderId} and receiver {ReceiverId}", 
+                    messageId, userId, message.SenderId, message.ReceiverId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting message {MessageId} by user {UserId}", messageId, userId);
+            }
         }
 
         /// <summary>

@@ -4,9 +4,9 @@
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
-  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+  transition: background-color 0.2s ease;
+  color: rgba(92, 92, 92, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,25 +17,22 @@
 }
 
 .message-menu-button:hover {
-  color: rgba(255, 255, 255, 0.9);
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.message-wrapper:hover .message-menu-button {
-  opacity: 1;
-}
+/* Removed the hover opacity change - button is always visible now */
 
 /* Positioning for own messages (sent) - button on left side */
 .message-wrapper.user-message .message-menu-button {
   order: -1; /* Move to the left of the message bubble */
-  margin-right: 8px;
+  margin-right: 4px;
   margin-left: 0;
 }
 
 /* Positioning for other messages (received) - button on right side */
 .message-wrapper.other-message .message-menu-button {
   order: 1; /* Move to the right of the message bubble */
-  margin-left: 8px;
+  margin-left: 4px;
   margin-right: 0;
 }
 
@@ -55,7 +52,7 @@
 
 /* Additional styling for different message types */
 .own-message-menu {
-  /* Specific styles for own message menu if needed */
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .other-message-menu {

@@ -37,6 +37,13 @@ export interface MessageReadReceipt {
   readAt: string;
 }
 
+export interface MessageDeleted {
+  messageId: string;
+  conversationId: string;
+  deletedBy: string;
+  deletedAt: string;
+}
+
 interface WebSocketContextType {
   connection: signalR.HubConnection | null;
   isConnected: boolean;
@@ -45,7 +52,9 @@ interface WebSocketContextType {
   onConversationUpdated: (callback: (update: ConversationUpdate) => void) => () => void;
   onUserPresenceUpdate: (callback: (update: UserPresenceUpdate) => void) => () => void;
   onMessageReadReceipt: (callback: (receipt: MessageReadReceipt) => void) => () => void;
+  onMessageDeleted: (callback: (deletion: MessageDeleted) => void) => () => void;
   markMessageAsRead: (messageId: string, userId: string) => Promise<void>;
+  deleteMessage: (messageId: string, userId: string) => Promise<void>;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
 }
@@ -75,6 +84,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
   const conversationCallbacks = useRef<((update: ConversationUpdate) => void)[]>([]);
   const presenceCallbacks = useRef<((update: UserPresenceUpdate) => void)[]>([]);
   const messageReadCallbacks = useRef<((receipt: MessageReadReceipt) => void)[]>([]);
+  const messageDeletedCallbacks = useRef<((deletion: MessageDeleted) => void)[]>([]);
 
   const connect = useCallback(async () => {
     if (!user?.id || isConnecting || isConnected) {
@@ -113,6 +123,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       newConnection.on('MessageRead', (receipt: MessageReadReceipt) => {
         console.log('Message read receipt via SignalR:', receipt);
         messageReadCallbacks.current.forEach(callback => callback(receipt));
+      });
+
+      newConnection.on('MessageDeleted', (deletion: MessageDeleted) => {
+        console.log('Message deleted via SignalR:', deletion);
+        messageDeletedCallbacks.current.forEach(callback => callback(deletion));
       });
 
       // Handle connection events
@@ -225,6 +240,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     };
   }, []);
 
+  const onMessageDeleted = useCallback((callback: (deletion: MessageDeleted) => void) => {
+    messageDeletedCallbacks.current.push(callback);
+    
+    // Return cleanup function
+    return () => {
+      const index = messageDeletedCallbacks.current.indexOf(callback);
+      if (index > -1) {
+        messageDeletedCallbacks.current.splice(index, 1);
+      }
+    };
+  }, []);
+
   const markMessageAsRead = useCallback(async (messageId: string, userId: string) => {
     if (!connection) {
       console.error('SignalR connection not established.');
@@ -235,6 +262,19 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       console.log(`Message with ID ${messageId} marked as read by user ${userId}`);
     } catch (error) {
       console.error('Error marking message as read:', error);
+    }
+  }, [connection]);
+
+  const deleteMessage = useCallback(async (messageId: string, userId: string) => {
+    if (!connection) {
+      console.error('SignalR connection not established.');
+      return;
+    }
+    try {
+      await connection.invoke('DeleteMessage', messageId, userId);
+      console.log(`Message with ID ${messageId} deleted by user ${userId}`);
+    } catch (error) {
+      console.error('Error deleting message:', error);
     }
   }, [connection]);
 
@@ -260,7 +300,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     onConversationUpdated,
     onUserPresenceUpdate,
     onMessageReadReceipt,
+    onMessageDeleted,
     markMessageAsRead,
+    deleteMessage,
     connect,
     disconnect
   };
