@@ -56,8 +56,8 @@
   }
 }
 
-/* Tablet/Medium Desktop (769px-1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet/Medium Desktop (480px-1024px) */
+@media (min-width: 480px) and (max-width: 1024px) {
   .virtualized-message-container {
     padding: 0.5rem 1rem;
     margin-bottom: 10px;

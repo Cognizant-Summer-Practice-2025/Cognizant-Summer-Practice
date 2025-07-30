@@ -93,8 +93,8 @@
   gap: 0.75rem;
 }
 
-/* Specific 769px breakpoint */
-@media (max-width: 769px) {
+/* Mobile breakpoint - 480px */
+@media (max-width: 479px) {
   .chat-header {
     padding: 1rem;
     min-height: 3.75rem;
@@ -161,12 +161,48 @@
 }
 
 @media (max-width: 480px) {
+  .chat-header {
+    /* Better touch targets for mobile */
+    min-height: 60px;
+    padding: 0.75rem 1rem;
+  }
+  
   .chat-header-left {
     gap: 0.75rem;
   }
   
   .chat-header-right {
-    gap: 0.5rem;
+    gap: 0.75rem; /* Increased for better touch targets */
+  }
+  
+  .contact-avatar {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .contact-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  
+  .contact-status {
+    font-size: 0.75rem;
+  }
+  
+  /* Better touch targets for buttons */
+  .back-button,
+  .more-options-btn,
+  .view-portfolio-btn {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+  }
+  
+  .back-button:focus,
+  .more-options-btn:focus,
+  .view-portfolio-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
   }
 }
 

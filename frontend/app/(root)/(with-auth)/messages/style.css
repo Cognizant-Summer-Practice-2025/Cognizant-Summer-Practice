@@ -3,16 +3,9 @@
   height: 100vh;
   width: 100%;
   position: relative;
-  /* Enable container queries for modern responsive design */
   container-type: inline-size;
-}
-
-.messages-page.desktop {
-  /* Desktop layout - side by side */
-}
-
-.messages-page.mobile {
-  /* Mobile layout - stacked */
+  /* Improve performance */
+  will-change: transform;
 }
 
 .messages-sidebar-container {
@@ -25,7 +18,6 @@
   transition: transform 0.3s ease-in-out;
 }
 
-/* Large Desktop styles (1200px+) */
 @media (min-width: 1200px) {
   .messages-sidebar-container {
     width: 380px;
@@ -45,7 +37,6 @@
   }
 }
 
-/* Desktop styles (1025px-1199px) */
 @media (min-width: 1025px) and (max-width: 1199px) {
   .messages-sidebar-container {
     width: 350px;
@@ -65,8 +56,7 @@
   }
 }
 
-/* Tablet/Medium Desktop styles (769px-1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
+@media (min-width: 480px) and (max-width: 1024px) {
   .messages-sidebar-container {
     width: 320px;
     border-right: 1px solid #E2E8F0;
@@ -76,7 +66,7 @@
   
   .messages-chat {
     flex: 1;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0; 
   }
   
   .messages-sidebar-container.visible,
@@ -87,10 +77,15 @@
   }
 }
 
-/* Specific 769px breakpoint */
-@media (max-width: 769px) {
+/* Enhanced mobile breakpoint for better performance */
+@media (max-width: 479px) {
   .messages-page {
     overflow: hidden;
+    /* Better mobile viewport handling */
+    height: 100dvh;
+    max-height: 100dvh;
+    /* Improve mobile performance */
+    -webkit-overflow-scrolling: touch;
   }
   
   .messages-sidebar-container,
@@ -99,103 +94,37 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100dvh;
+    /* Enable hardware acceleration for smoother transitions */
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: transform;
   }
   
   .messages-sidebar-container.visible {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     z-index: 10;
   }
   
   .messages-sidebar-container.hidden {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
     z-index: 1;
   }
   
   .messages-chat.visible {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
     z-index: 10;
   }
   
   .messages-chat.hidden {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
     z-index: 1;
   }
 }
 
-/* Large Mobile/Small Tablet styles (481px-768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .messages-page {
-    overflow: hidden;
-  }
-  
-  .messages-sidebar-container,
-  .messages-chat {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .messages-sidebar-container.visible {
-    transform: translateX(0);
-    z-index: 10;
-  }
-  
-  .messages-sidebar-container.hidden {
-    transform: translateX(-100%);
-    z-index: 1;
-  }
-  
-  .messages-chat.visible {
-    transform: translateX(0);
-    z-index: 10;
-  }
-  
-  .messages-chat.hidden {
-    transform: translateX(100%);
-    z-index: 1;
-  }
-}
+/* Tablet styles - now use desktop layout instead of mobile sliding */
 
-/* Mobile styles (≤480px) */
-@media (max-width: 480px) {
-  .messages-page {
-    overflow: hidden;
-  }
-  
-  .messages-sidebar-container,
-  .messages-chat {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  .messages-sidebar-container.visible {
-    transform: translateX(0);
-    z-index: 10;
-  }
-  
-  .messages-sidebar-container.hidden {
-    transform: translateX(-100%);
-    z-index: 1;
-  }
-  
-  .messages-chat.visible {
-    transform: translateX(0);
-    z-index: 10;
-  }
-  
-  .messages-chat.hidden {
-    transform: translateX(100%);
-    z-index: 1;
-  }
-}
-
-/* Container queries for modern responsive design */
 @container (min-width: 1200px) {
   .messages-sidebar-container {
     width: 380px;
@@ -214,7 +143,44 @@
   }
 }
 
-/* Accessibility and reduced motion support */
+/* Enhanced landscape orientation support for mobile */
+@media (max-width: 479px) and (orientation: landscape) {
+  .messages-page {
+    /* Use dynamic viewport height for better landscape support */
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+  
+  .messages-sidebar-container,
+  .messages-chat {
+    height: 100dvh;
+  }
+}
+
+/* Ultra-wide screen support */
+@media (min-width: 1440px) {
+  .messages-page {
+    max-width: 1600px;
+    margin: 0 auto;
+    border-left: 1px solid #E2E8F0;
+    border-right: 1px solid #E2E8F0;
+  }
+  
+  .messages-sidebar-container {
+    width: 420px;
+  }
+}
+
+/* Focus management for keyboard navigation */
+.messages-page:focus-within {
+  outline: none;
+}
+
+/* Improve loading performance */
+.messages-page * {
+  box-sizing: border-box;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .messages-sidebar-container,
   .messages-chat {
@@ -222,14 +188,12 @@
   }
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
   .messages-sidebar-container {
     border-right: 2px solid #000;
   }
 }
 
-/* Legacy media query - keeping for compatibility */
 @media (max-width: 1920px) {
   .messages-container {
     width: 100%;

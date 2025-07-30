@@ -33,7 +33,6 @@ namespace BackendMessages.Hubs
                     return;
                 }
 
-                // Find the message
                 var message = await _context.Messages
                     .FirstOrDefaultAsync(m => m.Id == messageGuid && m.DeletedAt == null);
 

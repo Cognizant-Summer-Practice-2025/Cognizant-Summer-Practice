@@ -239,8 +239,8 @@
   background: #94a3b8;
 }
 
-/* Specific 769px breakpoint */
-@media (max-width: 769px) {
+/* Mobile breakpoint - 480px */
+@media (max-width: 479px) {
   .messages-area {
     padding: 1rem;
     gap: 1rem;
@@ -364,8 +364,8 @@
   }
 }
 
-/* Tablet/Medium Desktop (769px-1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet/Medium Desktop (480px-1024px) */
+@media (min-width: 480px) and (max-width: 1024px) {
   .messages-area {
     padding: 1rem;
     gap: 1rem;
@@ -443,19 +443,24 @@
   }
 }
 
-/* Mobile (≤480px) */
+/* Mobile (≤480px) with enhanced accessibility */
 @media (max-width: 480px) {
   .messages-area {
     padding: clamp(0.5rem, 3vw, 1rem);
     gap: clamp(0.5rem, 2vw, 1rem);
     overflow-y: auto;
     overflow-x: hidden;
+    /* Better mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
   .message-wrapper.user-message,
   .message-wrapper.other-message {
     max-width: 90%;
     gap: clamp(0.375rem, 1vw, 0.5rem);
+    /* Better focus management */
+    scroll-margin: 20px;
   }
   
   .message-avatar {
@@ -466,10 +471,21 @@
   .message-bubble {
     padding: clamp(0.5rem, 2vw, 0.75rem);
     gap: clamp(0.125rem, 0.5vw, 0.25rem);
+    /* Better touch target for accessibility */
+    min-height: 44px;
+    /* Focus indicator */
+    position: relative;
+  }
+  
+  .message-bubble:focus-within {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
   }
   
   .message-text {
     font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
+    /* Better readability */
+    line-height: 1.5;
   }
   
   .message-timestamp,
@@ -479,16 +495,33 @@
   
   .message-input-container {
     padding: clamp(0.5rem, 3vw, 1rem);
+    /* Safe area support for mobile keyboards */
+    padding-bottom: max(clamp(0.5rem, 3vw, 1rem), env(safe-area-inset-bottom));
   }
   
   .message-input {
     padding: clamp(0.5rem, 2vw, 0.75rem);
     font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
+    /* Better touch target */
+    min-height: 44px;
+  }
+  
+  .message-input:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
   }
   
   .send-button {
     padding: clamp(0.375rem, 1.5vw, 0.625rem);
-    min-width: clamp(2rem, 6vw, 2.5rem);
+    min-width: clamp(2.5rem, 7vw, 3rem);
+    min-height: 44px;
+    /* Better accessibility */
+    position: relative;
+  }
+  
+  .send-button:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
   }
 }
 

@@ -75,18 +75,7 @@ const MessagesPage = () => {
   useEffect(() => {
     const checkIsMobile = () => {
       const width = window.innerWidth;
-      setIsMobile(width <= 769); // Updated to 769px breakpoint
-      
-      // Optional: Add additional responsive logic for different screen sizes
-      if (width > 1024) {
-        // Large desktop - could add specific logic here
-      } else if (width > 769) {
-        // Tablet - could add specific logic here
-      } else if (width > 480) {
-        // Large mobile - could add specific logic here
-      } else {
-        // Small mobile - could add specific logic here
-      }
+      setIsMobile(width < 480); 
     };
 
     checkIsMobile();
@@ -94,7 +83,6 @@ const MessagesPage = () => {
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
 
-  // Reset to sidebar view when switching back to desktop
   useEffect(() => {
     if (!isMobile) {
       setMobileView('sidebar');
@@ -118,22 +106,19 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    // Backend sends UTC time without timezone indicator, so we need to treat it as UTC
-    const utcDate = new Date(dateString + 'Z'); // Add 'Z' to indicate it's UTC
+    const utcDate = new Date(dateString + 'Z');
     const now = new Date();
     
-    // Calculate time difference in hours
     const diffInHours = (now.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
     
-    if (diffInHours < 24) {
-      // Less than 24 hours: show time only
+    if (diffInHours < 12) {
+   
       return utcDate.toLocaleTimeString(undefined, { 
         hour: 'numeric', 
         minute: '2-digit',
         hour12: true
       });
     } else {
-      // More than 24 hours: show date
       return utcDate.toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
@@ -146,10 +131,8 @@ const MessagesPage = () => {
     let status: "read" | "delivered" | "sent" = "sent";
     
     if (msg.senderId === user?.id) {
-      // Messages sent by current user
       status = msg.isRead ? "read" : "delivered";
     } else {
-      // Messages received by current user - always show as delivered/sent since they're not our messages to track
       status = "delivered";
     }
     
@@ -245,7 +228,6 @@ const MessagesPage = () => {
         timestamp: formatTimestamp(conversation.updatedAt)
       });
       await selectConversation(conversation);
-      // Switch to chat view on mobile when a contact is selected
       if (isMobile) {
         setMobileView('chat');
       }
@@ -276,7 +258,6 @@ const MessagesPage = () => {
         
         setSelectedContact(newContact);
         await selectConversation(newConversation);
-        // Switch to chat view on mobile when a new conversation is created
         if (isMobile) {
           setMobileView('chat');
         }
@@ -286,28 +267,36 @@ const MessagesPage = () => {
     }
   };
 
-  // Handle back button navigation on mobile
+
   const handleBackToSidebar = () => {
     if (isMobile) {
       setMobileView('sidebar');
     }
   };
 
-  // Debug function to test online status (removing for now to fix linter)
-  // const testOnlineStatus = async () => {
-  //   if (selectedContact?.userId) {
-  //     console.log('Testing online status for:', selectedContact.userId);
-  //     try {
-  //       const response = await fetch(`http://localhost:5093/api/users/${selectedContact.userId}/online-status`);
-  //       const data = await response.json();
-  //       console.log('Online status response:', data);
-  //       alert(`User ${selectedContact.name} is ${data.isOnline ? 'ONLINE' : 'OFFLINE'}`);
-  //     } catch (error) {
-  //       console.error('Error testing online status:', error);
-  //       alert('Error checking online status');
-  //     }
-  //   }
-  // };
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMobile && mobileView === 'chat') {
+        handleBackToSidebar();
+        return;
+      }
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case 'f': 
+            if (mobileView === 'chat' || !isMobile) {
+              event.preventDefault();
+              const messageInput = document.querySelector('.message-input') as HTMLInputElement;
+              messageInput?.focus();
+            }
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile, mobileView]);
+
 
   const handleSendMessage = async (content: string) => {
     if (!currentConversation || !user) return;
@@ -325,7 +314,6 @@ const MessagesPage = () => {
       console.log("Calling deleteConversation from useMessages...");
       await deleteConversation(conversationId);
       console.log("Delete conversation successful");
-      // If the deleted conversation was selected, clear the selection
       if (selectedContact?.id === conversationId) {
         setSelectedContact(null);
       }
@@ -333,8 +321,6 @@ const MessagesPage = () => {
       console.error('Failed to delete conversation:', error);
     }
   };
-
-  // Only show loading spinner if there's no cache at all (first visit or cache cleared)
   if (loading && conversations.length === 0 && !cacheState.isFromCache) {
     return (
       <div className="messages-page">
@@ -412,10 +398,19 @@ const MessagesPage = () => {
   }
 
   return (
-    <div className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}>
+    <div 
+      className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
+      role="main"
+      aria-label="Messages application"
+    >
       
       {/* Sidebar - visible on desktop or when mobile view is 'sidebar' */}
-      <div className={`messages-sidebar-container ${(!isMobile || mobileView === 'sidebar') ? 'visible' : 'hidden'}`}>
+      <div 
+        className={`messages-sidebar-container ${(!isMobile || mobileView === 'sidebar') ? 'visible' : 'hidden'}`}
+        role="navigation"
+        aria-label="Conversations list"
+        aria-hidden={isMobile && mobileView !== 'sidebar'}
+      >
         <Sidebar 
           contacts={contacts} 
           selectedContact={selectedContact}
@@ -428,6 +423,9 @@ const MessagesPage = () => {
       <div
         className={`messages-chat ${(!isMobile || mobileView === 'chat') ? 'visible' : 'hidden'}`}
         style={{ flex: 1, display: "flex", flexDirection: "column", padding: "4rem 0 0 0" }}
+        role="main"
+        aria-label={selectedContact ? `Chat with ${selectedContact.name}` : "Chat area"}
+        aria-hidden={isMobile && mobileView !== 'chat'}
       >
 
         {messagesError && (

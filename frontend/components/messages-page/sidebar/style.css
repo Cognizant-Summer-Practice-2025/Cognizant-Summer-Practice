@@ -201,8 +201,8 @@
   opacity: 1;
 }
 
-/* Specific 769px breakpoint */
-@media (max-width: 769px) {
+/* Mobile breakpoint - 480px */
+@media (max-width: 479px) {
   .messages-sidebar {
     width: 100%;
     max-height: none; 
@@ -290,8 +290,8 @@
   }
 }
 
-/* Tablet/Medium Desktop (769px-1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet/Medium Desktop (480px-1024px) */
+@media (min-width: 480px) and (max-width: 1024px) {
   .messages-sidebar {
     width: 100%;
     max-width: 320px;
@@ -370,16 +370,18 @@
   }
 }
 
-/* Mobile (≤480px) */
+/* Mobile (≤480px) with enhanced touch targets */
 @media (max-width: 480px) {
   .messages-sidebar {
     width: 100%;
     max-height: none; 
-    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height */
   }
   
   .sidebar-header {
-    padding: 0.75rem 1rem;
+    padding: 1rem;
+    /* Improve touch target size */
+    min-height: 64px;
   }
   
   .sidebar-title {
@@ -387,39 +389,54 @@
   }
   
   .new-message-button {
-    padding: 6px 12px;
+    padding: 8px 16px;
+    /* Larger touch target for mobile */
+    min-height: 44px;
+    min-width: 44px;
   }
   
   .new-message-icon,
   .new-message-text {
-    font-size: 12px;
+    font-size: 13px;
   }
   
   .contact-item {
     height: auto;
-    padding: 12px 16px;
-    min-height: 75px;
+    padding: 16px;
+    /* Better touch target size for mobile */
+    min-height: 88px;
+    /* Add subtle border for better visual separation */
+    border-bottom: 1px solid #F1F5F9;
   }
   
   .contact-avatar-container {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
   }
   
   .contact-name {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
+    font-weight: 500;
   }
   
   .contact-message {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
+    /* Better line height for readability */
+    line-height: 1.4;
   }
   
   .contact-timestamp {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
   }
 
   .contact-menu {
     opacity: 1; /* Always show on mobile */
+  }
+  
+  /* Improve scrolling performance on mobile */
+  .contacts-list {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 }
 
