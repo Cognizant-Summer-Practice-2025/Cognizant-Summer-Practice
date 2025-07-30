@@ -123,7 +123,6 @@
   }
 }
 
-/* Tablet styles - now use desktop layout instead of mobile sliding */
 
 @container (min-width: 1200px) {
   .messages-sidebar-container {

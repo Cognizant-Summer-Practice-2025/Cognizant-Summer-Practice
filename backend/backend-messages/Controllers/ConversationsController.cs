@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Services;
+using BackendMessages.Services.Abstractions;
+using BackendMessages.DTO.Conversation.Request;
 
 namespace BackendMessages.Controllers
 {
@@ -230,7 +232,13 @@ namespace BackendMessages.Controllers
                 }
 
                 _logger.LogInformation("Calling DeleteConversationAsync service method...");
-                var success = await _conversationService.DeleteConversationAsync(conversationId, userId);
+                var deleteRequest = new DeleteConversationRequest
+                {
+                    ConversationId = conversationId,
+                    UserId = userId
+                };
+                var result = await _conversationService.DeleteConversationAsync(deleteRequest);
+                var success = result.Success;
                 _logger.LogInformation("DeleteConversationAsync returned: {Success}", success);
 
                 if (!success)
@@ -251,7 +259,7 @@ namespace BackendMessages.Controllers
 
                     // Check if user has permission
                     _logger.LogInformation("Checking user permissions...");
-                    var hasPermission = await _conversationService.IsUserPartOfConversationAsync(conversationId, userId);
+                    var hasPermission = await _conversationService.UserCanAccessConversationAsync(conversationId, userId);
                     _logger.LogInformation("User has permission: {HasPermission}", hasPermission);
                     
                     if (!hasPermission)
@@ -278,11 +286,5 @@ namespace BackendMessages.Controllers
                 return StatusCode(500, $"An error occurred while deleting the conversation: {ex.Message}");
             }
         }
-    }
-
-    public class CreateConversationRequest
-    {
-        public Guid InitiatorId { get; set; }
-        public Guid ReceiverId { get; set; }
     }
 } 

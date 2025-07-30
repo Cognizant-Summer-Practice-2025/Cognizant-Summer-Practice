@@ -1,13 +1,9 @@
 using BackendMessages.Models;
+using BackendMessages.Services.Abstractions;
 using System.Text.Json;
 
 namespace BackendMessages.Services
 {
-    public interface IUserSearchService
-    {
-        Task<List<SearchUser>> SearchUsersAsync(string searchTerm);
-    }
-
     public class UserSearchService : IUserSearchService
     {
         private readonly HttpClient _httpClient;
@@ -72,6 +68,70 @@ namespace BackendMessages.Services
             {
                 _logger.LogError(ex, "Unexpected error occurred while searching users");
                 return new List<SearchUser>();
+            }
+        }
+
+        public async Task<SearchUser?> GetUserByIdAsync(Guid userId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+                    
+                    _logger.LogWarning("Failed to get user {UserId}. Status: {StatusCode}", userId, response.StatusCode);
+                    return null;
+                }
+
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var user = JsonSerializer.Deserialize<SearchUser>(jsonContent, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true 
+                });
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting user by id: {UserId}", userId);
+                return null;
+            }
+        }
+
+        public async Task<bool> IsUserOnlineAsync(Guid userId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}/online-status");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Failed to get online status for user {UserId}. Status: {StatusCode}", userId, response.StatusCode);
+                    return false;
+                }
+
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonContent, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true 
+                });
+
+                if (result != null && result.TryGetValue("isOnline", out var isOnlineValue))
+                {
+                    return Convert.ToBoolean(isOnlineValue);
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking online status for user: {UserId}", userId);
+                return false;
             }
         }
     }

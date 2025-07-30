@@ -1,4 +1,5 @@
 using BackendMessages.Services;
+using BackendMessages.Services.Abstractions;
 using BackendMessages.Hubs;
 using Microsoft.AspNetCore.Mvc;
 
