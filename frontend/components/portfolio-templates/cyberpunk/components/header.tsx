@@ -33,19 +33,19 @@ export function Header({ data }: HeaderProps) {
                 <span className="name-bracket">]</span>
               </h1>
               <p className="profile-title">
-                <Terminal className="title-icon" size={16} />
+                <Terminal className="title-icon" size={12} />
                 {profile.title}
               </p>
               
               <div className="profile-meta">
                 {profile.location && (
                   <div className="meta-item">
-                    <MapPin size={14} />
+                    <MapPin size={10} />
                     <span>{profile.location}</span>
                   </div>
                 )}
                 <div className="meta-item">
-                  <Mail size={14} />
+                  <Mail size={10} />
                   <span>{profile.email}</span>
                 </div>
               </div>
@@ -60,14 +60,14 @@ export function Header({ data }: HeaderProps) {
               <span>ONLINE</span>
             </div>
             <div className="connection-status">
-              <Zap size={16} />
+              <Zap size={12} />
               <span>NEURAL LINK ACTIVE</span>
             </div>
           </div>
           
           {socialLinks && socialLinks.length > 0 && (
             <div className="social-links">
-              {socialLinks.map((link) => (
+              {socialLinks.slice(0, 3).map((link) => (
                 <a
                   key={link.id}
                   href={link.url}
@@ -76,7 +76,7 @@ export function Header({ data }: HeaderProps) {
                   className="social-link"
                 >
                   <div className="social-icon">
-                    {link.platform.toLowerCase()}
+                    {link.platform.slice(0, 2).toUpperCase()}
                   </div>
                 </a>
               ))}

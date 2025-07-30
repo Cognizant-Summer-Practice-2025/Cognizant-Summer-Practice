@@ -1,10 +1,13 @@
 import React from 'react';
-import { PortfolioDataFromDB } from '@/lib/portfolio';
+import { UserProfile, Quote } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Terminal, Code, User } from 'lucide-react';
 
 interface AboutProps {
-  data: PortfolioDataFromDB;
+  data: {
+    profile: UserProfile;
+    quotes: Quote[];
+  };
 }
 
 export function About({ data }: AboutProps) {

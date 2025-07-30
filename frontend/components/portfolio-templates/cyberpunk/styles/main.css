@@ -22,12 +22,14 @@
 }
 
 .cyberpunk-template {
-  min-height: 100vh;
+  height: calc(100vh - 64px); /* Exact screen height minus header */
+  max-height: calc(100vh - 64px); /* Prevent exceeding screen */
   background: var(--cyber-bg);
   color: var(--cyber-text);
   font-family: var(--cyber-font);
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden; /* Prevent page scrolling */
+  box-sizing: border-box;
 }
 
 /* Matrix Loading Screen */
@@ -92,6 +94,228 @@
   color: var(--cyber-accent);
 }
 
+/* Cyberpunk Header - Simple & Clean */
+.cyberpunk-header {
+  padding: 8px 20px;
+  background: var(--cyber-surface);
+  border-bottom: 1px solid var(--cyber-border);
+  position: relative;
+  z-index: 10;
+}
+
+.header-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 350px;
+}
+
+.avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-large {
+  width: 32px !important;
+  height: 32px !important;
+  border: 2px solid var(--cyber-accent);
+  box-shadow: 0 0 12px var(--cyber-accent);
+}
+
+.avatar-fallback {
+  background: var(--cyber-surface);
+  color: var(--cyber-accent);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.avatar-glow {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--cyber-accent), var(--cyber-secondary));
+  opacity: 0.3;
+  z-index: -1;
+  animation: glow 2s infinite;
+}
+
+.profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--cyber-text-bright);
+  margin: 0 0 2px 0;
+}
+
+.name-bracket {
+  color: var(--cyber-accent);
+  font-weight: 400;
+}
+
+.profile-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--cyber-text-dim);
+  margin: 0 0 3px 0;
+}
+
+.title-icon {
+  color: var(--cyber-accent);
+}
+
+.profile-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  color: var(--cyber-text-dim);
+  opacity: 0.9;
+}
+
+.meta-item svg {
+  color: var(--cyber-accent);
+  flex-shrink: 0;
+}
+
+.status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: 180px;
+}
+
+.status-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--cyber-text-bright);
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyber-tertiary);
+  box-shadow: 0 0 8px var(--cyber-tertiary);
+  animation: pulse 2s infinite;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--cyber-accent);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.social-links {
+  display: flex;
+  gap: 6px;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--cyber-bg);
+  border: 1px solid var(--cyber-border);
+  border-radius: 4px;
+  color: var(--cyber-text);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.65rem;
+}
+
+.social-link:hover {
+  border-color: var(--cyber-accent);
+  color: var(--cyber-accent);
+  box-shadow: 0 0 8px var(--cyber-accent);
+}
+
+.bio-section {
+  padding: 4px 20px;
+  background: var(--cyber-bg);
+  border-bottom: 1px solid var(--cyber-border);
+}
+
+.bio-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.bio-prompt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+  font-size: 0.7rem;
+  color: var(--cyber-text-dim);
+}
+
+.prompt-symbol {
+  color: var(--cyber-accent);
+  font-weight: 600;
+}
+
+.prompt-command {
+  color: var(--cyber-tertiary);
+  font-weight: 500;
+}
+
+.bio-text {
+  font-size: 0.65rem;
+  line-height: 1.2;
+  color: var(--cyber-text-dim);
+  margin: 0;
+  max-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  opacity: 0.8;
+}
+
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
@@ -100,7 +324,7 @@
 /* Main Interface */
 .main-interface {
   display: flex;
-  min-height: 100vh;
+  height: 100%; /* Take full height of parent */
   transition: all 0.5s ease;
 }
 
@@ -116,11 +340,14 @@
 
 /* Sidebar */
 .cyberpunk-sidebar {
-  width: 280px;
+  width: 160px; /* Optimal width for navigation items */
   background: linear-gradient(145deg, var(--cyber-surface), #12162a);
   border-right: 2px solid var(--cyber-border);
   position: relative;
   flex-shrink: 0;
+  overflow: hidden; /* No scrolling, all content should fit */
+  display: flex;
+  flex-direction: column;
 }
 
 .cyberpunk-sidebar::before {
@@ -169,20 +396,24 @@
 }
 
 .sidebar-nav {
-  padding: 20px 0;
+  padding: 16px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 20px;
+  padding: 8px 16px;
   background: none;
   border: none;
   color: var(--cyber-text-dim);
   font-family: var(--cyber-font);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-align: left;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -245,14 +476,13 @@
 
 /* System Status */
 .system-status {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  right: 20px;
-  padding: 15px;
+  margin-top: auto; /* Push to bottom */
+  margin: 12px;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--cyber-border);
-  border-radius: 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .status-item {
@@ -321,7 +551,8 @@
 
 .content-body {
   flex: 1;
-  padding: 20px;
+  padding: 24px; /* Increased padding for more space */
+  height: 0; /* Allow flexbox to calculate height */
 }
 
 .content-window {
@@ -331,6 +562,8 @@
   overflow: hidden;
   height: 100%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 .window-header {
@@ -381,10 +614,14 @@
 }
 
 .window-content {
-  padding: 20px;
-  height: calc(100% - 60px);
-  overflow-y: auto;
+  padding: 24px; /* Increased padding for more space */
+  flex: 1; /* Take remaining height */
+  overflow-y: auto; /* Make content scrollable, not the page */
   background: var(--cyber-bg);
+  
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyber-accent) var(--cyber-surface);
 }
 
 /* Floating Particles */
@@ -484,7 +721,63 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .cyberpunk-sidebar {
+    width: 140px; /* Smaller on medium screens */
+  }
+  
+  .sidebar-header {
+    padding: 15px;
+  }
+  
+  .nav-item {
+    padding: 10px 15px;
+    font-size: 0.8rem;
+  }
+  
+  .logo-text {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .cyberpunk-sidebar {
+    width: 120px; /* Even smaller on tablets */
+  }
+  
+  .nav-item {
+    padding: 8px 12px;
+  }
+  
+  .nav-label {
+    font-size: 0.75rem;
+  }
+  
+  .system-status {
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    padding: 12px;
+  }
+  
+  .content-header {
+    padding: 15px;
+  }
+  
+  .content-body {
+    padding: 20px;
+  }
+  
+  .window-content {
+    padding: 20px;
+  }
+}
+
 @media (max-width: 768px) {
+  .cyberpunk-template {
+    height: calc(100vh - 60px); /* Adjust for smaller header on mobile */
+  }
+  
   .cyberpunk-sidebar {
     display: none;
   }
@@ -494,7 +787,14 @@
   }
   
   .content-header {
-    padding: 15px;
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
   }
   
   .content-body {
@@ -503,6 +803,180 @@
   
   .window-content {
     padding: 15px;
+  }
+  
+  .window-header {
+    padding: 10px 15px;
+  }
+  
+  .window-title {
+    font-size: 0.8rem;
+  }
+  
+  .control {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* Header responsive adjustments */
+  .cyberpunk-header {
+    padding: 8px 15px;
+  }
+  
+  .header-grid {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .profile-section {
+    gap: 8px;
+  }
+  
+  .avatar-large {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .profile-name {
+    font-size: 1rem;
+  }
+  
+  .profile-title {
+    font-size: 0.8rem;
+  }
+  
+  .meta-item {
+    font-size: 0.7rem;
+  }
+  
+  .status-section {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
+  }
+  
+  .status-indicator,
+  .connection-status {
+    font-size: 0.65rem;
+  }
+  
+  .bio-section {
+    padding: 8px 15px;
+  }
+  
+  .bio-prompt {
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+  }
+  
+  .bio-text {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    max-height: 2.6rem;
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .cyberpunk-template {
+    height: calc(100vh - 56px); /* Smaller header on very small screens */
+  }
+  
+  .content-header {
+    padding: 10px 12px;
+  }
+  
+  .breadcrumb {
+    font-size: 0.75rem;
+  }
+  
+  .content-body {
+    padding: 12px;
+  }
+  
+  .window-content {
+    padding: 12px;
+  }
+  
+  .window-header {
+    padding: 8px 12px;
+  }
+  
+  .window-title {
+    font-size: 0.75rem;
+  }
+  
+  .control {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .mobile-menu {
+    width: 95%;
+    max-width: 280px;
+    padding: 15px;
+  }
+  
+  .mobile-nav-item {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Extra small header adjustments */
+  .cyberpunk-header {
+    padding: 6px 12px;
+  }
+  
+  .avatar-large {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .profile-name {
+    font-size: 0.9rem;
+  }
+  
+  .profile-title {
+    font-size: 0.75rem;
+  }
+  
+  .meta-item {
+    font-size: 0.65rem;
+  }
+  
+  .status-indicator,
+  .connection-status {
+    font-size: 0.6rem;
+  }
+  
+  .bio-section {
+    padding: 6px 12px;
+  }
+  
+  .bio-prompt {
+    font-size: 0.7rem;
+  }
+  
+  .bio-text {
+    font-size: 0.7rem;
+    max-height: 2.1rem;
+    -webkit-line-clamp: 2;
+  }
+}
+
+/* Tablet landscape orientation */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .cyberpunk-sidebar {
+    width: 140px;
+  }
+  
+  .content-body {
+    padding: 18px;
+  }
+  
+  .window-content {
+    padding: 18px;
   }
 }
 
@@ -523,4 +997,167 @@
 
 .window-content::-webkit-scrollbar-thumb:hover {
   background: var(--cyber-secondary);
+}
+
+/* Component spacing improvements */
+.window-content > div {
+  margin-bottom: 2rem; /* Add spacing between main component sections */
+}
+
+.window-content > div:last-child {
+  margin-bottom: 0; /* Remove margin from last element */
+}
+
+/* Improve spacing within components */
+.cyberpunk-about .terminal-window,
+.cyberpunk-experience .experience-item,
+.cyberpunk-projects .project-card,
+.cyberpunk-skills .skill-category,
+.cyberpunk-blog .blog-post,
+.cyberpunk-contact .contact-section {
+  margin-bottom: 1.5rem; /* Add spacing between sub-elements */
+}
+
+/* Ensure proper spacing in lists */
+.cyberpunk-about .quotes-section .quotes-grid,
+.cyberpunk-experience .experience-list,
+.cyberpunk-projects .projects-grid,
+.cyberpunk-skills .skills-grid,
+.cyberpunk-blog .blog-list,
+.cyberpunk-contact .contact-grid {
+  gap: 1.5rem; /* Ensure grid gaps are consistent */
+}
+
+/* ========================
+   RESPONSIVE DESIGN
+   ======================== */
+
+/* Large screens (1200px and up) */
+@media (min-width: 1200px) {
+  .cyberpunk-sidebar {
+    width: 140px; /* Slightly larger on big screens */
+  }
+  
+  .content-body {
+    padding: 32px; /* More padding on large screens */
+  }
+  
+  .window-content {
+    padding: 32px;
+  }
+}
+
+/* Medium screens (768px to 1199px) */
+@media (max-width: 1199px) and (min-width: 768px) {
+  .cyberpunk-sidebar {
+    width: 100px; /* Smaller sidebar on medium screens */
+  }
+  
+  .content-body {
+    padding: 20px;
+  }
+  
+  .window-content {
+    padding: 20px;
+  }
+}
+
+/* Small screens (480px to 767px) */
+@media (max-width: 767px) {
+  .cyberpunk-template {
+    height: calc(100vh - 56px); /* Adjust for smaller mobile header */
+    max-height: calc(100vh - 56px);
+  }
+  
+  .main-interface {
+    flex-direction: column; /* Stack vertically on mobile */
+  }
+  
+  .cyberpunk-sidebar {
+    width: 100%; /* Full width on mobile */
+    height: 120px; /* Fixed height for horizontal layout */
+    border-right: none;
+    border-bottom: 2px solid var(--cyber-border);
+    overflow-x: auto; /* Horizontal scroll for navigation */
+    overflow-y: hidden;
+  }
+  
+  .sidebar-nav {
+    display: flex; /* Horizontal navigation on mobile */
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .nav-item {
+    white-space: nowrap; /* Prevent text wrapping */
+    min-width: fit-content;
+  }
+  
+  .content-area {
+    flex: 1;
+    height: calc(100% - 120px); /* Remaining height after sidebar */
+  }
+  
+  .content-body {
+    padding: 16px; /* Smaller padding on mobile */
+  }
+  
+  .window-content {
+    padding: 16px;
+  }
+  
+  .content-header {
+    padding: 12px 16px; /* Smaller header padding */
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem; /* Smaller breadcrumb text */
+  }
+}
+
+/* Extra small screens (up to 479px) */
+@media (max-width: 479px) {
+  .cyberpunk-template {
+    height: calc(100vh - 48px); /* Even smaller header on tiny screens */
+    max-height: calc(100vh - 48px);
+  }
+  
+  .cyberpunk-sidebar {
+    height: 100px; /* Even smaller sidebar height */
+  }
+  
+  .content-area {
+    height: calc(100% - 100px);
+  }
+  
+  .content-body {
+    padding: 12px; /* Minimal padding */
+  }
+  
+  .window-content {
+    padding: 12px;
+  }
+  
+  .content-header {
+    padding: 8px 12px;
+  }
+  
+  .window-title {
+    font-size: 0.8rem; /* Smaller window titles */
+  }
+  
+  .breadcrumb {
+    font-size: 0.75rem;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .cyberpunk-sidebar {
+    height: 80px; /* Smaller sidebar in landscape */
+  }
+  
+  .content-area {
+    height: calc(100% - 80px);
+  }
 }

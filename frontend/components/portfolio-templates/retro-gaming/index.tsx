@@ -82,7 +82,8 @@ export default function RetroGamingTemplate({ data }: RetroGamingTemplateProps) 
     const activeComponent = navComponents.find(comp => comp && comp.type === activeSection);
     if (!activeComponent) return null;
 
-    return activeComponent.component;
+    const Component = activeComponent.component;
+    return <Component data={activeComponent.data} />;
   };
 
   if (isLoading) {

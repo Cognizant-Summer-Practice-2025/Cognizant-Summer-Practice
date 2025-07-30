@@ -133,6 +133,12 @@ export async function loadTemplateComponent(templateId: string) {
         return await import('@/components/portfolio-templates/creative');
       case 'professional':
         return await import('@/components/portfolio-templates/professional');
+      case 'cyberpunk':
+        return await import('@/components/portfolio-templates/cyberpunk');
+      case 'terminal':
+        return await import('@/components/portfolio-templates/terminal');
+      case 'retro-gaming':
+        return await import('@/components/portfolio-templates/retro-gaming');
       default:
         throw new Error(`Component for template "${templateId}" not implemented`);
     }

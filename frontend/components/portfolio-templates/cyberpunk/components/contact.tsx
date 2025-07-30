@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PortfolioDataFromDB } from '@/lib/portfolio';
+import { UserProfile, ContactInfo, SocialLink } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Mail, MapPin, Send, Terminal, Zap } from 'lucide-react';
 
 interface ContactProps {
-  data: PortfolioDataFromDB;
+  data: {
+    profile: UserProfile;
+    contacts: ContactInfo;
+    socialLinks: SocialLink[];
+  };
 }
 
 export function Contact({ data }: ContactProps) {
@@ -113,4 +117,117 @@ export function Contact({ data }: ContactProps) {
                   ))}
                 </div>
               </div>
-            )}\n          </div>\n        </Card>\n\n        <Card className=\"contact-form-card\">\n          <div className=\"form-header\">\n            <h3 className=\"form-title\">Send Message</h3>\n            <div className=\"terminal-prompt\">\n              <span className=\"prompt-symbol\">$</span>\n              <span className=\"prompt-text\">compose_message --priority=high</span>\n            </div>\n          </div>\n          \n          <form onSubmit={handleSubmit} className=\"contact-form\">\n            <div className=\"form-grid\">\n              <div className=\"form-field\">\n                <label htmlFor=\"name\" className=\"field-label\">\n                  Name:\n                </label>\n                <Input\n                  id=\"name\"\n                  name=\"name\"\n                  value={formData.name}\n                  onChange={handleInputChange}\n                  className=\"cyber-input\"\n                  placeholder=\"Enter your name\"\n                  required\n                />\n              </div>\n              \n              <div className=\"form-field\">\n                <label htmlFor=\"email\" className=\"field-label\">\n                  Email:\n                </label>\n                <Input\n                  id=\"email\"\n                  name=\"email\"\n                  type=\"email\"\n                  value={formData.email}\n                  onChange={handleInputChange}\n                  className=\"cyber-input\"\n                  placeholder=\"Enter your email\"\n                  required\n                />\n              </div>\n            </div>\n            \n            <div className=\"form-field\">\n              <label htmlFor=\"subject\" className=\"field-label\">\n                Subject:\n              </label>\n              <Input\n                id=\"subject\"\n                name=\"subject\"\n                value={formData.subject}\n                onChange={handleInputChange}\n                className=\"cyber-input\"\n                placeholder=\"Message subject\"\n                required\n              />\n            </div>\n            \n            <div className=\"form-field\">\n              <label htmlFor=\"message\" className=\"field-label\">\n                Message:\n              </label>\n              <Textarea\n                id=\"message\"\n                name=\"message\"\n                value={formData.message}\n                onChange={handleInputChange}\n                className=\"cyber-textarea\"\n                placeholder=\"Enter your message...\"\n                rows={6}\n                required\n              />\n            </div>\n            \n            <Button \n              type=\"submit\" \n              className=\"submit-button\"\n              disabled={isSubmitting}\n            >\n              {isSubmitting ? (\n                <>\n                  <div className=\"loading-spinner\"></div>\n                  Transmitting...\n                </>\n              ) : (\n                <>\n                  <Send size={16} />\n                  Send Message\n                </>\n              )}\n            </Button>\n          </form>\n        </Card>\n      </div>\n\n      <div className=\"connection-footer\">\n        <div className=\"protocol-info\">\n          <span className=\"protocol-label\">Protocol:</span>\n          <span className=\"protocol-value\">HTTPS/2.0 + TLS 1.3</span>\n        </div>\n        <div className=\"encryption-info\">\n          <span className=\"encryption-label\">Encryption:</span>\n          <span className=\"encryption-value\">AES-256-GCM</span>\n        </div>\n      </div>\n    </div>\n  );\n}
+            )}
+          </div>
+        </Card>
+
+        <Card className="contact-form-card">
+          <div className="form-header">
+            <h3 className="form-title">Send Message</h3>
+            <div className="terminal-prompt">
+              <span className="prompt-symbol">$</span>
+              <span className="prompt-text">compose_message --priority=high</span>
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="contact-form">
+            <div className="form-grid">
+              <div className="form-field">
+                <label htmlFor="name" className="field-label">
+                  Name:
+                </label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="cyber-input"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              
+              <div className="form-field">
+                <label htmlFor="email" className="field-label">
+                  Email:
+                </label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="cyber-input"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="form-field">
+              <label htmlFor="subject" className="field-label">
+                Subject:
+              </label>
+              <Input
+                id="subject"
+                name="subject"
+                value={formData.subject}
+                onChange={handleInputChange}
+                className="cyber-input"
+                placeholder="Message subject"
+                required
+              />
+            </div>
+            
+            <div className="form-field">
+              <label htmlFor="message" className="field-label">
+                Message:
+              </label>
+              <Textarea
+                id="message"
+                name="message"
+                value={formData.message}
+                onChange={handleInputChange}
+                className="cyber-textarea"
+                placeholder="Enter your message..."
+                rows={6}
+                required
+              />
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="submit-button"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="loading-spinner"></div>
+                  Transmitting...
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  Send Message
+                </>
+              )}
+            </Button>
+          </form>
+        </Card>
+      </div>
+
+      <div className="connection-footer">
+        <div className="protocol-info">
+          <span className="protocol-label">Protocol:</span>
+          <span className="protocol-value">HTTPS/2.0 + TLS 1.3</span>
+        </div>
+        <div className="encryption-info">
+          <span className="encryption-label">Encryption:</span>
+          <span className="encryption-value">AES-256-GCM</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Contact;
