@@ -184,20 +184,41 @@
 }
 
 .send-button {
-  padding: clamp(0.5rem, 1.2vw, 1rem);
+  flex-shrink: 0;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 8px;
   background: #3b82f6;
   border: none;
-  border-radius: clamp(0.5rem, 1vw, 0.75rem);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: clamp(2.5rem, 4vw, 3rem);
-  aspect-ratio: 1;
-  flex-shrink: 0;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
-.send-button:hover {
+.send-button:hover:not(:disabled) {
   background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.send-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.send-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.send-button svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* Custom scrollbar - using relative units */

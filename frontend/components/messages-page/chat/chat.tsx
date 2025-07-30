@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button, Input } from "antd";
-import { SendOutlined} from "@ant-design/icons";
+import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { message } from "@/components/ui/toast";
 import ChatHeader from "../chat-header/chat-header";
 import VirtualizedMessagesList from "./virtualized-messages-list";
 import "./style.css";
@@ -36,14 +38,26 @@ interface ChatProps {
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
   onBackToSidebar?: () => void;
   isMobile?: boolean;
+  onDeleteMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string) => Promise<void>;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false, onDeleteConversation, markMessageAsRead, onBackToSidebar, isMobile = false }) => {
+const Chat: React.FC<ChatProps> = ({ 
+  messages, 
+  selectedContact, 
+  currentUserAvatar, 
+  onSendMessage, 
+  sendingMessage = false, 
+  onDeleteConversation, 
+  markMessageAsRead, 
+  onBackToSidebar, 
+  isMobile = false,
+  onDeleteMessage,
+  onReportMessage
+}) => {
   const [newMessage, setNewMessage] = useState("");
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-
 
   // Handle container resize for virtualized list
   useEffect(() => {
@@ -77,6 +91,56 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // Handle copy message
+  const handleCopyMessage = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      message.success('Message copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy message:', error);
+      message.error('Failed to copy message');
+    }
+  };
+
+  // Handle delete message
+  const handleDeleteMessage = async (messageId: string) => {
+    if (onDeleteMessage) {
+      try {
+        await onDeleteMessage(messageId);
+        message.success('Message deleted successfully');
+      } catch (error) {
+        console.error('Failed to delete message:', error);
+        message.error('Failed to delete message');
+      }
+    } else {
+      console.log('Delete message functionality not implemented yet');
+      message.info('Delete functionality will be available soon');
+    }
+  };
+
+  // Handle report message
+  const handleReportMessage = async (messageId: string) => {
+    if (onReportMessage) {
+      try {
+        await onReportMessage(messageId);
+        message.success('Message reported successfully');
+      } catch (error) {
+        console.error('Failed to report message:', error);
+        message.error('Failed to report message');
+      }
+    } else {
+      console.log('Report message functionality not implemented yet');
+      message.info('Report functionality will be available soon');
+    }
+  };
+
   return (
     <div className="chat-container">
       {/* Messages Area */}
@@ -99,6 +163,9 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
             height={containerSize.height}
             width={containerSize.width}
             markMessageAsRead={markMessageAsRead}
+            onDeleteMessage={handleDeleteMessage}
+            onReportMessage={handleReportMessage}
+            onCopyMessage={handleCopyMessage}
           />
         )}
       </div>
@@ -110,17 +177,21 @@ const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvata
             placeholder="Type your message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onPressEnter={handleSendMessage}
+            onKeyDown={handleKeyDown}
             className="message-input"
           />
           <Button
-            type="primary"
-            icon={<SendOutlined />}
             onClick={handleSendMessage}
             disabled={sendingMessage || !newMessage.trim()}
-            loading={sendingMessage}
             className="send-button"
-          />
+            size="icon"
+          >
+            {sendingMessage ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
     </div>

@@ -12,24 +12,52 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  margin-left: 8px;
+  position: relative;
+  z-index: 10;
 }
 
 .message-menu-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .message-wrapper:hover .message-menu-button {
   opacity: 1;
 }
 
-/* For other messages (not user's own) */
+/* Positioning for own messages (sent) - button on left side */
+.message-wrapper.user-message .message-menu-button {
+  order: -1; /* Move to the left of the message bubble */
+  margin-right: 8px;
+  margin-left: 0;
+}
+
+/* Positioning for other messages (received) - button on right side */
+.message-wrapper.other-message .message-menu-button {
+  order: 1; /* Move to the right of the message bubble */
+  margin-left: 8px;
+  margin-right: 0;
+}
+
 .other-message .message-menu-button {
   color: rgba(0, 0, 0, 0.5);
 }
 
 .other-message .message-menu-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
   color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure the menu button doesn't interfere with message flow */
+.message-wrapper {
+  position: relative;
+}
+
+/* Additional styling for different message types */
+.own-message-menu {
+  /* Specific styles for own message menu if needed */
+}
+
+.other-message-menu {
+  /* Specific styles for other message menu if needed */
 } 

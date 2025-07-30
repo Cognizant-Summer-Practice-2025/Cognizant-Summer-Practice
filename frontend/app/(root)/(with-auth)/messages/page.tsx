@@ -46,7 +46,9 @@ const MessagesPage = () => {
     sendMessage,
     createConversation,
     deleteConversation,
-    markMessageAsRead
+    markMessageAsRead,
+    deleteMessage,
+    reportMessage
   } = useMessages();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -449,6 +451,8 @@ const MessagesPage = () => {
               markMessageAsRead={markMessageAsRead}
               onBackToSidebar={handleBackToSidebar}
               isMobile={isMobile}
+              onDeleteMessage={deleteMessage}
+              onReportMessage={reportMessage}
             />
           )
         ) : (

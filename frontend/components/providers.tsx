@@ -7,6 +7,7 @@ import { DraftProvider } from '@/lib/contexts/draft-context';
 import { BookmarkProvider } from '@/lib/contexts/bookmark-context';
 import { HomePageCacheProvider } from '@/lib/contexts/home-page-cache-context';
 import { WebSocketProvider } from '@/lib/contexts/websocket-context';
+import { ToastProvider } from '@/components/ui/toast';
 
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <PortfolioProvider>      
                 <DraftProvider>
                     <HomePageCacheProvider>
-                  {children}
+                      <ToastProvider>
+                        {children}
+                      </ToastProvider>
                     </HomePageCacheProvider>
                 </DraftProvider>
             </PortfolioProvider>

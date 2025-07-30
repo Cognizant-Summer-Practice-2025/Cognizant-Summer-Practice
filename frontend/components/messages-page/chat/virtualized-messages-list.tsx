@@ -18,6 +18,9 @@ interface VirtualizedMessagesListProps {
   height: number;
   width: number;
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
+  onDeleteMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string) => Promise<void>;
+  onCopyMessage?: (text: string) => void;
 }
 
 // Constant gap between messages
@@ -51,7 +54,10 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
   currentUserAvatar,
   height,
   width,
-  markMessageAsRead
+  markMessageAsRead,
+  onDeleteMessage,
+  onReportMessage,
+  onCopyMessage
 }) => {
   const listRef = useRef<List>(null);
   const heightCache = useRef<Record<number, number>>({});
@@ -113,9 +119,12 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
         style={style}
         isLastMessage={isLastMessage}
         markMessageAsRead={markMessageAsRead}
+        onDeleteMessage={onDeleteMessage}
+        onReportMessage={onReportMessage}
+        onCopyMessage={onCopyMessage}
       />
     );
-  }, [messages, selectedContactAvatar, selectedContactName, currentUserAvatar, markMessageAsRead]);
+  }, [messages, selectedContactAvatar, selectedContactName, currentUserAvatar, markMessageAsRead, onDeleteMessage, onReportMessage, onCopyMessage]);
 
 
 

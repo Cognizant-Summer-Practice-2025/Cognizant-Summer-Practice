@@ -663,6 +663,57 @@ const useMessages = () => {
     }
   }, [user?.id, currentConversation?.id, conversations, cacheConversations]);
 
+  const deleteMessage = useCallback(async (messageId: string) => {
+    if (!user?.id) {
+      console.error('No user ID available for delete message');
+      return;
+    }
+
+    console.log('deleteMessage called with:', { messageId, userId: user.id });
+
+    try {
+      console.log('Making API call to delete message...');
+      await messagesApi.deleteMessage(messageId, user.id);
+      console.log('API call successful, updating state...');
+      
+      // Remove message from state
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+      
+      // Clear message cache for current conversation since we deleted a message
+      if (currentConversation?.id) {
+        clearMessageCache(currentConversation.id);
+      }
+      
+      console.log('Message deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      throw error;
+    }
+  }, [user?.id, currentConversation?.id, clearMessageCache]);
+
+  const reportMessage = useCallback(async (messageId: string) => {
+    if (!user?.id) {
+      console.error('No user ID available for report message');
+      return;
+    }
+
+    console.log('reportMessage called with:', { messageId, userId: user.id });
+
+    try {
+      // TODO: Implement report message API endpoint
+      // For now, just log the action
+      console.log('Message reporting functionality not implemented in backend yet');
+      
+      // You would implement something like:
+      // await messagesApi.reportMessage(messageId, user.id);
+      
+      console.log('Message reported successfully (placeholder)');
+    } catch (error) {
+      console.error('Failed to report message:', error);
+      throw error;
+    }
+  }, [user?.id]);
+
   const sendMessage = useCallback(async (content: string) => {
     if (!user?.id || !currentConversation) return;
     
@@ -900,7 +951,9 @@ const useMessages = () => {
     clearConversationsCache,
     clearAllMessageCaches,
     clearMessageCache,
-    markMessageAsRead
+    markMessageAsRead,
+    deleteMessage,
+    reportMessage
   };
 };
 

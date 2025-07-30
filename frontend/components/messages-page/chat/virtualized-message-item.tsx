@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Avatar } from 'antd';
+import { Avatar } from '@/components/ui/avatar';
 import { useUser } from '@/lib/contexts/user-context';
+import MessageMenu from '@/components/messages-page/message-menu/message-menu';
 
 export interface VirtualizedMessageProps {
   id: string;
@@ -14,6 +15,9 @@ export interface VirtualizedMessageProps {
   style?: React.CSSProperties; // For react-window positioning
   isLastMessage?: boolean; // To conditionally apply margin
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
+  onDeleteMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string) => Promise<void>;
+  onCopyMessage?: (text: string) => void;
 }
 
 const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
@@ -27,7 +31,10 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   currentUserAvatar,
   style,
   isLastMessage,
-  markMessageAsRead
+  markMessageAsRead,
+  onDeleteMessage,
+  onReportMessage,
+  onCopyMessage
 }) => {
   const { user } = useUser();
   const messageRef = useRef<HTMLDivElement>(null);
@@ -100,6 +107,41 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
     return "transparent"; 
   };
 
+  // Handle copy action with fallback
+  const handleCopy = (text: string) => {
+    if (onCopyMessage) {
+      onCopyMessage(text);
+    } else {
+      // Default copy behavior
+      navigator.clipboard.writeText(text).then(() => {
+        console.log('Message copied to clipboard');
+        // You might want to show a toast notification here
+      }).catch(err => {
+        console.error('Failed to copy message: ', err);
+      });
+    }
+  };
+
+  // Handle delete action
+  const handleDelete = async (messageId: string) => {
+    if (onDeleteMessage) {
+      await onDeleteMessage(messageId);
+    } else {
+      console.log('Delete functionality not implemented');
+    }
+  };
+
+  // Handle report action
+  const handleReport = async (messageId: string) => {
+    if (onReportMessage) {
+      await onReportMessage(messageId);
+    } else {
+      console.log('Report functionality not implemented');
+    }
+  };
+
+  const isOwnMessage = sender === "user";
+
   return (
     <div 
       ref={messageRef} 
@@ -136,12 +178,24 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
           </div>
         </div>
 
+        {/* Message Menu - positioned via CSS order */}
+        <MessageMenu
+          messageId={id}
+          messageText={text}
+          isOwnMessage={isOwnMessage}
+          onDelete={handleDelete}
+          onCopy={handleCopy}
+          onReport={handleReport}
+        />
+
         {sender === "user" && (
           <Avatar
             size={32}
             src={currentUserAvatar || "https://placehold.co/32x32"}
             className="message-avatar"
-          />
+          >
+            {user?.firstName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || "U"}
+          </Avatar>
         )}
       </div>
     </div>
