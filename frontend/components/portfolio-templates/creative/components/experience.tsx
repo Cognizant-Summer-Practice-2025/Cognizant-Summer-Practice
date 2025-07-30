@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, Calendar, MapPin, ExternalLink, Building } from 'lucide-react';
+import { Briefcase, Calendar, ExternalLink, Building } from 'lucide-react';
 
 interface Experience {
   id: number;
@@ -216,25 +216,13 @@ export function Experience({ data }: ExperienceProps) {
                               fontWeight: '500'
                             }}
                           >
-                            {exp.company}
+                            {exp.companyName}
                             <ExternalLink size={12} style={{ marginLeft: '4px' }} />
                           </a>
                         ) : (
-                          <span style={{ fontWeight: '500' }}>{exp.company}</span>
+                          <span style={{ fontWeight: '500' }}>{exp.companyName}</span>
                         )}
                       </div>
-                      {exp.location && (
-                        <div style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '4px',
-                          fontSize: '12px',
-                          color: 'var(--text-secondary)'
-                        }}>
-                          <MapPin size={12} />
-                          {exp.location}
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -293,7 +281,7 @@ export function Experience({ data }: ExperienceProps) {
                 </div>
 
                 {/* Technologies */}
-                {exp.technologies && (
+                {exp.skillsUsed && (
                   <div>
                     <div style={{ 
                       fontSize: '12px', 
@@ -308,7 +296,7 @@ export function Experience({ data }: ExperienceProps) {
                       flexWrap: 'wrap', 
                       gap: '6px'
                     }}>
-                      {getTechArray(exp.technologies).map((tech, index) => (
+                      {getTechArray(exp.skillsUsed).map((tech, index) => (
                         <span
                           key={index}
                           style={{

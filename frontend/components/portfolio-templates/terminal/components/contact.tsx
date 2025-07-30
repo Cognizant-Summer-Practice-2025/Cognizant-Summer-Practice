@@ -343,7 +343,7 @@ export function Contact({ data }: ContactProps) {
           </div>
           <div className="status-item">
             <span className="status-label">Latency:</span>
-            <span className="status-value">{'< 1ms'}</span>
+            <span className="status-value">&lt; 1ms</span>
             <span className="status-indicator online"></span>
           </div>
           <div className="status-item">

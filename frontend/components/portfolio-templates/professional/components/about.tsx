@@ -6,11 +6,20 @@ import { Card } from '@/components/ui/card';
 import { Quote as QuoteIcon, User } from 'lucide-react';
 
 interface AboutProps {
-  data: Quote[];
+  data: Quote[] | { quotes?: Quote[] } | unknown;
 }
 
 export function About({ data }: AboutProps) {
-  if (!data || data.length === 0) {
+  // Ensure data is an array and handle various data structures
+  let quotes: Quote[] = [];
+  
+  if (Array.isArray(data)) {
+    quotes = data;
+  } else if (data && typeof data === 'object' && Array.isArray((data as { quotes?: Quote[] }).quotes)) {
+    quotes = (data as { quotes?: Quote[] }).quotes || [];
+  }
+  
+  if (!quotes || quotes.length === 0) {
     return (
       <div className="prof-about">
         <Card className="prof-about-card">
@@ -31,7 +40,7 @@ export function About({ data }: AboutProps) {
   return (
     <div className="prof-about">
       <div className="prof-about-grid">
-        {data.map((quote, index) => (
+        {quotes.map((quote, index) => (
           <Card key={quote.id || index} className="prof-about-card">
             <div className="prof-about-content">
               <div className="prof-quote-icon">

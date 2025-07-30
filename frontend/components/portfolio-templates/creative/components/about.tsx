@@ -9,18 +9,28 @@ interface Quote {
 }
 
 interface AboutProps {
-  data: Quote[];
+  data: Quote[] | { quotes?: Quote[] } | unknown;
 }
 
 export function About({ data }: AboutProps) {
-  const quotes = data || [
-    {
-      id: 1,
-      text: "Code is poetry in motion, and every line tells a story.",
-      author: "Anonymous Developer",
-      context: "On the art of programming"
-    }
-  ];
+  // Ensure data is an array and handle various data structures
+  let quotes: Quote[] = [];
+  
+  if (Array.isArray(data)) {
+    quotes = data;
+  } else if (data && typeof data === 'object' && Array.isArray(data.quotes)) {
+    quotes = data.quotes;
+  } else {
+    // Default quotes if no valid data is provided
+    quotes = [
+      {
+        id: 1,
+        text: "Code is poetry in motion, and every line tells a story.",
+        author: "Anonymous Developer",
+        context: "On the art of programming"
+      }
+    ];
+  }
 
   return (
     <div className="component-card">

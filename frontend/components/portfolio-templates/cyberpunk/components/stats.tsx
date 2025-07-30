@@ -79,7 +79,7 @@ export function Stats({ data }: StatsProps) {
             </div>
             <div className="overview-item">
               <span className="overview-label">Response Time:</span>
-              <span className="overview-value">< 50ms</span>
+              <span className="overview-value">&lt; 50ms</span>
             </div>
             <div className="overview-item">
               <span className="overview-label">Load:</span>

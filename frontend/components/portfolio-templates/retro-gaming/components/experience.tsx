@@ -9,21 +9,24 @@ interface ExperienceProps {
 
 export function Experience({ data: experience }: ExperienceProps) {
 
-  const getQuestIcon = (title: string, index: number) => {
-    const titleLower = title.toLowerCase();
-    if (titleLower.includes('senior') || titleLower.includes('lead')) return <Sword className="quest-icon legendary" size={24} />;
-    if (titleLower.includes('developer') || titleLower.includes('engineer')) return <Wand2 className="quest-icon epic" size={24} />;
-    if (titleLower.includes('intern') || titleLower.includes('junior')) return <Shield className="quest-icon common" size={24} />;
+  const getQuestIcon = (title: string | undefined, index: number) => {
+    if (title) {
+      const titleLower = title.toLowerCase();
+      if (titleLower.includes('senior') || titleLower.includes('lead')) return <Sword className="quest-icon legendary" size={24} />;
+      if (titleLower.includes('developer') || titleLower.includes('engineer')) return <Wand2 className="quest-icon epic" size={24} />;
+      if (titleLower.includes('intern') || titleLower.includes('junior')) return <Shield className="quest-icon common" size={24} />;
+    }
     
     const icons = [
-      <Sword className="quest-icon legendary" size={24} />,
-      <Wand2 className="quest-icon epic" size={24} />,
-      <Shield className="quest-icon rare" size={24} />
+      <Sword key="sword" className="quest-icon legendary" size={24} />,
+      <Wand2 key="wand" className="quest-icon epic" size={24} />,
+      <Shield key="shield" className="quest-icon rare" size={24} />
     ];
     return icons[index % icons.length];
   };
 
-  const getQuestRarity = (title: string) => {
+  const getQuestRarity = (title: string | undefined) => {
+    if (!title) return 'rare';
     const titleLower = title.toLowerCase();
     if (titleLower.includes('senior') || titleLower.includes('lead')) return 'legendary';
     if (titleLower.includes('developer') || titleLower.includes('engineer')) return 'epic';
@@ -52,17 +55,17 @@ export function Experience({ data: experience }: ExperienceProps) {
 
       <div className="quest-timeline">
         {experience.map((exp, index) => (
-          <Card key={exp.id} className={`quest-card ${getQuestRarity(exp.position)}`}>
+          <Card key={exp.id} className={`quest-card ${getQuestRarity(exp.jobTitle)}`}>
             <div className="quest-header">
               <div className="quest-icon-container">
-                {getQuestIcon(exp.position, index)}
+                {getQuestIcon(exp.jobTitle, index)}
                 <div className="icon-glow"></div>
               </div>
               
               <div className="quest-info">
-                <h3 className="quest-title">{exp.position}</h3>
+                <h3 className="quest-title">{exp.jobTitle}</h3>
                 <div className="quest-guild">
-                  <span className="guild-name">{exp.company}</span>
+                  <span className="guild-name">{exp.companyName}</span>
                   <div className="guild-badge"></div>
                 </div>
               </div>
@@ -75,36 +78,15 @@ export function Experience({ data: experience }: ExperienceProps) {
               </div>
             </div>
 
-            {exp.location && (
-              <div className="quest-location">
-                <MapPin className="location-icon" size={16} />
-                <span>{exp.location}</span>
-              </div>
-            )}
-
             <div className="quest-description">
               <p>{exp.description}</p>
             </div>
 
-            {exp.achievements && exp.achievements.length > 0 && (
-              <div className="quest-achievements">
-                <h4 className="achievements-title">Quest Rewards:</h4>
-                <ul className="achievement-list">
-                  {exp.achievements.map((achievement, achIndex) => (
-                    <li key={achIndex} className="achievement-item">
-                      <span className="achievement-bullet">→</span>
-                      <span className="achievement-text">{achievement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {exp.technologies && exp.technologies.length > 0 && (
+            {exp.skillsUsed && exp.skillsUsed.length > 0 && (
               <div className="quest-tech">
                 <h4 className="tech-title">Equipment Used:</h4>
                 <div className="tech-list">
-                  {exp.technologies.map((tech, techIndex) => (
+                  {exp.skillsUsed.map((tech, techIndex) => (
                     <span key={techIndex} className="tech-badge">
                       {tech}
                     </span>
@@ -124,7 +106,7 @@ export function Experience({ data: experience }: ExperienceProps) {
               <div className="pixel-sparkle"></div>
             </div>
 
-            <div className={`rarity-border ${getQuestRarity(exp.position)}`}></div>
+            <div className={`rarity-border ${getQuestRarity(exp.jobTitle)}`}></div>
           </Card>
         ))}
       </div>

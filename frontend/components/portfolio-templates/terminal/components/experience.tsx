@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Experience } from '@/lib/portfolio';
-import { Calendar, MapPin, Building, ChevronRight, GitBranch, Terminal } from 'lucide-react';
+import { Calendar, MapPin, Building, GitBranch, Terminal } from 'lucide-react';
 
 interface ExperienceProps {
   data: Experience[];
@@ -18,7 +18,7 @@ export function Experience({ data: experience }: ExperienceProps) {
       ...experience.map((exp, index) => {
         const startYear = new Date(exp.startDate).getFullYear();
         const endYear = exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present';
-        return `* ${(index + 1).toString().padStart(7, '0')} (${startYear}-${endYear}) ${exp.position} at ${exp.company}`;
+        return `* ${(index + 1).toString().padStart(7, '0')} (${startYear}-${endYear}) ${exp.jobTitle} at ${exp.companyName}`;
       }),
       '',
       '$ git show --stat'
@@ -114,10 +114,10 @@ export function Experience({ data: experience }: ExperienceProps) {
                 </div>
                 
                 <div className="entry-info">
-                  <h3 className="position-title">{exp.position}</h3>
+                  <h3 className="position-title">{exp.jobTitle}</h3>
                   <div className="company-info">
                     <Building className="company-icon" size={14} />
-                    <span className="company-name">{exp.company}</span>
+                    <span className="company-name">{exp.companyName}</span>
                   </div>
                 </div>
                 
@@ -132,41 +132,17 @@ export function Experience({ data: experience }: ExperienceProps) {
                 </div>
               </div>
 
-              {exp.location && (
-                <div className="entry-location">
-                  <MapPin className="location-icon" size={14} />
-                  <span>{exp.location}</span>
-                </div>
-              )}
-
               <div className="entry-description">
                 <p>{exp.description}</p>
               </div>
 
-              {exp.achievements && exp.achievements.length > 0 && (
-                <div className="entry-achievements">
-                  <div className="achievements-title">
-                    <ChevronRight className="chevron-icon" size={14} />
-                    <span>Key Achievements:</span>
-                  </div>
-                  <ul className="achievements-list">
-                    {exp.achievements.map((achievement, achIndex) => (
-                      <li key={achIndex} className="achievement-item">
-                        <span className="bullet">+</span>
-                        <span>{achievement}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {exp.technologies && exp.technologies.length > 0 && (
+              {exp.skillsUsed && exp.skillsUsed.length > 0 && (
                 <div className="entry-technologies">
                   <div className="tech-title">
                     <span className="tech-label">Tech Stack:</span>
                   </div>
                   <div className="tech-tags">
-                    {exp.technologies.map((tech, techIndex) => (
+                    {exp.skillsUsed.map((tech, techIndex) => (
                       <span key={techIndex} className="tech-tag">
                         {tech}
                       </span>
@@ -178,11 +154,7 @@ export function Experience({ data: experience }: ExperienceProps) {
               <div className="entry-footer">
                 <div className="commit-stats">
                   <span className="stat-item">
-                    <span className="stat-value">{exp.achievements?.length || 0}</span>
-                    <span className="stat-label">achievements</span>
-                  </span>
-                  <span className="stat-item">
-                    <span className="stat-value">{exp.technologies?.length || 0}</span>
+                    <span className="stat-value">{exp.skillsUsed?.length || 0}</span>
                     <span className="stat-label">technologies</span>
                   </span>
                   <span className="stat-item">
@@ -215,19 +187,10 @@ export function Experience({ data: experience }: ExperienceProps) {
             
             <div className="summary-line">
               <span className="prompt">$</span>
-              <span className="command">grep -c "achievement" career.log</span>
-            </div>
-            <div className="summary-output">
-              <span className="output-value">{experience.reduce((sum, exp) => sum + (exp.achievements?.length || 0), 0)}</span>
-              <span className="output-label">total achievements</span>
-            </div>
-            
-            <div className="summary-line">
-              <span className="prompt">$</span>
               <span className="command">sort -u technologies.txt | wc -l</span>
             </div>
             <div className="summary-output">
-              <span className="output-value">{new Set(experience.flatMap(exp => exp.technologies || [])).size}</span>
+              <span className="output-value">{new Set(experience.flatMap(exp => exp.skillsUsed || [])).size}</span>
               <span className="output-label">unique technologies</span>
             </div>
           </div>

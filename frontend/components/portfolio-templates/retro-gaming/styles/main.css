@@ -348,6 +348,55 @@
   text-transform: uppercase;
 }
 
+/* Consistent card/item spacing for main sections */
+.retro-contact .contact-info-card {
+  margin-bottom: 2rem;
+}
+.retro-contact .contact-info-card:last-child {
+  margin-bottom: 0;
+}
+
+.inventory-item {
+  margin-bottom: 2rem;
+}
+.inventory-item:last-child {
+  margin-bottom: 0;
+}
+
+.retro-experience .quest-card {
+  margin-bottom: 2rem;
+}
+.retro-experience .quest-card:last-child {
+  margin-bottom: 0;
+}
+
+.retro-experience .quest-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.retro-blog-posts .journal-entry {
+  margin-bottom: 2rem;
+}
+.retro-blog-posts .journal-entry:last-child {
+  margin-bottom: 0;
+}
+
+.retro-blog-posts .journal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Spacing between main sections */
+.retro-skills {
+  margin-bottom: 3rem;
+}
+.retro-projects {
+  margin-top: 3rem;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .game-area {
@@ -658,4 +707,16 @@
 
 .window-body::-webkit-scrollbar-thumb:hover {
   background: var(--retro-accent);
+}
+
+.retro-skills .skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+.about-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }

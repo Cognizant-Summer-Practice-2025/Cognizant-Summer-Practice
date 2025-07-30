@@ -3,7 +3,7 @@
 import React from 'react';
 import { Experience } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
-import { Calendar, MapPin, Building, ExternalLink } from 'lucide-react';
+import { Calendar, Building } from 'lucide-react';
 
 interface ExperienceProps {
   data: Experience[];
@@ -57,7 +57,7 @@ export function Experience({ data }: ExperienceProps) {
               <div className="prof-experience-header">
                 <div className="prof-experience-main">
                   <h3 className="prof-experience-title">{exp.jobTitle}</h3>
-                  <h4 className="prof-experience-company">{exp.company}</h4>
+                  <h4 className="prof-experience-company">{exp.companyName}</h4>
                 </div>
                 
                 <div className="prof-experience-meta">
@@ -68,12 +68,6 @@ export function Experience({ data }: ExperienceProps) {
                     </span>
                   </div>
                   
-                  {exp.location && (
-                    <div className="prof-experience-location">
-                      <MapPin size={14} />
-                      <span>{exp.location}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -83,30 +77,16 @@ export function Experience({ data }: ExperienceProps) {
                 </div>
               )}
 
-              {exp.technologies && exp.technologies.length > 0 && (
+              {exp.skillsUsed && exp.skillsUsed.length > 0 && (
                 <div className="prof-experience-tech">
                   <h5>Technologies Used:</h5>
                   <div className="prof-tech-tags">
-                    {exp.technologies.map((tech, techIndex) => (
+                    {exp.skillsUsed.map((tech, techIndex) => (
                       <span key={techIndex} className="prof-tech-tag">
                         {tech}
                       </span>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {exp.companyWebsite && (
-                <div className="prof-experience-link">
-                  <a 
-                    href={exp.companyWebsite} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="prof-company-link"
-                  >
-                    <ExternalLink size={14} />
-                    Visit Company Website
-                  </a>
                 </div>
               )}
             </Card>

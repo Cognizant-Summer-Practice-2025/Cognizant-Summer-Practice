@@ -188,56 +188,57 @@ export default function CyberpunkTemplate({ data }: CyberpunkTemplateProps) {
 
       {/* Main Interface */}
       <div className={`main-interface ${isMatrixVisible ? 'hidden' : 'visible'}`}>
-        {/* Header */}
-        <Header data={validatedData} />
+        {/* Left Panel: Header + Sidebar */}
+        <div className="cyberpunk-left-panel">
+          {/* Header */}
+          <Header data={validatedData} />
 
-        {/* Navigation Sidebar */}
-        <div className="cyberpunk-sidebar">
-          <div className="sidebar-header">
-            <div className="logo-section">
-              <Terminal className="logo-icon" />
-              <span className="logo-text">NEURAL.NET</span>
-            </div>
-          </div>
-
-          <nav className="sidebar-nav">
-            {navComponents.map((component) => {
-              if (!component) return null;
-              
-              const IconComponent = tabIcons[component.type] || Code;
-              
-              return (
-                <button
-                  key={component.type}
-                  onClick={() => setActiveSection(component.type)}
-                  className={`nav-item ${activeSection === component.type ? 'active' : ''}`}
-                >
-                  <IconComponent className="nav-icon" size={16} />
-                  <span className="nav-label">{tabLabels[component.type] || component.type}</span>
-                  <div className="nav-glow"></div>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* System Status */}
-          <div className="system-status">
-            <div className="status-item">
-              <span className="status-label">CPU:</span>
-              <div className="status-bar">
-                <div className="status-fill" style={{ width: '73%' }}></div>
+          {/* Navigation Sidebar */}
+          <div className="cyberpunk-sidebar">
+            <div className="sidebar-header">
+              <div className="logo-section">
+                <Terminal className="logo-icon" />
+                <span className="logo-text">NEURAL.NET</span>
               </div>
             </div>
-            <div className="status-item">
-              <span className="status-label">RAM:</span>
-              <div className="status-bar">
-                <div className="status-fill" style={{ width: '45%' }}></div>
+
+            <nav className="sidebar-nav">
+              {navComponents.map((component) => {
+                if (!component) return null;
+                const IconComponent = tabIcons[component.type] || Code;
+                return (
+                  <button
+                    key={component.type}
+                    onClick={() => setActiveSection(component.type)}
+                    className={`nav-item ${activeSection === component.type ? 'active' : ''}`}
+                  >
+                    <IconComponent className="nav-icon" size={16} />
+                    <span className="nav-label">{tabLabels[component.type] || component.type}</span>
+                    <div className="nav-glow"></div>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* System Status */}
+            <div className="system-status">
+              <div className="status-item">
+                <span className="status-label">CPU:</span>
+                <div className="status-bar">
+                  <div className="status-fill" style={{ width: '73%' }}></div>
+                </div>
               </div>
-            </div>
-            <div className="status-item">
-              <span className="status-label">NET:</span>
-              <div className="status-bar">
-                <div className="status-fill" style={{ width: '89%' }}></div>
+              <div className="status-item">
+                <span className="status-label">RAM:</span>
+                <div className="status-bar">
+                  <div className="status-fill" style={{ width: '45%' }}></div>
+                </div>
+              </div>
+              <div className="status-item">
+                <span className="status-label">NET:</span>
+                <div className="status-bar">
+                  <div className="status-fill" style={{ width: '89%' }}></div>
+                </div>
               </div>
             </div>
           </div>
@@ -251,7 +252,6 @@ export default function CyberpunkTemplate({ data }: CyberpunkTemplateProps) {
               <span className="breadcrumb-root">~/neural-net/</span>
               <span className="breadcrumb-current">{tabLabels[activeSection] || activeSection}</span>
             </div>
-            
             <div className="header-actions">
               <Button 
                 variant="outline" 
@@ -263,7 +263,6 @@ export default function CyberpunkTemplate({ data }: CyberpunkTemplateProps) {
               </Button>
             </div>
           </div>
-
           {/* Content Body */}
           <div className="content-body">
             <div className="content-window">
@@ -275,7 +274,6 @@ export default function CyberpunkTemplate({ data }: CyberpunkTemplateProps) {
                 </div>
                 <div className="window-title">{tabLabels[activeSection]}</div>
               </div>
-              
               <div className="window-content">
                 {renderActiveComponent()}
               </div>
