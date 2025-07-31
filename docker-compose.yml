@@ -1,40 +1,65 @@
 services:
   user-db:
-    build:
-      context: ./database/user-db
-      dockerfile: Dockerfile
+    image: postgres:15
     container_name: user_postgresql
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - user_db_data:/var/lib/postgresql/data
+      - ./database/user-db/user_db_init.sql:/docker-entrypoint-initdb.d/user_db_init.sql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "user_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - cognizant_network
 
   messages-db:
-    build:
-      context: ./database/messages-db
-      dockerfile: Dockerfile
+    image: postgres:15
     container_name: messages_postgresql
+    environment:
+      POSTGRES_DB: messages_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
     volumes:
       - messages_db_data:/var/lib/postgresql/data
+      - ./database/messages-db/messages_db_init.sql:/docker-entrypoint-initdb.d/messages_db_init.sql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "messages_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - cognizant_network
 
   portfolio-db:
-    build:
-      context: ./database/portfolio-db
-      dockerfile: Dockerfile
+    image: postgres:15
     container_name: portfolio_postgresql
+    environment:
+      POSTGRES_DB: portfolio_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5434:5432"
     volumes:
       - portfolio_db_data:/var/lib/postgresql/data
+      - ./database/portfolio-db/portfolio_db_init.sql:/docker-entrypoint-initdb.d/portfolio_db_init.sql
+      - ./database/portfolio-db/portfolio_test_data.sql:/docker-entrypoint-initdb.d/portfolio_test_data.sql
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "portfolio_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - cognizant_network
 
