@@ -1,0 +1,268 @@
+{
+  "skillCategories": {
+    "hard_skills": {
+      "label": "Hard Skills",
+      "subcategories": {
+        "frontend": {
+          "label": "Frontend",
+          "skills": [
+            "HTML/CSS",
+            "JavaScript",
+            "TypeScript",
+            "React",
+            "Vue.js",
+            "Angular",
+            "Next.js",
+            "Nuxt.js",
+            "Svelte",
+            "jQuery",
+            "Bootstrap",
+            "Tailwind CSS",
+            "SCSS/SASS",
+            "Webpack",
+            "Vite",
+            "Parcel"
+          ]
+        },
+        "backend": {
+          "label": "Backend",
+          "skills": [
+            "Node.js",
+            "Express.js",
+            "Python",
+            "Django",
+            "Flask",
+            "FastAPI",
+            "Java",
+            "Spring Boot",
+            "C#",
+            ".NET Core",
+            "PHP",
+            "Laravel",
+            "Ruby",
+            "Ruby on Rails",
+            "Go",
+            "Rust",
+            "Kotlin",
+            "Scala"
+          ]
+        },
+        "database": {
+          "label": "Database",
+          "skills": [
+            "MySQL",
+            "PostgreSQL",
+            "MongoDB",
+            "Redis",
+            "SQLite",
+            "Microsoft SQL Server",
+            "Oracle Database",
+            "Elasticsearch",
+            "Cassandra",
+            "DynamoDB",
+            "Firebase Firestore",
+            "Supabase",
+            "Prisma",
+            "Sequelize",
+            "TypeORM",
+            "Mongoose"
+          ]
+        },
+        "devops": {
+          "label": "DevOps & Cloud",
+          "skills": [
+            "Docker",
+            "Kubernetes",
+            "AWS",
+            "Azure",
+            "Google Cloud Platform",
+            "Terraform",
+            "Ansible",
+            "Jenkins",
+            "GitHub Actions",
+            "GitLab CI/CD",
+            "CircleCI",
+            "Travis CI",
+            "Nginx",
+            "Apache",
+            "Linux",
+            "Bash/Shell Scripting"
+          ]
+        },
+        "mobile": {
+          "label": "Mobile Development",
+          "skills": [
+            "React Native",
+            "Flutter",
+            "Swift",
+            "Kotlin",
+            "Java (Android)",
+            "Objective-C",
+            "Xamarin",
+            "Ionic",
+            "Cordova/PhoneGap",
+            "Unity",
+            "Flutter Web",
+            "Expo"
+          ]
+        },
+        "tools": {
+          "label": "Tools & Technologies",
+          "skills": [
+            "Git",
+            "GitHub",
+            "GitLab",
+            "Bitbucket",
+            "Jira",
+            "Confluence",
+            "Slack",
+            "Discord",
+            "VS Code",
+            "IntelliJ IDEA",
+            "Postman",
+            "Figma",
+            "Adobe XD",
+            "Sketch",
+            "Photoshop",
+            "Illustrator"
+          ]
+        },
+        "data_science": {
+          "label": "Data Science & AI",
+          "skills": [
+            "Python",
+            "R",
+            "TensorFlow",
+            "PyTorch",
+            "Scikit-learn",
+            "Pandas",
+            "NumPy",
+            "Matplotlib",
+            "Seaborn",
+            "Jupyter Notebook",
+            "Apache Spark",
+            "Hadoop",
+            "SQL",
+            "Machine Learning",
+            "Deep Learning",
+            "Natural Language Processing"
+          ]
+        },
+        "security": {
+          "label": "Cybersecurity",
+          "skills": [
+            "Penetration Testing",
+            "Vulnerability Assessment",
+            "Network Security",
+            "Web Application Security",
+            "Cryptography",
+            "OWASP",
+            "Wireshark",
+            "Metasploit",
+            "Nmap",
+            "Burp Suite",
+            "Kali Linux",
+            "Security Auditing",
+            "Incident Response",
+            "Risk Assessment"
+          ]
+        }
+      }
+    },
+    "soft_skills": {
+      "label": "Soft Skills",
+      "subcategories": {
+        "communication": {
+          "label": "Communication",
+          "skills": [
+            "Verbal Communication",
+            "Written Communication",
+            "Public Speaking",
+            "Presentation Skills",
+            "Active Listening",
+            "Cross-cultural Communication",
+            "Technical Writing",
+            "Documentation",
+            "Client Relations",
+            "Stakeholder Management"
+          ]
+        },
+        "leadership": {
+          "label": "Leadership",
+          "skills": [
+            "Team Leadership",
+            "Project Management",
+            "Strategic Planning",
+            "Decision Making",
+            "Delegation",
+            "Mentoring",
+            "Coaching",
+            "Vision Setting",
+            "Change Management",
+            "Conflict Resolution"
+          ]
+        },
+        "problem_solving": {
+          "label": "Problem Solving",
+          "skills": [
+            "Analytical Thinking",
+            "Critical Thinking",
+            "Creative Problem Solving",
+            "Research Skills",
+            "Troubleshooting",
+            "Root Cause Analysis",
+            "Innovation",
+            "Strategic Thinking",
+            "Pattern Recognition",
+            "Systems Thinking"
+          ]
+        },
+        "collaboration": {
+          "label": "Collaboration",
+          "skills": [
+            "Teamwork",
+            "Cross-functional Collaboration",
+            "Agile Methodologies",
+            "Scrum",
+            "Kanban",
+            "Pair Programming",
+            "Code Review",
+            "Knowledge Sharing",
+            "Peer Feedback",
+            "Team Building"
+          ]
+        },
+        "adaptability": {
+          "label": "Adaptability",
+          "skills": [
+            "Flexibility",
+            "Learning Agility",
+            "Continuous Learning",
+            "Resilience",
+            "Change Adaptation",
+            "Stress Management",
+            "Time Management",
+            "Prioritization",
+            "Multitasking",
+            "Growth Mindset"
+          ]
+        },
+        "professional": {
+          "label": "Professional Skills",
+          "skills": [
+            "Work Ethic",
+            "Reliability",
+            "Attention to Detail",
+            "Initiative",
+            "Self-motivation",
+            "Professionalism",
+            "Punctuality",
+            "Accountability",
+            "Quality Assurance",
+            "Customer Service"
+          ]
+        }
+      }
+    }
+  }
+} 
