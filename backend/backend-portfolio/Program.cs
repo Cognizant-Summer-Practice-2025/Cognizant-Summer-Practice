@@ -82,6 +82,7 @@ builder.Services.AddScoped<ImageUploadUtility>();
 
 builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
 builder.Services.AddScoped<IPortfolioCommandService, PortfolioCommandService>();
+builder.Services.AddScoped<IPortfolioTemplateService, PortfolioTemplateService>();
 builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();
 builder.Services.AddScoped<IProjectCommandService, ProjectCommandService>();
 

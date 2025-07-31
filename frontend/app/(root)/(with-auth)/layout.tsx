@@ -3,13 +3,14 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Loading } from '@/components/loader';
 
 export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -28,10 +29,12 @@ export default function AuthLayout({
   // Show loading while checking authentication
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full max-w-md min-h-[200px]">
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loading className="scale-50" backgroundColor="white" />
+            <span className="mt-4 text-gray-600">Loading...</span>
+          </div>
         </div>
       </div>
     );

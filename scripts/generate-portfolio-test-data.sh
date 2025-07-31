@@ -12,24 +12,70 @@ fi
 
 USER_ID="$1"
 PORTFOLIO_API_BASE="http://localhost:5201/api/Portfolio"
+PORTFOLIO_TEMPLATE_API_BASE="http://localhost:5201/api/PortfolioTemplate"
 
 echo "🚀 Starting Portfolio Test Data Generation for User: $USER_ID"
 echo "==============================================================="
 
+# Function to get available templates and select one randomly
+get_random_template() {
+    echo "🎨 Fetching available templates..." >&2
+    
+    TEMPLATES_RESPONSE=$(curl -s "$PORTFOLIO_TEMPLATE_API_BASE/active")
+    
+    if [ $? -ne 0 ] || [ -z "$TEMPLATES_RESPONSE" ]; then
+        echo "⚠️  Warning: Could not fetch templates, using default" >&2
+        echo "Gabriel Bârzu"
+        return
+    fi
+    
+    # Extract template names from JSON response - handle multi-word names properly
+    TEMPLATE_NAMES=$(echo "$TEMPLATES_RESPONSE" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
+    
+    if [ -z "$TEMPLATE_NAMES" ]; then
+        echo "⚠️  Warning: No active templates found, using default" >&2
+        echo "Gabriel Bârzu"
+        return
+    fi
+    
+    # Convert to array using newlines as delimiter to handle multi-word names
+    IFS=$'\n' TEMPLATES_ARRAY=($TEMPLATE_NAMES)
+    TEMPLATE_COUNT=${#TEMPLATES_ARRAY[@]}
+    RANDOM_INDEX=$((RANDOM % TEMPLATE_COUNT))
+    SELECTED_TEMPLATE="${TEMPLATES_ARRAY[$RANDOM_INDEX]}"
+    
+    echo "📋 Found $TEMPLATE_COUNT available templates:" >&2
+    for template in "${TEMPLATES_ARRAY[@]}"; do
+        echo "   - $template" >&2
+    done
+    
+    echo "🎯 Selected template: $SELECTED_TEMPLATE" >&2
+    echo "$SELECTED_TEMPLATE"
+}
+
+# Get random template
+SELECTED_TEMPLATE=$(get_random_template)
+
 # Step 1: Create a portfolio first
 echo "📝 Step 1: Creating a new portfolio..."
 
+# Create JSON payload using a here document to avoid escaping issues
+PORTFOLIO_JSON=$(cat <<EOF
+{
+  "userId": "$USER_ID",
+  "templateName": "$SELECTED_TEMPLATE",
+  "title": "Comprehensive Test Portfolio - Full Stack Developer",
+  "bio": "This is a comprehensive test portfolio designed to stress-test the template system with maximum data. Contains 100 projects, 100 experiences, 100 skills, and 100 blog posts to validate performance and layout scalability.",
+  "visibility": 0,
+  "isPublished": false,
+  "components": "[{\"id\":\"experience-1\",\"type\":\"experience\",\"order\":1,\"isVisible\":true,\"settings\":{}},{\"id\":\"projects-1\",\"type\":\"projects\",\"order\":2,\"isVisible\":true,\"settings\":{}},{\"id\":\"skills-1\",\"type\":\"skills\",\"order\":3,\"isVisible\":true,\"settings\":{}},{\"id\":\"blog_posts-1\",\"type\":\"blog_posts\",\"order\":4,\"isVisible\":true,\"settings\":{}}]"
+}
+EOF
+)
+
 CREATE_PORTFOLIO_RESPONSE=$(curl -s -X POST "$PORTFOLIO_API_BASE" \
   -H "Content-Type: application/json" \
-  -d '{
-    "userId": "'$USER_ID'",
-    "templateName": "Gabriel Bârzu",
-    "title": "Comprehensive Test Portfolio - Full Stack Developer",
-    "bio": "This is a comprehensive test portfolio designed to stress-test the template system with maximum data. Contains 100 projects, 100 experiences, 100 skills, and 100 blog posts to validate performance and layout scalability.",
-    "visibility": 0,
-    "isPublished": false,
-    "components": "[{\"id\":\"experience-1\",\"type\":\"experience\",\"order\":1,\"isVisible\":true,\"settings\":{}},{\"id\":\"projects-1\",\"type\":\"projects\",\"order\":2,\"isVisible\":true,\"settings\":{}},{\"id\":\"skills-1\",\"type\":\"skills\",\"order\":3,\"isVisible\":true,\"settings\":{}},{\"id\":\"blog_posts-1\",\"type\":\"blog_posts\",\"order\":4,\"isVisible\":true,\"settings\":{}}]"
-  }')
+  -d "$PORTFOLIO_JSON")
 
 # Extract portfolio ID from response
 PORTFOLIO_ID=$(echo $CREATE_PORTFOLIO_RESPONSE | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
@@ -90,9 +136,9 @@ for i in {1..100}; do
         "Desktop Application"
     )
     
-    # Select random tech stack and project type
-    TECH_INDEX=$((i % ${#TECH_SETS[@]}))
-    TYPE_INDEX=$((i % ${#PROJECT_TYPES[@]}))
+    # Select random tech stack and project type (using 0-based indexing)
+    TECH_INDEX=$(((i - 1) % ${#TECH_SETS[@]}))
+    TYPE_INDEX=$(((i - 1) % ${#PROJECT_TYPES[@]}))
     
     BULK_CONTENT_JSON+="
     {
@@ -143,11 +189,11 @@ for i in {1..100}; do
         "Staff Engineer"
     )
     
-    COMPANY_INDEX=$((i % ${#COMPANIES[@]}))
-    TITLE_INDEX=$((i % ${#JOB_TITLES[@]}))
+    COMPANY_INDEX=$(((i - 1) % ${#COMPANIES[@]}))
+    TITLE_INDEX=$(((i - 1) % ${#JOB_TITLES[@]}))
     
-    # Generate dates - spread over last 25 years
-    YEARS_AGO=$((i / 4))
+    # Generate dates - spread over last 25 years (using 0-based indexing)
+    YEARS_AGO=$(((i - 1) / 4))
     START_YEAR=$((2024 - YEARS_AGO - 1))
     END_YEAR=$((2024 - YEARS_AGO))
     
@@ -198,33 +244,33 @@ for i in {1..100}; do
     LEADERSHIP_SKILLS=("Team Leadership" "Project Management" "Strategic Planning" "Decision Making" "Delegation" "Performance Management" "Change Management" "Innovation" "Vision Setting" "Coaching")
     PROBLEM_SOLVING_SKILLS=("Analytical Thinking" "Critical Thinking" "Creative Problem Solving" "Root Cause Analysis" "Troubleshooting" "Algorithm Design" "System Design" "Performance Optimization" "Debugging" "Research")
     
-    CATEGORY_INDEX=$((i % ${#SKILL_CATEGORIES[@]}))
+    CATEGORY_INDEX=$(((i - 1) % ${#SKILL_CATEGORIES[@]}))
     CATEGORY=${SKILL_CATEGORIES[$CATEGORY_INDEX]}
     CATEGORY_TYPE=$(echo $CATEGORY | cut -d':' -f1)
     SUBCATEGORY=$(echo $CATEGORY | cut -d':' -f2)
     
-    # Select skill based on category
+    # Select skill based on category (using 0-based indexing)
     case $SUBCATEGORY in
-        "frontend") SKILL=${FRONTEND_SKILLS[$((i % ${#FRONTEND_SKILLS[@]}))]} ;;
-        "backend") SKILL=${BACKEND_SKILLS[$((i % ${#BACKEND_SKILLS[@]}))]} ;;
-        "database") SKILL=${DATABASE_SKILLS[$((i % ${#DATABASE_SKILLS[@]}))]} ;;
-        "devops") SKILL=${DEVOPS_SKILLS[$((i % ${#DEVOPS_SKILLS[@]}))]} ;;
-        "mobile") SKILL=${MOBILE_SKILLS[$((i % ${#MOBILE_SKILLS[@]}))]} ;;
-        "testing") SKILL=${TESTING_SKILLS[$((i % ${#TESTING_SKILLS[@]}))]} ;;
-        "cloud") SKILL=${CLOUD_SKILLS[$((i % ${#CLOUD_SKILLS[@]}))]} ;;
-        "communication") SKILL=${COMMUNICATION_SKILLS[$((i % ${#COMMUNICATION_SKILLS[@]}))]} ;;
-        "leadership") SKILL=${LEADERSHIP_SKILLS[$((i % ${#LEADERSHIP_SKILLS[@]}))]} ;;
-        "problem_solving") SKILL=${PROBLEM_SOLVING_SKILLS[$((i % ${#PROBLEM_SOLVING_SKILLS[@]}))]} ;;
+        "frontend") SKILL=${FRONTEND_SKILLS[$(((i - 1) % ${#FRONTEND_SKILLS[@]}))]} ;;
+        "backend") SKILL=${BACKEND_SKILLS[$(((i - 1) % ${#BACKEND_SKILLS[@]}))]} ;;
+        "database") SKILL=${DATABASE_SKILLS[$(((i - 1) % ${#DATABASE_SKILLS[@]}))]} ;;
+        "devops") SKILL=${DEVOPS_SKILLS[$(((i - 1) % ${#DEVOPS_SKILLS[@]}))]} ;;
+        "mobile") SKILL=${MOBILE_SKILLS[$(((i - 1) % ${#MOBILE_SKILLS[@]}))]} ;;
+        "testing") SKILL=${TESTING_SKILLS[$(((i - 1) % ${#TESTING_SKILLS[@]}))]} ;;
+        "cloud") SKILL=${CLOUD_SKILLS[$(((i - 1) % ${#CLOUD_SKILLS[@]}))]} ;;
+        "communication") SKILL=${COMMUNICATION_SKILLS[$(((i - 1) % ${#COMMUNICATION_SKILLS[@]}))]} ;;
+        "leadership") SKILL=${LEADERSHIP_SKILLS[$(((i - 1) % ${#LEADERSHIP_SKILLS[@]}))]} ;;
+        "problem_solving") SKILL=${PROBLEM_SOLVING_SKILLS[$(((i - 1) % ${#PROBLEM_SOLVING_SKILLS[@]}))]} ;;
     esac
     
     BULK_CONTENT_JSON+="
     {
       \"portfolioId\": \"$PORTFOLIO_ID\",
-      \"name\": \"$SKILL #$i\",
+      \"name\": \"$SKILL\",
       \"categoryType\": \"$CATEGORY_TYPE\",
       \"subcategory\": \"$SUBCATEGORY\",
       \"category\": \"$CATEGORY_TYPE/$SUBCATEGORY\",
-      \"proficiencyLevel\": $((1 + (i % 5))),
+      \"proficiencyLevel\": $(((i - 1) % 5 + 1)),
       \"displayOrder\": $i
     }"
 done
@@ -265,8 +311,8 @@ for i in {1..100}; do
         '["performance", "monitoring", "optimization", "analytics"]'
     )
     
-    TOPIC_INDEX=$((i % ${#BLOG_TOPICS[@]}))
-    TAGS_INDEX=$((i % ${#TAGS_SETS[@]}))
+    TOPIC_INDEX=$(((i - 1) % ${#BLOG_TOPICS[@]}))
+    TAGS_INDEX=$(((i - 1) % ${#TAGS_SETS[@]}))
     
     BULK_CONTENT_JSON+="
     {

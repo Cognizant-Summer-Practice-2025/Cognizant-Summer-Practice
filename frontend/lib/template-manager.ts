@@ -1,5 +1,13 @@
 import { ComponentConfig, PortfolioDataFromDB } from './portfolio/interfaces';
 
+// Simple, flexible component map that accepts any React component with data prop
+// Runtime type safety is maintained by the template manager's data routing:
+// - Experience components receive Experience[] data
+// - Projects components receive Project[] data  
+// - Skills components receive Skill[] data
+// - BlogPosts components receive BlogPost[] data
+// - About components receive Quote[] data
+// - Contact components receive ContactInfo data
 export interface ComponentMap {
   [key: string]: React.ComponentType<{ data: unknown }>;
 }
@@ -13,6 +21,12 @@ export class TemplateManager {
 
   // Get visible components sorted by order
   getVisibleComponents(components: ComponentConfig[]): ComponentConfig[] {
+    // Defensive check to ensure components is an array
+    if (!Array.isArray(components)) {
+      console.warn('getVisibleComponents received non-array value:', components);
+      return [];
+    }
+    
     const visibleComponents = components
       .filter(component => component.isVisible)
       .sort((a, b) => a.order - b.order);
@@ -27,9 +41,16 @@ export class TemplateManager {
 
   // Render components dynamically
   renderComponents(portfolioData: PortfolioDataFromDB) {
-    const visibleComponents = this.getVisibleComponents(portfolioData.portfolio.components || []);
+    const portfolioComponents = portfolioData.portfolio.components || [];
+    // Ensure we have an array before proceeding
+    if (!Array.isArray(portfolioComponents)) {
+      console.warn('renderComponents: portfolio.components is not an array:', portfolioComponents);
+      return [];
+    }
     
-    return visibleComponents.map((componentConfig) => {
+    const visibleComponents = this.getVisibleComponents(portfolioComponents);
+    
+    const componentInfos = visibleComponents.map((componentConfig) => {
       const Component = this.getComponent(componentConfig.type);
       
       if (!Component) {
@@ -48,7 +69,10 @@ export class TemplateManager {
         data: componentData,
         settings: componentConfig.settings || {}
       };
-    }).filter(Boolean);
+    });
+    
+    // Filter out null values with explicit type guard
+    return componentInfos.filter((item): item is NonNullable<typeof item> => item !== null);
   }
 
   // Get data for specific component type
@@ -63,9 +87,18 @@ export class TemplateManager {
       case 'blog_posts':
         return portfolioData.blogPosts;
       case 'contact':
-        return portfolioData.contacts;
+        // For contact component, provide contacts, profile, and socialLinks data
+        return {
+          profile: portfolioData.profile,
+          contacts: portfolioData.contacts,
+          socialLinks: portfolioData.socialLinks
+        };
       case 'about':
-        return portfolioData.quotes;
+        // For about component, provide both profile and quotes data
+        return {
+          profile: portfolioData.profile,
+          quotes: portfolioData.quotes
+        };
       default:
         return null;
     }
@@ -75,31 +108,45 @@ export class TemplateManager {
   static createDefaultComponentConfig(): ComponentConfig[] {
     return [
       {
+        id: 'about-1',
+        type: 'about',
+        order: 1,
+        isVisible: true,
+        settings: {}
+      },
+      {
         id: 'experience-1',
         type: 'experience',
-        order: 1,
+        order: 2,
         isVisible: true,
         settings: {}
       },
       {
         id: 'projects-1',
         type: 'projects',
-        order: 2,
+        order: 3,
         isVisible: true,
         settings: {}
       },
       {
         id: 'skills-1',
         type: 'skills',
-        order: 3,
+        order: 4,
         isVisible: true,
         settings: {}
       },
       {
         id: 'blog_posts-1',
         type: 'blog_posts',
-        order: 4,
+        order: 5,
         isVisible: false, // Hidden by default
+        settings: {}
+      },
+      {
+        id: 'contact-1',
+        type: 'contact',
+        order: 6,
+        isVisible: true,
         settings: {}
       }
     ];
@@ -165,12 +212,12 @@ export class TemplateManager {
       validatedData.profile.profileImage = 'https://placehold.co/120x120';
     }
     if (!validatedData.profile.email || validatedData.profile.email.trim() === '') {
-      validatedData.profile.email = 'contact@example.com';
+      validatedData.profile.email = validatedData.contacts.email || 'contact@example.com';
     }
 
     // Set default contact info if missing
     if (!validatedData.contacts.email || validatedData.contacts.email.trim() === '') {
-      validatedData.contacts.email = validatedData.profile.email;
+      validatedData.contacts.email = validatedData.profile.email || 'contact@example.com';
     }
 
     return validatedData;

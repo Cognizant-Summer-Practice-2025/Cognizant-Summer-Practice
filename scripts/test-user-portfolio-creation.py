@@ -9,24 +9,59 @@ import requests
 import subprocess
 import sys
 import time
+import random
 
 USER_API_BASE = "http://localhost:5200/api/Users"
 PORTFOLIO_SCRIPT_PATH = "./generate-portfolio-test-data.py"
 
-# Test user data
-USERS = [
-    {"full_name": "TestUser1", "email": "test1@example.com"},
-    {"full_name": "TestUser2", "email": "test2@example.com"}
+# Test data arrays for generating realistic random data
+FIRST_NAMES = [
+    "Alex", "Sarah", "Michael", "Emma", "James", "Olivia", "William", "Ava", 
+    "Benjamin", "Isabella", "Lucas", "Sophia", "Henry", "Charlotte", "Alexander", 
+    "Mia", "Sebastian", "Amelia", "Jack", "Harper", "Owen", "Evelyn", "Theodore", 
+    "Abigail", "Jacob", "Emily", "Leo", "Elizabeth", "Mason", "Sofia", "Ethan", 
+    "Avery", "Noah", "Ella", "Logan", "Scarlett", "Elijah", "Grace", "Oliver", 
+    "Chloe", "Aiden", "Victoria", "Gabriel", "Riley", "Samuel", "Aria", "David", 
+    "Lily", "Carter", "Aubrey", "Wyatt", "Zoey", "Jayden", "Penelope", "John", 
+    "Lillian", "Hunter", "Addison", "Luke", "Layla", "Daniel", "Natalie", "Ryan", 
+    "Camila", "Matthew", "Hannah", "Caleb", "Brooklyn", "Isaac", "Samantha"
 ]
 
+LAST_NAMES = [
+    "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", 
+    "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", 
+    "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", 
+    "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson", "Walker", 
+    "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill", "Flores", 
+    "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", 
+    "Carter", "Roberts", "Gomez", "Phillips", "Evans", "Turner", "Diaz", "Parker", 
+    "Cruz", "Edwards", "Collins", "Reyes", "Stewart", "Morris", "Morales", "Murphy"
+]
+
+DOMAINS = ["gmail.com", "outlook.com", "yahoo.com", "hotmail.com", "icloud.com", "protonmail.com"]
+
+def generate_random_user_data():
+    """Generate random user data"""
+    first_name = random.choice(FIRST_NAMES)
+    last_name = random.choice(LAST_NAMES)
+    domain = random.choice(DOMAINS)
+    
+    email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 999)}@{domain}"
+    
+    return first_name, last_name, email
+
 def create_user(first_name, last_name, email):
+    # Generate random avatar using the same approach as portfolio components
+    avatar_seed = random.randint(1, 10000)
+    
     data = {
         "email": email,
         "firstName": first_name,
         "lastName": last_name,
         "professionalTitle": "Software Developer",
         "bio": "Test user created for portfolio testing",
-        "location": "Test City, TC"
+        "location": "Test City, TC",
+        "profileImage": f"https://picsum.photos/150/150?random={avatar_seed}"
     }
     try:
         response = requests.post(f"{USER_API_BASE}/register", json=data, timeout=10)
@@ -54,11 +89,11 @@ def main():
     print("===============================================")
     created_count = 0
     failed_count = 0
-    for i, user in enumerate(USERS):
-        full_name = user["full_name"]
-        email = user["email"]
-        first_name = full_name.split()[0]
-        last_name = "User"
+    
+    for i in range(2):
+        first_name, last_name, email = generate_random_user_data()
+        full_name = f"{first_name} {last_name}"
+        
         print(f"Creating user {i+1}/2: {full_name}...")
         user_id, user_response = create_user(first_name, last_name, email)
         print(f"Response: {user_response}")

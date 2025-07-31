@@ -68,6 +68,7 @@ namespace backend_portfolio.DTO.Portfolio.Response
         public int BookmarkCount { get; set; }
         public Visibility Visibility { get; set; }
         public bool IsPublished { get; set; }
+        public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public string? Components { get; set; }
         public PortfolioTemplateSummaryResponse? Template { get; set; }

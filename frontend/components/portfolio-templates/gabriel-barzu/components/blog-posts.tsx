@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { BlogPost } from '@/lib/portfolio';
 import { getSafeImageUrl } from '@/lib/image';
 
@@ -29,14 +30,12 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
           <article key={post.id} className="blog-post-card">
             {post.featuredImageUrl && (
               <div className="blog-post-image-container">
-                <img 
+                <Image 
                   src={getSafeImageUrl(post.featuredImageUrl)} 
                   alt={post.title}
                   className="blog-post-image"
-                  onError={(e) => {
-                    // Fallback to placeholder if image fails to load
-                    e.currentTarget.src = getSafeImageUrl('');
-                  }}
+                  width={400}
+                  height={250}
                 />
               </div>
             )}

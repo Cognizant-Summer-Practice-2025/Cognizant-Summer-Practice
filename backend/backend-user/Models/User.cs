@@ -42,6 +42,12 @@ namespace backend_user.Models
 
         public DateTime? LastLoginAt { get; set; }
 
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         // Navigation properties
         public virtual ICollection<OAuthProvider> OAuthProviders { get; set; } = new List<OAuthProvider>();
         public virtual ICollection<Newsletter> Newsletters { get; set; } = new List<Newsletter>();

@@ -30,6 +30,31 @@ export function PortfolioInformation() {
     linkedin: ""
   })
 
+  // Helper function to get selected template name
+  const getSelectedTemplateName = () => {
+    // Priority order:
+    // 1. Current portfolio's template name (if portfolio exists)
+    // 2. Check for any recently selected template in session storage
+    // 3. Default to Gabriel Bârzu
+    
+    if (currentPortfolio?.template) {
+      return currentPortfolio.template.name;
+    }
+    
+    // Check session storage for recently selected template
+    try {
+      const savedTemplate = sessionStorage.getItem('selectedTemplateName');
+      if (savedTemplate && savedTemplate !== 'undefined') {
+        return savedTemplate;
+      }
+    } catch (error) {
+      console.warn('Could not read from session storage:', error);
+    }
+    
+    // Default fallback
+    return 'Gabriel Bârzu';
+  };
+
   // Load current portfolio data
   useEffect(() => {
     if (currentPortfolio) {
@@ -67,7 +92,7 @@ export function PortfolioInformation() {
         // Create new portfolio with basic information
         const portfolioData = {
           userId: user.id,
-          templateName: 'Gabriel Bârzu', // Default template
+          templateName: getSelectedTemplateName(),
           title: dataToSave.title || 'My Portfolio',
           bio: dataToSave.bio || 'Welcome to my portfolio',
           visibility: dataToSave.visibility,

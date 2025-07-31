@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/lib/contexts/user-context';
+import { Loading } from '@/components/loader';
 
 export default function BasicInfo() {
   const { user, loading, error, updateUserData } = useUser();
@@ -75,10 +76,11 @@ export default function BasicInfo() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[600px] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 spinner-app-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading user information...</p>
+      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
+        <h2 className="text-2xl font-bold mb-4">Basic Information</h2>
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loading className="scale-50" backgroundColor="white" />
+          <span className="mt-4 text-gray-600">Loading user information...</span>
         </div>
       </div>
     );

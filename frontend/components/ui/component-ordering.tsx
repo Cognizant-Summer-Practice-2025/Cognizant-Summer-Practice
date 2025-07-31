@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { GripVertical } from "lucide-react";
 import { ComponentConfig } from "@/lib/portfolio";
 

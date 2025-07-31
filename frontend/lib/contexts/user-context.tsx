@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useSession } from 'next-auth/react';
 import { User } from '@/lib/user/interfaces';
 import { getUserByEmail, updateUser } from '@/lib/user/api';
-import { Bookmark, addBookmark, removeBookmark, getUserBookmarks, isPortfolioBookmarked } from '@/lib/bookmark';
 
 interface UserContextType {
   user: User | null;

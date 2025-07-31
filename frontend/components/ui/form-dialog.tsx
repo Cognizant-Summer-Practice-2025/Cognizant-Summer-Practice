@@ -26,10 +26,10 @@ export interface FormField {
   required?: boolean
   rows?: number
   dependsOn?: string // For conditional fields
-  dependsOnValue?: any // Value that dependsOn field must have
+  dependsOnValue?: unknown // Value that dependsOn field must have
 }
 
-export interface FormDialogProps<T = Record<string, any>> {
+export interface FormDialogProps<T = Record<string, unknown>> {
   // Dialog props
   title: string
   description: string
@@ -40,7 +40,7 @@ export interface FormDialogProps<T = Record<string, any>> {
   // Form props
   fields: FormField[]
   formData: T
-  onFormChange: (field: string, value: any) => void
+  onFormChange: (field: string, value: unknown) => void
   onSubmit: () => void
   onCancel: () => void
   
@@ -58,8 +58,8 @@ export interface FormDialogProps<T = Record<string, any>> {
 // Separate memoized form component to prevent re-renders
 const FormContent = React.memo<{
   fields: FormField[]
-  formData: Record<string, any>
-  onFormChange: (field: string, value: any) => void
+  formData: Record<string, unknown>
+  onFormChange: (field: string, value: unknown) => void
   onSubmit: () => void
   onCancel: () => void
   isEdit: boolean
@@ -97,7 +97,7 @@ const FormContent = React.memo<{
         return (
           <Textarea
             id={fieldId}
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onFormChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             rows={field.rows || 3}
@@ -123,7 +123,7 @@ const FormContent = React.memo<{
           <Input
             id={fieldId}
             type="date"
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onFormChange(field.name, e.target.value)}
             disabled={loading}
           />
@@ -136,7 +136,7 @@ const FormContent = React.memo<{
           <Input
             id={fieldId}
             type={field.type === 'url' ? 'url' : 'text'}
-            value={value}
+            value={typeof value === 'string' ? value : ''}
             onChange={(e) => onFormChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             disabled={loading}
@@ -179,7 +179,7 @@ const FormContent = React.memo<{
         <Button
           onClick={onSubmit}
           disabled={loading}
-          className="flex-1"
+          className="flex-1 bg-app-blue hover:bg-app-blue-hover text-white"
         >
           {loading ? 'Saving...' : submitLabel || (isEdit ? 'Update' : 'Add')}
         </Button>
@@ -197,7 +197,7 @@ const FormContent = React.memo<{
 
 FormContent.displayName = 'FormContent'
 
-export function FormDialog<T = Record<string, any>>({
+export function FormDialog<T extends Record<string, unknown> = Record<string, unknown>>({
   title,
   description,
   triggerLabel,
@@ -250,7 +250,7 @@ export function FormDialog<T = Record<string, any>>({
 }
 
 // Helper function to create a simple dialog for editing (without trigger)
-export function EditFormDialog<T = Record<string, any>>({
+export function EditFormDialog<T extends Record<string, unknown> = Record<string, unknown>>({
   title,
   description,
   isOpen,

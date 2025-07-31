@@ -36,6 +36,9 @@ export interface StatData {
   icon?: string;
 }
 
+// Alias for StatData to match component usage
+export type Stat = StatData;
+
 export interface ContactInfo {
   email: string;
   location?: string;
@@ -123,6 +126,7 @@ export interface UserPortfolio {
   id: string;
   userId: string;
   templateId: string;
+  templateName?: string; // Add template name for easier access
   title?: string;
   bio?: string;
   isPublished: boolean;

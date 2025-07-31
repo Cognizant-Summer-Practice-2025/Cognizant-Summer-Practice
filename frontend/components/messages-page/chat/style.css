@@ -227,7 +227,7 @@
 }
 
 .messages-area::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 .messages-area::-webkit-scrollbar-thumb {

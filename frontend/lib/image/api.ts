@@ -154,5 +154,4 @@ export function generateImagePreview(file: File): Promise<string> {
   });
 }
 
-// Export utility types
-export type { ImageUploadErrorResponse, SupportedSubfoldersResponse }; 
+ 

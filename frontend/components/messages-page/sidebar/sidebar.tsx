@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import UserSearchModal from '../user-search-modal/user-search-modal';
 import { SearchUser } from '@/lib/user';
 import './style.css';
@@ -34,10 +35,12 @@ const ContactItem: React.FC<{
       onClick={onClick}
     >
       <div className="contact-avatar-container">
-        <img 
+        <Image 
           className="contact-avatar" 
           src={contact.avatar} 
           alt={contact.name}
+          width={40}
+          height={40}
         />
       </div>
       <div className="contact-details">

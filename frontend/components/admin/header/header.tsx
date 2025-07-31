@@ -1,4 +1,8 @@
+'use client';
+
 import React from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { EyeOutlined, BarChartOutlined, TeamOutlined } from '@ant-design/icons';
 import './style.css';
@@ -14,6 +18,12 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   activeTab = 'statistics', 
   onTabChange 
 }) => {
+  const router = useRouter();
+
+  const handleViewSite = () => {
+    router.push('/');
+  };
+
   return (
     <div className="admin-header">
       <div className="admin-header-content">
@@ -42,10 +52,16 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
         </div>
       
         <div className="admin-header-actions">
-          <Button icon={<EyeOutlined />} className="view-site-btn">
+          <Button icon={<EyeOutlined />} className="view-site-btn" onClick={handleViewSite}>
             View Site
           </Button>
-          <img className="admin-avatar" src="https://placehold.co/32x32" alt="Admin" />
+          <Image 
+            className="admin-avatar" 
+            src="https://placehold.co/32x32" 
+            alt="Admin" 
+            width={32}
+            height={32}
+          />
         </div>
       </div>
     </div>

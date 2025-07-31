@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Select, Row, Col, Spin, Empty } from 'antd';
+import { Select, Row, Col, Empty } from 'antd';
 import PortfolioCard from './portfolio-card';
 import PaginationControls from './pagination-controls';
 import { useHomePageCache } from '@/lib/contexts/home-page-cache-context';
+import { Loading } from '@/components/loader';
 import './style.css';
 
 const { Option } = Select;
@@ -144,7 +145,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
       <div className="portfolio-grid-content">
         {loading && sortedPortfolios.length === 0 ? (
           <div className="portfolio-grid-loading">
-            <Spin size="large" />
+            <Loading className="scale-50" backgroundColor="white" />
             <p>Loading amazing portfolios...</p>
           </div>
         ) : error ? (
@@ -199,7 +200,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
             {/* Loading overlay for pagination changes */}
             {loading && sortedPortfolios.length > 0 && (
               <div className="portfolio-grid-loading-overlay">
-                <Spin size="small" />
+                <Loading className="scale-25" backgroundColor="white" />
               </div>
             )}
           </>
@@ -209,9 +210,7 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
       {/* Pagination Controls */}
       {pagination && sortedPortfolios.length > 0 && (
         <PaginationControls 
-          showQuickJumper
           showTotal
-          showCacheStats={false}
           className="portfolio-pagination"
         />
       )}

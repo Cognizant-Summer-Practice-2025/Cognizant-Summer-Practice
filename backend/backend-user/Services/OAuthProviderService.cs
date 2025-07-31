@@ -67,7 +67,14 @@ namespace backend_user.Services
         {
             var exists = await _oauthProviderRepository.ExistsAsync(provider, providerId);
             var oauthProvider = await _oauthProviderRepository.GetByProviderAndProviderIdAsync(provider, providerId);
-            return new { exists = exists, provider = oauthProvider };
+            
+            if (oauthProvider != null)
+            {
+                var response = OAuthProviderMapper.ToResponseDto(oauthProvider);
+                return new { exists = exists, provider = response, user = new { id = oauthProvider.UserId } };
+            }
+            
+            return new { exists = exists, provider = (OAuthProviderResponseDto?)null, user = (object?)null };
         }
 
         public async Task<object> GetUserOAuthProviderByTypeAsync(Guid userId, OAuthProviderType provider)

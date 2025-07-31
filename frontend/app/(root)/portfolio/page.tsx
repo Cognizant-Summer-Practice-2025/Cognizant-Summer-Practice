@@ -5,17 +5,21 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { loadTemplateComponent, getDefaultTemplate, convertTemplateUuidToId } from '@/lib/templates';
-import { PortfolioDataFromDB, PortfolioData } from '@/lib/portfolio';
+import Header from '@/components/header';
+import { PortfolioDataFromDB, PortfolioData, ComponentConfig } from '@/lib/portfolio';
+import { LoadingOverlay } from '@/components/loader';
 
 // Loading component
 function TemplateLoader() {
   return (
-    <div className="portfolio-loading">
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading portfolio...</p>
-      </div>
-    </div>
+    <LoadingOverlay 
+      isOpen={true}
+      title="Loading Portfolio..."
+      message="Please wait while we load your portfolio"
+      showBackdrop={false}
+      preventBodyScroll={false}
+      textColor="black"
+    />
   );
 }
 
@@ -67,7 +71,7 @@ function NoPortfolioFound({
   );
 }
 
-const PortfolioPage = () => {
+const PortfolioContent = () => {
   const [TemplateComponent, setTemplateComponent] = useState<React.ComponentType<{data: PortfolioDataFromDB | PortfolioData}> | null>(null);
   const [templateLoading, setTemplateLoading] = useState(false);
   
@@ -115,6 +119,24 @@ const PortfolioPage = () => {
       return owner?.email || 'contact@example.com';
     };
 
+    // Ensure components is always an array - handle both array and string cases
+    let portfolioComponents: ComponentConfig[] = [];
+    try {
+      if (Array.isArray(currentPortfolio.components)) {
+        portfolioComponents = currentPortfolio.components;
+      } else if (typeof currentPortfolio.components === 'string') {
+        portfolioComponents = JSON.parse(currentPortfolio.components);
+      } else if (currentPortfolio.components) {
+        // If it's some other type, try to convert it
+        console.warn('Unexpected components type:', typeof currentPortfolio.components, currentPortfolio.components);
+        portfolioComponents = [];
+      }
+    } catch (error) {
+      console.error('Error parsing portfolio components:', error, currentPortfolio.components);
+      // Fallback to default components
+      portfolioComponents = [];
+    }
+
     // For templates that expect PortfolioDataFromDB (like Gabriel Barzu)
     const portfolioDataFromDB: PortfolioDataFromDB = {
       portfolio: {
@@ -127,7 +149,7 @@ const PortfolioPage = () => {
         visibility: currentPortfolio.visibility,
         viewCount: currentPortfolio.viewCount,
         likeCount: currentPortfolio.likeCount,
-        components: currentPortfolio.components || [],
+        components: portfolioComponents,
         createdAt: '', // Not available in new structure
         updatedAt: currentPortfolio.updatedAt,
       },
@@ -138,7 +160,7 @@ const PortfolioPage = () => {
         bio: currentPortfolio.bio || 'Welcome to my portfolio',
         profileImage: portfolioOwner?.avatarUrl || 'https://placehold.co/120x120',
         location: portfolioOwner?.location || '',
-        email: 'contact@example.com', // Don't expose real email
+        email: getEmail(portfolioOwner), // Use actual email consistently
       },
       stats: [
         { id: '1', label: 'Portfolio Views', value: currentPortfolio.viewCount?.toString() || '0', icon: '👁️' },
@@ -204,7 +226,7 @@ const PortfolioPage = () => {
         
         // Get template ID from portfolio configuration, converting UUID to string ID if needed
         const rawTemplateId = currentPortfolio.templateId || getDefaultTemplate().id;
-        const templateId = convertTemplateUuidToId(rawTemplateId);
+        const templateId = await convertTemplateUuidToId(rawTemplateId);
         
 
         
@@ -250,11 +272,22 @@ const PortfolioPage = () => {
   }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <Suspense fallback={<TemplateLoader />}>
-        <TemplateComponent data={templateData} />
-      </Suspense>
-    </div>
+    <>
+      <Header />
+      <div style={{ position: 'relative', paddingTop: '64px' }}>
+        <Suspense fallback={<TemplateLoader />}>
+          <TemplateComponent data={templateData} />
+        </Suspense>
+      </div>
+    </>
+  );
+};
+
+const PortfolioPage = () => {
+  return (
+    <Suspense fallback={<TemplateLoader />}>
+      <PortfolioContent />
+    </Suspense>
   );
 };
 

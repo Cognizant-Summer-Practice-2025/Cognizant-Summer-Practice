@@ -107,6 +107,8 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 // Register OAuth user (creates both user and OAuth provider)
 export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Promise<{ user: User; oauthProvider: OAuthProvider }> {
   try {
+    console.log('Sending OAuth registration request:', userData);
+    
     const response = await fetch(`${API_BASE_URL}/api/users/register-oauth`, {
       method: 'POST',
       headers: {
@@ -115,8 +117,11 @@ export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Pro
       body: JSON.stringify(userData),
     });
 
+    console.log('OAuth registration response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('OAuth registration error details:', errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -130,7 +135,17 @@ export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Pro
 // Check if OAuth provider exists
 export async function checkOAuthProvider(provider: string, providerId: string): Promise<CheckOAuthProviderResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/oauth-providers/check?provider=${provider}&providerId=${encodeURIComponent(providerId)}`, {
+    // Convert provider string to proper case expected by backend enum
+    const providerMapping: { [key: string]: string } = {
+      'google': 'Google',
+      'github': 'GitHub',
+      'facebook': 'Facebook',
+      'linkedin': 'LinkedIn'
+    };
+    
+    const formattedProvider = providerMapping[provider.toLowerCase()] || provider;
+    
+    const response = await fetch(`${API_BASE_URL}/api/users/oauth-providers/check?provider=${formattedProvider}&providerId=${encodeURIComponent(providerId)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

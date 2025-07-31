@@ -136,7 +136,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
   border-radius: 4px;
 }
 
@@ -155,13 +155,13 @@
 }
 
 ::-webkit-scrollbar-corner {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 /* Modern Scrollbar - Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--app-blue-primary) #f1f5f9;
+  scrollbar-color: var(--app-blue-primary) transparent;
 }
 
 /* Thin scrollbar variant for smaller containers */

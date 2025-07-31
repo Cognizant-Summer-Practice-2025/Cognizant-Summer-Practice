@@ -176,7 +176,7 @@
 }
 
 .contacts-list::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 .contacts-list::-webkit-scrollbar-thumb {
