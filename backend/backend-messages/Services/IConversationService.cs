@@ -1,12 +1,20 @@
-using backend_messages.DTOs.Requests;
-using backend_messages.DTOs.Responses;
+using BackendMessages.DTO.Conversation.Request;
+using BackendMessages.DTO.Conversation.Response;
 
-namespace backend_messages.Services
+namespace BackendMessages.Services.Abstractions
 {
     public interface IConversationService
     {
-        Task<ConversationResponse> CreateConversationAsync(CreateConversationRequest request);
-        Task<List<MessageResponse>> GetConversationHistoryAsync(Guid conversationId);
-        Task<List<ConversationResponse>> GetUserConversationsAsync(Guid userId);
+        Task<CreateConversationResponse> CreateConversationAsync(CreateConversationRequest request);
+        Task<ConversationResponse?> GetConversationByIdAsync(Guid conversationId, Guid userId);
+        Task<ConversationDetailResponse?> GetConversationDetailAsync(Guid conversationId, Guid userId);
+        Task<ConversationsPagedResponse> GetUserConversationsAsync(GetConversationsRequest request);
+        Task<DeleteConversationResponse> DeleteConversationAsync(DeleteConversationRequest request);
+        Task<ConversationResponse?> GetOrCreateConversationAsync(Guid user1Id, Guid user2Id);
+        Task<ConversationStatsResponse> GetConversationStatsAsync(Guid userId);
+        Task<bool> UserCanAccessConversationAsync(Guid conversationId, Guid userId);
+        Task<bool> IsConversationDeletedByUserAsync(Guid conversationId, Guid userId);
+        Task<int> GetUnreadConversationCountAsync(Guid userId);
+        Task UpdateLastMessageAsync(Guid conversationId, Guid messageId);
     }
-}
+} 

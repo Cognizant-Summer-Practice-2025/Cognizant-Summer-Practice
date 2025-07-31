@@ -1,7 +1,21 @@
 #!/bin/bash
 
 # Mass User and Portfolio Creation Script
-# Creates 100 users and immediately creates a test portfolio for each one
+# Creates 100 users and immediately createsecho ""
+echo "🎉 Mass Creation Complete!"
+echo "=========================="
+echo "📈 Final Summary:"
+echo "   📊 Total users attempted: 100"
+echo "   ✅ Successful creations: $CREATED_COUNT"
+echo "   ❌ Failed creations: $FAILED_COUNT"
+echo "   📈 Success rate: $((CREATED_COUNT * 100 / 100))%"
+echo ""
+echo "🎯 Each successful user has:"
+echo "   👤 User account created"
+echo "   📁 Test portfolio with 100 projects, 100 experiences, 100 skills, 100 blog posts"
+echo ""
+echo "🌐 Access portfolios via: http://localhost:3000/portfolio/[PORTFOLIO_ID]"
+echo "🚀 Backend APIs running on: User (5200), Portfolio (5201)"io for each one
 
 USER_API_BASE="http://localhost:5200/api/Users"
 PORTFOLIO_SCRIPT_PATH="/Users/theo/Documents/Cognizant-Summer-Practice/scripts/generate-portfolio-test-data.sh"
@@ -22,38 +36,6 @@ FAILED_COUNT=0
 
 echo "📊 Progress tracking:"
 echo "===================="
-
-for i in {1..100}; do
-    # Generate random user data
-    FIRST_NAME=${FIRST_NAMES[$((RANDOM % ${#FIRST_NAMES[@]}))]}
-    LAST_NAME=${LAST_NAMES[$((RANDOM % ${#LAST_NAMES[@]}))]}
-    DOMAIN=${DOMAINS[$((RANDOM % ${#DOMAINS[@]}))]}
-    
-    EMAIL="$(echo "$FIRST_NAME" | tr '[:upper:]' '[:lower:]').$(echo "$LAST_NAME" | tr '[:upper:]' '[:lower:]')$((RANDOM % 999))@${DOMAIN}"
-    
-    # Generate random avatar using the same approach as portfolio components
-    AVATAR_SEED=$((RANDOM % 10000))
-    
-    echo -n "👤 Creating user $i/100: $FIRST_NAME $LAST_NAME... "
-    
-    # Create user
-    USER_RESPONSE=$(curl -s -X POST "$USER_API_BASE/register" \
-        -H "Content-Type: application/json" \
-        -d "{
-            \"email\": \"$EMAIL\",
-            \"firstName\": \"$FIRST_NAME\",
-            \"lastName\": \"$LAST_NAME\",
-            \"professionalTitle\": \"Software Developer\",
-            \"bio\": \"Test user created for portfolio stress testing\",
-            \"location\": \"Test City, TC\",
-            \"profileImage\": \"https://picsum.photos/150/150?random=$AVATAR_SEED\"
-        }")
-    
-    # Check if user creation was successful
-    if [[ $USER_RESPONSE == *"id"* ]] && [[ $USER_RESPONSE != *"error"* ]]; then
-        # Extract user ID from response
-        USER_ID=$(echo "$USER_RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-        
 
 # Function to create user and portfolio
 create_user_and_portfolio() {

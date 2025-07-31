@@ -1,32 +1,56 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace backend_messages.Models
+namespace BackendMessages.Models
 {
-    [Table("conversations")]
     public class Conversation
     {
         [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Id { get; set; }
 
         [Required]
-        [Column("user1_id")]
-        public Guid User1Id { get; set; }
+        public Guid InitiatorId { get; set; }
 
         [Required]
-        [Column("user2_id")]
-        public Guid User2Id { get; set; }
+        public Guid ReceiverId { get; set; }
 
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [Required]
+        public DateTime LastMessageTimestamp { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public Guid? LastMessageId { get; set; }
 
-        [Column("last_message_at")]
-        public DateTime? LastMessageAt { get; set; }
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
+        [Required]
+        public DateTime UpdatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+
+        // Soft delete fields - track which users have "deleted" this conversation
+        public DateTime? InitiatorDeletedAt { get; set; }
+        public DateTime? ReceiverDeletedAt { get; set; }
+
+        // Navigation properties
+        [ForeignKey("LastMessageId")]
+        public virtual Message? LastMessage { get; set; }
+        
         public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
+
+        // Helper methods
+        public bool IsDeletedByUser(Guid userId)
+        {
+            if (userId == InitiatorId)
+                return InitiatorDeletedAt.HasValue;
+            if (userId == ReceiverId)
+                return ReceiverDeletedAt.HasValue;
+            return false;
+        }
+
+        public bool IsDeletedByBothUsers()
+        {
+            return InitiatorDeletedAt.HasValue && ReceiverDeletedAt.HasValue;
+        }
     }
 } 

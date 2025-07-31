@@ -1,63 +1,57 @@
+
 using Microsoft.EntityFrameworkCore;
-using backend_messages.Data;
-using backend_messages.Data.Repositories;
-using backend_messages.Services;
-using backend_messages;
+using BackendMessages.Data;
+using BackendMessages.Services;
+using BackendMessages.Services.Abstractions;
+using BackendMessages.Repositories;
+using BackendMessages.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
+builder.Services.AddSignalR();
+
+builder.Services.AddCors();
+
+builder.Services.AddHttpClient<IUserSearchService, UserSearchService>(client =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000") 
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-builder.Services.AddDbContext<MessageDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+// Register repositories
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+
+// Register services
+builder.Services.AddScoped<IUserSearchService, UserSearchService>();
+builder.Services.AddScoped<IConversationService, ConversationServiceRefactored>();
 builder.Services.AddScoped<IMessageService, MessageService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddDbContext<MessagesDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MessagesDatabase")));
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
+app.UseCors(policy => policy
+    .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:3001") // Add frontend URLs
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials()
+    .WithExposedHeaders("*"));
+
 app.UseHttpsRedirection();
-
-app.UseCors("AllowFrontend");
-
 app.UseAuthorization();
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var context = scope.ServiceProvider.GetRequiredService<MessageDbContext>();
-        try
-        {
-            await context.Database.EnsureCreatedAsync();
-            await TestData.SeedTestDataAsync(context);
-            Console.WriteLine("Test data seeded successfully!");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error seeding test data: {ex.Message}");
-        }
-    }
-}
+app.MapHub<MessageHub>("/messagehub");
 
 app.Run();

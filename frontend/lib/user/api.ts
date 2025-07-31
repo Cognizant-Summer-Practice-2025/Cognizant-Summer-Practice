@@ -10,11 +10,12 @@ import {
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5200';
+const MESSAGES_API_BASE_URL = 'http://localhost:5093';
 
 // Search users by username, first name, last name, or full name
 export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+    const response = await fetch(`${MESSAGES_API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

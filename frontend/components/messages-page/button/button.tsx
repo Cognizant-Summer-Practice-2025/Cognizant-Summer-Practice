@@ -1,18 +1,18 @@
 import React from 'react';
-import { Button as AntButton } from 'antd';
-import './button.module.css';
+import { Button as ShadcnButton } from '@/components/ui/button';
 
 interface ButtonProps {
   text: string;
   onClick: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({ text, onClick, className }) => {
+const Button: React.FC<ButtonProps> = ({ text, onClick, className, children }) => {
   return (
-    <AntButton onClick={onClick} className={className}>
-      {text}
-    </AntButton>
+    <ShadcnButton onClick={onClick} className={className}>
+      {children || text}
+    </ShadcnButton>
   );
 };
 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Modal, Avatar, Spin, Empty } from 'antd';
 import { Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { searchUsers, SearchUser } from '@/lib/user';
 import './style.css';
 
@@ -60,45 +62,46 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
   };
 
   return (
-    <Modal
-      title="Search Users"
-      open={visible}
-      onCancel={handleClose}
-      footer={null}
-      width={500}
-      className="user-search-modal"
-    >
-      <div className="user-search-content">
+    <Dialog open={visible} onOpenChange={handleClose}>
+      <DialogContent className="user-search-modal max-w-md">
+        <DialogHeader>
+          <DialogTitle>Search Users</DialogTitle>
+        </DialogHeader>
+        <div className="user-search-content">
         <div className="search-input-wrapper">
-          <Input
-            placeholder="Search by name or username..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            prefix={<Search size={16} />}
-            className="search-input"
-            autoFocus
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or username..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input pl-10"
+              autoFocus
+            />
+          </div>
         </div>
 
         <div className="search-results">
           {loading && (
-            <div className="loading-container">
-              <Spin size="large" />
-              <p>Searching users...</p>
+            <div className="loading-container flex flex-col items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <p className="mt-2 text-sm text-muted-foreground">Searching users...</p>
             </div>
           )}
 
           {error && (
-            <div className="error-container">
-              <p className="error-message">{error}</p>
+            <div className="error-container p-4 text-center">
+              <p className="error-message text-sm text-red-600">{error}</p>
             </div>
           )}
 
           {!loading && !error && searchTerm && searchResults.length === 0 && (
-            <Empty
-              description="No users found"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
+            <div className="empty-container flex flex-col items-center justify-center py-8">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Search className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-sm text-muted-foreground">No users found</p>
+            </div>
           )}
 
           {!loading && !error && searchResults.length > 0 && (
@@ -109,12 +112,9 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
                   className="user-result-item"
                   onClick={() => handleUserClick(user)}
                 >
-                  <Avatar
-                    src={user.avatarUrl}
-                    size={40}
-                    className="user-avatar"
-                  >
-                    {user.fullName.charAt(0).toUpperCase()}
+                  <Avatar className="user-avatar w-10 h-10">
+                    <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+                    <AvatarFallback>{user.fullName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="user-info">
                     <div className="user-name">{user.fullName}</div>
@@ -129,13 +129,14 @@ const UserSearchModal: React.FC<UserSearchModalProps> = ({
           )}
 
           {!searchTerm && (
-            <div className="placeholder-content">
-              <p>Start typing to search for users by name or username</p>
+            <div className="placeholder-content p-4 text-center">
+              <p className="text-sm text-muted-foreground">Start typing to search for users by name or username</p>
             </div>
           )}
         </div>
       </div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };
 
