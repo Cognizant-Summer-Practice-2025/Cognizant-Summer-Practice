@@ -5,6 +5,7 @@ import Chat from "@/components/messages-page/chat/chat";
 import { useUser } from "@/lib/contexts/user-context";
 import { SearchUser } from "@/lib/user";
 import useMessages from "@/lib/messages";
+import { AlertProvider } from "@/components/ui/alert-dialog";
 import "./style.css";
 
 interface Contact {
@@ -398,11 +399,12 @@ const MessagesPage = () => {
   }
 
   return (
-    <div 
-      className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
-      role="main"
-      aria-label="Messages application"
-    >
+    <AlertProvider>
+      <div 
+        className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
+        role="main"
+        aria-label="Messages application"
+      >
       
       {/* Sidebar - visible on desktop or when mobile view is 'sidebar' */}
       <div 
@@ -459,7 +461,8 @@ const MessagesPage = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AlertProvider>
   );
 };
 

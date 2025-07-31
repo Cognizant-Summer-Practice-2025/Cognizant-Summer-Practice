@@ -10,16 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useAlert } from "@/components/ui/alert-dialog";
 import "./style.css";
 
 interface Contact {
@@ -43,9 +34,9 @@ interface ChatHeaderProps {
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation, onBackToSidebar, isMobile = false }) => {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
+  const { showConfirm } = useAlert();
 
   const handleMuteNotifications = () => {
     console.log('Mute user:', selectedContact.name);
@@ -64,7 +55,16 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConver
 
   const handleDeleteClick = () => {
     console.log('Delete conversation clicked for:', selectedContact.name);
-    setShowDeleteDialog(true);
+    showConfirm({
+      title: 'Delete Conversation',
+      description: `Are you sure you want to delete the conversation with ${selectedContact.name}? 
+This will remove the conversation from your chat list, but ${selectedContact.name} will still see it. 
+You can restore it by sending a new message.`,
+      type: 'warning',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: handleConfirmDelete,
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -75,8 +75,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConver
     try {
       console.log('Calling onDeleteConversation...');
       await onDeleteConversation(selectedContact.id);
-      console.log('Delete successful, closing dialog');
-      setShowDeleteDialog(false);
+      console.log('Delete successful');
     } catch (error) {
       console.error('Delete conversation error:', error);
     } finally {
@@ -204,29 +203,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConver
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete the conversation with {selectedContact.name}? 
-              This will remove the conversation from your chat list, but {selectedContact.name} will still see it. 
-              You can restore it by sending a new message.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

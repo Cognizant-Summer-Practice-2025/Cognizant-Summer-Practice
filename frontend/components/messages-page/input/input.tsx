@@ -1,20 +1,20 @@
 import React from 'react';
-import { Input as AntInput } from 'antd';
-import 'antd/dist/antd.css';
+import { Input as ShadcnInput } from '@/components/ui/input';
 
 interface InputProps {
   placeholder?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
 }
 
-const Input: React.FC<InputProps> = ({ placeholder, value, onChange }) => {
+const Input: React.FC<InputProps> = ({ placeholder, value, onChange, className }) => {
   return (
-    <AntInput 
+    <ShadcnInput 
       placeholder={placeholder} 
       value={value} 
       onChange={onChange} 
-      style={{ width: '100%' }} 
+      className={className || 'w-full'}
     />
   );
 };

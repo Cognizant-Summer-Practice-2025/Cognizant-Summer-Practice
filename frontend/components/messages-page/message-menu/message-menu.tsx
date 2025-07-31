@@ -6,16 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useAlert } from "@/components/ui/alert-dialog";
 import "./style.css";
 import "./dropdown-style.css";
 
@@ -36,19 +27,32 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
   onCopy,
   onReport,
 }) => {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
+  const { showConfirm } = useAlert();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteDialog(true);
+    showConfirm({
+      title: 'Delete Message',
+      description: 'Are you sure you want to delete this message? This action cannot be undone.',
+      type: 'warning',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: handleConfirmDelete,
+    });
   };
 
   const handleReportClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowReportDialog(true);
+    showConfirm({
+      title: 'Report Message',
+      description: 'Are you sure you want to report this message? This will notify the administrators for review.',
+      type: 'warning',
+      confirmText: 'Report',
+      cancelText: 'Cancel',
+      onConfirm: handleConfirmReport,
+    });
   };
 
   const handleCopyClick = (e: React.MouseEvent) => {
@@ -72,7 +76,6 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
     setIsDeleting(true);
     try {
       await onDelete(messageId);
-      setShowDeleteDialog(false);
     } catch (error) {
       console.error("Delete error:", error);
     } finally {
@@ -86,7 +89,6 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
     setIsReporting(true);
     try {
       await onReport(messageId);
-      setShowReportDialog(false);
     } catch (error) {
       console.error("Report error:", error);
     } finally {
@@ -136,50 +138,6 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      {/* Delete Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Message</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this message? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Report Dialog */}
-      <AlertDialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Report Message</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to report this message? This will notify the administrators for review.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isReporting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmReport}
-              disabled={isReporting}
-              className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
-            >
-              {isReporting ? "Reporting..." : "Report"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };

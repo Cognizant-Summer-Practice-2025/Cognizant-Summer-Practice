@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/lib/contexts/user-context';
 import MessageMenu from '@/components/messages-page/message-menu/message-menu';
 
@@ -152,12 +152,9 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
         className={`message-wrapper ${sender === "user" ? "user-message" : "other-message"}`}
       >
         {sender === "other" && (
-          <Avatar
-            size={32}
-            src={senderAvatar || ""}
-            className="message-avatar"
-          >
-            {senderName?.charAt(0).toUpperCase() || "?"}
+          <Avatar className="message-avatar w-8 h-8">
+            <AvatarImage src={senderAvatar || ""} alt={senderName || "Contact"} />
+            <AvatarFallback>{senderName?.charAt(0).toUpperCase() || "?"}</AvatarFallback>
           </Avatar>
         )}
         
@@ -189,12 +186,9 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
         />
 
         {sender === "user" && (
-          <Avatar
-            size={32}
-            src={currentUserAvatar || "https://placehold.co/32x32"}
-            className="message-avatar"
-          >
-            {user?.firstName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || "U"}
+          <Avatar className="message-avatar w-8 h-8">
+            <AvatarImage src={currentUserAvatar || "https://placehold.co/32x32"} alt="You" />
+            <AvatarFallback>{user?.firstName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
         )}
       </div>
