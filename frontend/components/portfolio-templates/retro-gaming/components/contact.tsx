@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { UserProfile, ContactInfo, SocialLink } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,10 +74,12 @@ export function Contact({ data }: ContactProps) {
           
           <div className="player-card">
             <div className="player-avatar">
-              <img
+              <Image
                 src={profile.profileImage}
                 alt={profile.name}
                 className="avatar-image pixel-art"
+                width={80}
+                height={80}
               />
               <div className="avatar-frame"></div>
             </div>

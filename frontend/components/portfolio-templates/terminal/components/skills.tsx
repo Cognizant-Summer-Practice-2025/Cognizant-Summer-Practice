@@ -14,7 +14,7 @@ export function Skills({ data: skills }: SkillsProps) {
   useEffect(() => {
     // Animate skill levels
     skills.forEach(skill => {
-      const targetLevel = skill.level || 80;
+      const targetLevel = skill.proficiencyLevel || 80;
       let currentLevel = 0;
       const increment = Math.ceil(targetLevel / 50);
       
@@ -38,12 +38,12 @@ export function Skills({ data: skills }: SkillsProps) {
       '$ npm list --depth=0',
       '',
       'portfolio@1.0.0 /home/user/portfolio',
-      ...skills.map(skill => `├── ${skill.name.toLowerCase().replace(/\s+/g, '-')}@${((skill.level || 80) / 10).toFixed(1)}.0`),
+      ...skills.map(skill => `├── ${skill.name.toLowerCase().replace(/\s+/g, '-')}@${((skill.proficiencyLevel || 80) / 10).toFixed(1)}.0`),
       '',
       '$ composer show --installed',
       '',
       ...skills.filter(skill => getSkillCategory(skill) === 'backend').map(skill => 
-        `${skill.name.toLowerCase().replace(/\s+/g, '-')} v${((skill.level || 80) / 10).toFixed(1)}.0`
+        `${skill.name.toLowerCase().replace(/\s+/g, '-')} v${((skill.proficiencyLevel || 80) / 10).toFixed(1)}.0`
       )
     ];
     
@@ -60,7 +60,7 @@ export function Skills({ data: skills }: SkillsProps) {
     return () => clearInterval(interval);
   }, [skills]);
 
-  const getSkillCategory = (skill: any) => {
+  const getSkillCategory = (skill: { name: string }) => {
     const name = skill.name.toLowerCase();
     if (name.includes('react') || name.includes('vue') || name.includes('angular') || name.includes('javascript') || name.includes('typescript') || name.includes('html') || name.includes('css')) {
       return 'frontend';
@@ -183,7 +183,7 @@ export function Skills({ data: skills }: SkillsProps) {
                 </span>
                 <span className="col-level">
                   <span className="level-value">{level}%</span>
-                  <span className="level-label">{getSkillLevel(skill.level || 80)}</span>
+                  <span className="level-label">{getSkillLevel(skill.proficiencyLevel || 80)}</span>
                 </span>
                 <span className="col-progress">
                   <div className="progress-container">
@@ -243,22 +243,22 @@ export function Skills({ data: skills }: SkillsProps) {
             <div className="card-header">
               <span className="card-title">Average Level</span>
               <span className="card-value">
-                {Math.round(skills.reduce((sum, skill) => sum + (skill.level || 80), 0) / skills.length)}%
+                {Math.round(skills.reduce((sum, skill) => sum + (skill.proficiencyLevel || 80), 0) / skills.length)}%
               </span>
             </div>
             <div className="card-content">
               <div className="level-distribution">
                 <div className="dist-item">
                   <span className="dist-label">Expert (90%+)</span>
-                  <span className="dist-value">{skills.filter(s => (s.level || 80) >= 90).length}</span>
+                  <span className="dist-value">{skills.filter(s => (s.proficiencyLevel || 80) >= 90).length}</span>
                 </div>
                 <div className="dist-item">
                   <span className="dist-label">Advanced (75%+)</span>
-                  <span className="dist-value">{skills.filter(s => (s.level || 80) >= 75 && (s.level || 80) < 90).length}</span>
+                  <span className="dist-value">{skills.filter(s => (s.proficiencyLevel || 80) >= 75 && (s.proficiencyLevel || 80) < 90).length}</span>
                 </div>
                 <div className="dist-item">
                   <span className="dist-label">Intermediate (50%+)</span>
-                  <span className="dist-value">{skills.filter(s => (s.level || 80) >= 50 && (s.level || 80) < 75).length}</span>
+                  <span className="dist-value">{skills.filter(s => (s.proficiencyLevel || 80) >= 50 && (s.proficiencyLevel || 80) < 75).length}</span>
                 </div>
               </div>
             </div>
@@ -278,13 +278,13 @@ export function Skills({ data: skills }: SkillsProps) {
             <div className="card-content">
               <div className="top-skills">
                 {skills
-                  .sort((a, b) => (b.level || 80) - (a.level || 80))
+                  .sort((a, b) => (b.proficiencyLevel || 80) - (a.proficiencyLevel || 80))
                   .slice(0, 3)
                   .map((skill, index) => (
                     <div key={skill.id} className="top-skill">
                       <span className="skill-rank">#{index + 1}</span>
                       <span className="skill-name">{skill.name}</span>
-                      <span className="skill-level">{skill.level || 80}%</span>
+                      <span className="skill-level">{skill.proficiencyLevel || 80}%</span>
                     </div>
                   ))}
               </div>

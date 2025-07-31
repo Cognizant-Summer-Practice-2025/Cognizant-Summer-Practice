@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserProfile, Quote } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
-import { Terminal, Code, User } from 'lucide-react';
+import { Terminal, Code } from 'lucide-react';
 
 interface AboutProps {
   data: {
@@ -52,7 +52,7 @@ export function About({ data }: AboutProps) {
               <Card key={quote.id} className="quote-card">
                 <div className="quote-content">
                   <blockquote className="quote-text">
-                    "{quote.text}"
+                    &quot;{quote.text}&quot;
                   </blockquote>
                   {quote.author && (
                     <footer className="quote-author">

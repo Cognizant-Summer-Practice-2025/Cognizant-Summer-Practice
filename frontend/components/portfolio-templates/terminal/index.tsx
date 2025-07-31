@@ -3,15 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { TemplateManager, ComponentMap } from '@/lib/template-manager';
-import { Header } from './components/header';
-import { Stats } from './components/stats';
 import { Contact } from './components/contact';
 import { About } from './components/about';
 import { Experience } from './components/experience';
 import { Projects } from './components/projects';
 import { Skills } from './components/skills';
 import { BlogPosts } from './components/blog-posts';
-import { Terminal, Folder, File, User, Code, Database, Mail } from 'lucide-react';
+import { Terminal, Folder, File } from 'lucide-react';
 import './styles/main.css';
 
 interface TerminalTemplateProps {
@@ -66,7 +64,6 @@ export default function TerminalTemplate({ data }: TerminalTemplateProps) {
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isTyping, setIsTyping] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   

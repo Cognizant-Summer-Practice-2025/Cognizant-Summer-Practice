@@ -29,7 +29,7 @@ export function About({ data }: AboutProps) {
             </div>
             <h3 className="prof-about-title">About Me</h3>
             <p className="prof-about-text">
-              Welcome to my professional portfolio. I'm passionate about delivering exceptional results and creating value through innovative solutions.
+              Welcome to my professional portfolio. I&apos;m passionate about delivering exceptional results and creating value through innovative solutions.
             </p>
           </div>
         </Card>
@@ -47,12 +47,12 @@ export function About({ data }: AboutProps) {
                 <QuoteIcon size={20} />
               </div>
               <blockquote className="prof-quote-text">
-                "{quote.text}"
+                &ldquo;{quote.text}&rdquo;
               </blockquote>
               <div className="prof-quote-meta">
                 <cite className="prof-quote-author">{quote.author}</cite>
-                {quote.context && (
-                  <span className="prof-quote-context">{quote.context}</span>
+                {quote.position && (
+                  <span className="prof-quote-context">{quote.position}</span>
                 )}
               </div>
             </div>

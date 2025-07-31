@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { Button } from '@/components/ui/button';
-import { Download, Gamepad2, Home, Mail, User, Briefcase, Star } from 'lucide-react';
+import { Download, Gamepad2, Mail, User, Briefcase, Star } from 'lucide-react';
 
 interface HeaderProps {
   data: PortfolioDataFromDB;
@@ -67,10 +68,12 @@ export function Header({ data }: HeaderProps) {
         <div className="player-info">
           <div className="player-card">
             <div className="player-avatar">
-              <img
+              <Image
                 src={profile.profileImage}
                 alt={profile.name}
                 className="avatar-image pixel-art"
+                width={120}
+                height={120}
               />
               <div className="avatar-border"></div>
             </div>

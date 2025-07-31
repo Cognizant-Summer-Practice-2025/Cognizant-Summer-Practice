@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Experience } from '@/lib/portfolio';
+import { type Experience } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Calendar, Building } from 'lucide-react';
 

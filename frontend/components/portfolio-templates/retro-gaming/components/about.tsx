@@ -1,7 +1,7 @@
 import React from 'react';
+import Image from 'next/image';
 import { UserProfile, Quote } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Gamepad2, Heart, Star, Trophy } from 'lucide-react';
 
 interface AboutProps {
@@ -29,10 +29,12 @@ export function About({ data }: AboutProps) {
         <Card className="profile-card">
           <div className="profile-header">
             <div className="profile-avatar-container">
-              <img
+              <Image
                 src={profile.profileImage}
                 alt={profile.name}
                 className="profile-avatar pixel-art"
+                width={100}
+                height={100}
               />
               <div className="avatar-frame"></div>
             </div>
@@ -85,7 +87,7 @@ export function About({ data }: AboutProps) {
               <h4 className="quote-title">SPEECH BUBBLE</h4>
             </div>
             <blockquote className="quote-text">
-              "{quote.text}"
+              &ldquo;{quote.text}&rdquo;
             </blockquote>
             <footer className="quote-author">
               - {quote.author}

@@ -14,7 +14,7 @@ export function Skills({ data: skills }: SkillsProps) {
   useEffect(() => {
     // Animate skill levels
     skills.forEach((skill, index) => {
-      const targetLevel = skill.level || 80;
+      const targetLevel = skill.proficiencyLevel || 80;
       const duration = 1000 + (index * 100);
       const steps = 50;
       const increment = targetLevel / steps;
@@ -38,7 +38,7 @@ export function Skills({ data: skills }: SkillsProps) {
     });
   }, [skills]);
 
-  const getSkillCategory = (skill: any) => {
+  const getSkillCategory = (skill: { name: string }) => {
     const name = skill.name.toLowerCase();
     if (name.includes('react') || name.includes('vue') || name.includes('angular') || name.includes('javascript') || name.includes('typescript') || name.includes('html') || name.includes('css')) {
       return 'frontend';
@@ -114,14 +114,14 @@ export function Skills({ data: skills }: SkillsProps) {
       <div className="skills-grid">
         {filteredSkills.map((skill, index) => {
           const level = animatedLevels[skill.id] || 0;
-          const rarity = getSkillRarity(skill.level || 80);
+          const rarity = getSkillRarity(skill.proficiencyLevel || 80);
           const category = getSkillCategory(skill);
           
           return (
             <Card key={skill.id} className={`skill-card ${rarity}`}>
               <div className="skill-header">
                 <div className="skill-icon-container">
-                  {getSkillIcon(skill.level || 80)}
+                  {getSkillIcon(skill.proficiencyLevel || 80)}
                   <div className="icon-glow"></div>
                 </div>
                 <div className="skill-category">
@@ -159,9 +159,7 @@ export function Skills({ data: skills }: SkillsProps) {
                 </div>
 
                 <div className="skill-description">
-                  {skill.description && (
-                    <p className="description-text">{skill.description}</p>
-                  )}
+                  <p className="description-text">Skill mastered through dedicated practice and experience.</p>
                 </div>
 
                 <div className="skill-stats">
@@ -212,13 +210,13 @@ export function Skills({ data: skills }: SkillsProps) {
             <div className="mastery-item">
               <span className="mastery-label">Average Level:</span>
               <span className="mastery-value">
-                {Math.round(skills.reduce((sum, skill) => sum + (skill.level || 80), 0) / skills.length)}
+                {Math.round(skills.reduce((sum, skill) => sum + (skill.proficiencyLevel || 80), 0) / skills.length)}
               </span>
             </div>
             <div className="mastery-item">
               <span className="mastery-label">Legendary Skills:</span>
               <span className="mastery-value">
-                {skills.filter(skill => (skill.level || 80) >= 90).length}
+                {skills.filter(skill => (skill.proficiencyLevel || 80) >= 90).length}
               </span>
             </div>
           </div>
@@ -229,7 +227,7 @@ export function Skills({ data: skills }: SkillsProps) {
               <div 
                 className="overall-fill"
                 style={{ 
-                  width: `${skills.reduce((sum, skill) => sum + (skill.level || 80), 0) / skills.length}%`
+                  width: `${skills.reduce((sum, skill) => sum + (skill.proficiencyLevel || 80), 0) / skills.length}%`
                 }}
               ></div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
-import { Trophy, Star, Zap, Target } from 'lucide-react';
+import { Trophy, Star, Zap } from 'lucide-react';
 
 interface StatsProps {
   data: PortfolioDataFromDB;

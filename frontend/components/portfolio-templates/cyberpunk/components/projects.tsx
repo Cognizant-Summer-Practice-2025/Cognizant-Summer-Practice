@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { Project } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +31,7 @@ export function Projects({ data }: ProjectsProps) {
           Project Database
         </h2>
         <div className="query-info">
-          <span className="query-text">SELECT * FROM projects WHERE status = 'active';</span>
+          <span className="query-text">SELECT * FROM projects WHERE status = &apos;active&apos;;</span>
           <span className="result-count">{data.length} records found</span>
         </div>
       </div>
@@ -53,10 +54,12 @@ export function Projects({ data }: ProjectsProps) {
             
             {project.imageUrl && (
               <div className="project-image">
-                <img 
+                <Image 
                   src={project.imageUrl} 
                   alt={project.title}
                   className="image"
+                  width={400}
+                  height={250}
                 />
                 <div className="image-overlay">
                   <div className="overlay-content">

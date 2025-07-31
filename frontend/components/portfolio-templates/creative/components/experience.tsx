@@ -1,18 +1,6 @@
 import React from 'react';
-import { Briefcase, Calendar, ExternalLink, Building } from 'lucide-react';
-
-interface Experience {
-  id: number;
-  title: string;
-  company: string;
-  description: string;
-  start_date: string;
-  end_date?: string;
-  location?: string;
-  technologies?: string;
-  type?: string;
-  website?: string;
-}
+import { Briefcase, Calendar, Building } from 'lucide-react';
+import { type Experience } from '@/lib/portfolio';
 
 interface ExperienceProps {
   data: Experience[];
@@ -49,33 +37,11 @@ export function Experience({ data }: ExperienceProps) {
     }
   };
 
-  const getTechArray = (technologies: string | null | undefined = '') => {
-    if (!technologies || typeof technologies !== 'string') {
-      return [];
-    }
-    return technologies.split(',').map(tech => tech.trim()).filter(Boolean);
-  };
 
-  const getTypeColor = (type?: string) => {
-    switch (type?.toLowerCase()) {
-      case 'full-time':
-        return '#43e97b';
-      case 'part-time':
-        return '#4facfe';
-      case 'contract':
-        return '#ffbd2e';
-      case 'freelance':
-        return '#f093fb';
-      case 'internship':
-        return '#ff7b72';
-      default:
-        return 'var(--bg-accent)';
-    }
-  };
 
   // Sort experiences by start date (most recent first)
   const sortedExperiences = [...experiences].sort((a, b) => 
-    new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
   );
 
   return (
@@ -189,7 +155,7 @@ export function Experience({ data }: ExperienceProps) {
                       color: 'var(--text-primary)',
                       marginBottom: '4px'
                     }}>
-                      {exp.title}
+                      {exp.jobTitle}
                     </h3>
                     <div style={{ 
                       display: 'flex', 
@@ -205,42 +171,13 @@ export function Experience({ data }: ExperienceProps) {
                         color: 'var(--text-secondary)'
                       }}>
                         <Building size={14} />
-                        {exp.website ? (
-                          <a 
-                            href={exp.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ 
-                              color: 'var(--bg-accent)',
-                              textDecoration: 'none',
-                              fontWeight: '500'
-                            }}
-                          >
-                            {exp.companyName}
-                            <ExternalLink size={12} style={{ marginLeft: '4px' }} />
-                          </a>
-                        ) : (
-                          <span style={{ fontWeight: '500' }}>{exp.companyName}</span>
-                        )}
+                        <span style={{ fontWeight: '500' }}>{exp.companyName}</span>
                       </div>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-                    {exp.type && (
-                      <span style={{
-                        fontSize: '10px',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        background: getTypeColor(exp.type),
-                        color: 'white',
-                        fontWeight: '500',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}>
-                        {exp.type}
-                      </span>
-                    )}
+
                   </div>
                 </div>
 
@@ -256,7 +193,7 @@ export function Experience({ data }: ExperienceProps) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={14} />
                     <span>
-                      {formatDate(exp.start_date)} - {exp.end_date ? formatDate(exp.end_date) : 'Present'}
+                      {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
                     </span>
                   </div>
                   <span style={{
@@ -266,7 +203,7 @@ export function Experience({ data }: ExperienceProps) {
                     fontSize: '11px',
                     fontWeight: '500'
                   }}>
-                    {calculateDuration(exp.start_date, exp.end_date)}
+                    {calculateDuration(exp.startDate, exp.endDate)}
                   </span>
                 </div>
 
@@ -296,7 +233,7 @@ export function Experience({ data }: ExperienceProps) {
                       flexWrap: 'wrap', 
                       gap: '6px'
                     }}>
-                      {getTechArray(exp.skillsUsed).map((tech, index) => (
+                      {(exp.skillsUsed || []).map((tech, index) => (
                         <span
                           key={index}
                           style={{

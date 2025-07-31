@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { BlogPost } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,10 +43,12 @@ export function BlogPosts({ data }: BlogPostsProps) {
           <Card key={post.id} className="blog-post-card">
             {post.featuredImageUrl && (
               <div className="post-image">
-                <img 
+                <Image 
                   src={post.featuredImageUrl} 
                   alt={post.title}
                   className="featured-image"
+                  width={400}
+                  height={200}
                 />
                 <div className="image-overlay">
                   <div className="overlay-badge">

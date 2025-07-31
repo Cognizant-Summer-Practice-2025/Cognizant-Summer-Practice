@@ -18,8 +18,8 @@ export function About({ data }: AboutProps) {
   
   if (Array.isArray(data)) {
     quotes = data;
-  } else if (data && typeof data === 'object' && Array.isArray(data.quotes)) {
-    quotes = data.quotes;
+  } else if (data && typeof data === 'object' && Array.isArray((data as { quotes: Quote[] }).quotes)) {
+    quotes = (data as { quotes: Quote[] }).quotes;
   } else {
     // Default quotes if no valid data is provided
     quotes = [

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Project } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -70,11 +71,13 @@ export function Projects({ data: projects }: ProjectsProps) {
               </div>
 
               <div className="item-preview">
-                {project.image && (
-                  <img
-                    src={project.image}
+                {project.imageUrl && (
+                  <Image
+                    src={project.imageUrl}
                     alt={project.title}
                     className="project-image pixel-art"
+                    width={300}
+                    height={200}
                   />
                 )}
                 <div className="image-overlay">
@@ -163,11 +166,13 @@ export function Projects({ data: projects }: ProjectsProps) {
                   </div>
 
                   <div className="details-content">
-                    {project.image && (
-                      <img
-                        src={project.image}
+                    {project.imageUrl && (
+                      <Image
+                        src={project.imageUrl}
                         alt={project.title}
                         className="details-image"
+                        width={500}
+                        height={300}
                       />
                     )}
                     

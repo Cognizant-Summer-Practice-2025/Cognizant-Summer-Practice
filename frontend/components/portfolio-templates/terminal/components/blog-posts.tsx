@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { BlogPost } from '@/lib/portfolio';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Calendar, Clock, FileText, Terminal, Search, Filter } from 'lucide-react';
+import { ExternalLink, Calendar, FileText, Terminal, Search } from 'lucide-react';
 
 interface BlogPostsProps {
   data: BlogPost[];
@@ -22,15 +23,15 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
       'drwxr-xr-x 3 user user 4096 ' + new Date().toDateString() + ' .',
       'drwxr-xr-x 3 user user 4096 ' + new Date().toDateString() + ' ..',
       '',
-      ...blogPosts.map((post, index) => {
-        const date = new Date(post.publishedAt).toDateString();
+      ...blogPosts.map((post) => {
+        const date = post.publishedAt ? new Date(post.publishedAt).toDateString() : 'No date';
         const size = Math.floor(Math.random() * 5000) + 1000;
         return `-rw-r--r-- 1 user user ${size} ${date} ${post.title.toLowerCase().replace(/\s+/g, '-')}.md`;
       }),
       '',
       '$ wc -w ~/blog/*.md',
       ...blogPosts.map(post => `${Math.floor(Math.random() * 2000) + 500} ${post.title.toLowerCase().replace(/\s+/g, '-')}.md`),
-      `${blogPosts.reduce((sum, _) => sum + Math.floor(Math.random() * 2000) + 500, 0)} total`
+      `${blogPosts.reduce((sum) => sum + Math.floor(Math.random() * 2000) + 500, 0)} total`
     ];
     
     let index = 0;
@@ -146,7 +147,7 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
         </div>
         
         <div className="blog-list">
-          {filteredPosts.map((post, index) => (
+          {filteredPosts.map((post) => (
             <div 
               key={post.id} 
               className={`blog-entry ${selectedPost === post.id ? 'selected' : ''}`}
@@ -161,28 +162,25 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                 <div className="entry-meta">
                   <div className="date-info">
                     <Calendar className="meta-icon" size={14} />
-                    <span>{formatDate(post.publishedAt)}</span>
+                    <span>{post.publishedAt ? formatDate(post.publishedAt) : 'No date'}</span>
                   </div>
-                  {post.readTime && (
-                    <div className="read-time">
-                      <Clock className="meta-icon" size={14} />
-                      <span>{post.readTime}min</span>
-                    </div>
-                  )}
+
                 </div>
               </div>
 
-              {post.image && (
+              {post.featuredImageUrl && (
                 <div className="entry-preview">
-                  <img
-                    src={post.image}
+                  <Image
+                    src={post.featuredImageUrl}
                     alt={post.title}
                     className="preview-image"
+                    width={300}
+                    height={200}
                   />
                   <div className="preview-overlay">
                     <div className="file-stats">
                       <span>Size: {Math.floor(Math.random() * 5000) + 1000}B</span>
-                      <span>Modified: {formatDate(post.publishedAt)}</span>
+                      <span>Modified: {post.publishedAt ? formatDate(post.publishedAt) : 'No date'}</span>
                     </div>
                   </div>
                 </div>
@@ -220,14 +218,12 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                   </div>
                 </div>
 
-                {post.url && (
-                  <div className="entry-actions">
-                    <Button className="read-button terminal-button" size="sm">
-                      <ExternalLink size={14} />
-                      <span>cat {post.title.toLowerCase().replace(/\s+/g, '-')}.md</span>
-                    </Button>
-                  </div>
-                )}
+                <div className="entry-actions">
+                  <Button className="read-button terminal-button" size="sm">
+                    <ExternalLink size={14} />
+                    <span>cat {post.title.toLowerCase().replace(/\s+/g, '-')}.md</span>
+                  </Button>
+                </div>
               </div>
 
               <div className="entry-footer">
@@ -278,10 +274,10 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                       <div className="md-header">
                         <span className="md-syntax">---</span>
                         <div className="md-frontmatter">
-                          <div>title: "{post.title}"</div>
+                          <div>title: &ldquo;{post.title}&rdquo;</div>
                           <div>date: {post.publishedAt}</div>
                           {post.tags && <div>tags: [{post.tags.map(tag => `"${tag}"`).join(', ')}]</div>}
-                          {post.readTime && <div>readTime: {post.readTime}</div>}
+
                         </div>
                         <span className="md-syntax">---</span>
                       </div>
@@ -289,10 +285,10 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                       <div className="md-body">
                         <h1 className="md-title"># {post.title}</h1>
                         
-                        {post.image && (
+                        {post.featuredImageUrl && (
                           <div className="md-image">
-                            <span className="md-syntax">![{post.title}]({post.image})</span>
-                            <img src={post.image} alt={post.title} />
+                            <span className="md-syntax">![{post.title}]({post.featuredImageUrl})</span>
+                            <Image src={post.featuredImageUrl} alt={post.title} width={400} height={250} />
                           </div>
                         )}
                         
@@ -302,21 +298,19 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                           <div className="md-footer">
                             <span className="md-syntax">---</span>
                             <div className="publish-info">
-                              Published: {formatDate(post.publishedAt)}
-                              {post.readTime && ` • ${post.readTime} min read`}
+                              Published: {post.publishedAt ? formatDate(post.publishedAt) : 'No date'}
+
                             </div>
                           </div>
                         </div>
                       </div>
                       
-                      {post.url && (
-                        <div className="external-link">
-                          <Button className="external-button">
-                            <ExternalLink size={16} />
-                            Read Full Article
-                          </Button>
-                        </div>
-                      )}
+                      <div className="external-link">
+                        <Button className="external-button">
+                          <ExternalLink size={16} />
+                          Read Full Article
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </>
@@ -336,18 +330,18 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
           <div className="summary-stats">
             <div className="stat-command">
               <span className="prompt">$</span>
-              <span className="command">find ~/blog -name "*.md" | wc -l</span>
+              <span className="command">find ~/blog -name &ldquo;*.md&rdquo; | wc -l</span>
               <span className="output">{blogPosts.length}</span>
             </div>
             <div className="stat-command">
               <span className="prompt">$</span>
-              <span className="command">grep -o '#[a-zA-Z]*' ~/blog/*.md | sort | uniq | wc -l</span>
+              <span className="command">grep -o &apos;#[a-zA-Z]*&apos; ~/blog/*.md | sort | uniq | wc -l</span>
               <span className="output">{new Set(blogPosts.flatMap(post => post.tags || [])).size}</span>
             </div>
             <div className="stat-command">
               <span className="prompt">$</span>
               <span className="command">wc -w ~/blog/*.md | tail -1</span>
-              <span className="output">{blogPosts.reduce((sum, _) => sum + Math.floor(Math.random() * 2000) + 500, 0)} total words</span>
+              <span className="output">{blogPosts.reduce((sum) => sum + Math.floor(Math.random() * 2000) + 500, 0)} total words</span>
             </div>
           </div>
         </div>

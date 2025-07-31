@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { TemplateManager, ComponentMap } from '@/lib/template-manager';
 import { Header } from './components/header';
-import { Stats } from './components/stats';
 import { Contact } from './components/contact';
 import { About } from './components/about';
 import { Experience } from './components/experience';
@@ -12,7 +11,6 @@ import { Projects } from './components/projects';
 import { Skills } from './components/skills';
 import { BlogPosts } from './components/blog-posts';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Menu, X, Zap, Terminal, Code, Database, Cpu } from 'lucide-react';
 import './styles/main.css';
 
@@ -41,7 +39,7 @@ const tabLabels: Record<string, string> = {
 };
 
 // Tab icons mapping
-const tabIcons: Record<string, React.ComponentType> = {
+const tabIcons: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
   experience: Code,
   projects: Database,
   skills: Cpu,

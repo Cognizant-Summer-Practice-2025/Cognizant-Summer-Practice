@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, Quote } from '@/lib/portfolio';
-import { User, Terminal, ChevronRight, Folder, File } from 'lucide-react';
+import { Terminal, ChevronRight, Folder, File } from 'lucide-react';
 
 interface AboutProps {
   data: {

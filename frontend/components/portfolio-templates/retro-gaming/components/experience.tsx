@@ -1,7 +1,7 @@
 import React from 'react';
-import { Experience } from '@/lib/portfolio';
+import { type Experience } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
-import { MapPin, Calendar, Sword, Shield, Wand2 } from 'lucide-react';
+import { Calendar, Sword, Shield, Wand2 } from 'lucide-react';
 
 interface ExperienceProps {
   data: Experience[];

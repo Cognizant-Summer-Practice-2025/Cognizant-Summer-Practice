@@ -1,7 +1,7 @@
 import React from 'react';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+
 import { MapPin, Mail, Terminal, Zap } from 'lucide-react';
 
 interface HeaderProps {

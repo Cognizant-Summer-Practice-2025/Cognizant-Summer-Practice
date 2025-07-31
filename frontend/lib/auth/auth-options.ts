@@ -1,6 +1,6 @@
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
-import { checkUserExists, checkOAuthProvider, addOAuthProvider, registerOAuthUser } from "@/lib/user"
+import { checkUserExists, checkOAuthProvider, addOAuthProvider } from "@/lib/user"
 import type { AuthOptions } from "next-auth"
 
 export const authOptions: AuthOptions = {
@@ -72,7 +72,7 @@ export const authOptions: AuthOptions = {
             });
             
             return true;
-          } catch (error) {
+          } catch {
 
             return false;
           }
@@ -123,11 +123,11 @@ export const authOptions: AuthOptions = {
       return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
     },
     
-    async session({ session, token }) {
+    async session({ session }) {
       return session;
     },
     
-    async jwt({ token, user, account }) {
+    async jwt({ token }) {
       return token;
     },
   },

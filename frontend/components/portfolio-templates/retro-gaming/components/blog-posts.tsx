@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { BlogPost } from '@/lib/portfolio';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Calendar, Clock, BookOpen, Star, Gamepad2 } from 'lucide-react';
+import { ExternalLink, Calendar, BookOpen, Star, Gamepad2 } from 'lucide-react';
 
 interface BlogPostsProps {
   data: BlogPost[];
@@ -94,23 +95,20 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                 <div className="entry-meta">
                   <div className="date-info">
                     <Calendar className="meta-icon" size={14} />
-                    <span>{formatDate(post.publishedAt)}</span>
+                    <span>{post.publishedAt ? formatDate(post.publishedAt) : 'No date'}</span>
                   </div>
-                  {post.readTime && (
-                    <div className="read-time">
-                      <Clock className="meta-icon" size={14} />
-                      <span>{post.readTime} min read</span>
-                    </div>
-                  )}
+
                 </div>
               </div>
 
-              {post.image && (
+              {post.featuredImageUrl && (
                 <div className="entry-image">
-                  <img
-                    src={post.image}
+                  <Image
+                    src={post.featuredImageUrl}
                     alt={post.title}
                     className="post-image pixel-art"
+                    width={300}
+                    height={200}
                   />
                   <div className="image-overlay">
                     <BookOpen className="overlay-icon" size={24} />
@@ -151,12 +149,10 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                   </div>
                 </div>
 
-                {post.url && (
-                  <Button className="read-button pixel-button" size="sm">
-                    <ExternalLink size={14} />
-                    <span>READ QUEST</span>
-                  </Button>
-                )}
+                <Button className="read-button pixel-button" size="sm">
+                  <ExternalLink size={14} />
+                  <span>READ QUEST</span>
+                </Button>
               </div>
 
               <div className="entry-effects">
@@ -193,24 +189,22 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                   </div>
 
                   <div className="details-content">
-                    {post.image && (
-                      <img
-                        src={post.image}
+                    {post.featuredImageUrl && (
+                      <Image
+                        src={post.featuredImageUrl}
                         alt={post.title}
                         className="details-image"
+                        width={500}
+                        height={300}
                       />
                     )}
                     
                     <div className="details-info">
                       <div className="details-meta">
                         <span className="publish-date">
-                          Published: {formatDate(post.publishedAt)}
+                          Published: {post.publishedAt ? formatDate(post.publishedAt) : 'No date'}
                         </span>
-                        {post.readTime && (
-                          <span className="read-time">
-                            Est. {post.readTime} minutes
-                          </span>
-                        )}
+
                       </div>
                       
                       <p className="details-excerpt">{post.excerpt}</p>
@@ -228,14 +222,12 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
                         </div>
                       )}
 
-                      {post.url && (
-                        <div className="details-actions">
-                          <Button className="action-button read">
-                            <ExternalLink size={16} />
-                            Read Full Quest
-                          </Button>
-                        </div>
-                      )}
+                      <div className="details-actions">
+                        <Button className="action-button read">
+                          <ExternalLink size={16} />
+                          Read Full Quest
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </>

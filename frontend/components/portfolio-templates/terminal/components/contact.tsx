@@ -3,7 +3,7 @@ import { UserProfile, ContactInfo, SocialLink } from '@/lib/portfolio';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Mail, MapPin, Send, Terminal, User, Phone, Globe, MessageSquare } from 'lucide-react';
+import { Mail, MapPin, Send, Terminal, User, Globe, MessageSquare } from 'lucide-react';
 
 interface ContactProps {
   data: {
@@ -162,23 +162,7 @@ export function Contact({ data }: ContactProps) {
               </div>
             )}
 
-            {contacts?.phone && (
-              <div className="info-card">
-                <div className="card-header">
-                  <Phone className="card-icon" size={16} />
-                  <span className="card-title">Phone</span>
-                </div>
-                <div className="card-content">
-                  <a href={`tel:${contacts.phone}`} className="contact-link">
-                    {contacts.phone}
-                  </a>
-                  <div className="command-hint">
-                    <span className="prompt">$</span>
-                    <span className="command">call {contacts.phone}</span>
-                  </div>
-                </div>
-              </div>
-            )}
+
           </div>
 
           {socialLinks && socialLinks.length > 0 && (

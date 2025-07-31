@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Experience } from '@/lib/portfolio';
-import { Calendar, MapPin, Building, GitBranch, Terminal } from 'lucide-react';
+import { type Experience } from '@/lib/portfolio';
+import { Calendar, Building, GitBranch, Terminal } from 'lucide-react';
 
 interface ExperienceProps {
   data: Experience[];

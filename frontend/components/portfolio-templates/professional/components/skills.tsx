@@ -73,10 +73,10 @@ export function Skills({ data }: SkillsProps) {
                     <div className="prof-skill-name">{skill.name}</div>
                     <div className="prof-skill-level">
                       <div className="prof-skill-stars">
-                        {renderProficiencyLevel(skill.proficiency || 0)}
+                        {renderProficiencyLevel(skill.proficiencyLevel || 0)}
                       </div>
                       <span className="prof-skill-text">
-                        {getProficiencyText(skill.proficiency || 0)}
+                        {getProficiencyText(skill.proficiencyLevel || 0)}
                       </span>
                     </div>
                   </div>
@@ -84,15 +84,11 @@ export function Skills({ data }: SkillsProps) {
                   <div className="prof-skill-bar">
                     <div 
                       className="prof-skill-progress"
-                      style={{ width: `${skill.proficiency || 0}%` }}
+                      style={{ width: `${skill.proficiencyLevel || 0}%` }}
                     ></div>
                   </div>
                   
-                  {skill.yearsOfExperience && (
-                    <div className="prof-skill-experience">
-                      {skill.yearsOfExperience} year{skill.yearsOfExperience !== 1 ? 's' : ''} experience
-                    </div>
-                  )}
+
                 </div>
               ))}
             </div>

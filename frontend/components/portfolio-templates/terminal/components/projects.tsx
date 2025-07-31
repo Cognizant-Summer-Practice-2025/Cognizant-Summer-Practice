@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Project } from '@/lib/portfolio';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Github, Folder, File, Terminal, Star, GitBranch } from 'lucide-react';
@@ -106,12 +107,14 @@ export function Projects({ data: projects }: ProjectsProps) {
                 </div>
               </div>
 
-              {project.image && (
+              {project.imageUrl && (
                 <div className="project-preview">
-                  <img 
-                    src={project.image} 
+                  <Image 
+                    src={project.imageUrl} 
                     alt={project.title}
                     className="preview-image"
+                    width={400}
+                    height={250}
                   />
                   <div className="preview-overlay">
                     <div className="file-structure">
@@ -212,9 +215,9 @@ export function Projects({ data: projects }: ProjectsProps) {
                         <p className="readme-description">{project.description}</p>
                       </div>
 
-                      {project.image && (
+                      {project.imageUrl && (
                         <div className="readme-image">
-                          <img src={project.image} alt={project.title} />
+                          <Image src={project.imageUrl} alt={project.title} width={500} height={300} />
                         </div>
                       )}
 
@@ -280,7 +283,7 @@ npm start`}
           <div className="summary-stats">
             <div className="stat-line">
               <span className="prompt">$</span>
-              <span className="command">find ~/projects -name "*.md" | wc -l</span>
+              <span className="command">find ~/projects -name &ldquo;*.md&rdquo; | wc -l</span>
               <span className="output">{projects.length}</span>
             </div>
             <div className="stat-line">
