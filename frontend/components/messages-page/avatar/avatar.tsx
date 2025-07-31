@@ -1,13 +1,20 @@
 import React from 'react';
-import { Avatar as AntdAvatar } from 'antd';
+import { Avatar as ShadcnAvatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface AvatarProps {
   src: string;
   alt: string;
+  fallback?: string;
+  className?: string;
 }
 
-const Avatar: React.FC<AvatarProps> = ({ src, alt }) => {
-  return <AntdAvatar src={src} alt={alt} />;
+const Avatar: React.FC<AvatarProps> = ({ src, alt, fallback, className }) => {
+  return (
+    <ShadcnAvatar className={className}>
+      <AvatarImage src={src} alt={alt} />
+      <AvatarFallback>{fallback || alt.charAt(0).toUpperCase()}</AvatarFallback>
+    </ShadcnAvatar>
+  );
 };
 
 export default Avatar;

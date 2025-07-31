@@ -4,10 +4,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Quote as QuoteIcon } from 'lucide-react';
 
 interface AboutProps {
-  data: Quote[];
+  data: unknown;
 }
 
-export function About({ data: quotes }: AboutProps) {
+export function About({ data }: AboutProps) {
+  // Handle different data structures
+  let quotes: Quote[] = [];
+  
+  if (Array.isArray(data)) {
+    quotes = data;
+  } else if (data && typeof data === 'object' && Array.isArray((data as { quotes: Quote[] }).quotes)) {
+    quotes = (data as { quotes: Quote[] }).quotes;
+  } else {
+    // Default quotes if no valid data is provided
+    quotes = [
+      {
+        id: "1",
+        text: "This portfolio showcases exceptional talent and dedication.",
+        author: "Default Testimonial"
+      }
+    ];
+  }
+
   if (!quotes || quotes.length === 0) {
     return (
       <div className="text-center text-muted-foreground">

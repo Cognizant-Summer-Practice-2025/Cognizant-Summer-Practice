@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Image from 'next/image';
 import { BasicInfo } from '@/lib/portfolio';
 import { Mail, MapPin } from 'lucide-react';
 
@@ -10,7 +11,7 @@ interface HeaderProps {
 
 export function Header({ basicInfo }: HeaderProps) {
   const contactInfo = [
-    { icon: Mail, text: basicInfo.email, href: `mailto:${basicInfo.email}` },
+    { icon: Mail, text: 'contact@example.com', href: 'mailto:contact@example.com' },
     { icon: MapPin, text: basicInfo.location || 'Location', href: '#' }
   ];
 
@@ -39,10 +40,12 @@ export function Header({ basicInfo }: HeaderProps) {
 
           <div className="prof-header-image">
             <div className="prof-image-container">
-              <img 
+              <Image 
                 src={basicInfo.profileImage || 'https://placehold.co/300x300'} 
                 alt={basicInfo.name}
                 className="prof-profile-image"
+                width={300}
+                height={300}
               />
               <div className="prof-image-overlay"></div>
             </div>

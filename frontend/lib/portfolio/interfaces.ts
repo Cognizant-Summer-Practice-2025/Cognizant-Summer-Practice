@@ -36,6 +36,9 @@ export interface StatData {
   icon?: string;
 }
 
+// Alias for StatData to match component usage
+export type Stat = StatData;
+
 export interface ContactInfo {
   email: string;
   location?: string;

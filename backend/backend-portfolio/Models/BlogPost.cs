@@ -42,8 +42,7 @@ namespace backend_portfolio.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        // Navigation properties
+        
         [ForeignKey("PortfolioId")]
         public virtual Portfolio Portfolio { get; set; } = null!;
     }

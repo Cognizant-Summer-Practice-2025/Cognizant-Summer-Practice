@@ -1,23 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { PortfolioDataFromDB } from '@/lib/portfolio';
+import { PortfolioDataFromDB, TemplateConfig } from '@/lib/portfolio';
 import { getPortfolioById, getUserPortfolioInfo, UserPortfolioInfo } from '@/lib/portfolio/api';
 import { getMockPortfolioData } from '@/lib/portfolio/mock-data';
-import { loadTemplateComponent } from '@/lib/templates';
+import { loadTemplateComponent, getPortfolioTemplates } from '@/lib/templates';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
-
-// Available templates for testing
-const AVAILABLE_TEMPLATES = [
-  { id: 'gabriel-barzu', name: 'Gabriel Bârzu' },
-  { id: 'modern', name: 'Modern' },
-  { id: 'creative', name: 'Creative' },
-  { id: 'professional', name: 'Professional' }
-];
 
 // Test portfolio IDs
 const TEST_PORTFOLIO_IDS = [
@@ -33,10 +25,12 @@ export default function TestTemplatesPage() {
   const [selectedTemplate, setSelectedTemplate] = useState('modern');
   const [selectedPortfolioId, setSelectedPortfolioId] = useState(TEST_PORTFOLIO_IDS[0]);
   const [loading, setLoading] = useState(false);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [TemplateComponent, setTemplateComponent] = useState<React.ComponentType<any> | null>(null);
   const [showRawData, setShowRawData] = useState(false);
+  const [availableTemplates, setAvailableTemplates] = useState<TemplateConfig[]>([]);
 
   // Helper function to get display name from user info
   const getDisplayName = (user: UserPortfolioInfo | null) => {
@@ -135,6 +129,34 @@ export default function TestTemplatesPage() {
       setError(`Failed to load template: ${templateId}`);
     }
   };
+
+  // Load available templates
+  useEffect(() => {
+    async function loadTemplates() {
+      try {
+        setTemplatesLoading(true);
+        const templates = await getPortfolioTemplates();
+        setAvailableTemplates(templates);
+        
+        // Set default template if current selection doesn't exist
+        if (!templates.find(t => t.id === selectedTemplate)) {
+          setSelectedTemplate(templates[0]?.id || 'modern');
+        }
+      } catch (err) {
+        console.error('Error loading templates:', err);
+        setError('Failed to load available templates');
+        // Fallback to basic templates
+        setAvailableTemplates([
+          { id: 'modern', name: 'Modern', description: 'Modern template', previewImage: '' },
+          { id: 'creative', name: 'Creative', description: 'Creative template', previewImage: '' }
+        ]);
+      } finally {
+        setTemplatesLoading(false);
+      }
+    }
+
+    loadTemplates();
+  }, [selectedTemplate]);
 
   // Initial load
   useEffect(() => {
@@ -293,18 +315,26 @@ export default function TestTemplatesPage() {
             {/* Template Selection */}
             <div>
               <label className="text-sm font-medium mb-2 block">Template</label>
-              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate} disabled={templatesLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select template" />
+                  <SelectValue placeholder={templatesLoading ? "Loading templates..." : "Select template"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {AVAILABLE_TEMPLATES.map((template) => (
+                  {availableTemplates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {templatesLoading && (
+                <p className="text-xs text-muted-foreground mt-1">Loading available templates...</p>
+              )}
+              {!templatesLoading && availableTemplates.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {availableTemplates.length} templates available
+                </p>
+              )}
             </div>
 
             {/* Actions */}
@@ -341,7 +371,14 @@ export default function TestTemplatesPage() {
       {portfolioData && TemplateComponent && (
         <Card>
           <CardHeader>
-            <CardTitle>Template Preview: {AVAILABLE_TEMPLATES.find(t => t.id === selectedTemplate)?.name}</CardTitle>
+            <CardTitle>
+              Template Preview: {availableTemplates.find(t => t.id === selectedTemplate)?.name || selectedTemplate}
+            </CardTitle>
+            {availableTemplates.find(t => t.id === selectedTemplate)?.description && (
+              <p className="text-sm text-muted-foreground">
+                {availableTemplates.find(t => t.id === selectedTemplate)?.description}
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg overflow-hidden">

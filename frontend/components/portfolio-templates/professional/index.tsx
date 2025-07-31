@@ -205,7 +205,7 @@ export default function ProfessionalTemplate({ data }: ProfessionalTemplateProps
                   </div>
                   <div className="prof-section-content">
                     {componentInfo!.type === 'contact' ? (
-                      <Component data={componentInfo!.data} basicInfo={validatedData.profile} />
+                      <Component data={componentInfo!.data} {...({ basicInfo: validatedData.profile } as Record<string, unknown>)} />
                     ) : (
                       <Component data={componentInfo!.data} />
                     )}

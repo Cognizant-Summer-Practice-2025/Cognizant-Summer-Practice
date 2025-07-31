@@ -6,23 +6,27 @@ import { PortfolioProvider } from '@/lib/contexts/portfolio-context';
 import { DraftProvider } from '@/lib/contexts/draft-context';
 import { BookmarkProvider } from '@/lib/contexts/bookmark-context';
 import { HomePageCacheProvider } from '@/lib/contexts/home-page-cache-context';
-import { MessagesProvider } from '@/lib/contexts/messages-context';
+import { WebSocketProvider } from '@/lib/contexts/websocket-context';
+import { ToastProvider } from '@/components/ui/toast';
+
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <UserProvider>
-        <BookmarkProvider>
-          <PortfolioProvider>
-            <MessagesProvider>
-              <DraftProvider>
-                  <HomePageCacheProvider>
-                {children}
-                  </HomePageCacheProvider>
-              </DraftProvider>
-            </MessagesProvider>
-          </PortfolioProvider>
-        </BookmarkProvider>
+        <WebSocketProvider>
+          <BookmarkProvider>
+            <PortfolioProvider>      
+                <DraftProvider>
+                    <HomePageCacheProvider>
+                      <ToastProvider>
+                        {children}
+                      </ToastProvider>
+                    </HomePageCacheProvider>
+                </DraftProvider>
+            </PortfolioProvider>
+          </BookmarkProvider>
+        </WebSocketProvider>
       </UserProvider>
     </SessionProvider>
   );

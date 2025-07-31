@@ -1,154 +1,201 @@
-import React, { useState } from "react";
-import { Avatar, Button, Input } from "antd";
-import { SendOutlined} from "@ant-design/icons";
+import React, { useState, useRef, useEffect } from "react";
+import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { message } from "@/components/ui/toast";
 import ChatHeader from "../chat-header/chat-header";
+import VirtualizedMessagesList from "./virtualized-messages-list";
 import "./style.css";
+import "./virtualized-styles.css";
 
 interface Message {
-  id: string;
-  sender: "user" | "other";
-  text: string;
-  timestamp: string;
-  status: "read" | "delivered" | "sent";
+    id: string;
+    sender: "user" | "other";
+    text: string;
+    timestamp: string;
+    status: "read" | "delivered" | "sent";
 }
 
 interface Contact {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  timestamp: string;
-  isActive?: boolean;
-  isOnline?: boolean;
-  userId?: string;
-  professionalTitle?: string;
+    id: string;
+    name: string;
+    avatar: string;
+    lastMessage: string;
+    timestamp: string;
+    isActive?: boolean;
+    isOnline?: boolean;
+    userId?: string;
+    professionalTitle?: string;
 }
 
 interface ChatProps {
-  messages: Message[];
-  selectedContact: Contact;
-  currentUserAvatar?: string;
-  onSendMessage?: (content: string) => Promise<void>;
-  sendingMessage?: boolean;
+    messages: Message[];
+    selectedContact: Contact;
+    currentUserAvatar?: string;
+    onSendMessage?: (content: string) => Promise<void>;
+    sendingMessage?: boolean;
+    onDeleteConversation?: (conversationId: string) => Promise<void>;
+    markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
+    onBackToSidebar?: () => void;
+    isMobile?: boolean;
+    onDeleteMessage?: (messageId: string) => Promise<void>;
+    onReportMessage?: (messageId: string) => Promise<void>;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, selectedContact, currentUserAvatar, onSendMessage, sendingMessage = false }) => {
-  const [newMessage, setNewMessage] = useState("");
+const Chat: React.FC<ChatProps> = ({
+                                       messages,
+                                       selectedContact,
+                                       currentUserAvatar,
+                                       onSendMessage,
+                                       sendingMessage = false,
+                                       onDeleteConversation,
+                                       markMessageAsRead,
+                                       onBackToSidebar,
+                                       isMobile = false,
+                                       onDeleteMessage,
+                                       onReportMessage
+                                   }) => {
+    const [newMessage, setNewMessage] = useState("");
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "read":
-        return "✓✓"; // Double check for read
-      case "delivered":
-        return "✓✓"; // Double check for delivered
-      case "sent":
-        return "✓"; // Single check for sent
-      default:
-        return "";
-    }
-  };
+    // Handle container resize for virtualized list
+    useEffect(() => {
+        const updateSize = () => {
+            if (messagesContainerRef.current) {
+                const { width, height } = messagesContainerRef.current.getBoundingClientRect();
+                setContainerSize({ width, height });
+            }
+        };
 
-  const getStatusColor = (status: string, sender: string) => {
-    if (sender === "user") {
-      // Only show status for user's own messages
-      switch (status) {
-        case "read":
-          return "#22c55e"; // Green for read (seen)
-        case "delivered":
-          return "rgba(255, 255, 255, 0.7)"; // Light white for delivered
-        case "sent":
-          return "rgba(255, 255, 255, 0.5)"; // Faded white for sent
-        default:
-          return "rgba(255, 255, 255, 0.8)";
-      }
-    }
-    return "transparent"; // Hide status for other user's messages
-  };
+        updateSize();
 
-  const handleSendMessage = async () => {
-    if (newMessage.trim() && onSendMessage && !sendingMessage) {
-      try {
-        await onSendMessage(newMessage.trim());
-        setNewMessage("");
-      } catch (error) {
-        console.error('Failed to send message:', error);
-        // Message will stay in input field if sending fails
-      }
-    }
-  };
+        const resizeObserver = new ResizeObserver(updateSize);
+        if (messagesContainerRef.current) {
+            resizeObserver.observe(messagesContainerRef.current);
+        }
 
-  return (
-    <div className="chat-container">
-      {/* Messages Area */}
-      <ChatHeader selectedContact={selectedContact} />
-      <div className="messages-area">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`message-wrapper ${message.sender === "user" ? "user-message" : "other-message"}`}
-          >
-            {message.sender === "other" && (
-              <Avatar
-                size={32}
-                src={selectedContact.avatar}
-                className="message-avatar"
-              >
-                {selectedContact.name.charAt(0).toUpperCase()}
-              </Avatar>
-            )}
-            
-            <div className={`message-bubble ${message.sender === "user" ? "user-bubble" : "other-bubble"}`}>
-              <div className="message-text">
-                {message.text}
-              </div>
-              <div className="message-footer">
-                <span className="message-timestamp">
-                  {message.timestamp}
-                </span>
-                <span 
-                  className="message-status"
-                  style={{ color: getStatusColor(message.status, message.sender) }}
-                >
-                  {getStatusIcon(message.status)}
-                </span>
-              </div>
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, []);
+
+    const handleSendMessage = async () => {
+        if (newMessage.trim() && onSendMessage && !sendingMessage) {
+            try {
+                await onSendMessage(newMessage.trim());
+                setNewMessage("");
+            } catch (error) {
+                console.error('Failed to send message:', error);
+            }
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
+
+    // Handle copy message
+    const handleCopyMessage = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            message.success('Message copied to clipboard');
+        } catch (error) {
+            console.error('Failed to copy message:', error);
+            message.error('Failed to copy message');
+        }
+    };
+
+    // Handle delete message
+    const handleDeleteMessage = async (messageId: string) => {
+        if (onDeleteMessage) {
+            try {
+                await onDeleteMessage(messageId);
+                message.success('Message deleted successfully');
+            } catch (error) {
+                console.error('Failed to delete message:', error);
+                message.error('Failed to delete message');
+            }
+        } else {
+            console.log('Delete message functionality not implemented yet');
+            message.info('Delete functionality will be available soon');
+        }
+    };
+
+    // Handle report message
+    const handleReportMessage = async (messageId: string) => {
+        if (onReportMessage) {
+            try {
+                await onReportMessage(messageId);
+                message.success('Message reported successfully');
+            } catch (error) {
+                console.error('Failed to report message:', error);
+                message.error('Failed to report message');
+            }
+        } else {
+            console.log('Report message functionality not implemented yet');
+            message.info('Report functionality will be available soon');
+        }
+    };
+
+    return (
+        <div className="chat-container">
+            {/* Messages Area */}
+            <ChatHeader
+                selectedContact={selectedContact}
+                onDeleteConversation={onDeleteConversation}
+                onBackToSidebar={onBackToSidebar}
+                isMobile={isMobile}
+            />
+            <div
+                ref={messagesContainerRef}
+                className="messages-area virtualized-messages-area"
+            >
+                {containerSize.height > 0 && (
+                    <VirtualizedMessagesList
+                        messages={messages}
+                        selectedContactAvatar={selectedContact.avatar}
+                        selectedContactName={selectedContact.name}
+                        currentUserAvatar={currentUserAvatar}
+                        height={containerSize.height}
+                        width={containerSize.width}
+                        markMessageAsRead={markMessageAsRead}
+                        onDeleteMessage={handleDeleteMessage}
+                        onReportMessage={handleReportMessage}
+                        onCopyMessage={handleCopyMessage}
+                    />
+                )}
             </div>
 
-            {message.sender === "user" && (
-              <Avatar
-                size={32}
-                src={currentUserAvatar || "https://placehold.co/32x32"}
-                className="message-avatar"
-              >
-                {!currentUserAvatar && "You"}
-              </Avatar>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Message Input */}
-      <div className="message-input-container">
-        <div className="message-input-wrapper">
-          <Input
-            placeholder="Type your message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onPressEnter={handleSendMessage}
-            className="message-input"
-          />
-          <Button
-            type="primary"
-            icon={<SendOutlined />}
-            onClick={handleSendMessage}
-            disabled={sendingMessage || !newMessage.trim()}
-            loading={sendingMessage}
-            className="send-button"
-          />
+            {/* Message Input */}
+            <div className="message-input-container">
+                <div className="message-input-wrapper">
+                    <Input
+                        placeholder="Type your message..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="message-input"
+                    />
+                    <Button
+                        onClick={handleSendMessage}
+                        disabled={sendingMessage || !newMessage.trim()}
+                        className="send-button"
+                        size="icon"
+                    >
+                        {sendingMessage ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                            <Send className="h-4 w-4" />
+                        )}
+                    </Button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Chat;

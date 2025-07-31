@@ -106,18 +106,13 @@ export function BlogPosts({ data }: BlogPostsProps) {
 
                 <div className="prof-blog-footer">
                   <div className="prof-blog-author">
-                    <span>By {post.author || 'Author'}</span>
+                    <span>By Author</span>
                   </div>
                   
-                  {post.slug && (
-                    <a 
-                      href={`/blog/${post.slug}`}
-                      className="prof-blog-link"
-                    >
-                      <ExternalLink size={14} />
-                      Read More
-                    </a>
-                  )}
+                  <div className="prof-blog-link">
+                    <ExternalLink size={14} />
+                    Read More
+                  </div>
                 </div>
               </div>
             </Card>

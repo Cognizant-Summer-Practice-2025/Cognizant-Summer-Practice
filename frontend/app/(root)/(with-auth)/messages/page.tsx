@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
-import { Loading } from "@/components/loader";
-import { useMessages } from "@/lib/contexts/messages-context";
 import { useUser } from "@/lib/contexts/user-context";
 import { SearchUser } from "@/lib/user";
+import useMessages from "@/lib/messages";
+import { AlertProvider } from "@/components/ui/alert-dialog";
 import "./style.css";
 
 interface Contact {
@@ -29,6 +29,8 @@ interface Message {
   status: "read" | "delivered" | "sent";
 }
 
+type MobileView = 'sidebar' | 'chat';
+
 const MessagesPage = () => {
   const { user } = useUser();
   const { 
@@ -40,19 +42,27 @@ const MessagesPage = () => {
     sendingMessage,
     error, 
     messagesError,
+    cacheState,
     selectConversation,
     sendMessage,
-    createConversation
+    createConversation,
+    deleteConversation,
+    markMessageAsRead,
+    deleteMessage,
+    reportMessage
   } = useMessages();
-  
+
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [mobileView, setMobileView] = useState<MobileView>('sidebar');
+  const [isMobile, setIsMobile] = useState(false);
   
-  const [enhancedContacts, setEnhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
+  // Enhanced contacts storage for additional metadata (keeping for potential future use)
+  const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('enhancedContacts');
-        if (stored) {
-          const parsed = JSON.parse(stored) as Record<string, Partial<Contact>>;
+        const saved = localStorage.getItem('enhancedContacts');
+        if (saved) {
+          const parsed = JSON.parse(saved);
           return new Map(Object.entries(parsed));
         }
       } catch (error) {
@@ -61,6 +71,24 @@ const MessagesPage = () => {
     }
     return new Map();
   });
+
+  // Check if mobile on mount and window resize
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 480); 
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileView('sidebar');
+    }
+  }, [isMobile]);
 
   const formatTimestamp = (dateString: string): string => {
     const date = new Date(dateString);
@@ -79,36 +107,24 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    const date = new Date(dateString);
+    const utcDate = new Date(dateString + 'Z');
     const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
     
-    if (isToday) {
-      return `Today, ${date.toLocaleTimeString('en-US', { 
+    const diffInHours = (now.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 12) {
+   
+      return utcDate.toLocaleTimeString(undefined, { 
         hour: 'numeric', 
         minute: '2-digit',
-        hour12: true 
-      })}`;
+        hour12: true
+      });
     } else {
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const isYesterday = date.toDateString() === yesterday.toDateString();
-      
-      if (isYesterday) {
-        return `Yesterday, ${date.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        })}`;
-      } else {
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric',
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        });
-      }
+      return utcDate.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: utcDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      });
     }
   };
 
@@ -132,18 +148,29 @@ const MessagesPage = () => {
 
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
-    return {
+    const result = {
       id: conv.id,
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
-      timestamp: formatTimestamp(conv.updatedAt),
+      timestamp: formatMessageTimestamp(conv.lastMessageTimestamp),
       isActive: currentConversation?.id === conv.id,
-      isOnline: enhanced?.isOnline ?? conv.isOnline ?? false,
+      isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
       unreadCount: conv.unreadCount,
       userId: enhanced?.userId || conv.otherUserId,
       professionalTitle: enhanced?.professionalTitle || conv.otherUserProfessionalTitle
     };
+    
+    // Debug logging
+    if (conv.otherUserId === '6677b218-6e92-47b3-9e9f-61bea9f15f8d') {
+      console.log(`getEnhancedContact for user ${conv.otherUserId}:`, {
+        convOnline: conv.isOnline,
+        enhancedOnline: enhanced?.isOnline,
+        resultOnline: result.isOnline
+      });
+    }
+    
+    return result;
   };
 
   const contacts: Contact[] = conversations.map(getEnhancedContact);
@@ -160,16 +187,40 @@ const MessagesPage = () => {
   }, [enhancedContacts]);
 
   useEffect(() => {
-    if (contacts.length > 0 && !selectedContact) {
-      setSelectedContact(contacts[0]);
-      const conversation = conversations.find(conv => conv.id === contacts[0].id);
-      if (conversation) {
-        selectConversation(conversation);
+    const autoSelectFirstContact = async () => {
+      if (contacts.length > 0 && !selectedContact) {
+        setSelectedContact(contacts[0]);
+        const conversation = conversations.find(conv => conv.id === contacts[0].id);
+        if (conversation) {
+          await selectConversation(conversation);
+        }
       }
-    }
+    };
+    
+    autoSelectFirstContact();
   }, [contacts, selectedContact, conversations, selectConversation]);
 
-  const handleSelectContact = (contact: Contact) => {
+  // Simpler approach: Update selectedContact whenever conversations change
+  useEffect(() => {
+    if (selectedContact && conversations.length > 0) {
+      const currentConv = conversations.find(conv => conv.id === selectedContact.id);
+      if (currentConv) {
+        const updatedContact = getEnhancedContact(currentConv);
+        console.log(`Updating selectedContact for ${updatedContact.name}:`, {
+          isOnline: updatedContact.isOnline,
+          conversationOnline: currentConv.isOnline
+        });
+        setSelectedContact(prev => ({
+          ...prev!,
+          isOnline: updatedContact.isOnline,
+          lastMessage: updatedContact.lastMessage,
+          timestamp: updatedContact.timestamp
+        }));
+      }
+    }
+  }, [conversations]);
+
+  const handleSelectContact = async (contact: Contact) => {
     const conversation = conversations.find(conv => conv.id === contact.id);
     if (conversation) {
       setSelectedContact({
@@ -177,94 +228,167 @@ const MessagesPage = () => {
         lastMessage: conversation.lastMessage?.content || "No messages yet",
         timestamp: formatTimestamp(conversation.updatedAt)
       });
-      selectConversation(conversation);
+      await selectConversation(conversation);
+      if (isMobile) {
+        setMobileView('chat');
+      }
     } else {
       setSelectedContact(contact);
+      if (isMobile) {
+        setMobileView('chat');
+      }
     }
   };
 
   const handleNewConversation = async (searchUser: SearchUser) => {
-    if (!user?.id) return;
-    
     try {
-      const existingConversation = conversations.find(conv => 
-        conv.otherUserId === searchUser.id
-      );
-      
-      if (existingConversation) {
-        setEnhancedContacts(prev => new Map(prev).set(existingConversation.id, {
+      const newConversation = await createConversation(searchUser);
+      if (newConversation) {
+        const newContact: Contact = {
+          id: newConversation.id,
           name: searchUser.fullName,
-          avatar: searchUser.avatarUrl,
-          userId: searchUser.id,
-          professionalTitle: searchUser.professionalTitle,
-          isOnline: false
-        }));
-      
-        setSelectedContact({
-          id: existingConversation.id,
-          name: searchUser.fullName, 
-          avatar: searchUser.avatarUrl || existingConversation.otherUserAvatar || "https://placehold.co/40x40",
-          lastMessage: existingConversation.lastMessage?.content || "No messages yet",
-          timestamp: formatTimestamp(existingConversation.updatedAt),
-          isActive: true,
-          isOnline: existingConversation.isOnline || false,
-          unreadCount: existingConversation.unreadCount,
-          userId: searchUser.id, 
-          professionalTitle: searchUser.professionalTitle 
-        });
-        selectConversation(existingConversation);
-      } else {
-        const newConversation = await createConversation(searchUser.id);
-        if (newConversation) {
-          setEnhancedContacts(prev => new Map(prev).set(newConversation.id, {
-            name: searchUser.fullName,
-            avatar: searchUser.avatarUrl,
-            userId: searchUser.id,
-            professionalTitle: searchUser.professionalTitle,
-            isOnline: false
-          }));
-          
-          setSelectedContact({
-            id: newConversation.id,
-            name: searchUser.fullName,
-            avatar: searchUser.avatarUrl || newConversation.otherUserAvatar || "https://placehold.co/40x40",
-            lastMessage: "No messages yet",
-            timestamp: formatTimestamp(newConversation.updatedAt),
-            isActive: true,
-            isOnline: newConversation.isOnline || false,
-            unreadCount: 0,
-            userId: searchUser.id, 
-            professionalTitle: searchUser.professionalTitle
-          });
-          selectConversation(newConversation);
+          avatar: searchUser.avatarUrl || "https://placehold.co/40x40",
+          lastMessage: "No messages yet",
+          timestamp: formatTimestamp(newConversation.updatedAt),
+          isActive: false,
+          isOnline: false,
+          unreadCount: 0,
+          userId: newConversation.otherUserId,
+          professionalTitle: searchUser.professionalTitle
+        };
+        
+        setSelectedContact(newContact);
+        await selectConversation(newConversation);
+        if (isMobile) {
+          setMobileView('chat');
         }
       }
     } catch (error) {
-      console.error('Failed to create or select conversation:', error);
+      console.error('Failed to create conversation:', error);
     }
   };
+
+
+  const handleBackToSidebar = () => {
+    if (isMobile) {
+      setMobileView('sidebar');
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMobile && mobileView === 'chat') {
+        handleBackToSidebar();
+        return;
+      }
+      if (event.ctrlKey || event.metaKey) {
+        switch (event.key) {
+          case 'f': 
+            if (mobileView === 'chat' || !isMobile) {
+              event.preventDefault();
+              const messageInput = document.querySelector('.message-input') as HTMLInputElement;
+              messageInput?.focus();
+            }
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile, mobileView]);
+
 
   const handleSendMessage = async (content: string) => {
     if (!currentConversation || !user) return;
     
     try {
-      await sendMessage(content, currentConversation.otherUserId);
+      await sendMessage(content);
     } catch (error) {
       console.error('Failed to send message:', error);
     }
   };
 
-  if (loading) {
+  const handleDeleteConversation = async (conversationId: string) => {
+    console.log("handleDeleteConversation called with ID:", conversationId);
+    try {
+      console.log("Calling deleteConversation from useMessages...");
+      await deleteConversation(conversationId);
+      console.log("Delete conversation successful");
+      if (selectedContact?.id === conversationId) {
+        setSelectedContact(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    }
+  };
+  if (loading && conversations.length === 0 && !cacheState.isFromCache) {
     return (
-      <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full min-h-[400px]">
-        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Messages</h1>
-        <div className="flex flex-col items-center justify-center py-8">
-          <Loading className="scale-50" backgroundColor="white" />
-          <span className="mt-4 text-gray-600">Loading conversations...</span>
+      <div className="messages-page">
+
+        <div className="messages-sidebar-container">
+          {/* Skeleton loader for conversations */}
+          <div style={{ padding: '20px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                height: '40px', 
+                backgroundColor: '#f0f0f0', 
+                borderRadius: '8px',
+                marginBottom: '10px'
+              }}></div>
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px',
+                marginBottom: '8px',
+                backgroundColor: '#f9f9f9',
+                borderRadius: '8px'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '50%',
+                  marginRight: '12px'
+                }}></div>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    height: '16px',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    marginBottom: '6px',
+                    width: '70%'
+                  }}></div>
+                  <div style={{
+                    height: '12px',
+                    backgroundColor: '#e0e0e0',
+                    borderRadius: '4px',
+                    width: '50%'
+                  }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="messages-chat" style={{ 
+          flex: 1, 
+          display: "flex", 
+          flexDirection: "column", 
+          padding: "4rem 0 0 0",
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: '#888'
+        }}>
+          Loading conversations...
         </div>
       </div>
     );
   }
+
+  // Removed old loading check - now using optimized skeleton loader above
 
   if (error) {
     return (
@@ -275,8 +399,20 @@ const MessagesPage = () => {
   }
 
   return (
-    <div className="messages-page">
-      <div className="messages-sidebar-container">
+    <AlertProvider>
+      <div 
+        className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
+        role="main"
+        aria-label="Messages application"
+      >
+      
+      {/* Sidebar - visible on desktop or when mobile view is 'sidebar' */}
+      <div 
+        className={`messages-sidebar-container ${(!isMobile || mobileView === 'sidebar') ? 'visible' : 'hidden'}`}
+        role="navigation"
+        aria-label="Conversations list"
+        aria-hidden={isMobile && mobileView !== 'sidebar'}
+      >
         <Sidebar 
           contacts={contacts} 
           selectedContact={selectedContact}
@@ -285,9 +421,13 @@ const MessagesPage = () => {
         />
       </div>
       
+      {/* Chat - visible on desktop or when mobile view is 'chat' */}
       <div
-        className="messages-chat"
+        className={`messages-chat ${(!isMobile || mobileView === 'chat') ? 'visible' : 'hidden'}`}
         style={{ flex: 1, display: "flex", flexDirection: "column", padding: "4rem 0 0 0" }}
+        role="main"
+        aria-label={selectedContact ? `Chat with ${selectedContact.name}` : "Chat area"}
+        aria-hidden={isMobile && mobileView !== 'chat'}
       >
 
         {messagesError && (
@@ -307,6 +447,12 @@ const MessagesPage = () => {
               currentUserAvatar={user?.avatarUrl}
               onSendMessage={handleSendMessage}
               sendingMessage={sendingMessage}
+              onDeleteConversation={handleDeleteConversation}
+              markMessageAsRead={markMessageAsRead}
+              onBackToSidebar={handleBackToSidebar}
+              isMobile={isMobile}
+              onDeleteMessage={deleteMessage}
+              onReportMessage={reportMessage}
             />
           )
         ) : (
@@ -315,7 +461,8 @@ const MessagesPage = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AlertProvider>
   );
 };
 

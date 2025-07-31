@@ -71,7 +71,7 @@ export function Contact({ data, basicInfo }: ContactProps) {
         // Demo mode - log the email details
         console.log('EmailJS not configured. Email details that would be sent:');
         console.log({
-          to: data?.email || basicInfo?.email || 'Portfolio Owner Email',
+          to: data?.email || 'Portfolio Owner Email',
           from_name: formData.name,
           from_email: formData.email,
           subject: formData.subject,
@@ -99,7 +99,7 @@ export function Contact({ data, basicInfo }: ContactProps) {
 
       // Prepare template parameters for EmailJS
       const templateParams = {
-        to_email: data?.email || basicInfo?.email || 'contact@example.com',
+        to_email: data?.email || 'contact@example.com',
         from_name: formData.name,
         from_email: formData.email,
         subject: formData.subject,
@@ -153,8 +153,8 @@ export function Contact({ data, basicInfo }: ContactProps) {
     {
       icon: Mail,
       label: 'Email',
-      value: data?.email || basicInfo?.email || 'contact@example.com',
-      href: `mailto:${data?.email || basicInfo?.email || 'contact@example.com'}`
+      value: data?.email || 'contact@example.com',
+      href: `mailto:${data?.email || 'contact@example.com'}`
     },
     {
       icon: MapPin,
@@ -174,7 +174,7 @@ export function Contact({ data, basicInfo }: ContactProps) {
               <div className="prof-contact-header">
                 <MessageCircle size={24} />
                 <h3>Get In Touch</h3>
-                <p>Ready to start your next project? Let's discuss how we can work together.</p>
+                <p>Ready to start your next project? Let&apos;s discuss how we can work together.</p>
               </div>
               
               <div className="prof-contact-items">
@@ -197,7 +197,7 @@ export function Contact({ data, basicInfo }: ContactProps) {
 
               <div className="prof-contact-availability">
                 <h4>Availability</h4>
-                <p>I'm currently available for new projects and collaborations. Response time is typically within 24 hours.</p>
+                <p>I&apos;m currently available for new projects and collaborations. Response time is typically within 24 hours.</p>
               </div>
             </Card>
           </div>
@@ -207,7 +207,7 @@ export function Contact({ data, basicInfo }: ContactProps) {
             <Card className="prof-form-card">
               <div className="prof-form-header">
                 <h3>Send a Message</h3>
-                <p>Let's start a conversation about your project</p>
+                <p>Let&apos;s start a conversation about your project</p>
               </div>
 
               {/* Success Message */}
@@ -216,7 +216,7 @@ export function Contact({ data, basicInfo }: ContactProps) {
                   <CheckCircle size={20} />
                   <div>
                     <h4>Message sent successfully!</h4>
-                    <p>Thank you for reaching out. I'll get back to you within 24 hours.</p>
+                    <p>Thank you for reaching out. I&apos;ll get back to you within 24 hours.</p>
                   </div>
                 </div>
               )}

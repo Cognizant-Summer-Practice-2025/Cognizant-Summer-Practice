@@ -10,11 +10,12 @@ import {
 } from './interfaces';
 
 const API_BASE_URL = 'http://localhost:5200';
+const MESSAGES_API_BASE_URL = 'http://localhost:5093';
 
 // Search users by username, first name, last name, or full name
 export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+    const response = await fetch(`${MESSAGES_API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -106,6 +107,8 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 // Register OAuth user (creates both user and OAuth provider)
 export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Promise<{ user: User; oauthProvider: OAuthProvider }> {
   try {
+    console.log('Sending OAuth registration request:', userData);
+    
     const response = await fetch(`${API_BASE_URL}/api/users/register-oauth`, {
       method: 'POST',
       headers: {
@@ -114,8 +117,11 @@ export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Pro
       body: JSON.stringify(userData),
     });
 
+    console.log('OAuth registration response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('OAuth registration error details:', errorData);
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
