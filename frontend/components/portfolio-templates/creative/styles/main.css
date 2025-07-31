@@ -1127,4 +1127,200 @@
 .project-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================
+   RESPONSIVE DESIGN
+   ======================== */
+
+/* Large screens (1200px and up) */
+@media (min-width: 1200px) {
+  .editor-container {
+    gap: 0; /* No extra gap on large screens */
+  }
+  
+  .sidebar {
+    width: 280px; /* Slightly larger sidebar */
+  }
+  
+  .tab-content {
+    padding: 32px; /* More padding on large screens */
+  }
+}
+
+/* Medium screens (768px to 1199px) */
+@media (max-width: 1199px) and (min-width: 768px) {
+  .sidebar {
+    width: 220px; /* Medium sidebar width */
+  }
+  
+  .tab-content {
+    padding: 24px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+  }
+  
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Small screens (480px to 767px) */
+@media (max-width: 767px) {
+  .creative-template {
+    height: calc(100vh - 56px); /* Adjust for mobile header */
+    max-height: calc(100vh - 56px);
+  }
+  
+  .vscode-window {
+    flex-direction: column; /* Stack vertically on mobile */
+  }
+  
+  .sidebar {
+    width: 100%; /* Full width on mobile */
+    height: 120px; /* Fixed height for horizontal layout */
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto; /* Horizontal scroll */
+    overflow-y: hidden;
+  }
+  
+  .file-tree {
+    display: flex; /* Horizontal file tree */
+    gap: 8px;
+    padding: 8px;
+    white-space: nowrap;
+  }
+  
+  .file-item {
+    min-width: fit-content;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .editor-container {
+    flex: 1;
+    height: calc(100% - 120px); /* Remaining height */
+  }
+  
+  .tab-bar {
+    overflow-x: auto; /* Horizontal scroll for tabs */
+    white-space: nowrap;
+  }
+  
+  .tab {
+    min-width: 100px; /* Minimum tab width */
+  }
+  
+  .tab-content {
+    padding: 16px; /* Smaller padding on mobile */
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 1rem;
+  }
+  
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .skills-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for skills */
+    gap: 1rem;
+  }
+  
+  .status-bar {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+  
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+}
+
+/* Extra small screens (up to 479px) */
+@media (max-width: 479px) {
+  .creative-template {
+    height: calc(100vh - 48px);
+    max-height: calc(100vh - 48px);
+  }
+  
+  .sidebar {
+    height: 100px; /* Even smaller sidebar */
+  }
+  
+  .editor-container {
+    height: calc(100% - 100px);
+  }
+  
+  .tab-content {
+    padding: 12px; /* Minimal padding */
+  }
+  
+  .skills-grid {
+    grid-template-columns: 1fr; /* Single column for skills too */
+  }
+  
+  .status-bar {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+  
+  .tab {
+    min-width: 80px; /* Smaller tabs */
+    font-size: 0.8rem;
+  }
+  
+  /* Hide some window controls on very small screens */
+  .window-controls {
+    display: none;
+  }
+  
+  .breadcrumb {
+    font-size: 0.75rem;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .sidebar {
+    height: 80px; /* Smaller sidebar in landscape */
+  }
+  
+  .editor-container {
+    height: calc(100% - 80px);
+  }
+  
+  .tab-content {
+    padding: 14px;
+  }
+}
+
+/* Tablet specific adjustments */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+  
+  .tab-content {
+    padding: 28px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on tablets */
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .file-icon,
+  .tab-icon {
+    image-rendering: -webkit-optimize-contrast; /* Better icon rendering */
+  }
 } 

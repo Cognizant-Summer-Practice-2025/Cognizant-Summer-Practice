@@ -13,7 +13,7 @@ from typing import List, Dict, Any
 
 # Accept USER_ID as command line argument
 if len(sys.argv) != 2:
-    print("Error: User ID is required as argument")
+    print("❌ Error: User ID is required as argument")
     print("Usage: python3 generate-portfolio-test-data.py <USER_ID>")
     sys.exit(1)
 
@@ -45,8 +45,8 @@ def generate_projects(portfolio_id: str, count: int = 100) -> List[Dict[str, Any
     
     projects = []
     for i in range(1, count + 1):
-        tech_set = tech_sets[i % len(tech_sets)]
-        project_type = project_types[i % len(project_types)]
+        tech_set = tech_sets[(i - 1) % len(tech_sets)]
+        project_type = project_types[(i - 1) % len(project_types)]
         
         projects.append({
             "portfolioId": portfolio_id,
@@ -79,11 +79,11 @@ def generate_experiences(portfolio_id: str, count: int = 100) -> List[Dict[str, 
     
     experiences = []
     for i in range(1, count + 1):
-        company = companies[i % len(companies)]
-        job_title = job_titles[i % len(job_titles)]
+        company = companies[(i - 1) % len(companies)]
+        job_title = job_titles[(i - 1) % len(job_titles)]
         
         # Generate dates - spread over last 25 years
-        years_ago = i // 4
+        years_ago = (i - 1) // 4
         start_year = 2024 - years_ago - 1
         end_year = 2024 - years_ago
         
@@ -127,16 +127,16 @@ def generate_skills(portfolio_id: str, count: int = 100) -> List[Dict[str, Any]]
             categories.append((category_type, subcategory, skill_names))
     
     for i in range(1, count + 1):
-        category_type, subcategory, skill_names = categories[i % len(categories)]
-        skill_name = skill_names[i % len(skill_names)]
+        category_type, subcategory, skill_names = categories[(i - 1) % len(categories)]
+        skill_name = skill_names[(i - 1) % len(skill_names)]
         
         skills.append({
             "portfolioId": portfolio_id,
-            "name": f"{skill_name} #{i}",
+            "name": skill_name,
             "categoryType": category_type,
             "subcategory": subcategory,
             "category": f"{category_type}/{subcategory}",
-            "proficiencyLevel": (i % 5) + 1,  # 1-5 scale
+            "proficiencyLevel": ((i - 1) % 5) + 1,  # 1-5 scale
             "displayOrder": i
         })
     
@@ -173,8 +173,8 @@ def generate_blog_posts(portfolio_id: str, count: int = 100) -> List[Dict[str, A
     
     blog_posts = []
     for i in range(1, count + 1):
-        topic = blog_topics[i % len(blog_topics)]
-        tags = tags_sets[i % len(tags_sets)]
+        topic = blog_topics[(i - 1) % len(blog_topics)]
+        tags = tags_sets[(i - 1) % len(tags_sets)]
         
         content = f"""# {topic} - Part {i}
 
@@ -225,22 +225,23 @@ Implementing these practices will significantly improve your application's perfo
 
 def get_available_templates() -> List[Dict[str, Any]]:
     """Get available portfolio templates from the API"""
+    print("🎨 Fetching available templates...")
     try:
         response = requests.get(f"{PORTFOLIO_TEMPLATE_API_BASE}/active")
         response.raise_for_status()
         templates = response.json()
         
         if not templates:
-            print("Warning: No active templates found, using default")
+            print("⚠️ Warning: No active templates found, using default")
             return [{"name": "Gabriel Bârzu"}]
         
-        print(f"Found {len(templates)} available templates:")
+        print(f"📋 Found {len(templates)} available templates:")
         for template in templates:
-            print(f"  - {template['name']}")
+            print(f"   - {template['name']}")
         
         return templates
     except Exception as e:
-        print(f"Error fetching templates: {e}")
+        print(f"⚠️ Error fetching templates: {e}")
         print("Using default template: Gabriel Bârzu")
         return [{"name": "Gabriel Bârzu"}]
 
@@ -248,13 +249,13 @@ def select_random_template(templates: List[Dict[str, Any]]) -> str:
     """Select a random template from the available templates"""
     selected_template = random.choice(templates)
     template_name = selected_template['name']
-    print(f"Selected template: {template_name}")
+    print(f"🎯 Selected template: {template_name}")
     return template_name
 
 def create_portfolio() -> str:
     """Create a new portfolio and return its ID"""
     
-    print("Step 1: Creating a new portfolio...")
+    print("📝 Step 1: Creating a new portfolio...")
     
     # Get available templates and select one randomly
     available_templates = get_available_templates()
@@ -285,29 +286,29 @@ def create_portfolio() -> str:
         if not portfolio_id:
             raise Exception(f"No portfolio ID in response: {portfolio}")
         
-        print(f"Portfolio created successfully with ID: {portfolio_id}")
+        print(f"✅ Portfolio created successfully with ID: {portfolio_id}")
         return portfolio_id
         
     except requests.exceptions.RequestException as e:
-        print(f"Failed to create portfolio: {e}")
+        print(f"❌ Failed to create portfolio: {e}")
         raise
 
 def save_bulk_content(portfolio_id: str):
     """Save bulk content to the portfolio"""
     
-    print("Step 2: Generating and saving bulk content (100 items each)...")
+    print("📊 Step 2: Generating and saving bulk content (100 items each)...")
     
     # Generate all content
-    print("  Generating 100 projects...")
+    print("  📁 Generating 100 projects...")
     projects = generate_projects(portfolio_id, 100)
     
-    print("  Generating 100 experiences...")
+    print("  💼 Generating 100 experiences...")
     experiences = generate_experiences(portfolio_id, 100)
     
-    print("  Generating 100 skills...")
+    print("  🛠️ Generating 100 skills...")
     skills = generate_skills(portfolio_id, 100)
     
-    print("  Generating 100 blog posts...")
+    print("  📝 Generating 100 blog posts...")
     blog_posts = generate_blog_posts(portfolio_id, 100)
     
     # Create bulk content request
@@ -320,7 +321,7 @@ def save_bulk_content(portfolio_id: str):
         "publishPortfolio": True
     }
     
-    print("Step 3: Saving bulk content to portfolio...")
+    print("💾 Step 3: Saving bulk content to portfolio...")
     
     try:
         url = f"{PORTFOLIO_API_BASE}/{portfolio_id}/save-content"
@@ -328,12 +329,12 @@ def save_bulk_content(portfolio_id: str):
         response.raise_for_status()
         
         result = response.json()
-        print("Bulk content saved successfully!")
+        print("✅ Bulk content saved successfully!")
         
         return result
         
     except requests.exceptions.RequestException as e:
-        print(f"Failed to save bulk content: {e}")
+        print(f"❌ Failed to save bulk content: {e}")
         if hasattr(e, 'response') and e.response is not None:
             print(f"Response: {e.response.text}")
         raise
@@ -341,7 +342,7 @@ def save_bulk_content(portfolio_id: str):
 def main():
     """Main function to orchestrate the portfolio creation"""
     
-    print("Starting Portfolio Test Data Generation for User:", USER_ID)
+    print("🚀 Starting Portfolio Test Data Generation for User:", USER_ID)
     print("=" * 63)
     
     try:
@@ -352,22 +353,22 @@ def main():
         save_bulk_content(portfolio_id)
         
         # Summary
-        print("\nPortfolio Summary:")
-        print("   Projects: 100 (10 featured)")
-        print("   Experience: 100 entries (spanning 25 years)")
-        print("   Skills: 100 (across 10 categories)")
-        print("   Blog Posts: 100 (33% published)")
+        print("\n📊 Portfolio Summary:")
+        print("   📁 Projects: 100 (10 featured)")
+        print("   💼 Experience: 100 entries (spanning 25 years)")
+        print("   🛠️ Skills: 100 (across 10 categories)")
+        print("   📝 Blog Posts: 100 (33% published)")
         print()
-        print(f"Portfolio URL: http://localhost:3000/portfolio/{portfolio_id}")
-        print(f"Admin Panel: http://localhost:3000/admin/portfolio/{portfolio_id}")
+        print(f"🌐 Portfolio URL: http://localhost:3000/portfolio/{portfolio_id}")
+        print(f"🔧 Admin Panel: http://localhost:3000/admin/portfolio/{portfolio_id}")
         print()
-        print("Portfolio test data generation completed successfully!")
-        print(f"Portfolio ID: {portfolio_id}")
-        print(f"User ID: {USER_ID}")
+        print("🎉 Portfolio test data generation completed successfully!")
+        print(f"📋 Portfolio ID: {portfolio_id}")
+        print(f"👤 User ID: {USER_ID}")
         print("=" * 63)
         
     except Exception as e:
-        print(f"\nError during portfolio generation: {e}")
+        print(f"\n❌ Error during portfolio generation: {e}")
         return 1
     
     return 0

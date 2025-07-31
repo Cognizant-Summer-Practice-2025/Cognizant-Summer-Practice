@@ -49,7 +49,10 @@ class TemplateRegistry {
       'Gabriel Bârzu': 'gabriel-barzu',
       'Modern': 'modern',
       'Creative': 'creative',
-      'Professional': 'professional'
+      'Professional': 'professional',
+      'Cyberpunk': 'cyberpunk',
+      'Terminal': 'terminal',
+      'Retro Gaming': 'retro-gaming'
     };
 
     for (const template of this.templates) {
@@ -81,7 +84,10 @@ class TemplateRegistry {
       'gabriel bârzu': 'gabriel-barzu',
       'modern': 'modern',
       'creative': 'creative',
-      'professional': 'professional'
+      'professional': 'professional',
+      'cyberpunk': 'cyberpunk',
+      'terminal': 'terminal',
+      'retro gaming': 'retro-gaming'
     };
 
     this.initialized = true;

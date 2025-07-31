@@ -87,9 +87,18 @@ export class TemplateManager {
       case 'blog_posts':
         return portfolioData.blogPosts;
       case 'contact':
-        return portfolioData.contacts;
+        // For contact component, provide contacts, profile, and socialLinks data
+        return {
+          profile: portfolioData.profile,
+          contacts: portfolioData.contacts,
+          socialLinks: portfolioData.socialLinks
+        };
       case 'about':
-        return portfolioData.quotes;
+        // For about component, provide both profile and quotes data
+        return {
+          profile: portfolioData.profile,
+          quotes: portfolioData.quotes
+        };
       default:
         return null;
     }
