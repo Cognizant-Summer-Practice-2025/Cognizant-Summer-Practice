@@ -8,6 +8,7 @@ import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLe
 import { signOut, useSession } from 'next-auth/react';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
+import { redirectToService } from '@/lib/config';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,15 +47,15 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const handleLogin = () => {
-    router.push('/login');
+    redirectToService('AUTH_USER_SERVICE', 'login');
   };
 
   const handleMyPortfolioClick = () => {
     if (user?.id) {
       router.push(`/portfolio?user=${user.id}`);
     } else {
-      // Fallback to profile page if no user ID available
-      router.push('/login');
+      // Fallback to auth service login if no user ID available
+      redirectToService('AUTH_USER_SERVICE', 'login');
     }
   };
 
@@ -128,8 +129,8 @@ export default function Header() {
             {/* Message Icon - Only show when logged in */}
             {session && (
               <button
-                className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-transform transition-colors active:scale-90 duration-150"
-                onClick={() => router.push('/messages')}
+                className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-all active:scale-90 duration-150"
+                onClick={() => redirectToService('MESSAGES_SERVICE', '')}
                 aria-label="Messages"
               >
                 <div className="flex justify-center items-start">
@@ -140,7 +141,7 @@ export default function Header() {
 
             {/* Publish Button */}
             <Button 
-              onClick={() => router.push('/publish')}
+              onClick={() => redirectToService('AUTH_USER_SERVICE', 'publish')}
                               className="px-3 xl:px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg flex justify-start items-center gap-1 xl:gap-2"
             >
               <Plus className="w-[14px] h-[14px]" />
@@ -160,7 +161,7 @@ export default function Header() {
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'profile')}>
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
@@ -174,11 +175,11 @@ export default function Header() {
                     />
                     My Portfolio
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/bookmarks')}>
+                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'bookmarks')}>
                     <Bookmark className="mr-2 h-4 w-4" />
                     Bookmarks
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'settings')}>
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
@@ -268,7 +269,7 @@ export default function Header() {
               <Button 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  router.push('/messages');
+                  redirectToService('MESSAGES_SERVICE', '');
                 }}
                 className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-normal rounded-lg flex justify-center items-center gap-2 border border-gray-200"
               >
@@ -283,7 +284,7 @@ export default function Header() {
             <Button 
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                router.push('/publish');
+                redirectToService('AUTH_USER_SERVICE', 'publish');
               }}
               className="w-full px-4 py-2 bg-app-blue hover:bg-app-blue-hover text-white text-sm font-normal rounded-lg flex justify-center items-center gap-2"
             >
@@ -302,7 +303,7 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    router.push('/profile');
+                    redirectToService('AUTH_USER_SERVICE', 'profile');
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
                 >
@@ -328,7 +329,7 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    router.push('/bookmarks');
+                    redirectToService('AUTH_USER_SERVICE', 'bookmarks');
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
                 >
@@ -336,7 +337,10 @@ export default function Header() {
                   <span className="text-sm">Bookmarks</span>
                 </button>
                 <button
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    redirectToService('AUTH_USER_SERVICE', 'settings');
+                  }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
                 >
                   <Settings className="w-4 h-4" />
