@@ -42,11 +42,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(policy => policy
-    .WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:3001") // Add frontend URLs
+    .AllowAnyOrigin()
     .AllowAnyMethod()
-    .AllowAnyHeader()
-    .AllowCredentials()
-    .WithExposedHeaders("*"));
+    .AllowAnyHeader());
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
