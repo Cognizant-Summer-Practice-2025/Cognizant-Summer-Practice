@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cognizant-summer-practice/shared-components": "file:../shared-components/cognizant-summer-practice-shared-components-1.0.0.tgz",
     "@emailjs/browser": "^4.4.1",
     "@microsoft/signalr": "^8.0.7",
     "@radix-ui/react-alert-dialog": "^1.1.14",

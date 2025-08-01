@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ProfileProvider } from '@/lib/contexts/profile-context';
+import { ProfileProvider } from '@cognizant-summer-practice/shared-components';
 import ProfileLayoutContent from './profile-layout-content';
 
 export default function ProfileLayout({

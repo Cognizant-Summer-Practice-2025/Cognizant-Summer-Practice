@@ -1,5 +1,5 @@
 import NextAuth from "next-auth"
-import { authOptions } from "@/lib/auth/auth-options"
+import { authOptions } from "@cognizant-summer-practice/shared-components"
 
 const handler = NextAuth(authOptions)
 

@@ -154,6 +154,11 @@ const AlertDialogCancel = React.forwardRef<
 ))
 AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName
 
+// AlertProvider for backward compatibility
+export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <>{children}</>;
+};
+
 export {
   AlertDialog,
   AlertDialogPortal,

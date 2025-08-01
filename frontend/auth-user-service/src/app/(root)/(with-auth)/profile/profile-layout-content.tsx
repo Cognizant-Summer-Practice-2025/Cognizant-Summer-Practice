@@ -1,16 +1,9 @@
 'use client';
 
 import React from 'react';
-import ProfileSidebar from '@/components/profile-page/profile-sidebar';
-import { useProfile } from '@/lib/contexts/profile-context';
+
+import { ProfileSidebar, useProfile, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@cognizant-summer-practice/shared-components';
 import { User, Folder, Briefcase, Code, Layout, Settings } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 interface ProfileLayoutContentProps {
   children: React.ReactNode;

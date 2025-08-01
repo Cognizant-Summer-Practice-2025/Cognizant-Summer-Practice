@@ -1,11 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Sidebar from "@/components/messages-page/sidebar/sidebar";
-import Chat from "@/components/messages-page/chat/chat";
-import { useUser } from "@/lib/contexts/user-context";
-import { SearchUser } from "@/lib/user";
-import useMessages from "@/lib/messages";
-import { AlertProvider } from "@/components/ui/alert-dialog";
+import { MessagesSidebar, Chat, useUser, SearchUser, useMessages, AlertProvider } from "@cognizant-summer-practice/shared-components";
 import "./style.css";
 
 interface Contact {
@@ -413,7 +408,7 @@ const MessagesPage = () => {
         aria-label="Conversations list"
         aria-hidden={isMobile && mobileView !== 'sidebar'}
       >
-        <Sidebar 
+        <MessagesSidebar 
           contacts={contacts} 
           selectedContact={selectedContact}
           onSelectContact={handleSelectContact}

@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@/lib/contexts/user-context';
-import { useBookmarks } from '@/lib/contexts/bookmark-context';
-import { bookmarkApi } from '@/lib/bookmark/api';
-import { getPortfolioCardsForHomePage, PortfolioCardDto } from '@/lib/portfolio/api';
-import PortfolioCard from '@/components/home-page/portfolio-card';
-import '@/components/home-page/style.css'; // Import home page styles for consistent portfolio card styling
-import { Loading } from '@/components/loader';
+import { 
+  useUser, 
+  useBookmarks, 
+  bookmarkApi, 
+  getPortfolioCardsForHomePage, 
+  PortfolioCardDto, 
+  PortfolioCard,
+  Loading
+} from '@cognizant-summer-practice/shared-components';
+import '@cognizant-summer-practice/shared-components/styles'; // Import shared styles
 import { Bookmark, Heart } from 'lucide-react';
 
 interface BookmarkPageData {

@@ -2,12 +2,12 @@
 
 import React, { useEffect } from 'react';
 import { 
-  BasicInfo, 
-  Projects, 
-  Experience, 
-  Skills, 
-  Template, 
-  Settings,
+  ProfileBasicInfo as BasicInfo, 
+  ProfileProjects as Projects, 
+  ProfileExperience as Experience, 
+  ProfileSkills as Skills, 
+  ProfileTemplate as Template, 
+  ProfileSettings as Settings,
   Loading,
   useProfile,
   usePortfolio,

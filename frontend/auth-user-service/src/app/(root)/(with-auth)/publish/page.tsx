@@ -207,7 +207,7 @@ export default function Publish() {
           if (project.selectedImageFile) {
             try {
               console.log('📷 Uploading image for project:', project.title);
-              const { uploadImage } = await import('@/lib/image');
+              const { uploadImage } = await import('@cognizant-summer-practice/shared-components');
               const response = await uploadImage(project.selectedImageFile, 'projects');
               finalImageUrl = response.imagePath;
               console.log('✅ Project image uploaded:', finalImageUrl);
@@ -260,7 +260,7 @@ export default function Publish() {
           if (blog.selectedImageFile) {
             try {
               console.log('📷 Uploading image for blog post:', blog.title);
-              const { uploadImage } = await import('@/lib/image');
+              const { uploadImage } = await import('@cognizant-summer-practice/shared-components');
               const response = await uploadImage(blog.selectedImageFile, 'blog_posts');
               finalImageUrl = response.imagePath;
               console.log('✅ Blog post image uploaded:', finalImageUrl);
