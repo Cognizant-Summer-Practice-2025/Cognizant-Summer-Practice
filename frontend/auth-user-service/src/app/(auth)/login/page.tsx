@@ -4,8 +4,7 @@ import React, { Suspense, useState } from 'react';
 import Image from 'next/image';
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import RegistrationModal from '@/components/auth/registration-modal';
-import { registerOAuthUser } from '@/lib/user';
+import { RegistrationModal, registerOAuthUser } from '@cognizant-summer-practice/shared-components';
 import './login.css';
 
 // OAuth Button Component

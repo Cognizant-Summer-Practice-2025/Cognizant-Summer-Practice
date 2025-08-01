@@ -1,16 +1,18 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import BasicInfo from '@/components/profile-page/basic-info';
-import Projects from '@/components/profile-page/projects';
-import Experience from '@/components/profile-page/experience';
-import Skills from '@/components/profile-page/skills';
-import Template from '@/components/profile-page/template';
-import Settings from '@/components/profile-page/settings';
-import { Loading } from '@/components/loader';
-import { useProfile } from '@/lib/contexts/profile-context';
-import { usePortfolio } from '@/lib/contexts/portfolio-context';
-import { useUser } from '@/lib/contexts/user-context';
+import { 
+  BasicInfo, 
+  Projects, 
+  Experience, 
+  Skills, 
+  Template, 
+  Settings,
+  Loading,
+  useProfile,
+  usePortfolio,
+  useUser
+} from '@cognizant-summer-practice/shared-components';
 
 const ProfilePage = () => {
   const { activeTab } = useProfile();

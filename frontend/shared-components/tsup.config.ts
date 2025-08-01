@@ -1,0 +1,53 @@
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['cjs', 'esm'],
+  dts: false,
+  splitting: false,
+  sourcemap: true,
+  clean: true,
+  minify: false,
+  treeshake: true,
+  bundle: true,
+  external: [
+    'react',
+    'react-dom',
+    'next',
+    'next/image',
+    'next/link',
+    'next/navigation',
+    'next-auth',
+    'next-auth/react',
+    '@ant-design/icons',
+    '@ant-design/nextjs-registry',
+    '@microsoft/signalr',
+    'antd',
+    'lucide-react',
+    'tailwindcss',
+    'clsx',
+    'tailwind-merge',
+    'class-variance-authority',
+    '@radix-ui/react-alert-dialog',
+    '@radix-ui/react-avatar',
+    '@radix-ui/react-checkbox',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-dropdown-menu',
+    '@radix-ui/react-label',
+    '@radix-ui/react-progress',
+    '@radix-ui/react-select',
+    '@radix-ui/react-slot',
+    '@radix-ui/react-tabs',
+    'crypto-js',
+    'recharts',
+    'stream-chat',
+    'stream-chat-react',
+    'react-window',
+    '@emailjs/browser'
+  ],
+  esbuildOptions(options) {
+    options.banner = {
+      js: '"use client";',
+    };
+  },
+});

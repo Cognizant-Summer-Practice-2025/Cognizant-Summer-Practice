@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loading } from '@/components/loader';
+import { Loading } from '@cognizant-summer-practice/shared-components';
 
 export default function AuthLayout({
   children,

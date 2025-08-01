@@ -1,28 +1,38 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { PublishHeader } from "@/components/publish-page/publish-header"
-import { PortfolioInformation } from "@/components/publish-page/portfolio-information"
-import { AddProject } from "@/components/publish-page/add-project"
-import { ProjectsList } from "@/components/publish-page/projects-list"
-import { AddExperience } from "@/components/publish-page/add-experience"
-import { ExperienceList } from "@/components/publish-page/experience-list"
-import { AddSkills } from "@/components/publish-page/add-skills"
-import { SkillsList } from "@/components/publish-page/skills-list"
-import { AddBlogPost } from "@/components/publish-page/add-blog-post"
-import { BlogPostsList } from "@/components/publish-page/blog-posts-list"
-import { PortfolioSettings } from "@/components/publish-page/portfolio-settings"
-import { PublishSidebar } from "@/components/publish-page/publish-sidebar"
-import { LoadingOverlay } from "@/components/loader"
-import { usePortfolio } from "@/lib/contexts/portfolio-context"
-import { useDraft } from "@/lib/contexts/draft-context"
-import { useUser } from "@/lib/contexts/user-context"
-import { TemplateManager } from "@/lib/template-manager"
-import { templateRegistry } from "@/lib/template-registry"
-import { getPortfolioTemplates, getDefaultTemplate } from "@/lib/templates"
-import { TemplateConfig } from "@/lib/portfolio"
-import { updatePortfolio, savePortfolioContent, createPortfolioAndGetId } from "@/lib/portfolio/api"
+import { 
+  Tabs, 
+  TabsList, 
+  TabsTrigger, 
+  TabsContent,
+  PublishHeader,
+  PortfolioInformation,
+  AddProject,
+  ProjectsList,
+  AddExperience,
+  ExperienceList,
+  AddSkills,
+  SkillsList,
+  AddBlogPost,
+  BlogPostsList,
+  PortfolioSettings,
+  PublishSidebar,
+  LoadingOverlay,
+  usePortfolio,
+  useDraft,
+  useUser
+} from "@cognizant-summer-practice/shared-components"
+import { 
+  TemplateManager,
+  templateRegistry,
+  getPortfolioTemplates,
+  getDefaultTemplate,
+  TemplateConfig,
+  updatePortfolio,
+  savePortfolioContent,
+  createPortfolioAndGetId
+} from "@cognizant-summer-practice/shared-components"
 
 export default function Publish() {
   const [publishing, setPublishing] = useState(false)
