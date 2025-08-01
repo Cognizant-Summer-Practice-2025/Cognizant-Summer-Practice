@@ -1,140 +1,67 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Header from '@/components/header';
-import FilterSidebar from '@/components/home-page/filter-sidebar';
-import PortfolioGrid from '@/components/home-page/portfolio-grid';
-import { HomePageCacheProvider, useHomePageCache } from '@/lib/contexts/home-page-cache-context';
-import './home-style.css';
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { Loading } from '@/components/loader';
 
-const HomePageContent: React.FC = () => {
-  const { loadPage, setFilters, portfolios, selectedSkills, selectedRoles, featuredOnly, dateFrom } = useHomePageCache();
-  const [activeFilters, setActiveFilters] = useState<string[]>(['all-portfolios']);
+export default function HomePage() {
+  const { status } = useSession();
+  const router = useRouter();
 
-  // Load initial page on mount
   useEffect(() => {
-    loadPage(1);
-  }, [loadPage]);
-
-  // Update active filters when context state changes
-  useEffect(() => {
-    const newActiveFilters: string[] = [];
+    if (status === 'loading') return;
     
-    // Check if any filters are active
-    const hasActiveFilters = selectedSkills.length > 0 || selectedRoles.length > 0 || featuredOnly || dateFrom;
-    
-    if (!hasActiveFilters) {
-      newActiveFilters.push('all-portfolios');
-    } else {
-      if (featuredOnly) {
-        newActiveFilters.push('featured');
-      }
-      
-      if (dateFrom) {
-        // Check if it's a "new this week" filter (approximately 7 days ago)
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const timeDiff = Math.abs(dateFrom.getTime() - oneWeekAgo.getTime());
-        const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-        
-        if (daysDiff <= 1) { // Within 1 day of the "one week ago" date
-          newActiveFilters.push('new-this-week');
-        }
-      }
-      
-      // Add role filters
-      selectedRoles.forEach(role => {
-        newActiveFilters.push(role);
-      });
-      
-      // Add skill filters (convert spaces back to dashes for display)
-      selectedSkills.forEach(skill => {
-        newActiveFilters.push(skill.replace(/\s+/g, '-').toLowerCase());
-      });
-    }
-    
-    setActiveFilters(newActiveFilters);
-  }, [selectedSkills, selectedRoles, featuredOnly, dateFrom]);
-
-  const handleFiltersChange = (filters: string[]) => {
-    // Convert filter array to filter object
-    const filterObj: {
-      featured?: boolean;
-      roles?: string[];
-      skills?: string[];
-      dateFrom?: Date;
-      dateTo?: Date;
-    } = {};
-    
-    // If only 'all-portfolios' is selected, clear all filters
-    if (filters.length === 1 && filters[0] === 'all-portfolios') {
-      setFilters({
-        featured: false,
-        roles: [],
-        skills: [],
-        dateFrom: undefined,
-        dateTo: undefined
-      });
+    if (status === 'unauthenticated') {
+      router.push('/login');
       return;
     }
-    
-    // Remove 'all-portfolios' from filters array if other filters are present
-    const actualFilters = filters.filter(f => f !== 'all-portfolios');
-    
-    if (actualFilters.includes('featured')) {
-      filterObj.featured = true;
-    }
-    
-    if (actualFilters.includes('new-this-week')) {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      filterObj.dateFrom = oneWeekAgo;
-    }
-    
-    // Handle role filters
-    const roleFilters = actualFilters.filter(filter => 
-      ['developer', 'designer', 'product-manager', 'engineer', 'analyst'].includes(filter)
-    );
-    if (roleFilters.length > 0) {
-      filterObj.roles = roleFilters;
-    }
-    
-    // Handle skill filters (remaining filters that aren't roles or special filters)
-    const skillFilters = actualFilters.filter(filter => 
-      !['featured', 'new-this-week', 'developer', 'designer', 'product-manager', 'engineer', 'analyst'].includes(filter)
-    );
-    if (skillFilters.length > 0) {
-      filterObj.skills = skillFilters.map(skill => skill.replace(/-/g, ' '));
-    }
-    
-    setFilters(filterObj);
-  };
+  }, [status, router]);
 
-  return (
-    <div className="home-page">
-      <Header />
-      <div className="home-main">
-        <div className="home-container">
-          <div className="home-content">
-            <FilterSidebar 
-              portfolios={portfolios} 
-              onFiltersChange={handleFiltersChange}
-              activeFilters={activeFilters}
-            />
-            <PortfolioGrid />
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full max-w-md min-h-[200px]">
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loading className="scale-50" backgroundColor="white" />
+            <span className="mt-4 text-gray-600">Loading...</span>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
 
-const HomePage: React.FC = () => {
-  return (
-    <HomePageCacheProvider>
-      <HomePageContent />
-    </HomePageCacheProvider>
-  );
-};
+  // Show redirecting message while redirecting to login
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
-export default HomePage;
+  // If authenticated, show welcome message or redirect to dashboard
+  if (status === 'authenticated') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-lg shadow-sm p-8 w-full max-w-md">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to GoalKeeper!</h1>
+            <p className="text-gray-600 mb-6">You are successfully authenticated.</p>
+            <button 
+              onClick={() => router.push('/profile')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
