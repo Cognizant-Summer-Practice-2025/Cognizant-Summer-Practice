@@ -15,18 +15,15 @@ export default function AuthLayout({
 
   useEffect(() => {
     if (status === 'loading') {
-      // Still loading, don't redirect yet
       return;
     }
 
     if (status === 'unauthenticated') {
-      // User is not authenticated, redirect to login
       router.push('/login');
       return;
     }
   }, [status, router]);
 
-  // Show loading while checking authentication
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -40,7 +37,6 @@ export default function AuthLayout({
     );
   }
 
-  // Show nothing while redirecting
   if (status === 'unauthenticated') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -51,7 +47,6 @@ export default function AuthLayout({
     );
   }
 
-  // User is authenticated, show the protected content
   return (
     <>
       {children}
