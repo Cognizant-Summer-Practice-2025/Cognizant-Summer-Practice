@@ -1,0 +1,722 @@
+/* Retro Gaming Template Styles */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P:wght@400&display=swap');
+
+:root {
+  --retro-bg: #0f0f0f;
+  --retro-surface: #1a1a1a;
+  --retro-border: #33ff33;
+  --retro-accent: #ffff00;
+  --retro-secondary: #ff6600;
+  --retro-danger: #ff0000;
+  --retro-text: #33ff33;
+  --retro-text-dim: #66ff66;
+  --retro-text-bright: #ffffff;
+  --retro-font: 'Press Start 2P', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.retro-gaming-template {
+  min-height: 100vh;
+  background: var(--retro-bg);
+  color: var(--retro-text);
+  font-family: var(--retro-font);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Loading Screen */
+.retro-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--retro-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-screen {
+  text-align: center;
+  color: var(--retro-text);
+}
+
+.game-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: var(--retro-accent);
+  text-shadow: 2px 2px 0px var(--retro-secondary);
+}
+
+.loading-bar {
+  width: 300px;
+  height: 20px;
+  border: 2px solid var(--retro-border);
+  margin: 2rem auto;
+  position: relative;
+  background: var(--retro-surface);
+}
+
+.loading-fill {
+  height: 100%;
+  background: var(--retro-border);
+  animation: loading 2s ease-in-out;
+}
+
+@keyframes loading {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.loading-text {
+  font-size: 1rem;
+  margin: 1rem 0;
+  animation: blink 1s infinite;
+}
+
+.pixel-art {
+  margin-top: 2rem;
+  line-height: 1;
+}
+
+.pixel-row {
+  font-size: 0.5rem;
+  margin: 2px 0;
+  color: var(--retro-accent);
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Game HUD */
+.game-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--retro-surface);
+  border-bottom: 3px solid var(--retro-border);
+  position: relative;
+}
+
+.game-hud::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--retro-border) 0px,
+    var(--retro-border) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
+
+.hud-left,
+.hud-center,
+.hud-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hud-center {
+  flex: 1;
+  align-items: center;
+}
+
+.hud-center .game-title {
+  font-size: 1.2rem;
+  color: var(--retro-accent);
+  text-shadow: 2px 2px 0px var(--retro-secondary);
+}
+
+.player-info,
+.score-info,
+.level-info,
+.lives-info {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.label {
+  color: var(--retro-text-dim);
+}
+
+.value {
+  color: var(--retro-text-bright);
+}
+
+.hearts {
+  display: flex;
+  gap: 2px;
+}
+
+.heart {
+  color: var(--retro-danger);
+  animation: heartbeat 2s infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Game Area */
+.game-area {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Menu */
+.game-menu {
+  background: var(--retro-surface);
+  border: 3px solid var(--retro-border);
+  padding: 20px;
+  border-radius: 0;
+}
+
+.menu-title {
+  font-size: 1rem;
+  color: var(--retro-accent);
+  margin-bottom: 1rem;
+  text-align: center;
+  border-bottom: 2px solid var(--retro-border);
+  padding-bottom: 0.5rem;
+}
+
+.menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--retro-bg);
+  border: 2px solid var(--retro-text-dim);
+  color: var(--retro-text);
+  font-family: var(--retro-font);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.menu-item:hover {
+  border-color: var(--retro-border);
+  background: var(--retro-surface);
+  transform: translateX(5px);
+}
+
+.menu-item.active {
+  border-color: var(--retro-accent);
+  background: var(--retro-accent);
+  color: var(--retro-bg);
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px var(--retro-accent); }
+  50% { box-shadow: 0 0 20px var(--retro-accent), 0 0 30px var(--retro-accent); }
+}
+
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  background: var(--retro-border);
+  color: var(--retro-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.menu-item.active .menu-icon {
+  background: var(--retro-bg);
+  color: var(--retro-accent);
+}
+
+.menu-label {
+  flex: 1;
+}
+
+.menu-indicator {
+  color: var(--retro-accent);
+  font-size: 0.8rem;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Content Window */
+.game-content {
+  background: var(--retro-surface);
+  border: 3px solid var(--retro-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.content-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.window-title {
+  background: var(--retro-border);
+  color: var(--retro-bg);
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.window-body {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: var(--retro-bg);
+  min-height: 400px;
+}
+
+/* Footer */
+.game-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: var(--retro-surface);
+  border-top: 3px solid var(--retro-border);
+  font-size: 0.6rem;
+}
+
+.controls-info {
+  color: var(--retro-text-dim);
+}
+
+.credits {
+  color: var(--retro-text-dim);
+}
+
+/* Component Styles */
+.retro-about,
+.retro-projects,
+.retro-experience,
+.retro-skills,
+.retro-blog,
+.retro-contact,
+.retro-stats {
+  color: var(--retro-text);
+  line-height: 1.8;
+  font-size: 0.8rem;
+}
+
+.retro-about h2,
+.retro-projects h2,
+.retro-experience h2,
+.retro-skills h2,
+.retro-blog h2,
+.retro-contact h2,
+.retro-stats h2 {
+  color: var(--retro-accent);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+/* Consistent card/item spacing for main sections */
+.retro-contact .contact-info-card {
+  margin-bottom: 2rem;
+}
+.retro-contact .contact-info-card:last-child {
+  margin-bottom: 0;
+}
+
+.inventory-item {
+  margin-bottom: 2rem;
+}
+.inventory-item:last-child {
+  margin-bottom: 0;
+}
+
+.retro-experience .quest-card {
+  margin-bottom: 2rem;
+}
+.retro-experience .quest-card:last-child {
+  margin-bottom: 0;
+}
+
+.retro-experience .quest-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.retro-blog-posts .journal-entry {
+  margin-bottom: 2rem;
+}
+.retro-blog-posts .journal-entry:last-child {
+  margin-bottom: 0;
+}
+
+.retro-blog-posts .journal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Spacing between main sections */
+.retro-skills {
+  margin-bottom: 3rem;
+}
+.retro-projects {
+  margin-top: 3rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .game-area {
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+  
+  .game-menu {
+    padding: 18px;
+  }
+  
+  .menu-title {
+    font-size: 0.9rem;
+  }
+  
+  .menu-item {
+    padding: 10px;
+    font-size: 0.65rem;
+  }
+  
+  .window-body {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 992px) {
+  .game-area {
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .game-hud {
+    padding: 0.8rem;
+  }
+  
+  .game-title {
+    font-size: 1.8rem;
+  }
+  
+  .hud-center .game-title {
+    font-size: 1.1rem;
+  }
+  
+  .player-info,
+  .score-info,
+  .level-info,
+  .lives-info {
+    font-size: 0.75rem;
+  }
+  
+  .game-menu {
+    padding: 16px;
+  }
+  
+  .menu-title {
+    font-size: 0.85rem;
+  }
+  
+  .menu-item {
+    padding: 8px;
+    font-size: 0.6rem;
+  }
+  
+  .menu-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 0.55rem;
+  }
+  
+  .window-body {
+    padding: 16px;
+    min-height: 350px;
+  }
+  
+  .window-title {
+    font-size: 0.75rem;
+    padding: 8px;
+  }
+  
+  .game-footer {
+    padding: 8px 16px;
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .retro-gaming-template {
+    min-height: calc(100vh - 60px); /* Adjust for mobile header */
+  }
+  
+  .game-area {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+    padding: 14px;
+  }
+  
+  .game-hud {
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 0.6rem;
+  }
+  
+  .hud-left,
+  .hud-center,
+  .hud-right {
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .hud-center .game-title {
+    font-size: 1rem;
+  }
+  
+  .player-info,
+  .score-info,
+  .level-info,
+  .lives-info {
+    font-size: 0.7rem;
+  }
+  
+  .game-menu {
+    padding: 14px;
+  }
+  
+  .menu-title {
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .menu-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .menu-item {
+    flex: 1;
+    min-width: 100px;
+    padding: 8px;
+    font-size: 0.55rem;
+  }
+  
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 0.5rem;
+  }
+  
+  .window-body {
+    padding: 14px;
+    min-height: 300px;
+  }
+  
+  .window-title {
+    font-size: 0.7rem;
+    padding: 8px;
+  }
+  
+  .game-footer {
+    padding: 6px 14px;
+    font-size: 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .loading-bar {
+    width: 250px;
+    height: 18px;
+  }
+  
+  .game-title {
+    font-size: 1.5rem;
+  }
+  
+  .loading-text {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .retro-gaming-template {
+    min-height: calc(100vh - 56px); /* Smaller header on very small screens */
+  }
+  
+  .game-area {
+    gap: 12px;
+    padding: 12px;
+  }
+  
+  .game-hud {
+    padding: 0.5rem;
+    gap: 0.6rem;
+  }
+  
+  .hud-left,
+  .hud-center,
+  .hud-right {
+    gap: 0.8rem;
+  }
+  
+  .hud-center .game-title {
+    font-size: 0.9rem;
+  }
+  
+  .player-info,
+  .score-info,
+  .level-info,
+  .lives-info {
+    font-size: 0.65rem;
+  }
+  
+  .game-menu {
+    padding: 12px;
+  }
+  
+  .menu-title {
+    font-size: 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  
+  .menu-item {
+    min-width: 90px;
+    padding: 6px;
+    font-size: 0.5rem;
+  }
+  
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 0.45rem;
+  }
+  
+  .window-body {
+    padding: 12px;
+    min-height: 250px;
+  }
+  
+  .window-title {
+    font-size: 0.65rem;
+    padding: 6px;
+  }
+  
+  .game-footer {
+    padding: 5px 12px;
+    font-size: 0.45rem;
+  }
+  
+  .loading-bar {
+    width: 200px;
+    height: 16px;
+  }
+  
+  .game-title {
+    font-size: 1.2rem;
+  }
+  
+  .loading-text {
+    font-size: 0.8rem;
+  }
+  
+  .pixel-row {
+    font-size: 0.4rem;
+  }
+}
+
+/* Tablet landscape orientation */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .game-area {
+    grid-template-columns: 240px 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .game-hud {
+    padding: 0.7rem;
+  }
+  
+  .window-body {
+    padding: 16px;
+    min-height: 280px;
+  }
+  
+  .menu-item {
+    padding: 7px;
+    font-size: 0.6rem;
+  }
+}
+
+/* Scrollbar Styling */
+.window-body::-webkit-scrollbar {
+  width: 12px;
+}
+
+.window-body::-webkit-scrollbar-track {
+  background: var(--retro-surface);
+  border: 1px solid var(--retro-border);
+}
+
+.window-body::-webkit-scrollbar-thumb {
+  background: var(--retro-border);
+  border: 1px solid var(--retro-bg);
+}
+
+.window-body::-webkit-scrollbar-thumb:hover {
+  background: var(--retro-accent);
+}
+
+.retro-skills .skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+}
+
+.about-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}

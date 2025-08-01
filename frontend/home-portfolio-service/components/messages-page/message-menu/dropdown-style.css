@@ -1,0 +1,87 @@
+.message-dropdown-menu {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.message-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #374151;
+}
+
+.message-dropdown-item:hover {
+  background-color: #f3f4f6;
+  outline: none;
+}
+
+.message-dropdown-item:focus {
+  background-color: #f3f4f6;
+  outline: none;
+}
+
+/* Copy option styling */
+.message-dropdown-item:has(.lucide-copy) {
+  color: #059669;
+}
+
+.message-dropdown-item:has(.lucide-copy):hover {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+/* Delete option styling */
+.message-dropdown-item.text-red-600 {
+  color: #dc2626;
+}
+
+.message-dropdown-item.text-red-600:hover,
+.message-dropdown-item.focus\:bg-red-50:focus {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+/* Report option styling */
+.message-dropdown-item.text-orange-600 {
+  color: #ea580c;
+}
+
+.message-dropdown-item.text-orange-600:hover,
+.message-dropdown-item.focus\:bg-orange-50:focus {
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+/* Icon spacing */
+.message-dropdown-item svg {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Animation for dropdown appearance */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.message-dropdown-menu {
+  animation: dropdown-in 0.15s ease-out;
+} 
