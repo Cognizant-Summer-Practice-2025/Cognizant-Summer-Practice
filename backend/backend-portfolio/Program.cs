@@ -39,9 +39,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+                "http://localhost:3000",  // auth-user-service
+                "http://localhost:3001",  // home-portfolio-service
+                "http://localhost:3002",  // messages-service
+                "http://localhost:3003"   // admin-service
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

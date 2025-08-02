@@ -42,9 +42,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(policy => policy
-    .AllowAnyOrigin()
+    .WithOrigins(
+        "http://localhost:3000",  // auth-user-service
+        "http://localhost:3001",  // home-portfolio-service
+        "http://localhost:3002",  // messages-service
+        "http://localhost:3003"   // admin-service
+    )
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()
+    .AllowCredentials());
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

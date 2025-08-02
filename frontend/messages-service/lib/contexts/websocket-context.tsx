@@ -94,14 +94,17 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     setIsConnecting(true);
 
     try {
+      // Get SignalR URL from environment or use default
+      const signalRUrl = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5093';
+      
       // Create new connection
       const newConnection = new signalR.HubConnectionBuilder()
-        .withUrl(`http://localhost:5093/messagehub`, {
+        .withUrl(`${signalRUrl}/messagehub`, {
           transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling,
           skipNegotiation: false, // Let SignalR negotiate the best transport
         })
         .withAutomaticReconnect([0, 2000, 10000, 30000]) // Retry delays in ms
-        .configureLogging(signalR.LogLevel.Debug) // More verbose logging for debugging
+        .configureLogging(signalR.LogLevel.Information) // Reduce logging verbosity
         .build();
 
       // Set up event handlers
@@ -164,12 +167,9 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       setConnection(newConnection);
       setIsConnected(true);
     } catch (error) {
-      console.error('SignalR connection failed:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        type: typeof error
-      });
+      console.warn('SignalR connection failed - please ensure messages backend is running:', error instanceof Error ? error.message : error);
+      // For messages service, SignalR is more important but still not critical
+      // The service can function in read-only mode without real-time updates
     } finally {
       setIsConnecting(false);
     }
