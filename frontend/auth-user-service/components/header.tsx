@@ -8,6 +8,7 @@ import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLe
 import { signOut, useSession } from 'next-auth/react';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
+import { redirectToService } from '@/lib/config';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,9 +52,9 @@ export default function Header() {
 
   const handleMyPortfolioClick = () => {
     if (user?.id) {
-      router.push(`/portfolio?user=${user.id}`);
+      redirectToService('HOME_PORTFOLIO_SERVICE', `portfolio?user=${user.id}`);
     } else {
-      // Fallback to profile page if no user ID available
+      // Fallback to auth service login if no user ID available
       router.push('/login');
     }
   };
@@ -105,11 +106,12 @@ export default function Header() {
 
           {/* Logo - Center on mobile, positioned after back button on desktop */}
           <div className="flex-shrink-0 flex items-center lg:mr-auto">
-            <Link href="/">
-              <h1 className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
-                GoalKeeper
-              </h1>
-            </Link>
+            <button
+              onClick={() => redirectToService('HOME_PORTFOLIO_SERVICE', '')}
+              className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
+            >
+              GoalKeeper
+            </button>
           </div>
 
           {/* Search Bar - Desktop */}
@@ -129,7 +131,7 @@ export default function Header() {
             {session && (
               <button
                 className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-transform transition-colors active:scale-90 duration-150"
-                onClick={() => router.push('/messages')}
+                onClick={() => redirectToService('MESSAGES_SERVICE', '')}
                 aria-label="Messages"
               >
                 <div className="flex justify-center items-start">
@@ -268,7 +270,7 @@ export default function Header() {
               <Button 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  router.push('/messages');
+                  redirectToService('MESSAGES_SERVICE', '');
                 }}
                 className="w-full px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-normal rounded-lg flex justify-center items-center gap-2 border border-gray-200"
               >
