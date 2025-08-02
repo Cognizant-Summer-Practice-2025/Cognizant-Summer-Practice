@@ -1,6 +1,7 @@
 services:
   user-db:
     image: postgres:15
+    platform: linux/amd64
     container_name: user_postgresql
     environment:
       POSTGRES_DB: user_db
@@ -22,6 +23,7 @@ services:
 
   messages-db:
     image: postgres:15
+    platform: linux/amd64
     container_name: messages_postgresql
     environment:
       POSTGRES_DB: messages_db
@@ -43,6 +45,7 @@ services:
 
   portfolio-db:
     image: postgres:15
+    platform: linux/amd64
     container_name: portfolio_postgresql
     environment:
       POSTGRES_DB: portfolio_db

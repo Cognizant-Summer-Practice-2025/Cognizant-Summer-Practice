@@ -1,4 +1,4 @@
-FROM postgres:15
+FROM --platform=linux/amd64 postgres:15
 
 # Set environment variables
 ENV POSTGRES_DB=portfolio_db
