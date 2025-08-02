@@ -1,6 +1,7 @@
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
-import { checkUserExists, checkOAuthProvider, addOAuthProvider } from "@/lib/user"
+import { checkUserExists, checkOAuthProvider, addOAuthProvider, getUserByEmail } from "@/lib/user"
+import { UserInjectionService } from "@/lib/services/user-injection-service"
 import type { AuthOptions } from "next-auth"
 
 export const authOptions: AuthOptions = {
@@ -123,7 +124,19 @@ export const authOptions: AuthOptions = {
       return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
     },
     
-    async session({ session }) {
+    async session({ session, token }) {
+      if (session?.user?.email) {
+        try {
+          // Fetch full user data and inject into other services
+          const userData = await getUserByEmail(session.user.email);
+          if (userData) {
+            // Inject user data into all other services
+            await UserInjectionService.injectUser(userData);
+          }
+        } catch (error) {
+          console.error('Error injecting user data on session creation:', error);
+        }
+      }
       return session;
     },
     

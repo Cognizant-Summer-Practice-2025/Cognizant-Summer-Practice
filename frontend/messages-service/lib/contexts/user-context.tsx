@@ -1,9 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/contexts/auth-context';
 import { User } from '@/lib/user/interfaces';
-import { getUserByEmail, updateUser } from '@/lib/user/api';
 
 interface UserContextType {
   user: User | null;
@@ -23,7 +22,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession();
+  const { isAuthenticated, userEmail, loading: authLoading } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +31,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const userData = await getUserByEmail(email);
-      setUser(userData);
+      
+      // Get user data from injected storage instead of API call
+      const response = await fetch(`/api/user/get?email=${encodeURIComponent(email)}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setUser(null);
+          setError('User not found in this service. Please log in again.');
+          return;
+        }
+        throw new Error(`Failed to get user data: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setUser(data.user);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
@@ -44,8 +56,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const refetchUser = async () => {
-    if (session?.user?.email) {
-      await fetchUser(session.user.email);
+    if (userEmail) {
+      await fetchUser(userEmail);
     }
   };
 
@@ -57,47 +69,35 @@ export function UserProvider({ children }: { children: ReactNode }) {
     location?: string;
     profileImage?: string;
   }) => {
-    if (!user?.id) {
-      throw new Error('No user ID available');
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const updatedUser = await updateUser(user.id, userData);
-      setUser(updatedUser);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update user data';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    // User updates should be handled by the auth-user-service
+    // Redirect to auth service for profile updates
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    window.location.href = `${authServiceUrl}/profile`;
   };
 
   useEffect(() => {
-    // Reset user state when session changes
-    if (status === 'loading') {
+    // Reset user state when auth changes
+    if (authLoading) {
       setLoading(true);
       return;
     }
 
-    if (status === 'unauthenticated' || !session?.user?.email) {
+    if (!isAuthenticated || !userEmail) {
       setUser(null);
       setLoading(false);
       setError(null);
       return;
     }
 
-    // Fetch user data when session is available
-    if (status === 'authenticated' && session?.user?.email && !user) {
-      fetchUser(session.user.email);
+    // Fetch user data when authenticated
+    if (isAuthenticated && userEmail && !user) {
+      fetchUser(userEmail);
     }
-  }, [session, status, user]);
+  }, [isAuthenticated, userEmail, authLoading, user]);
 
   const value: UserContextType = {
     user,
-    loading: loading || status === 'loading',
+    loading: loading || authLoading,
     error,
     refetchUser,
     updateUserData,

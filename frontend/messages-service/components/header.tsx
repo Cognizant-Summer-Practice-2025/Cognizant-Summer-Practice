@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft, Bookmark } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/contexts/auth-context';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { redirectToService } from '@/lib/config';
@@ -20,7 +20,7 @@ import {
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: session } = useSession();
+  const { isAuthenticated, logout } = useAuth();
   const { user } = useUser();
   const router = useRouter();
   const pathname = usePathname();
@@ -47,7 +47,9 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const handleLogin = () => {
-    redirectToService('AUTH_USER_SERVICE', 'login');
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const currentUrl = window.location.href;
+    window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
   };
 
   const handleMyPortfolioClick = () => {
@@ -59,18 +61,8 @@ export default function Header() {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      console.log('Attempting to sign out...');
-      // Stay on current page after sign out
-      const currentPath = window.location.pathname + window.location.search;
-      await signOut({ 
-        callbackUrl: currentPath,
-        redirect: true 
-      });
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
+  const handleSignOut = () => {
+    logout();
   };
 
 
@@ -127,7 +119,7 @@ export default function Header() {
           {/* Right side items - Hidden on mobile */}
           <div className="hidden lg:flex items-center gap-4">
             {/* Message Icon - Only show when logged in */}
-            {session && (
+            {isAuthenticated && (
               <button
                 className="p-2 rounded-lg flex flex-col justify-center items-center hover:bg-blue-50 hover:scale-105 transition-all active:scale-90 duration-150"
                 onClick={() => redirectToService('MESSAGES_SERVICE', '')}
@@ -149,12 +141,12 @@ export default function Header() {
               <span className="lg:hidden">+</span>
             </Button>
 
-            {session?.user ? (
+            {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <Image
-                    src={session.user.image || '/default-avatar.png'}
-                    alt={session.user.name || 'User'}
+                    src={user.profileImage || '/default-avatar.png'}
+                    alt={`${user.firstName} ${user.lastName}` || 'User'}
                     width={32}
                     height={32}
                     className="rounded-full"
@@ -215,11 +207,11 @@ export default function Header() {
               </Button>
             )}
 
-            {session?.user ? (
+            {isAuthenticated && user ? (
               <div className="p-1">
                 <Image
-                  src={session.user.image || '/default-avatar.png'}
-                  alt={session.user.name || 'User'}
+                  src={user.profileImage || '/default-avatar.png'}
+                  alt={`${user.firstName} ${user.lastName}` || 'User'}
                   width={32}
                   height={32}
                   className="rounded-full"
@@ -264,7 +256,7 @@ export default function Header() {
           </div>
 
           {/* Messages Button - Only for logged in users */}
-          {session && (
+          {isAuthenticated && (
             <div className="p-4 border-b border-[#E2E8F0]">
               <Button 
                 onClick={() => {
@@ -298,7 +290,7 @@ export default function Header() {
 
           {/* Bottom Section */}
           <div className="border-t border-[#E2E8F0] p-4">
-            {session ? (
+            {isAuthenticated ? (
               <div className="space-y-1">
                 <button
                   onClick={() => {
