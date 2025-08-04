@@ -8,6 +8,7 @@ import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLe
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
+import { getSafeImageUrl } from '@/lib/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +25,23 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { navigateBackToHome } = usePortfolioNavigation();
+
+  // Helper function to get user's avatar with fallback
+  const getUserAvatar = () => {
+    if (user?.avatarUrl) {
+      return getSafeImageUrl(user.avatarUrl);
+    }
+    // Generate default avatar with user's initials
+    const userName = user ? 
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'User' :
+      'User';
+    const initials = userName
+      .split(' ')
+      .map(name => name.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=32&background=f0f0f0&color=666`;
+  };
 
   // Check if we're on a portfolio page
   const isPortfolioPage = pathname === '/portfolio' || pathname?.startsWith('/portfolio');
@@ -144,7 +162,7 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                   <Image
-                    src={user.profileImage || '/default-avatar.png'}
+                    src={getUserAvatar()}
                     alt={`${user.firstName} ${user.lastName}` || 'User'}
                     width={32}
                     height={32}
@@ -209,7 +227,7 @@ export default function Header() {
             {isAuthenticated && user ? (
               <div className="p-1">
                 <Image
-                  src={user.profileImage || '/default-avatar.png'}
+                  src={getUserAvatar()}
                   alt={`${user.firstName} ${user.lastName}` || 'User'}
                   width={32}
                   height={32}

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { User, Folder, Briefcase, Code, Layout, Settings, FileText } from 'lucide-react';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { useUser } from '@/lib/contexts/user-context';
+import { getSafeImageUrl } from '@/lib/image';
 
 interface ProfileSidebarProps {
   activeTab?: string;
@@ -46,9 +47,15 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
   // Helper function to get user's avatar
   const getUserAvatar = () => {
     if (user?.avatarUrl) {
-      return user.avatarUrl;
+      return getSafeImageUrl(user.avatarUrl);
     }
-    return 'https://placehold.co/80x80';
+    // Generate default avatar with user's initials
+    const initials = getUserFullName()
+      .split(' ')
+      .map(name => name.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=80&background=f0f0f0&color=666`;
   };
 
   const basicMenuItems = [

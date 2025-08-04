@@ -4,13 +4,16 @@ import { SERVICES } from '@/lib/config/services';
 interface ServiceUserData {
   id: string;
   email: string;
+  username: string;
   firstName: string;
   lastName: string;
   professionalTitle?: string;
   bio?: string;
   location?: string;
   profileImage?: string;
+  isActive: boolean;
   isAdmin: boolean;
+  lastLoginAt?: string;
 }
 
 /**
