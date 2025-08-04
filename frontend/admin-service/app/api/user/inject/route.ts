@@ -12,8 +12,15 @@ interface ServiceUserData {
   isAdmin: boolean;
 }
 
-// In-memory storage for user data (in production, use Redis or database)
-const userStorage = new Map<string, ServiceUserData>();
+// Global storage for user data (in production, use Redis or database)
+declare global {
+  var adminServiceUserStorage: Map<string, ServiceUserData>;
+}
+
+// Initialize global storage if it doesn't exist
+if (!global.adminServiceUserStorage) {
+  global.adminServiceUserStorage = new Map();
+}
 
 /**
  * Verify service-to-service authentication
@@ -40,8 +47,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User email and ID are required' }, { status: 400 });
     }
 
-    // Store user data in memory
-    userStorage.set(userData.email, userData);
+    // Store user data in global memory
+    global.adminServiceUserStorage.set(userData.email, userData);
 
     console.log(`User ${userData.email} injected into admin-service`);
 

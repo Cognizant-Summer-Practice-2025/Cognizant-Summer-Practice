@@ -27,13 +27,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUser = async (email: string) => {
+  const fetchUser = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Get user data from injected storage instead of API call
-      const response = await fetch(`/api/user/get?email=${encodeURIComponent(email)}`);
+      // Get user data from injected storage
+      const response = await fetch('/api/user/get');
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -44,8 +44,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         throw new Error(`Failed to get user data: ${response.statusText}`);
       }
       
-      const data = await response.json();
-      setUser(data.user);
+      const userData = await response.json();
+      setUser(userData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
@@ -56,8 +56,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const refetchUser = async () => {
-    if (userEmail) {
-      await fetchUser(userEmail);
+    if (isAuthenticated) {
+      await fetchUser();
     }
   };
 
@@ -91,7 +91,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     // Fetch user data when authenticated
     if (isAuthenticated && userEmail && !user) {
-      fetchUser(userEmail);
+      fetchUser();
     }
   }, [isAuthenticated, userEmail, authLoading, user]);
 

@@ -35,14 +35,21 @@ function verifyServiceAuth(request: NextRequest): boolean {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('Messages service: Received user injection request');
+    
     // Verify service authentication
     if (!verifyServiceAuth(request)) {
+      console.log('Messages service: Auth verification failed');
       return NextResponse.json({ error: 'Unauthorized service request' }, { status: 401 });
     }
 
+    console.log('Messages service: Auth verification passed');
+
     const userData: ServiceUserData = await request.json();
+    console.log('Messages service: Received user data:', { email: userData.email, id: userData.id });
 
     if (!userData.email || !userData.id) {
+      console.log('Messages service: Missing required user data');
       return NextResponse.json({ error: 'User email and ID are required' }, { status: 400 });
     }
 
@@ -57,9 +64,10 @@ export async function POST(request: NextRequest) {
       userId: userData.id
     });
   } catch (error) {
-    console.error('Error injecting user data:', error);
+    console.error('Error injecting user data in messages service:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { error: 'Failed to inject user data' },
+      { error: `Failed to inject user data: ${error.message}` },
       { status: 500 }
     );
   }

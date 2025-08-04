@@ -8,26 +8,31 @@ import { BookmarkProvider } from '@/lib/contexts/bookmark-context';
 import { HomePageCacheProvider } from '@/lib/contexts/home-page-cache-context';
 import { WebSocketProvider } from '@/lib/contexts/websocket-context';
 import { ToastProvider } from '@/components/ui/toast';
+import { CrossServiceAuthProvider } from './cross-service-auth-provider';
+import { AuthSignoutMonitor } from './auth-signout-monitor';
 
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <UserProvider>
-        <WebSocketProvider>
-          <BookmarkProvider>
-            <PortfolioProvider>      
-                <DraftProvider>
-                    <HomePageCacheProvider>
-                      <ToastProvider>
-                        {children}
-                      </ToastProvider>
-                    </HomePageCacheProvider>
-                </DraftProvider>
-            </PortfolioProvider>
-          </BookmarkProvider>
-        </WebSocketProvider>
-      </UserProvider>
+      <CrossServiceAuthProvider>
+        <UserProvider>
+          <WebSocketProvider>
+            <BookmarkProvider>
+              <PortfolioProvider>      
+                  <DraftProvider>
+                      <HomePageCacheProvider>
+                        <ToastProvider>
+                          <AuthSignoutMonitor />
+                          {children}
+                        </ToastProvider>
+                      </HomePageCacheProvider>
+                  </DraftProvider>
+              </PortfolioProvider>
+            </BookmarkProvider>
+          </WebSocketProvider>
+        </UserProvider>
+      </CrossServiceAuthProvider>
     </SessionProvider>
   );
 } 

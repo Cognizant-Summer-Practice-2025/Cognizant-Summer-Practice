@@ -15,24 +15,20 @@ if (!global.adminServiceUserStorage) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get('email');
-
-    if (!email) {
-      return NextResponse.json({ error: 'User email is required' }, { status: 400 });
+    // Check if there's any user data stored
+    if (global.adminServiceUserStorage.size === 0) {
+      return NextResponse.json({ error: 'No user data found' }, { status: 404 });
     }
 
-    // Get user data from storage
-    const userData = global.adminServiceUserStorage.get(email);
+    // For now, return the first (and should be only) user
+    // In a multi-user scenario, this would need session-based identification
+    const userData = Array.from(global.adminServiceUserStorage.values())[0];
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      user: userData
-    });
+    return NextResponse.json(userData);
   } catch (error) {
     console.error('Error getting user data:', error);
     return NextResponse.json(

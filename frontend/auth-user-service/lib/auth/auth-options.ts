@@ -31,7 +31,16 @@ export const authOptions: AuthOptions = {
         const { exists: providerExists, user: providerUser } = await checkOAuthProvider(account.provider, account.providerAccountId);
         
         if (providerExists && providerUser) {
-          // OAuth provider already exists - allow sign-in
+          // OAuth provider already exists - inject user data and allow sign-in
+          try {
+            const userData = await getUserByEmail(user.email);
+            if (userData) {
+              await UserInjectionService.injectUser(userData);
+              console.log('User injected on sign-in:', user.email);
+            }
+          } catch (error) {
+            console.error('Error injecting user on sign-in:', error);
+          }
           return true;
         }
         
@@ -71,6 +80,17 @@ export const authOptions: AuthOptions = {
               refreshToken: account.refresh_token,
               tokenExpiresAt: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : undefined
             });
+            
+            // Inject user data after adding OAuth provider
+            try {
+              const userData = await getUserByEmail(user.email);
+              if (userData) {
+                await UserInjectionService.injectUser(userData);
+                console.log('User injected after adding OAuth provider:', user.email);
+              }
+            } catch (error) {
+              console.error('Error injecting user after adding OAuth provider:', error);
+            }
             
             return true;
           } catch {

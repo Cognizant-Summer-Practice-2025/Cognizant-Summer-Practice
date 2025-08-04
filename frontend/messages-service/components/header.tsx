@@ -61,8 +61,8 @@ export default function Header() {
     }
   };
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await logout();
   };
 
 

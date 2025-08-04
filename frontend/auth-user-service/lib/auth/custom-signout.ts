@@ -1,4 +1,5 @@
 import { signOut } from 'next-auth/react';
+import { triggerCrossServiceLogout } from './sso-auth';
 
 /**
  * Custom sign-out function that removes user data from all services
@@ -6,7 +7,10 @@ import { signOut } from 'next-auth/react';
  */
 export async function customSignOut() {
   try {
-    // First, remove user data from all other services
+    // First, trigger cross-service logout signal
+    triggerCrossServiceLogout();
+
+    // Then, remove user data from all other services
     const response = await fetch('/api/auth/signout-all', {
       method: 'POST',
       headers: {
@@ -17,9 +21,11 @@ export async function customSignOut() {
     if (!response.ok) {
       console.error('Failed to remove user data from all services');
       // Continue with sign-out even if service cleanup fails
+    } else {
+      console.log('Successfully removed user data from all services');
     }
 
-    // Then sign out from NextAuth
+    // Finally, sign out from NextAuth
     await signOut({ 
       callbackUrl: '/',
       redirect: true 

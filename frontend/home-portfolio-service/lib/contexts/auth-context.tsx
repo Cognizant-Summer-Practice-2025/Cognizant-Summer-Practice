@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth, redirectToLogout } from '@/lib/auth/sso-auth';
+import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth, logoutFromAllServices } from '@/lib/auth/sso-auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -24,12 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     redirectToAuth();
   };
 
-  const logout = () => {
-    clearLocalSession();
+  const logout = async () => {
+    // Clear local state immediately for better UX
     setIsAuthenticated(false);
     setUserEmail(null);
     setUserId(null);
-    redirectToLogout();
+    
+    // Call the logout function that removes user from all services
+    await logoutFromAllServices();
   };
 
   const checkAuthentication = async () => {
@@ -55,16 +57,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           window.history.replaceState({}, '', newUrl.toString());
         }
       } else {
-        // Check existing local session
+        // Check existing local session first
         const session = getLocalSession();
         if (session) {
           setIsAuthenticated(true);
           setUserEmail(session.email);
           setUserId(session.userId);
         } else {
-          setIsAuthenticated(false);
-          setUserEmail(null);
-          setUserId(null);
+          // Check if user data has been injected by auth service
+          try {
+            const response = await fetch('/api/user/get');
+            if (response.ok) {
+              const userData = await response.json();
+              if (userData && userData.email) {
+                // Create local session from injected data
+                await createLocalSession({
+                  email: userData.email,
+                  userId: userData.id,
+                  timestamp: Date.now(),
+                  exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+                });
+                setIsAuthenticated(true);
+                setUserEmail(userData.email);
+                setUserId(userData.id);
+              } else {
+                setIsAuthenticated(false);
+                setUserEmail(null);
+                setUserId(null);
+              }
+            } else {
+              setIsAuthenticated(false);
+              setUserEmail(null);
+              setUserId(null);
+            }
+          } catch (injectionError) {
+            console.log('No injected user data found, user not authenticated');
+            setIsAuthenticated(false);
+            setUserEmail(null);
+            setUserId(null);
+          }
         }
       }
     } catch (error) {
@@ -79,7 +110,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     checkAuthentication();
-  }, []);
+
+    // Set up periodic check for user injection (every 15 seconds)
+    const intervalId = setInterval(() => {
+      if (!isAuthenticated) {
+        checkAuthentication();
+      }
+    }, 15000);
+
+    // Listen for storage events (when user logs out from another tab)
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'sso_session' && event.newValue === null) {
+        // User logged out from another tab
+        setIsAuthenticated(false);
+        setUserEmail(null);
+        setUserId(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isAuthenticated]);
 
   const value: AuthContextType = {
     isAuthenticated,

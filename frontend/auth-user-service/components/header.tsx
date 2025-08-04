@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft, Bookmark } from 'lucide-react';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { customSignOut } from '@/lib/auth/custom-signout';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { redirectToService } from '@/lib/config';
@@ -61,13 +62,8 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
-      console.log('Attempting to sign out...');
-      // Stay on current page after sign out
-      const currentPath = window.location.pathname + window.location.search;
-      await signOut({ 
-        callbackUrl: currentPath,
-        redirect: true 
-      });
+      console.log('Attempting to sign out from all services...');
+      await customSignOut();
     } catch (error) {
       console.error('Sign out error:', error);
     }

@@ -36,7 +36,14 @@ async function injectUserToServices(userData: ServiceUserData) {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to inject user to ${service.name}: ${response.statusText}`);
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`Failed to inject user to ${service.name}:`, {
+            status: response.status,
+            statusText: response.statusText,
+            url: `${service.url}/api/user/inject`,
+            error: errorText
+          });
+          throw new Error(`Failed to inject user to ${service.name}: ${response.statusText} - ${errorText}`);
         }
 
         return { service: service.name, success: true };
@@ -51,10 +58,11 @@ async function injectUserToServices(userData: ServiceUserData) {
 }
 
 /**
- * Remove user data from all other services
+ * Remove user data from all services (including self)
  */
 async function removeUserFromServices(userEmail: string) {
   const services = [
+    { name: 'AUTH_USER_SERVICE', url: SERVICES.AUTH_USER_SERVICE },
     { name: 'ADMIN_SERVICE', url: SERVICES.ADMIN_SERVICE },
     { name: 'HOME_PORTFOLIO_SERVICE', url: SERVICES.HOME_PORTFOLIO_SERVICE },
     { name: 'MESSAGES_SERVICE', url: SERVICES.MESSAGES_SERVICE },
@@ -73,7 +81,14 @@ async function removeUserFromServices(userEmail: string) {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove user from ${service.name}: ${response.statusText}`);
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`Failed to remove user from ${service.name}:`, {
+            status: response.status,
+            statusText: response.statusText,
+            url: `${service.url}/api/user/remove`,
+            error: errorText
+          });
+          throw new Error(`Failed to remove user from ${service.name}: ${response.statusText} - ${errorText}`);
         }
 
         return { service: service.name, success: true };

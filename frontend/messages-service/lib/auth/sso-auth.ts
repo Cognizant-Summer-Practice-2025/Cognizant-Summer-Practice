@@ -95,15 +95,40 @@ export function redirectToAuth(): void {
 }
 
 /**
- * Redirect to auth service for logout
+ * Logout from all services and redirect to auth service
  */
-export function redirectToLogout(): void {
-  const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
-  const currentUrl = window.location.origin;
+export async function logoutFromAllServices(): Promise<void> {
+  try {
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    
+    // First, call the signout-all endpoint to remove user from all services
+    const response = await fetch(`${authServiceUrl}/api/auth/signout-all`, {
+      method: 'POST',
+      credentials: 'include', // Include cookies for session
+    });
+    
+    if (response.ok) {
+      console.log('User removed from all services');
+    } else {
+      console.warn('Failed to remove user from all services, but continuing with logout');
+    }
+  } catch (error) {
+    console.error('Error during signout-all:', error);
+    // Continue with logout even if signout-all fails
+  }
   
-  // Clear local session first
+  // Clear local session
   clearLocalSession();
   
   // Redirect to auth service logout
+  const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+  const currentUrl = window.location.origin;
   window.location.href = `${authServiceUrl}/api/auth/signout?callbackUrl=${encodeURIComponent(currentUrl)}`;
+}
+
+/**
+ * Redirect to auth service for logout (legacy function, use logoutFromAllServices instead)
+ */
+export function redirectToLogout(): void {
+  logoutFromAllServices();
 }
