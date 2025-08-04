@@ -26,20 +26,17 @@ if (!global.messagesServiceUserStorage) {
 
 /**
  * Get current user email from request parameters
- * Similar to how auth-user-service identifies users, but using the SSO session data
  */
 function getCurrentUserEmail(request: NextRequest): string | null {
   try {
     const url = new URL(request.url);
     
-    // Priority 1: userEmail parameter (most reliable)
     const userEmail = url.searchParams.get('userEmail');
     if (userEmail) {
       console.log('Found userEmail parameter:', userEmail);
       return userEmail;
     }
     
-    // Priority 2: userId parameter (lookup by ID)
     const userId = url.searchParams.get('userId');
     if (userId) {
       console.log('Found userId parameter:', userId);
@@ -62,7 +59,6 @@ function getCurrentUserEmail(request: NextRequest): string | null {
 
 /**
  * Get user data from this service with session-based identification
- * Following the same pattern as auth-user-service but for our SSO architecture
  */
 export async function GET(request: NextRequest) {
   try {
@@ -76,13 +72,11 @@ export async function GET(request: NextRequest) {
 
     console.log('Users in storage:', Array.from(global.messagesServiceUserStorage.keys()));
 
-    // Get current user email from request (session-based identification)
     const currentUserEmail = getCurrentUserEmail(request);
     
     let userData: ServiceUserData | null = null;
 
     if (currentUserEmail) {
-      // Session-based identification: find the specific user by email
       userData = global.messagesServiceUserStorage.get(currentUserEmail) || null;
       
       if (userData) {
@@ -91,21 +85,13 @@ export async function GET(request: NextRequest) {
         console.log(`❌ User ${currentUserEmail} not found in storage`);
       }
     } else {
-      console.log('⚠️ No user identification provided, using fallback');
-    }
-
-    // Fallback: if no session info or user not found, return the first user (backward compatibility)
-    if (!userData) {
-      console.warn('Falling back to first user. This should not happen in production with proper session identification.');
-      userData = Array.from(global.messagesServiceUserStorage.values())[0];
-      
-      if (userData) {
-        console.log(`Fallback: returning first user: ${userData.email} (ID: ${userData.id})`);
-      }
+      console.log('⚠️ No user identification provided');
+      // Don't fall back to first user - this causes session mixing
+      return NextResponse.json({ error: 'No user identification provided' }, { status: 401 });
     }
 
     if (!userData) {
-      console.log('No user data found at all');
+      console.log('User not found in storage');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
