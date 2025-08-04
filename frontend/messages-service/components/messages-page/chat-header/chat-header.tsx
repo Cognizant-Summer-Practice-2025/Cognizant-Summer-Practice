@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
+import { redirectToService } from "@/lib/config/services";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,7 +35,6 @@ interface ChatHeaderProps {
 const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation, onBackToSidebar, isMobile = false }) => {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter();
   const { showConfirm } = useAlert();
 
   const handleMuteNotifications = () => {
@@ -110,8 +109,7 @@ You can restore it by sending a new message.`,
     
     if (portfolioId) {
       console.log('Navigating to portfolio with portfolioId:', portfolioId);
-      // Navigate to the user's portfolio page using portfolio ID
-      router.push(`/portfolio?portfolio=${portfolioId}`);
+      redirectToService('HOME_PORTFOLIO_SERVICE', `portfolio?portfolio=${portfolioId}`);
     } else {
       console.log('❌ No portfolio ID available for:', selectedContact.name);
     }
