@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { EyeOutlined, BarChartOutlined, TeamOutlined } from '@ant-design/icons';
 import './style.css';
@@ -18,10 +17,9 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   activeTab = 'statistics', 
   onTabChange 
 }) => {
-  const router = useRouter();
-
   const handleViewSite = () => {
-    router.push('/');
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+    window.location.href = homeServiceUrl;
   };
 
   return (

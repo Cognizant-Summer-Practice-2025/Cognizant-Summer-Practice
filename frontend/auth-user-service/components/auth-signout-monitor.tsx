@@ -28,8 +28,9 @@ export function AuthSignoutMonitor() {
           const data = await response.json();
           if (data.shouldSignOut) {
             console.log('Signout signal detected, signing out from NextAuth...');
+            const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
             await signOut({ 
-              callbackUrl: '/',
+              callbackUrl: homeServiceUrl,
               redirect: true 
             });
           }
