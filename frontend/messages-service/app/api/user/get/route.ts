@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     if (currentUserEmail) {
       // Session-based identification: find the specific user by email
-      userData = global.messagesServiceUserStorage.get(currentUserEmail);
+      userData = global.messagesServiceUserStorage.get(currentUserEmail) || null;
       
       if (userData) {
         console.log(`✅ Found user data for: ${currentUserEmail} (ID: ${userData.id})`);

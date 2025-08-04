@@ -90,6 +90,20 @@ const MessagesPage = () => {
     }
   }, [isMobile]);
 
+
+  const getTimestamp = (...timestamps: (string | undefined)[]): string => {
+    for (const timestamp of timestamps) {
+      if (timestamp && timestamp.trim() !== '') {
+        const testDate = new Date(timestamp);
+        if (!isNaN(testDate.getTime())) {
+          return timestamp;
+        }
+      }
+    }
+
+    return new Date().toISOString();
+  };
+
   const formatTimestamp = (dateString: string): string => {
     const date = new Date(dateString);
     const now = new Date();
@@ -107,13 +121,23 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    const utcDate = new Date(dateString + 'Z');
+    if (!dateString || dateString.trim() === '') {
+      console.warn('formatMessageTimestamp received empty string, this should not happen');
+      dateString = new Date().toISOString();
+    }
+    
+    const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
+    
+    if (isNaN(utcDate.getTime())) {
+      console.warn('Invalid date string:', dateString);
+      return formatMessageTimestamp(new Date().toISOString());
+    }
+    
     const now = new Date();
     
     const diffInHours = (now.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
     
     if (diffInHours < 12) {
-   
       return utcDate.toLocaleTimeString(undefined, { 
         hour: 'numeric', 
         minute: '2-digit',
@@ -148,12 +172,21 @@ const MessagesPage = () => {
 
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
+    
+    // Determine the best timestamp to use (with fallbacks)
+    const timestamp = getTimestamp(
+      conv.lastMessageTimestamp,
+      conv.lastMessage?.createdAt,
+      conv.updatedAt,
+      conv.createdAt
+    );
+    
     const result = {
       id: conv.id,
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
-      timestamp: formatMessageTimestamp(conv.lastMessageTimestamp),
+      timestamp: formatMessageTimestamp(timestamp),
       isActive: currentConversation?.id === conv.id,
       isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
       unreadCount: conv.unreadCount,

@@ -90,8 +90,34 @@ const MessagesPage = () => {
     }
   }, [isMobile]);
 
+  // Helper function to find the best valid timestamp from multiple options
+  const getValidTimestamp = (...timestamps: (string | undefined)[]): string => {
+    for (const timestamp of timestamps) {
+      if (timestamp && timestamp.trim() !== '') {
+        const testDate = new Date(timestamp);
+        if (!isNaN(testDate.getTime())) {
+          return timestamp;
+        }
+      }
+    }
+    // If no valid timestamp found, return current time
+    return new Date().toISOString();
+  };
+
   const formatTimestamp = (dateString: string): string => {
+    // Handle null, undefined, or empty dateString
+    if (!dateString || dateString.trim() === '') {
+      return 'Now';
+    }
+    
     const date = new Date(dateString);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateString);
+      return 'Now';
+    }
+    
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
@@ -107,13 +133,27 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    const utcDate = new Date(dateString + 'Z');
+    // Since we're now using getValidTimestamp, we should always have a valid date
+    // But keeping validation as a safety net
+    if (!dateString || dateString.trim() === '') {
+      console.warn('formatMessageTimestamp received empty string, this should not happen');
+      dateString = new Date().toISOString();
+    }
+    
+    const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
+    
+    // Check if the date is valid
+    if (isNaN(utcDate.getTime())) {
+      console.warn('Invalid date string:', dateString);
+      // Fallback to current time if somehow we still get invalid date
+      return formatMessageTimestamp(new Date().toISOString());
+    }
+    
     const now = new Date();
     
     const diffInHours = (now.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
     
     if (diffInHours < 12) {
-   
       return utcDate.toLocaleTimeString(undefined, { 
         hour: 'numeric', 
         minute: '2-digit',
@@ -148,12 +188,21 @@ const MessagesPage = () => {
 
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
+    
+    // Determine the best timestamp to use (with fallbacks)
+    const timestamp = getValidTimestamp(
+      conv.lastMessageTimestamp,
+      conv.lastMessage?.createdAt,
+      conv.updatedAt,
+      conv.createdAt
+    );
+    
     const result = {
       id: conv.id,
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
-      timestamp: formatMessageTimestamp(conv.lastMessageTimestamp),
+      timestamp: formatMessageTimestamp(timestamp),
       isActive: currentConversation?.id === conv.id,
       isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
       unreadCount: conv.unreadCount,
