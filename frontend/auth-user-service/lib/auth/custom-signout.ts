@@ -26,15 +26,17 @@ export async function customSignOut() {
     }
 
     // Finally, sign out from NextAuth
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
     await signOut({ 
-      callbackUrl: '/',
+      callbackUrl: homeServiceUrl,
       redirect: true 
     });
   } catch (error) {
     console.error('Error during sign-out:', error);
     // Fall back to regular NextAuth sign-out
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
     await signOut({ 
-      callbackUrl: '/',
+      callbackUrl: homeServiceUrl,
       redirect: true 
     });
   }

@@ -16,6 +16,13 @@ export default function HomePage() {
       router.push('/login');
       return;
     }
+    
+    if (status === 'authenticated') {
+      // Redirect authenticated users to the home portfolio service
+      const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+      window.location.href = homeServiceUrl;
+      return;
+    }
   }, [status, router]);
 
   // Show loading while checking authentication
@@ -43,20 +50,14 @@ export default function HomePage() {
     );
   }
 
-  // If authenticated, show welcome message or redirect to dashboard
+  // If authenticated, redirect to home service (this shouldn't normally be reached due to useEffect redirect)
   if (status === 'authenticated') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white rounded-lg shadow-sm p-8 w-full max-w-md">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to GoalKeeper!</h1>
-            <p className="text-gray-600 mb-6">You are successfully authenticated.</p>
-            <button 
-              onClick={() => router.push('/profile')}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Go to Profile
-            </button>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Redirecting...</h1>
+            <p className="text-gray-600 mb-6">Taking you to the home page.</p>
           </div>
         </div>
       </div>

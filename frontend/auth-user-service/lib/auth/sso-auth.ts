@@ -15,14 +15,16 @@ export function setupCrossServiceLogoutDetection(): () => void {
       
       try {
         // Sign out from NextAuth to clear the session
+        const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
         await signOut({ 
-          callbackUrl: '/',
+          callbackUrl: homeServiceUrl,
           redirect: true 
         });
       } catch (error) {
         console.error('Error signing out from NextAuth after cross-service logout:', error);
-        // Force redirect to home page if signOut fails
-        window.location.href = '/';
+        // Force redirect to home service if signOut fails
+        const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+        window.location.href = homeServiceUrl;
       }
     }
   };
@@ -67,8 +69,9 @@ export async function enhancedSignOut(): Promise<void> {
   } catch (error) {
     console.error('Error during enhanced sign-out:', error);
     // Fall back to regular NextAuth sign-out
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
     await signOut({ 
-      callbackUrl: '/',
+      callbackUrl: homeServiceUrl,
       redirect: true 
     });
   }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { usePortfolio } from './portfolio-context';
 import { useHomePageCache } from './home-page-cache-context';
 
@@ -19,7 +18,6 @@ export interface NavigationState {
 }
 
 export function usePortfolioNavigation() {
-  const router = useRouter();
   const { setHomePageReturnContext, getHomePageReturnContext, clearHomePageReturnContext } = usePortfolio();
   const homePageCache = useHomePageCache();
 
@@ -45,17 +43,21 @@ export function usePortfolioNavigation() {
       console.log('💾 Saved home page context:', context);
     }
 
-    // Navigate to portfolio
-    if (userId) {
-      router.push(`/portfolio?user=${userId}`);
-    } else {
-      router.push(`/portfolio?portfolio=${portfolioId}`);
-    }
-  }, [router, setHomePageReturnContext, homePageCache]);
+    // Navigate to portfolio in the home-portfolio-service
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+    const portfolioUrl = userId 
+      ? `${homeServiceUrl}/portfolio?user=${userId}`
+      : `${homeServiceUrl}/portfolio?portfolio=${portfolioId}`;
+    
+    window.location.href = portfolioUrl;
+  }, [setHomePageReturnContext, homePageCache]);
 
   // Navigate back to home page, restoring previous state
   const navigateBackToHome = useCallback(async () => {
     const returnContext = getHomePageReturnContext();
+    
+    // Get the home service URL
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
     
     if (returnContext && homePageCache) {
       console.log('🔄 Restoring home page context:', returnContext);
@@ -64,66 +66,40 @@ export function usePortfolioNavigation() {
       const isContextValid = Date.now() - returnContext.timestamp < 10 * 60 * 1000;
       
       if (isContextValid) {
-        // Restore filters first
-        if (returnContext.filters) {
-          const { searchTerm, sortBy, sortDirection, selectedSkills, selectedRoles, featuredOnly } = returnContext.filters;
-          
-          // Apply filters
-          homePageCache.setFilters({
-            searchTerm,
-            skills: selectedSkills,
-            roles: selectedRoles,
-            featured: featuredOnly,
-          });
-          
-          // Apply sorting
-          if (sortBy) {
-            homePageCache.setSort(sortBy, sortDirection);
-          }
-        }
+        // For cross-service navigation, we'll pass the context as URL parameters
+        const params = new URLSearchParams();
         
-        // Navigate to home page
-        router.push('/');
+        if (returnContext.page) params.set('page', returnContext.page.toString());
+        if (returnContext.scrollPosition) params.set('scroll', returnContext.scrollPosition.toString());
+        if (returnContext.filters.searchTerm) params.set('search', returnContext.filters.searchTerm);
+        if (returnContext.filters.sortBy) params.set('sortBy', returnContext.filters.sortBy);
+        if (returnContext.filters.sortDirection) params.set('sortDirection', returnContext.filters.sortDirection);
+        if (returnContext.filters.selectedSkills?.length) params.set('skills', returnContext.filters.selectedSkills.join(','));
+        if (returnContext.filters.selectedRoles?.length) params.set('roles', returnContext.filters.selectedRoles.join(','));
+        if (returnContext.filters.featuredOnly) params.set('featured', 'true');
         
-        // Wait for navigation and then restore page and scroll
-        setTimeout(async () => {
-          try {
-            // Load the specific page
-            await homePageCache.loadPage(returnContext.page);
-            
-            // Restore scroll position after a short delay to allow content to load
-            setTimeout(() => {
-              window.scrollTo({
-                top: returnContext.scrollPosition,
-                behavior: 'smooth'
-              });
-              console.log('📜 Restored scroll position:', returnContext.scrollPosition);
-            }, 100);
-          } catch (error) {
-            console.error('Failed to restore home page state:', error);
-            // Fallback to first page
-            await homePageCache.loadPage(1);
-          }
-        }, 100);
+        const homeUrl = params.toString() ? `${homeServiceUrl}?${params.toString()}` : homeServiceUrl;
+        window.location.href = homeUrl;
       } else {
         // Context is too old, just navigate to home without restoration
         console.log('⏰ Context expired, navigating to home without restoration');
-        router.push('/');
+        window.location.href = homeServiceUrl;
       }
     } else {
       // No context or cache available, just navigate
-      router.push('/');
+      window.location.href = homeServiceUrl;
     }
 
     // Clear the context after use
     clearHomePageReturnContext();
-  }, [router, getHomePageReturnContext, clearHomePageReturnContext, homePageCache]);
+  }, [getHomePageReturnContext, clearHomePageReturnContext, homePageCache]);
 
   // Simple navigation to home page without state restoration
   const navigateToHome = useCallback(() => {
     clearHomePageReturnContext();
-    router.push('/');
-  }, [router, clearHomePageReturnContext]);
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+    window.location.href = homeServiceUrl;
+  }, [clearHomePageReturnContext]);
 
   // Check if we have a return context
   const hasReturnContext = useCallback(() => {

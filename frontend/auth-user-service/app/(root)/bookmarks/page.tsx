@@ -180,7 +180,10 @@ export default function BookmarksPage() {
                 You can bookmark portfolios by clicking the bookmark icon on any portfolio card.
               </p>
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => {
+                  const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+                  window.location.href = homeServiceUrl;
+                }}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Explore Portfolios
