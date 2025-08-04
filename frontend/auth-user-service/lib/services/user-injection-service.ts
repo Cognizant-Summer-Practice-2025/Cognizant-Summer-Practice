@@ -3,13 +3,16 @@ import { User } from '@/lib/user/interfaces';
 interface ServiceUserData {
   id: string;
   email: string;
+  username: string;
   firstName: string;
   lastName: string;
   professionalTitle?: string;
   bio?: string;
   location?: string;
   profileImage?: string;
+  isActive: boolean;
   isAdmin: boolean;
+  lastLoginAt?: string;
 }
 
 /**
@@ -26,13 +29,16 @@ export class UserInjectionService {
       const userData: ServiceUserData = {
         id: user.id,
         email: user.email,
+        username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
         professionalTitle: user.professionalTitle,
         bio: user.bio,
         location: user.location,
-        profileImage: user.profileImage,
+        profileImage: user.avatarUrl,
+        isActive: user.isActive,
         isAdmin: user.isAdmin || false,
+        lastLoginAt: user.lastLoginAt,
       };
 
       const response = await fetch(`${this.baseUrl}/api/services/user-injection`, {

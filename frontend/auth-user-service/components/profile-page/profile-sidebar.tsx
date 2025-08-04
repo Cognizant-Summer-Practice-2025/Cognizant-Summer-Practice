@@ -1,10 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { User, Folder, Briefcase, Code, Layout, Settings, FileText } from 'lucide-react';
+import { User, Folder, Briefcase, Code, Layout, Settings, FileText, Camera, Upload } from 'lucide-react';
 import { usePortfolio } from '@/lib/contexts/portfolio-context';
 import { useUser } from '@/lib/contexts/user-context';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { uploadImage, getSafeImageUrl } from '@/lib/image';
 
 interface ProfileSidebarProps {
   activeTab?: string;
@@ -13,7 +17,11 @@ interface ProfileSidebarProps {
 
 export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }: ProfileSidebarProps) {
   const { hasPublishedPortfolio, userPortfolioData } = usePortfolio();
-  const { user } = useUser();
+  const { user, updateUserData } = useUser();
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Get the first published portfolio for stats
   const publishedPortfolio = userPortfolioData?.portfolios?.find(p => p.isPublished);
@@ -46,9 +54,44 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
   // Helper function to get user's avatar
   const getUserAvatar = () => {
     if (user?.avatarUrl) {
-      return user.avatarUrl;
+      return getSafeImageUrl(user.avatarUrl);
     }
-    return 'https://placehold.co/80x80';
+    // Generate default avatar with user's initials
+    const initials = getUserFullName()
+      .split(' ')
+      .map(name => name.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=80&background=f0f0f0&color=666`;
+  };
+
+  // Handle photo upload
+  const handlePhotoUpload = async () => {
+    if (!selectedImageFile || !user?.id) {
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setUploadError(null);
+
+      // Upload image to 'profile_images' subfolder
+      const uploadResponse = await uploadImage(selectedImageFile, 'profile_images');
+      
+      // Update user profile with new image URL
+      await updateUserData({
+        profileImage: uploadResponse.imagePath
+      });
+
+      // Close dialog and reset state
+      setIsPhotoDialogOpen(false);
+      setSelectedImageFile(null);
+    } catch (error) {
+      console.error('Error uploading profile photo:', error);
+      setUploadError(error instanceof Error ? error.message : 'Failed to upload photo');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const basicMenuItems = [
@@ -92,14 +135,72 @@ export default function ProfileSidebar({ activeTab = 'basic-info', onTabChange }
       {/* Profile Card */}
       <div className="self-stretch h-[296px] lg:h-[296px] md:h-[250px] sm:h-[220px] rounded-lg border border-[#E2E8F0] flex flex-col justify-between items-center p-4 sm:p-6">
         <div className="flex flex-col items-center">
-          {/* Profile Picture */}
-          <Image 
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mb-3 sm:mb-4" 
-            src={getUserAvatar()} 
-            alt="Profile"
-            width={80}
-            height={80}
-          />
+          {/* Profile Picture with Change Button */}
+          <div className="relative group mb-3 sm:mb-4">
+            <Image 
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" 
+              src={getUserAvatar()} 
+              alt="Profile"
+              width={80}
+              height={80}
+            />
+            <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
+              <DialogTrigger asChild>
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Change Profile Photo</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <ImageUpload
+                    label="Select new profile photo"
+                    value={user?.avatarUrl}
+                    onFileSelect={setSelectedImageFile}
+                    error={uploadError}
+                    preview={true}
+                    maxSizeInMB={5}
+                    className="w-full"
+                  />
+                  {uploadError && (
+                    <div className="text-sm text-red-600">{uploadError}</div>
+                  )}
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsPhotoDialogOpen(false);
+                        setSelectedImageFile(null);
+                        setUploadError(null);
+                      }}
+                      disabled={isUploading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handlePhotoUpload}
+                      disabled={!selectedImageFile || isUploading}
+                      className="flex items-center gap-2"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          Upload Photo
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
           
           {/* Name */}
           <div className="text-center text-[#020817] text-2xl sm:text-3xl lg:text-[40px] font-bold font-['Inter'] leading-tight mb-1 sm:mb-2">

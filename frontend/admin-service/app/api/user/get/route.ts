@@ -28,7 +28,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json(userData);
+    // Transform profileImage to avatarUrl for compatibility with User interface
+    const transformedUserData = {
+      ...userData,
+      avatarUrl: userData.profileImage,
+      // Remove profileImage to avoid confusion
+      profileImage: undefined
+    };
+
+    return NextResponse.json(transformedUserData);
   } catch (error) {
     console.error('Error getting user data:', error);
     return NextResponse.json(

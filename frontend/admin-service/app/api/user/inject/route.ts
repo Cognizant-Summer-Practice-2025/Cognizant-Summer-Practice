@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 interface ServiceUserData {
   id: string;
   email: string;
+  username: string;
   firstName: string;
   lastName: string;
   professionalTitle?: string;
   bio?: string;
   location?: string;
   profileImage?: string;
+  isActive: boolean;
   isAdmin: boolean;
+  lastLoginAt?: string;
 }
 
 // Global storage for user data (in production, use Redis or database)
