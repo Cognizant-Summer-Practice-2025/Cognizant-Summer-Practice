@@ -200,20 +200,36 @@ export async function logoutFromAllServices() {
 
 ### 3. Auth Service Comprehensive Logout
 ```javascript
-// auth-user-service/lib/auth/custom-signout.ts
-export async function customSignOut() {
-  // 1. Trigger cross-service logout signal
-  triggerCrossServiceLogout();
+// auth-user-service/app/api/auth/auto-signout/route.ts
+export async function POST(request: NextRequest) {
+  // 1. Get current session
+  const session = await getServerSession(authOptions);
   
   // 2. Remove user data from all services
-  await fetch('/api/auth/signout-all', { method: 'POST' });
+  await UserInjectionService.removeUser(session.user.email);
   
-  // 3. NextAuth signout
-  await signOut({ callbackUrl: '/', redirect: true });
+  // 3. Automatically clear NextAuth session cookies
+  const response = NextResponse.json({ success: true });
+  clearNextAuthSession(response); // No redirects, just clear cookies
+  
+  return response;
 }
 ```
 
-### 4. User Data Removal
+### 4. Automatic Session Clearing
+```javascript
+// auth-user-service/lib/auth/session-clearer.ts
+export function clearNextAuthSession(response: NextResponse) {
+  // Clear all NextAuth session cookies automatically
+  response.cookies.set('next-auth.session-token', '', { maxAge: 0 });
+  response.cookies.set('next-auth.csrf-token', '', { maxAge: 0 });
+  // ... clear all session cookies
+  
+  // No redirects needed - session is cleared server-side
+}
+```
+
+### 5. User Data Removal
 ```javascript
 // auth-user-service/app/api/services/user-injection/route.ts
 async function removeUserFromServices(userEmail) {
@@ -237,7 +253,7 @@ async function removeUserFromServices(userEmail) {
 }
 ```
 
-### 5. Cross-Tab Logout Synchronization
+### 6. Cross-Tab Logout Synchronization
 ```javascript
 // All services monitor localStorage changes
 useEffect(() => {
@@ -255,7 +271,7 @@ useEffect(() => {
 }, []);
 ```
 
-### 6. NextAuth Session Cleanup
+### 7. NextAuth Session Cleanup
 ```javascript
 // auth-user-service/components/auth-signout-monitor.tsx
 // Monitors for logout signals and triggers NextAuth signOut
