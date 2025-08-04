@@ -4,6 +4,7 @@
   width: 100%;
   position: relative;
   container-type: inline-size;
+  /* Improve performance */
   will-change: transform;
 }
 
@@ -76,11 +77,14 @@
   }
 }
 
+/* Enhanced mobile breakpoint for better performance */
 @media (max-width: 479px) {
   .messages-page {
     overflow: hidden;
+    /* Better mobile viewport handling */
     height: 100dvh;
     max-height: 100dvh;
+    /* Improve mobile performance */
     -webkit-overflow-scrolling: touch;
   }
   
@@ -91,6 +95,7 @@
     left: 0;
     width: 100%;
     height: 100dvh;
+    /* Enable hardware acceleration for smoother transitions */
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -149,6 +154,7 @@
   }
 }
 
+/* Ultra-wide screen support */
 @media (min-width: 1440px) {
   .messages-page {
     max-width: 1600px;
