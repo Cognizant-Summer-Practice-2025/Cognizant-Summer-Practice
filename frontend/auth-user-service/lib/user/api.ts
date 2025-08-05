@@ -13,22 +13,15 @@ import { AuthenticatedApiClient } from '../api/authenticated-client';
 const API_BASE_URL = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
 const MESSAGES_API_BASE_URL = 'http://localhost:5093';
 
+// Create authenticated API clients for different services
+const userClient = AuthenticatedApiClient.createUserClient();
+const messagesClient = AuthenticatedApiClient.createMessagesClient();
+
 // Search users by username, first name, last name, or full name
 export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {
   try {
     // Note: This calls the messages service, not our user service
-    const response = await fetch(`${MESSAGES_API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    return await messagesClient.get<SearchUser[]>(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, true);
   } catch (error) {
     console.error('Error searching users:', error);
     throw error;
@@ -41,7 +34,7 @@ export const searchUsersByUsername = searchUsers;
 // Check if user exists by email (used during auth flow - no authentication required)
 export async function checkUserExists(email: string): Promise<CheckEmailResponse> {
   try {
-    return await AuthenticatedApiClient.getUnauthenticated<CheckEmailResponse>(
+    return await userClient.getUnauthenticated<CheckEmailResponse>(
       `/api/users/check-email/${encodeURIComponent(email)}`
     );
   } catch (error) {
@@ -53,7 +46,7 @@ export async function checkUserExists(email: string): Promise<CheckEmailResponse
 // Register a new user (no authentication required during registration)
 export async function registerUser(userData: RegisterUserRequest): Promise<User> {
   try {
-    return await AuthenticatedApiClient.postUnauthenticated<User>(
+    return await userClient.postUnauthenticated<User>(
       '/api/users/register',
       userData
     );
@@ -66,7 +59,7 @@ export async function registerUser(userData: RegisterUserRequest): Promise<User>
 // Get user by email (used during auth flow - no authentication required)
 export async function getUserByEmail(email: string): Promise<User | null> {
   try {
-    return await AuthenticatedApiClient.getUnauthenticated<User>(
+    return await userClient.getUnauthenticated<User>(
       `/api/users/email/${encodeURIComponent(email)}`
     );
   } catch (error) {
@@ -81,7 +74,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 // Get user by email (authenticated version for regular app usage)
 export async function getUserByEmailAuthenticated(email: string): Promise<User | null> {
   try {
-    return await AuthenticatedApiClient.get<User>(
+    return await userClient.get<User>(
       `/api/users/email/${encodeURIComponent(email)}`
     );
   } catch (error) {
@@ -98,7 +91,7 @@ export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Pro
   try {
     console.log('Sending OAuth registration request:', userData);
     
-    const result = await AuthenticatedApiClient.postUnauthenticated<{ user: User; oauthProvider: OAuthProvider }>(
+    const result = await userClient.postUnauthenticated<{ user: User; oauthProvider: OAuthProvider }>(
       '/api/users/register-oauth',
       userData
     );
@@ -124,7 +117,7 @@ export async function checkOAuthProvider(provider: string, providerId: string): 
     
     const formattedProvider = providerMapping[provider.toLowerCase()] || provider;
     
-    return await AuthenticatedApiClient.getUnauthenticated<CheckOAuthProviderResponse>(
+    return await userClient.getUnauthenticated<CheckOAuthProviderResponse>(
       `/api/users/oauth-providers/check?provider=${formattedProvider}&providerId=${encodeURIComponent(providerId)}`
     );
   } catch (error) {
@@ -136,7 +129,7 @@ export async function checkOAuthProvider(provider: string, providerId: string): 
 // Check if user has specific OAuth provider type (requires authentication)
 export async function checkUserOAuthProvider(userId: string, provider: 'Google' | 'GitHub' | 'Facebook' | 'LinkedIn'): Promise<{ exists: boolean; provider: OAuthProvider | null }> {
   try {
-    return await AuthenticatedApiClient.get<{ exists: boolean; provider: OAuthProvider | null }>(
+    return await userClient.get<{ exists: boolean; provider: OAuthProvider | null }>(
       `/api/users/${userId}/oauth-providers/${provider}`
     );
   } catch (error) {
@@ -152,7 +145,7 @@ export async function updateOAuthProvider(providerId: string, updateData: {
   tokenExpiresAt?: string;
 }): Promise<OAuthProvider> {
   try {
-    return await AuthenticatedApiClient.put<OAuthProvider>(
+    return await userClient.put<OAuthProvider>(
       `/api/users/oauth-providers/${providerId}`,
       updateData
     );
@@ -165,7 +158,7 @@ export async function updateOAuthProvider(providerId: string, updateData: {
 // Get user's OAuth providers (requires authentication)
 export async function getUserOAuthProviders(userId: string): Promise<OAuthProviderSummary[]> {
   try {
-    return await AuthenticatedApiClient.get<OAuthProviderSummary[]>(
+    return await userClient.get<OAuthProviderSummary[]>(
       `/api/users/${userId}/oauth-providers`
     );
   } catch (error) {
@@ -185,7 +178,7 @@ export async function addOAuthProvider(oauthData: {
   tokenExpiresAt?: string;
 }): Promise<OAuthProvider> {
   try {
-    return await AuthenticatedApiClient.postUnauthenticated<OAuthProvider>(
+    return await userClient.postUnauthenticated<OAuthProvider>(
       '/api/users/oauth-providers',
       oauthData
     );
@@ -198,7 +191,7 @@ export async function addOAuthProvider(oauthData: {
 // Remove OAuth provider (requires authentication)
 export async function removeOAuthProvider(providerId: string): Promise<void> {
   try {
-    await AuthenticatedApiClient.delete<void>(
+    await userClient.delete<void>(
       `/api/users/oauth-providers/${providerId}`
     );
   } catch (error) {
@@ -217,7 +210,7 @@ export async function updateUser(userId: string, userData: {
   profileImage?: string;
 }): Promise<User> {
   try {
-    return await AuthenticatedApiClient.put<User>(
+    return await userClient.put<User>(
       `/api/users/${userId}`,
       userData
     );

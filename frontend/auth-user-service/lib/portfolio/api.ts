@@ -13,9 +13,13 @@ import {
   Bookmark,
   PortfolioTemplate
 } from './interfaces';
+import { AuthenticatedApiClient } from '../api/authenticated-client';
 
-const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
-const USER_API_BASE_URL = 'http://localhost:5200'; // User service URL
+// Portfolio service URL and User service URL are now handled by the AuthenticatedApiClient
+
+// Create authenticated API clients for different services
+const portfolioClient = AuthenticatedApiClient.createPortfolioClient();
+const userClient = AuthenticatedApiClient.createUserClient();
 
 // User info for portfolio cards
 export interface UserPortfolioInfo {
@@ -391,14 +395,7 @@ interface BulkPortfolioResponseDto {
   portfolioPublished: boolean;
 }
 
-// Helper function to handle API responses
-async function handleApiResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}
+// Helper function to handle API responses - no longer needed as AuthenticatedApiClient handles this
 
 // Helper function to convert backend DTO to frontend interface
 function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromDB {
@@ -494,8 +491,7 @@ function convertPortfolioResponse(dto: PortfolioResponseDto): PortfolioDataFromD
 // ============= PORTFOLIO API FUNCTIONS =============
 
 export async function getPortfolioById(portfolioId: string): Promise<PortfolioDataFromDB> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`);
-  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  const data = await portfolioClient.get<PortfolioResponseDto>(`/api/Portfolio/${portfolioId}`, false);
   return convertPortfolioResponse(data);
 }
 
@@ -508,8 +504,7 @@ export async function getPortfolioComprehensive(portfolioId: string): Promise<{
   blogPosts: BlogPost[];
   bookmarks: Bookmark[];
 }> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`);
-  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  const data = await portfolioClient.get<PortfolioResponseDto>(`/api/Portfolio/${portfolioId}`, false);
   
   const portfolioData = convertPortfolioResponse(data);
   
@@ -564,8 +559,7 @@ async function getTemplateNameById(templateId: string): Promise<string | undefin
 }
 
 export async function getPortfoliosByUserId(userId: string): Promise<UserPortfolio[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/user/${userId}`);
-  const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
+  const data = await portfolioClient.get<PortfolioSummaryDto[]>(`/api/Portfolio/user/${userId}`, true);
   
   // Resolve template names efficiently
   const portfolios = await Promise.all(data.map(async (dto) => {
@@ -592,8 +586,7 @@ export async function getPortfoliosByUserId(userId: string): Promise<UserPortfol
 }
 
 export async function getAllPortfolios(): Promise<UserPortfolio[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio`);
-  const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
+  const data = await portfolioClient.get<PortfolioSummaryDto[]>('/api/Portfolio', false);
   
   // Resolve template names efficiently
   const portfolios = await Promise.all(data.map(async (dto) => {
@@ -620,8 +613,7 @@ export async function getAllPortfolios(): Promise<UserPortfolio[]> {
 }
 
 export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/published`);
-  const data = await handleApiResponse<PortfolioSummaryDto[]>(response);
+  const data = await portfolioClient.get<PortfolioSummaryDto[]>('/api/Portfolio/published', false);
   
   return data.map(dto => ({
     id: dto.id,
@@ -641,16 +633,13 @@ export async function getPublishedPortfolios(): Promise<UserPortfolio[]> {
 
 // Get user info for portfolio cards
 export async function getUserPortfolioInfo(userId: string): Promise<UserPortfolioInfo> {
-  const response = await fetch(`${USER_API_BASE_URL}/api/Users/${userId}/portfolio-info`);
-  
-  const result = await handleApiResponse<UserPortfolioInfo>(response);
+  const result = await userClient.get<UserPortfolioInfo>(`/api/Users/${userId}/portfolio-info`, false);
   
   return result;
 }
 
 export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/home-page-cards`);
-  const portfolioCards = await handleApiResponse<PortfolioCardDto[]>(response);
+  const portfolioCards = await portfolioClient.get<PortfolioCardDto[]>('/api/Portfolio/home-page-cards', false);
   
   // Fetch user info for each portfolio card
   const enrichedCards = await Promise.all(
@@ -682,15 +671,7 @@ export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(portfolioData),
-  });
-  
-  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  const data = await portfolioClient.post<PortfolioResponseDto>('/api/Portfolio', portfolioData, true);
   
   return {
     id: data.id,
@@ -709,15 +690,7 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
 }
 
 export async function updatePortfolio(portfolioId: string, portfolioData: PortfolioUpdateDto): Promise<UserPortfolio> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(portfolioData),
-  });
-  
-  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  const data = await portfolioClient.put<PortfolioResponseDto>(`/api/Portfolio/${portfolioId}`, portfolioData, true);
   
   return {
     id: data.id,
@@ -736,55 +709,43 @@ export async function updatePortfolio(portfolioId: string, portfolioData: Portfo
 }
 
 export async function deletePortfolio(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
-    method: 'DELETE',
-  });
-  
-  if (response.status === 204) {
+  try {
+    await portfolioClient.delete(`/api/Portfolio/${portfolioId}`, true);
     return true;
+  } catch (error) {
+    console.error('📤 API: Error deleting portfolio:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 export async function incrementViewCount(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/view`, {
-    method: 'POST',
-  });
-  
-  if (response.ok) {
+  try {
+    await portfolioClient.post(`/api/Portfolio/${portfolioId}/view`, undefined, false);
     return true;
+  } catch (error) {
+    console.error('📤 API: Error incrementing view count:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 export async function incrementLikeCount(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/like`, {
-    method: 'POST',
-  });
-  
-  if (response.ok) {
+  try {
+    await portfolioClient.post(`/api/Portfolio/${portfolioId}/like`, undefined, true);
     return true;
+  } catch (error) {
+    console.error('📤 API: Error incrementing like count:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 export async function decrementLikeCount(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/unlike`, {
-    method: 'POST',
-  });
-  
-  if (response.ok) {
+  try {
+    await portfolioClient.post(`/api/Portfolio/${portfolioId}/unlike`, undefined, true);
     return true;
+  } catch (error) {
+    console.error('📤 API: Error decrementing like count:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 
@@ -792,22 +753,16 @@ export async function decrementLikeCount(portfolioId: string): Promise<boolean> 
 // ============= PORTFOLIO TEMPLATE API FUNCTIONS =============
 
 export async function getActiveTemplates(): Promise<PortfolioTemplate[]> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/active`);
-  return handleApiResponse<PortfolioTemplate[]>(response);
+  return await portfolioClient.get<PortfolioTemplate[]>('/api/PortfolioTemplate/active', false);
 }
 
 export async function getAllTemplates(): Promise<PortfolioTemplate[]> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate`);
-  return handleApiResponse<PortfolioTemplate[]>(response);
+  return await portfolioClient.get<PortfolioTemplate[]>('/api/PortfolioTemplate', false);
 }
 
 export async function getTemplateByName(name: string): Promise<PortfolioTemplate | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/name/${encodeURIComponent(name)}`);
-    if (response.status === 404) {
-      return null;
-    }
-    return handleApiResponse<PortfolioTemplate>(response);
+    return await portfolioClient.get<PortfolioTemplate>(`/api/PortfolioTemplate/name/${encodeURIComponent(name)}`, false);
   } catch (error) {
     console.error('Error fetching template by name:', error);
     return null;
@@ -816,11 +771,7 @@ export async function getTemplateByName(name: string): Promise<PortfolioTemplate
 
 export async function getTemplateById(id: string): Promise<PortfolioTemplate | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/${id}`);
-    if (response.status === 404) {
-      return null;
-    }
-    return handleApiResponse<PortfolioTemplate>(response);
+    return await portfolioClient.get<PortfolioTemplate>(`/api/PortfolioTemplate/${id}`, false);
   } catch (error) {
     console.error('Error fetching template by id:', error);
     return null;
@@ -828,13 +779,7 @@ export async function getTemplateById(id: string): Promise<PortfolioTemplate | n
 }
 
 export async function seedDefaultTemplates(): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/PortfolioTemplate/seed`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  await handleApiResponse<{ message: string }>(response);
+  await portfolioClient.post<{ message: string }>('/api/PortfolioTemplate/seed', undefined, true);
 }
 
 // ============= INDIVIDUAL ENTITY API FUNCTIONS =============
@@ -844,8 +789,7 @@ export async function seedDefaultTemplates(): Promise<void> {
 // Projects
 export async function getProjectsByPortfolioId(portfolioId: string): Promise<ProjectResponseDto[]> {
   // This would require a ProjectController in the backend
-  const response = await fetch(`${API_BASE_URL}/api/Project/portfolio/${portfolioId}`);
-  return handleApiResponse<ProjectResponseDto[]>(response);
+  return await portfolioClient.get<ProjectResponseDto[]>(`/api/Project/portfolio/${portfolioId}`, false);
 }
 
 export async function createProject(projectData: ProjectRequestDto): Promise<ProjectResponseDto> {
@@ -854,15 +798,7 @@ export async function createProject(projectData: ProjectRequestDto): Promise<Pro
     Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectRequestDto;
 
-  const response = await fetch(`${API_BASE_URL}/api/Project`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(cleanedData),
-  });
-  
-  return handleApiResponse<ProjectResponseDto>(response);
+  return await portfolioClient.post<ProjectResponseDto>('/api/Project', cleanedData, true);
 }
 
 export async function updateProject(projectId: string, projectData: ProjectUpdateDto): Promise<ProjectResponseDto> {
@@ -873,182 +809,116 @@ export async function updateProject(projectId: string, projectData: ProjectUpdat
 
   console.log('Sending project update data:', cleanedData); // Debug log
 
-  const response = await fetch(`${API_BASE_URL}/api/Project/${projectId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(cleanedData),
-  });
-  
-  return handleApiResponse<ProjectResponseDto>(response);
+  return await portfolioClient.put<ProjectResponseDto>(`/api/Project/${projectId}`, cleanedData, true);
 }
 
 export async function deleteProject(projectId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Project/${projectId}`, {
-    method: 'DELETE',
-  });
-  
-  return response.status === 204;
+  try {
+    await portfolioClient.delete(`/api/Project/${projectId}`, true);
+    return true;
+  } catch (error) {
+    console.error('📤 API: Error deleting project:', error);
+    return false;
+  }
 }
 
 // Experience
 export async function getExperienceByPortfolioId(portfolioId: string): Promise<ExperienceResponseDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Experience/portfolio/${portfolioId}`);
-  return handleApiResponse<ExperienceResponseDto[]>(response);
+  return await portfolioClient.get<ExperienceResponseDto[]>(`/api/Experience/portfolio/${portfolioId}`, false);
 }
 
 export async function createExperience(experienceData: ExperienceRequestDto): Promise<ExperienceResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Experience`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(experienceData),
-  });
-  
-  return handleApiResponse<ExperienceResponseDto>(response);
+  return await portfolioClient.post<ExperienceResponseDto>('/api/Experience', experienceData, true);
 }
 
 export async function updateExperience(experienceId: string, experienceData: ExperienceUpdateDto): Promise<ExperienceResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Experience/${experienceId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(experienceData),
-  });
-  
-  return handleApiResponse<ExperienceResponseDto>(response);
+  return await portfolioClient.put<ExperienceResponseDto>(`/api/Experience/${experienceId}`, experienceData, true);
 }
 
 export async function deleteExperience(experienceId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Experience/${experienceId}`, {
-    method: 'DELETE',
-  });
-  
-  return response.status === 204;
+  try {
+    await portfolioClient.delete(`/api/Experience/${experienceId}`, true);
+    return true;
+  } catch (error) {
+    console.error('📤 API: Error deleting experience:', error);
+    return false;
+  }
 }
 
 // Skills
 export async function getSkillsByPortfolioId(portfolioId: string): Promise<SkillResponseDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Skill/portfolio/${portfolioId}`);
-  return handleApiResponse<SkillResponseDto[]>(response);
+  return await portfolioClient.get<SkillResponseDto[]>(`/api/Skill/portfolio/${portfolioId}`, false);
 }
 
 export async function createSkill(skillData: SkillRequestDto): Promise<SkillResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Skill`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(skillData),
-  });
-  
-  return handleApiResponse<SkillResponseDto>(response);
+  return await portfolioClient.post<SkillResponseDto>('/api/Skill', skillData, true);
 }
 
 export async function updateSkill(skillId: string, skillData: SkillUpdateDto): Promise<SkillResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Skill/${skillId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(skillData),
-  });
-  
-  return handleApiResponse<SkillResponseDto>(response);
+  return await portfolioClient.put<SkillResponseDto>(`/api/Skill/${skillId}`, skillData, true);
 }
 
 export async function deleteSkill(skillId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Skill/${skillId}`, {
-    method: 'DELETE',
-  });
-  
-  return response.status === 204;
+  try {
+    await portfolioClient.delete(`/api/Skill/${skillId}`, true);
+    return true;
+  } catch (error) {
+    console.error('📤 API: Error deleting skill:', error);
+    return false;
+  }
 }
 
 // Blog Posts
 export async function getBlogPostsByPortfolioId(portfolioId: string): Promise<BlogPostResponseDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/BlogPost/portfolio/${portfolioId}`);
-  return handleApiResponse<BlogPostResponseDto[]>(response);
+  return await portfolioClient.get<BlogPostResponseDto[]>(`/api/BlogPost/portfolio/${portfolioId}`, false);
 }
 
 export async function createBlogPost(blogPostData: BlogPostRequestDto): Promise<BlogPostResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/BlogPost`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(blogPostData),
-  });
-  
-  return handleApiResponse<BlogPostResponseDto>(response);
+  return await portfolioClient.post<BlogPostResponseDto>('/api/BlogPost', blogPostData, true);
 }
 
 export async function updateBlogPost(blogPostId: string, blogPostData: BlogPostUpdateDto): Promise<BlogPostResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/BlogPost/${blogPostId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(blogPostData),
-  });
-  
-  return handleApiResponse<BlogPostResponseDto>(response);
+  return await portfolioClient.put<BlogPostResponseDto>(`/api/BlogPost/${blogPostId}`, blogPostData, true);
 }
 
 export async function deleteBlogPost(blogPostId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/BlogPost/${blogPostId}`, {
-    method: 'DELETE',
-  });
-  
-  return response.status === 204;
+  try {
+    await portfolioClient.delete(`/api/BlogPost/${blogPostId}`, true);
+    return true;
+  } catch (error) {
+    console.error('📤 API: Error deleting blog post:', error);
+    return false;
+  }
 }
 
 // Bookmarks
 export async function getBookmarksByUserId(userId: string): Promise<BookmarkResponseDto[]> {
-  const response = await fetch(`${API_BASE_URL}/api/Bookmark/user/${userId}`);
-  return handleApiResponse<BookmarkResponseDto[]>(response);
+  return await portfolioClient.get<BookmarkResponseDto[]>(`/api/Bookmark/user/${userId}`, true);
 }
 
 export async function createBookmark(bookmarkData: BookmarkRequestDto): Promise<BookmarkResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Bookmark`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(bookmarkData),
-  });
-  
-  return handleApiResponse<BookmarkResponseDto>(response);
+  return await portfolioClient.post<BookmarkResponseDto>('/api/Bookmark', bookmarkData, true);
 }
 
 export async function updateBookmark(bookmarkId: string, bookmarkData: BookmarkUpdateDto): Promise<BookmarkResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Bookmark/${bookmarkId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(bookmarkData),
-  });
-  
-  return handleApiResponse<BookmarkResponseDto>(response);
+  return await portfolioClient.put<BookmarkResponseDto>(`/api/Bookmark/${bookmarkId}`, bookmarkData, true);
 }
 
 export async function deleteBookmark(bookmarkId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Bookmark/${bookmarkId}`, {
-    method: 'DELETE',
-  });
-  
-  return response.status === 204;
+  try {
+    await portfolioClient.delete(`/api/Bookmark/${bookmarkId}`, true);
+    return true;
+  } catch (error) {
+    console.error('📤 API: Error deleting bookmark:', error);
+    return false;
+  }
 }
 
 // Get comprehensive portfolio data for a user (all portfolios with related entities)
 export async function getUserPortfolioComprehensive(userId: string): Promise<UserPortfolioComprehensive> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/user/${userId}/comprehensive`);
-  
-  if (!response.ok) {
+  try {
+    return await portfolioClient.get<UserPortfolioComprehensive>(`/api/Portfolio/user/${userId}/comprehensive`, true);
+  } catch {
     // If comprehensive endpoint doesn't exist, fall back to individual calls
     const portfolios = await getPortfoliosByUserId(userId);
     const templates = await getActiveTemplates();
@@ -1087,27 +957,20 @@ export async function getUserPortfolioComprehensive(userId: string): Promise<Use
       }))
     };
   }
-  
-  return handleApiResponse<UserPortfolioComprehensive>(response);
 }
 
 // Split Bulk Portfolio Creation - First create portfolio, then add content
 export async function createPortfolioAndGetId(portfolioData: PortfolioRequestDto): Promise<string> {
   console.log('📤 API: Creating portfolio with data:', portfolioData);
   
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/create-and-get-id`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(portfolioData),
-  });
-  
-  console.log('📤 API: Portfolio creation response status:', response.status);
-  
-  const data = await handleApiResponse<{ portfolioId: string }>(response);
-  console.log('📤 API: Portfolio created with ID:', data.portfolioId);
-  return data.portfolioId;
+  try {
+    const data = await portfolioClient.post<{ portfolioId: string }>('/api/Portfolio/create-and-get-id', portfolioData, true);
+    console.log('📤 API: Portfolio created with ID:', data.portfolioId);
+    return data.portfolioId;
+  } catch (error) {
+    console.error('📤 API: Error creating portfolio:', error);
+    throw error;
+  }
 }
 
 export async function savePortfolioContent(portfolioId: string, contentData: {
@@ -1117,15 +980,16 @@ export async function savePortfolioContent(portfolioId: string, contentData: {
   blogPosts?: BlogPostRequestDto[];
   publishPortfolio?: boolean;
 }): Promise<BulkPortfolioResponseDto> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/save-content`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(contentData),
-  });
+  console.log('📤 API: Saving portfolio content for portfolio:', portfolioId, 'with data:', contentData);
   
-  return handleApiResponse<BulkPortfolioResponseDto>(response);
+  try {
+    const data = await portfolioClient.post<BulkPortfolioResponseDto>(`/api/Portfolio/${portfolioId}/save-content`, contentData, true);
+    console.log('📤 API: Portfolio content saved successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('📤 API: Error saving portfolio content:', error);
+    throw error;
+  }
 }
 
 // Export all API functions and types
