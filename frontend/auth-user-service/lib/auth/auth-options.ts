@@ -1,8 +1,21 @@
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
+import FacebookProvider from "next-auth/providers/facebook"
+import LinkedInProvider from "next-auth/providers/linkedin"
 import { checkUserExists, checkOAuthProvider, addOAuthProvider, getUserByEmail } from "@/lib/user"
 import { UserInjectionService } from "@/lib/services/user-injection-service"
 import type { AuthOptions } from "next-auth"
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string
+    userId?: string
+  }
+  interface JWT {
+    accessToken?: string
+    userId?: string
+  }
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -13,6 +26,14 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    }),
+    FacebookProvider({
+      clientId: process.env.AUTH_FACEBOOK_ID!,
+      clientSecret: process.env.AUTH_FACEBOOK_SECRET!,
+    }),
+    LinkedInProvider({
+      clientId: process.env.AUTH_LINKEDIN_ID!,
+      clientSecret: process.env.AUTH_LINKEDIN_SECRET!,
     }),
   ],
   pages: {
@@ -152,16 +173,76 @@ export const authOptions: AuthOptions = {
           if (userData) {
             // Inject user data into all other services
             await UserInjectionService.injectUser(userData);
+            // Add user data to session
+            session.userId = userData.id;
           }
         } catch (error) {
           console.error('Error injecting user data on session creation:', error);
         }
       }
+      
+      // Send properties to the client
+      session.accessToken = token.accessToken as string;
+      if (!session.userId) {
+        session.userId = token.userId as string;
+      }
+      
       return session;
     },
     
-    async jwt({ token }) {
+    async jwt({ token, account, user }) {
+      if (account && user) {
+        // Store the OAuth provider's access token from our backend
+        try {
+          const userData = await getUserByEmail(user.email!);
+          if (userData) {
+            // Get the access token from oauth_providers table (unauthenticated call during auth flow)
+            const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+            const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${getProviderNumber(account.provider)}`;
+            
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (response.ok) {
+              const oauthData = await response.json();
+              if (oauthData.exists && oauthData.provider) {
+                token.accessToken = oauthData.provider.accessToken;
+                token.userId = userData.id;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching OAuth access token:', error);
+        }
+      }
       return token;
     },
   },
+  session: {
+    strategy: 'jwt',
+  },
+}
+
+function getProviderNumber(provider: string): number {
+  const providerMap: { [key: string]: number } = {
+    'google': 0,    // Google
+    'github': 1,    // GitHub  
+    'linkedin': 2,  // LinkedIn
+    'facebook': 3   // Facebook
+  }
+  return providerMap[provider.toLowerCase()] ?? 0
+}
+
+function getProviderName(provider: string): string {
+  const providerMap: { [key: string]: string } = {
+    'google': 'Google',
+    'github': 'GitHub',
+    'linkedin': 'LinkedIn',
+    'facebook': 'Facebook'
+  }
+  return providerMap[provider.toLowerCase()] ?? 'Google'
 }

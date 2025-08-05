@@ -107,5 +107,27 @@ namespace backend_user.Repositories
             return await _context.OAuthProviders
                 .AnyAsync(op => op.Provider == provider && op.ProviderId == providerId);
         }
+
+        public async Task<OAuthProvider?> GetByAccessTokenAsync(string accessToken)
+        {
+            return await _context.OAuthProviders
+                .Include(op => op.User)
+                .FirstOrDefaultAsync(op => op.AccessToken == accessToken);
+        }
+
+        public async Task<OAuthProvider?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            return await _context.OAuthProviders
+                .Include(op => op.User)
+                .FirstOrDefaultAsync(op => op.RefreshToken == refreshToken);
+        }
+
+        public async Task<OAuthProvider> UpdateAsync(OAuthProvider oauthProvider)
+        {
+            oauthProvider.UpdatedAt = DateTime.UtcNow;
+            _context.OAuthProviders.Update(oauthProvider);
+            await _context.SaveChangesAsync();
+            return oauthProvider;
+        }
     }
 } 
