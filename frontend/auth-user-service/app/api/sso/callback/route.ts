@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const token = await new SignJWT({ 
       email: userData.email,
       userId: userData.id,
-      timestamp: Date.now()
+      timestamp: new Date().getTime()
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('5m') // Token expires in 5 minutes

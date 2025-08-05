@@ -24,7 +24,7 @@ namespace BackendMessages.Controllers
         [HttpGet("test")]
         public IActionResult Test()
         {
-            return Ok(new { message = "Messages service is working!", timestamp = DateTime.Now });
+            return Ok(new { message = "Messages service is working!", timestamp = DateTime.UtcNow });
         }
 
         /// <summary>
