@@ -19,28 +19,24 @@ interface VirtualizedMessagesListProps {
   width: number;
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
   onDeleteMessage?: (messageId: string) => Promise<void>;
-  onReportMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string, reason: string) => Promise<void>;
   onCopyMessage?: (text: string) => void;
 }
 
-// Constant gap between messages
-const MESSAGE_GAP = 12; // px
+
+const MESSAGE_GAP = 12;
 
 // Message height estimation based on content length and layout
 const estimateMessageHeight = (message: Message): number => {
-  const baseHeight = 60; // Base height for avatar + padding (reduced)
-  const lineHeight = 24; // Estimated line height for text
-  const maxWidth = Math.min(window.innerWidth * 0.7, 500); // Dynamic max width
-  const avgCharWidth = 9; // More accurate character width
+  const baseHeight = 60; 
+  const lineHeight = 24; 
+  const maxWidth = Math.min(window.innerWidth * 0.7, 500); 
+  const avgCharWidth = 9; 
   
-  // Estimate number of lines based on text length
   const charsPerLine = Math.floor(maxWidth / avgCharWidth);
   const estimatedLines = Math.max(1, Math.ceil(message.text.length / charsPerLine));
-  
-  // Additional height for timestamp and status footer
+
   const footerHeight = 25;
-  
-  // Add extra height for very short messages to ensure proper spacing
   const minMessageHeight = 80;
   const calculatedHeight = baseHeight + (estimatedLines * lineHeight) + footerHeight;
   

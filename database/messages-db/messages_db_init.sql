@@ -37,6 +37,19 @@ CREATE TABLE messages (
     deleted_at TIMESTAMP NULL
 );
 
+-- Create message_reports table for tracking reported messages
+CREATE TABLE message_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    reported_by_user_id UUID NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    
+    -- Prevent duplicate reports from same user for same message
+    CONSTRAINT uk_message_reports_user_message 
+        UNIQUE (message_id, reported_by_user_id)
+);
+
 -- ===============================================
 -- INDEXES FOR PERFORMANCE
 -- ===============================================
@@ -55,6 +68,11 @@ CREATE INDEX idx_conversations_receiver_id ON conversations(receiver_id);
 CREATE INDEX idx_conversations_last_message_id ON conversations(last_message_id);
 CREATE INDEX idx_conversations_last_message_timestamp ON conversations(last_message_timestamp DESC);
 CREATE INDEX idx_conversations_users ON conversations(initiator_id, receiver_id);
+
+-- Message reports table indexes
+CREATE INDEX idx_message_reports_message_id ON message_reports(message_id);
+CREATE INDEX idx_message_reports_reported_by_user_id ON message_reports(reported_by_user_id);
+CREATE INDEX idx_message_reports_created_at ON message_reports(created_at);
 
 -- ===============================================
 -- FOREIGN KEY CONSTRAINTS
@@ -265,7 +283,7 @@ CREATE TRIGGER handle_message_deletion
 -- ===============================================
 
 \echo 'Messages service database initialized successfully!'
-\echo 'Created tables: conversations, messages'
+\echo 'Created tables: conversations, messages, message_reports'
 \echo 'Created indexes for optimal performance'
 \echo 'Created functions: create_or_get_conversation, send_message, get_user_conversations, get_conversation_messages'
 \echo 'Created triggers for automatic conversation updates' 

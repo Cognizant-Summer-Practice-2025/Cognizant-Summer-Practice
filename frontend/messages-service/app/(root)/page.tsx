@@ -56,7 +56,6 @@ const MessagesPage = () => {
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
   const [isMobile, setIsMobile] = useState(false);
   
-  // Enhanced contacts storage for additional metadata (keeping for potential future use)
   const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -72,7 +71,6 @@ const MessagesPage = () => {
     return new Map();
   });
 
-  // Check if mobile on mount and window resize
   useEffect(() => {
     const checkIsMobile = () => {
       const width = window.innerWidth;
@@ -90,7 +88,6 @@ const MessagesPage = () => {
     }
   }, [isMobile]);
 
-  // Helper function to find the best valid timestamp from multiple options
   const getValidTimestamp = (...timestamps: (string | undefined)[]): string => {
     for (const timestamp of timestamps) {
       if (timestamp && timestamp.trim() !== '') {
@@ -100,19 +97,16 @@ const MessagesPage = () => {
         }
       }
     }
-    // If no valid timestamp found, return current time
     return new Date().toISOString();
   };
 
   const formatTimestamp = (dateString: string): string => {
-    // Handle null, undefined, or empty dateString
     if (!dateString || dateString.trim() === '') {
       return 'Now';
     }
     
     const date = new Date(dateString);
     
-    // Check if the date is valid
     if (isNaN(date.getTime())) {
       console.warn('Invalid date string:', dateString);
       return 'Now';
@@ -133,8 +127,6 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    // Since we're now using getValidTimestamp, we should always have a valid date
-    // But keeping validation as a safety net
     if (!dateString || dateString.trim() === '') {
       console.warn('formatMessageTimestamp received empty string, this should not happen');
       dateString = new Date().toISOString();
@@ -142,10 +134,8 @@ const MessagesPage = () => {
     
     const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
     
-    // Check if the date is valid
     if (isNaN(utcDate.getTime())) {
       console.warn('Invalid date string:', dateString);
-      // Fallback to current time if somehow we still get invalid date
       return formatMessageTimestamp(new Date().toISOString());
     }
     
@@ -188,8 +178,6 @@ const MessagesPage = () => {
 
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
-    
-    // Determine the best timestamp to use (with fallbacks)
     const timestamp = getValidTimestamp(
       conv.lastMessageTimestamp,
       conv.lastMessage?.createdAt,
@@ -209,8 +197,7 @@ const MessagesPage = () => {
       userId: enhanced?.userId || conv.otherUserId,
       professionalTitle: enhanced?.professionalTitle || conv.otherUserProfessionalTitle
     };
-    
-    // Debug logging
+  
     if (conv.otherUserId === '6677b218-6e92-47b3-9e9f-61bea9f15f8d') {
       console.log(`getEnhancedContact for user ${conv.otherUserId}:`, {
         convOnline: conv.isOnline,
@@ -249,7 +236,6 @@ const MessagesPage = () => {
     autoSelectFirstContact();
   }, [contacts, selectedContact, conversations, selectConversation]);
 
-  // Simpler approach: Update selectedContact whenever conversations change
   useEffect(() => {
     if (selectedContact && conversations.length > 0) {
       const currentConv = conversations.find(conv => conv.id === selectedContact.id);
@@ -359,11 +345,8 @@ const MessagesPage = () => {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
-    console.log("handleDeleteConversation called with ID:", conversationId);
     try {
-      console.log("Calling deleteConversation from useMessages...");
       await deleteConversation(conversationId);
-      console.log("Delete conversation successful");
       if (selectedContact?.id === conversationId) {
         setSelectedContact(null);
       }
@@ -436,9 +419,7 @@ const MessagesPage = () => {
       </div>
     );
   }
-
-  // Removed old loading check - now using optimized skeleton loader above
-
+  
   if (error) {
     return (
       <div style={{ padding: 32, color: "red", textAlign: "center" }}>

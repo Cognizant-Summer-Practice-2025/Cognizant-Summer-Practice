@@ -39,7 +39,7 @@ interface ChatProps {
     onBackToSidebar?: () => void;
     isMobile?: boolean;
     onDeleteMessage?: (messageId: string) => Promise<void>;
-    onReportMessage?: (messageId: string) => Promise<void>;
+    onReportMessage?: (messageId: string, reason: string) => Promise<void>;
 }
 
 const Chat: React.FC<ChatProps> = ({
@@ -98,7 +98,6 @@ const Chat: React.FC<ChatProps> = ({
         }
     };
 
-    // Handle copy message
     const handleCopyMessage = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -109,7 +108,6 @@ const Chat: React.FC<ChatProps> = ({
         }
     };
 
-    // Handle delete message
     const handleDeleteMessage = async (messageId: string) => {
         if (onDeleteMessage) {
             try {
@@ -125,18 +123,16 @@ const Chat: React.FC<ChatProps> = ({
         }
     };
 
-    // Handle report message
-    const handleReportMessage = async (messageId: string) => {
+    const handleReportMessage = async (messageId: string, reason: string) => {
         if (onReportMessage) {
             try {
-                await onReportMessage(messageId);
+                await onReportMessage(messageId, reason);
                 message.success('Message reported successfully');
             } catch (error) {
                 console.error('Failed to report message:', error);
                 message.error('Failed to report message');
             }
         } else {
-            console.log('Report message functionality not implemented yet');
             message.info('Report functionality will be available soon');
         }
     };

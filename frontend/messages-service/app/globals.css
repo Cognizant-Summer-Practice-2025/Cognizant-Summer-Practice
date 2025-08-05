@@ -121,7 +121,6 @@
   }
 }
 
-/* Custom Scrollbar Styles */
 :root {
   --app-blue-primary: #2563EB;
   --app-blue-hover: #1d4ed8;
@@ -129,7 +128,6 @@
   --app-blue-dark: #1e40af;
 }
 
-/* Modern Scrollbar - Webkit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -158,13 +156,11 @@
   background: transparent;
 }
 
-/* Modern Scrollbar - Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--app-blue-primary) transparent;
 }
 
-/* Thin scrollbar variant for smaller containers */
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -174,7 +170,6 @@
   border-radius: 3px;
 }
 
-/* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -183,19 +178,16 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
-/* Smooth scrolling for the entire app */
+/
 html {
   scroll-behavior: smooth;
 }
 
-/* Enhanced focus styles with app blue */
 :focus-visible {
   outline: 2px solid var(--app-blue-primary);
   outline-offset: 2px;
 }
 
-/* Selection color using app blue */
 ::selection {
   background-color: var(--app-blue-primary);
   color: white;
@@ -206,7 +198,6 @@ html {
   color: white;
 }
 
-/* App Blue Utility Classes */
 @layer utilities {
   .bg-app-blue {
     background-color: var(--app-blue-primary);
@@ -240,13 +231,11 @@ html {
     border-color: var(--app-blue-primary);
   }
   
-  /* Loading spinner with app blue */
   .spinner-app-blue {
     border-color: transparent transparent var(--app-blue-primary) transparent;
   }
 }
 
-/* Custom Slider Styles */
 @layer components {
   .slider {
     -webkit-appearance: none;

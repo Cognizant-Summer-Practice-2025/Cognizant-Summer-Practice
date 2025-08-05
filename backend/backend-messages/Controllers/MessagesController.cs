@@ -384,6 +384,73 @@ namespace BackendMessages.Controllers
                 return StatusCode(500, "An error occurred while deleting the message");
             }
         }
+
+        /// <summary>
+        /// Report a message
+        /// </summary>
+        /// <param name="messageId">The message ID to report</param>
+        /// <param name="request">Report request details</param>
+        /// <returns>Success response</returns>
+        [HttpPost("{messageId}/report")]
+        public async Task<IActionResult> ReportMessage(Guid messageId, [FromBody] ReportMessageRequest request)
+        {
+            try
+            {
+                // Verify the message exists and user has access
+                var message = await _context.Messages
+                    .FirstOrDefaultAsync(m => m.Id == messageId && m.DeletedAt == null);
+
+                if (message == null)
+                {
+                    return NotFound("Message not found");
+                }
+
+                // Verify user is part of the conversation (can see the message)
+                var conversation = await _context.Conversations
+                    .FirstOrDefaultAsync(c => c.Id == message.ConversationId &&
+                                              (c.InitiatorId == request.ReportedByUserId || c.ReceiverId == request.ReportedByUserId));
+
+                if (conversation == null)
+                {
+                    return StatusCode(403, "You don't have access to this message");
+                }
+
+                // Check if user has already reported this message
+                var existingReport = await _context.MessageReports
+                    .FirstOrDefaultAsync(mr => mr.MessageId == messageId && mr.ReportedByUserId == request.ReportedByUserId);
+
+                if (existingReport != null)
+                {
+                    return BadRequest("You have already reported this message");
+                }
+
+                // Create the report
+                var report = new BackendMessages.Models.MessageReport
+                {
+                    MessageId = messageId,
+                    ReportedByUserId = request.ReportedByUserId,
+                    Reason = request.Reason,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+
+                _context.MessageReports.Add(report);
+                await _context.SaveChangesAsync();
+
+                _logger.LogWarning("Message {MessageId} reported by user {UserId} for reason: {Reason}", 
+                    messageId, request.ReportedByUserId, request.Reason);
+
+                return Ok(new { 
+                    Message = "Message reported successfully",
+                    ReportId = report.Id,
+                    ReportedAt = report.CreatedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reporting message {MessageId}", messageId);
+                return StatusCode(500, "An error occurred while reporting the message");
+            }
+        }
     }
 
     public class SendMessageRequest
@@ -404,5 +471,11 @@ namespace BackendMessages.Controllers
     public class MarkSingleMessageReadRequest
     {
         public Guid UserId { get; set; }
+    }
+
+    public class ReportMessageRequest
+    {
+        public Guid ReportedByUserId { get; set; }
+        public string Reason { get; set; } = string.Empty;
     }
 }

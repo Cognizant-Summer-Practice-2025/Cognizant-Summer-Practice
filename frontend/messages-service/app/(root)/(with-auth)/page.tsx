@@ -56,7 +56,6 @@ const MessagesPage = () => {
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
   const [isMobile, setIsMobile] = useState(false);
   
-  // Enhanced contacts storage for additional metadata (keeping for potential future use)
   const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -72,7 +71,6 @@ const MessagesPage = () => {
     return new Map();
   });
 
-  // Check if mobile on mount and window resize
   useEffect(() => {
     const checkIsMobile = () => {
       const width = window.innerWidth;
@@ -173,7 +171,6 @@ const MessagesPage = () => {
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
     
-    // Determine the best timestamp to use (with fallbacks)
     const timestamp = getTimestamp(
       conv.lastMessageTimestamp,
       conv.lastMessage?.createdAt,
@@ -233,7 +230,6 @@ const MessagesPage = () => {
     autoSelectFirstContact();
   }, [contacts, selectedContact, conversations, selectConversation]);
 
-  // Simpler approach: Update selectedContact whenever conversations change
   useEffect(() => {
     if (selectedContact && conversations.length > 0) {
       const currentConv = conversations.find(conv => conv.id === selectedContact.id);
@@ -420,8 +416,6 @@ const MessagesPage = () => {
       </div>
     );
   }
-
-  // Removed old loading check - now using optimized skeleton loader above
 
   if (error) {
     return (

@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/components/ui/alert-dialog";
+import ReportModal from "./report-modal";
 import "./style.css";
 import "./dropdown-style.css";
 
@@ -16,7 +17,7 @@ interface MessageMenuProps {
   isOwnMessage: boolean;
   onDelete?: (messageId: string) => Promise<void>;
   onCopy?: (text: string) => void;
-  onReport?: (messageId: string) => Promise<void>;
+  onReport?: (messageId: string, reason: string) => Promise<void>;
 }
 
 const MessageMenu: React.FC<MessageMenuProps> = ({
@@ -30,6 +31,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
   const { showConfirm } = useAlert();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -45,14 +47,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
 
   const handleReportClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    showConfirm({
-      title: 'Report Message',
-      description: 'Are you sure you want to report this message? This will notify the administrators for review.',
-      type: 'warning',
-      confirmText: 'Report',
-      cancelText: 'Cancel',
-      onConfirm: handleConfirmReport,
-    });
+    setIsReportModalOpen(true);
   };
 
   const handleCopyClick = (e: React.MouseEvent) => {
@@ -60,10 +55,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
     if (onCopy) {
       onCopy(messageText);
     } else {
-      // Fallback to clipboard API
       navigator.clipboard.writeText(messageText).then(() => {
-        // You might want to show a toast notification here
-        console.log('Text copied to clipboard');
       }).catch(err => {
         console.error('Failed to copy text: ', err);
       });
@@ -83,14 +75,15 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
     }
   };
 
-  const handleConfirmReport = async () => {
+  const handleReportSubmit = async (reason: string) => {
     if (!onReport) return;
     
     setIsReporting(true);
     try {
-      await onReport(messageId);
+      await onReport(messageId, reason);
     } catch (error) {
       console.error("Report error:", error);
+      throw error; 
     } finally {
       setIsReporting(false);
     }
@@ -138,6 +131,13 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSubmit={handleReportSubmit}
+        messageId={messageId}
+      />
     </>
   );
 };

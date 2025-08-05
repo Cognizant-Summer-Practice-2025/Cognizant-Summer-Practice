@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Reference to the same storage used in inject/remove
 interface ServiceUserData {
   id: string;
   email: string;
@@ -40,10 +39,8 @@ function getCurrentUserEmail(request: NextRequest): string | null {
     const userId = url.searchParams.get('userId');
     if (userId) {
       console.log('Found userId parameter:', userId);
-      // Find user by ID in storage
       for (const [email, user] of global.messagesServiceUserStorage.entries()) {
         if (user.id === userId) {
-          console.log('Found user by ID:', email);
           return email;
         }
       }
@@ -62,48 +59,29 @@ function getCurrentUserEmail(request: NextRequest): string | null {
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== GET /api/user/get called ===');
-    
-    // Check if there's any user data stored
     if (global.messagesServiceUserStorage.size === 0) {
-      console.log('No users in storage');
       return NextResponse.json({ error: 'No user data found' }, { status: 404 });
     }
 
-    console.log('Users in storage:', Array.from(global.messagesServiceUserStorage.keys()));
-
     const currentUserEmail = getCurrentUserEmail(request);
-    
     let userData: ServiceUserData | null = null;
 
     if (currentUserEmail) {
       userData = global.messagesServiceUserStorage.get(currentUserEmail) || null;
-      
-      if (userData) {
-        console.log(`✅ Found user data for: ${currentUserEmail} (ID: ${userData.id})`);
-      } else {
-        console.log(`❌ User ${currentUserEmail} not found in storage`);
-      }
     } else {
-      console.log('⚠️ No user identification provided');
-      // Don't fall back to first user - this causes session mixing
       return NextResponse.json({ error: 'No user identification provided' }, { status: 401 });
     }
 
     if (!userData) {
-      console.log('User not found in storage');
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Transform profileImage to avatarUrl for compatibility with User interface
     const transformedUserData = {
       ...userData,
       avatarUrl: userData.profileImage,
-      // Remove profileImage to avoid confusion
       profileImage: undefined
     };
 
-    console.log(`✅ Returning user data for: ${userData.email} (ID: ${userData.id})`);
     return NextResponse.json(transformedUserData);
   } catch (error) {
     console.error('Error getting user data:', error);

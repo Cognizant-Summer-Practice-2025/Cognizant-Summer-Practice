@@ -7,7 +7,6 @@ import { useWebSocket } from "../contexts/websocket-context";
 
 // Helper function to safely decrypt messages
 const safeDecrypt = (content: string, senderId: string): string => {
-  // If content is empty or sender ID is missing, return as-is
   if (!content || !senderId) {
     return content || '';
   }
@@ -16,7 +15,7 @@ const safeDecrypt = (content: string, senderId: string): string => {
     return MessageEncryption.decrypt(content, senderId);
   } catch (error) {
     console.warn('Failed to decrypt message, returning original content:', error);
-    return content; // Fallback to original content if decryption fails
+    return content;
   }
 };
 
@@ -62,8 +61,7 @@ const useMessages = () => {
         const cached = localStorage.getItem(cacheKey);
         const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
         
-        // Check if cache is very old (older than 1 day) and clean it up
-        const CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+        const CACHE_MAX_AGE = 24 * 60 * 60 * 1000; 
         if (cached && cacheTimestamp) {
           const cacheAge = Date.now() - parseInt(cacheTimestamp);
           if (cacheAge > CACHE_MAX_AGE) {
@@ -123,9 +121,8 @@ const useMessages = () => {
         localStorage.setItem(cacheKey, JSON.stringify(conversations));
         const timestamp = Date.now();
         localStorage.setItem(`${cacheKey}_timestamp`, timestamp.toString());
-        console.log('Conversations cached successfully');
-        
-        // Update cache state
+
+
         setCacheState(prev => ({
           ...prev,
           lastRefresh: timestamp,
@@ -145,7 +142,6 @@ const useMessages = () => {
         localStorage.setItem(cacheKey, JSON.stringify(messages));
         const timestamp = Date.now();
         localStorage.setItem(`${cacheKey}_timestamp`, timestamp.toString());
-        console.log(`Messages cached for conversation ${conversationId}`);
       } catch (error) {
         console.warn(`Failed to cache messages for conversation ${conversationId}:`, error);
       }
@@ -161,8 +157,7 @@ const useMessages = () => {
         const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
         
         if (cached && cacheTimestamp) {
-          // Check if cache is too old (older than 1 hour for messages)
-          const MESSAGE_CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
+          const MESSAGE_CACHE_MAX_AGE = 60 * 60 * 1000; 
           const cacheAge = Date.now() - parseInt(cacheTimestamp);
           
           if (cacheAge > MESSAGE_CACHE_MAX_AGE) {
@@ -171,8 +166,7 @@ const useMessages = () => {
             localStorage.removeItem(`${cacheKey}_timestamp`);
             return null;
           }
-          
-          console.log(`Loading messages from cache for conversation ${conversationId}`);
+
           return JSON.parse(cached);
         }
       } catch (error) {
@@ -182,7 +176,6 @@ const useMessages = () => {
     return null;
   }, [user?.id]);
 
-  // Clear message cache for a specific conversation
   const clearMessageCache = useCallback((conversationId: string) => {
     if (typeof window !== 'undefined' && user?.id) {
       try {
@@ -196,13 +189,11 @@ const useMessages = () => {
     }
   }, [user?.id]);
 
-  // Use ref to avoid dependency issues in WebSocket handlers
   const cacheConversationsRef = useRef(cacheConversations);
   useEffect(() => {
     cacheConversationsRef.current = cacheConversations;
   }, [cacheConversations]);
 
-  // Clean up old cache entries from localStorage periodically
   useEffect(() => {
     if (typeof window !== 'undefined' && user?.id) {
       const cleanupOldCaches = () => {
@@ -214,39 +205,34 @@ const useMessages = () => {
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key) {
-              // Clean up old conversation caches from other users
               if (key.startsWith('conversations_') && key !== currentUserConversationsKey) {
                 const timestampKey = `${key}_timestamp`;
                 const timestamp = localStorage.getItem(timestampKey);
                 
                 if (timestamp) {
                   const age = Date.now() - parseInt(timestamp);
-                  const CLEANUP_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+                  const CLEANUP_AGE = 7 * 24 * 60 * 60 * 1000; 
                   
                   if (age > CLEANUP_AGE) {
                     keysToRemove.push(key, timestampKey);
                   }
                 } else {
-                  // Remove entries without timestamp
                   keysToRemove.push(key);
                 }
               }
               
-              // Clean up old message caches (both current user and other users)
               if (key.startsWith('messages_')) {
                 const timestampKey = `${key}_timestamp`;
                 const timestamp = localStorage.getItem(timestampKey);
                 
                 if (timestamp) {
                   const age = Date.now() - parseInt(timestamp);
-                  // More aggressive cleanup for message caches (3 days)
-                  const MESSAGE_CLEANUP_AGE = 3 * 24 * 60 * 60 * 1000; // 3 days
+                  const MESSAGE_CLEANUP_AGE = 3 * 24 * 60 * 60 * 1000; 
                   
                   if (age > MESSAGE_CLEANUP_AGE) {
                     keysToRemove.push(key, timestampKey);
                   }
                 } else if (!key.startsWith(currentUserPrefix)) {
-                  // Remove message entries from other users without timestamp
                   keysToRemove.push(key);
                 }
               }
@@ -262,7 +248,6 @@ const useMessages = () => {
         }
       };
       
-      // Run cleanup once when component mounts
       cleanupOldCaches();
     }
   }, [user?.id]);
@@ -284,7 +269,6 @@ const useMessages = () => {
     }
   }, [user?.id]);
 
-  // Clear all message caches for current user
   const clearAllMessageCaches = useCallback(() => {
     if (typeof window !== 'undefined' && user?.id) {
       try {
@@ -307,12 +291,10 @@ const useMessages = () => {
     }
   }, [user?.id]);
 
-  // Function to check online status for a specific user (only when needed)
+  // Function to check online status for a specific user 
   const checkUserOnlineStatus = useCallback(async (userId: string) => {
     try {
-      console.log(`Making API call to check online status for user: ${userId}`);
       const statusResponse = await messagesApi.getUserOnlineStatus(userId);
-      console.log(`API response for user ${userId}:`, statusResponse);
       return statusResponse.isOnline;
     } catch (error) {
       console.error(`Failed to check online status for user ${userId}:`, error);
@@ -324,7 +306,6 @@ const useMessages = () => {
   const updateConversationOnlineStatus = useCallback((userId: string, isOnline: boolean) => {
     console.log(`updateConversationOnlineStatus called: userId=${userId}, isOnline=${isOnline}`);
     
-    // Update conversations list
     setConversations(prev => {
       const updated = prev.map(conv => {
         if (conv.otherUserId === userId) {
@@ -337,7 +318,7 @@ const useMessages = () => {
       return updated;
     });
 
-    // Update current conversation if it's the same user
+   
     setCurrentConversation(prev => {
       if (prev && prev.otherUserId === userId) {
         console.log(`Updating currentConversation online status from ${prev.isOnline} to ${isOnline}`);
@@ -361,8 +342,7 @@ const useMessages = () => {
     
     try {
       const apiConversations = await messagesApi.getUserConversations(user.id);
-      
-      // Enrich conversations with user details
+
       const enrichedConversations = await Promise.all(
         apiConversations.map(async (apiConv) => {
           try {
@@ -393,7 +373,7 @@ const useMessages = () => {
             return conversation;
           } catch (userError) {
             console.error(`Failed to get user details for ${apiConv.otherUserId}:`, userError);
-            // Fallback conversation without user details
+
             const conversation: Conversation = {
               id: apiConv.id,
               otherUserId: apiConv.otherUserId,
@@ -421,7 +401,7 @@ const useMessages = () => {
       
       setConversations(enrichedConversations);
       cacheConversations(enrichedConversations);
-      console.log('Conversations loaded and cached');
+
     } catch (err) {
       console.error('Error loading conversations:', err);
       setError('Failed to load conversations');
@@ -434,22 +414,19 @@ const useMessages = () => {
   // Load conversations with optimized cache-first strategy
   const loadConversationsWithCache = useCallback(async () => {
     if (!user?.id) return;
-
-    // Check for cache
+    
     const cacheKey = `conversations_${user.id}`;
     const cached = localStorage.getItem(cacheKey);
     const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
     const hasCache = conversations.length > 0 || cached;
     
-    // Determine cache freshness (consider fresh if less than 2 minutes old)
-    const CACHE_FRESH_TTL = 2 * 60 * 1000; // 2 minutes
+    const CACHE_FRESH_TTL = 2 * 60 * 1000;
     const isCacheFresh = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp) < CACHE_FRESH_TTL);
 
     if (hasCache) {
       console.log('Using cached data, refreshing in background');
       setCacheState(prev => ({ ...prev, isFromCache: true }));
       
-      // If cache is not fresh, refresh in background without loading spinner
       if (!isCacheFresh) {
         try {
           await loadConversations(false); // Don't show loading spinner
@@ -691,23 +668,19 @@ const useMessages = () => {
     }
   }, [user?.id, currentConversation?.id, clearMessageCache, deleteMessageViaWebSocket]);
 
-  const reportMessage = useCallback(async (messageId: string) => {
+  const reportMessage = useCallback(async (messageId: string, reason: string) => {
     if (!user?.id) {
       console.error('No user ID available for report message');
       return;
     }
 
-    console.log('reportMessage called with:', { messageId, userId: user.id });
+    console.log('reportMessage called with:', { messageId, userId: user.id, reason });
 
     try {
-      // TODO: Implement report message API endpoint
-      // For now, just log the action
-      console.log('Message reporting functionality not implemented in backend yet');
+      // Call the report message API
+      await messagesApi.reportMessage(messageId, user.id, reason);
       
-      // You would implement something like:
-      // await messagesApi.reportMessage(messageId, user.id);
-      
-      console.log('Message reported successfully (placeholder)');
+      console.log('Message reported successfully');
     } catch (error) {
       console.error('Failed to report message:', error);
       throw error;
@@ -720,7 +693,6 @@ const useMessages = () => {
     setSendingMessage(true);
     
     try {
-      // Encrypt the message content using the sender's user ID as the key
       const encryptedContent = MessageEncryption.encrypt(content, user.id);
       
       const apiMessage = await messagesApi.sendMessage({
@@ -730,7 +702,6 @@ const useMessages = () => {
         messageType: 0 // Text message
       });
       
-      // Decrypt the message content
       const decryptedContent = safeDecrypt(apiMessage.content, apiMessage.senderId);
       
       const newMessage: Message = {

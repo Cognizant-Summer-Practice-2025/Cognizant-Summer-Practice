@@ -12,6 +12,7 @@ namespace BackendMessages.Data
 
         public DbSet<Message> Messages { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<MessageReport> MessageReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +76,30 @@ namespace BackendMessages.Data
                     .WithMany()
                     .HasForeignKey(c => c.LastMessageId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<MessageReport>(entity =>
+            {
+                entity.ToTable("message_reports");
+                
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                
+                entity.Property(e => e.MessageId).HasColumnName("message_id");
+                entity.Property(e => e.ReportedByUserId).HasColumnName("reported_by_user_id");
+                entity.Property(e => e.Reason).HasColumnName("reason");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+                
+                // Foreign key relationship
+                entity.HasOne(mr => mr.Message)
+                    .WithMany()
+                    .HasForeignKey(mr => mr.MessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                    
+                // Unique constraint to prevent duplicate reports
+                entity.HasIndex(mr => new { mr.MessageId, mr.ReportedByUserId })
+                    .IsUnique()
+                    .HasDatabaseName("uk_message_reports_user_message");
             });
         }
     }

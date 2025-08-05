@@ -16,7 +16,7 @@ export interface VirtualizedMessageProps {
   isLastMessage?: boolean; // To conditionally apply margin
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
   onDeleteMessage?: (messageId: string) => Promise<void>;
-  onReportMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string, reason: string) => Promise<void>;
   onCopyMessage?: (text: string) => void;
 }
 
@@ -51,12 +51,9 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              console.log(`Message ${id} became visible, marking as read...`);
-              // Mark message as read when it becomes visible
               markMessageAsRead(id, user.id).catch((error) => {
                 console.error('Failed to mark message as read:', error);
               });
-              // Stop observing after marking as read
               observer.unobserve(entry.target);
             }
           });
@@ -112,7 +109,6 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
     if (onCopyMessage) {
       onCopyMessage(text);
     } else {
-      // Default copy behavior
       navigator.clipboard.writeText(text).then(() => {
         console.log('Message copied to clipboard');
         // You might want to show a toast notification here
@@ -132,9 +128,9 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   };
 
   // Handle report action
-  const handleReport = async (messageId: string) => {
+  const handleReport = async (messageId: string, reason: string) => {
     if (onReportMessage) {
-      await onReportMessage(messageId);
+      await onReportMessage(messageId, reason);
     } else {
       console.log('Report functionality not implemented');
     }
