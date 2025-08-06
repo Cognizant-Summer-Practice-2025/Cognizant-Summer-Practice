@@ -19,7 +19,6 @@ namespace BackendMessages.Repositories
         {
             try
             {
-                // Check if user has already reported this message
                 var existingReport = await _context.MessageReports
                     .FirstOrDefaultAsync(mr => mr.MessageId == messageId && mr.ReportedByUserId == reportedByUserId);
 

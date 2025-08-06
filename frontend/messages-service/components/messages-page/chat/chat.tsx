@@ -129,7 +129,6 @@ const Chat: React.FC<ChatProps> = ({
                 await onReportMessage(messageId, reason);
                 message.success('Message reported successfully');
             } catch (error) {
-                console.error('Failed to report message:', error);
                 message.error('Failed to report message');
             }
         } else {

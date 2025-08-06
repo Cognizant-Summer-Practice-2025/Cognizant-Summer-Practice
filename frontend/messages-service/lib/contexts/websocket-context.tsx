@@ -25,7 +25,7 @@ export interface ConversationUpdate {
 }
 
 export interface UserPresenceUpdate {
-  userId: string;
+  userId: string;   
   isOnline: boolean;
   timestamp: string;
 }

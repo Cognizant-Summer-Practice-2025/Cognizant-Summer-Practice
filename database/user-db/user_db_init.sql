@@ -1,8 +1,5 @@
 -- Enum values stored as integers for Entity Framework compatibility
 -- oauth_provider_type: 0=Google, 1=GitHub, 2=LinkedIn, 3=Facebook
--- reported_type: 0=User, 1=Portfolio, 2=Message, 3=BlogPost, 4=Comment
--- report_type: 0=Spam, 1=Harassment, 2=InappropriateContent, 3=FakeProfile, 4=Copyright, 5=Other
--- report_status: 0=Pending, 1=UnderReview, 2=Resolved, 3=Dismissed
 
 -- Users table
 CREATE TABLE users (
@@ -64,18 +61,14 @@ CREATE TABLE user_analytics (
 -- User Reports table
 CREATE TABLE user_reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    reporter_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    reported_service VARCHAR(50) NOT NULL,
-    reported_type INTEGER NOT NULL,
-    reported_id UUID NOT NULL,
-    report_type INTEGER NOT NULL,
-    description TEXT NOT NULL,
-    status INTEGER NOT NULL DEFAULT 0,
-    admin_notes TEXT,
-    resolved_at TIMESTAMP,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reported_by_user_id UUID NOT NULL,
+    reason TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    
+    -- Prevent duplicate reports from same user for same user
+    CONSTRAINT uk_user_reports_user_reporter 
+        UNIQUE (user_id, reported_by_user_id)
 );
 
 -- Bookmarks table
@@ -97,9 +90,9 @@ CREATE INDEX idx_newsletters_user_id ON newsletters(user_id);
 CREATE INDEX idx_user_analytics_user_id ON user_analytics(user_id);
 CREATE INDEX idx_user_analytics_session_id ON user_analytics(session_id);
 CREATE INDEX idx_user_analytics_created_at ON user_analytics(created_at);
-CREATE INDEX idx_user_reports_reporter_id ON user_reports(reporter_id);
-CREATE INDEX idx_user_reports_reported_service_id ON user_reports(reported_service, reported_id);
-CREATE INDEX idx_user_reports_status ON user_reports(status);
+CREATE INDEX idx_user_reports_user_id ON user_reports(user_id);
+CREATE INDEX idx_user_reports_reported_by_user_id ON user_reports(reported_by_user_id);
+CREATE INDEX idx_user_reports_created_at ON user_reports(created_at);
 CREATE INDEX idx_bookmarks_user_id ON bookmarks(user_id);
 CREATE INDEX idx_bookmarks_created_at ON bookmarks(created_at);
 

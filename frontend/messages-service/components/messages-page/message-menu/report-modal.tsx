@@ -7,14 +7,16 @@ interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (reason: string) => Promise<void>;
-  messageId: string;
+  reportType: 'message' | 'user';
+  targetName?: string; // For user reports, to show user name
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  messageId,
+  reportType,
+  targetName
 }) => {
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +37,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
       await onSubmit(reason.trim());
       setReason("");
       onClose();
-    } catch (error) {
+    } catch (err) {
+      console.error("Report submission error:", err);
       setError("Failed to submit report. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -58,6 +61,27 @@ const ReportModal: React.FC<ReportModalProps> = ({
 
   if (!isOpen) return null;
 
+  const getModalTitle = () => {
+    if (reportType === 'user') {
+      return targetName ? `Report ${targetName}` : 'Report User';
+    }
+    return 'Report Message';
+  };
+
+  const getModalDescription = () => {
+    if (reportType === 'user') {
+      return `Please provide a reason for reporting ${targetName || 'this user'}. This will help our moderators review the account.`;
+    }
+    return 'Please provide a reason for reporting this message. This will help our moderators review the content.';
+  };
+
+  const getPlaceholderText = () => {
+    if (reportType === 'user') {
+      return `Please describe why you're reporting ${targetName || 'this user'}...`;
+    }
+    return "Please describe why you're reporting this message...";
+  };
+
   const modalContent = (
     <div className="report-modal-overlay" onClick={handleClose}>
       <div 
@@ -66,7 +90,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
         onKeyDown={handleKeyDown}
       >
         <div className="report-modal-header">
-          <h2 className="report-modal-title">Report Message</h2>
+          <h2 className="report-modal-title">{getModalTitle()}</h2>
           <button 
             className="report-modal-close"
             onClick={handleClose}
@@ -78,7 +102,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
 
         <div className="report-modal-body">
           <p className="report-modal-description">
-            Please provide a reason for reporting this message. This will help our moderators review the content.
+            {getModalDescription()}
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -90,7 +114,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Please describe why you're reporting this message..."
+                placeholder={getPlaceholderText()}
                 className="report-modal-textarea"
                 rows={4}
                 maxLength={500}
@@ -98,7 +122,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 autoFocus
               />
               <div className={`report-modal-char-count ${reason.length >= 50 ? 'minimum-reached' : 'needs-more'}`}>
-                {reason.length}/{50}
+                {reason.length}/50 characters minimum
               </div>
             </div>
 

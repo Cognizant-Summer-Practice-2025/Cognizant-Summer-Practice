@@ -35,9 +35,6 @@ builder.Services.AddCors(options =>
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
 dataSourceBuilder.MapEnum<OAuthProviderType>("oauth_provider_type");
-dataSourceBuilder.MapEnum<ReportedType>("reported_type");
-dataSourceBuilder.MapEnum<ReportType>("report_type");
-dataSourceBuilder.MapEnum<ReportStatus>("report_status");
 var dataSource = dataSourceBuilder.Build();
 
 builder.Services.AddDbContext<UserDbContext>(options =>

@@ -55,7 +55,10 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
     if (onCopy) {
       onCopy(messageText);
     } else {
+      // Fallback to clipboard API
       navigator.clipboard.writeText(messageText).then(() => {
+        // You might want to show a toast notification here
+        console.log('Text copied to clipboard');
       }).catch(err => {
         console.error('Failed to copy text: ', err);
       });
@@ -83,7 +86,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
       await onReport(messageId, reason);
     } catch (error) {
       console.error("Report error:", error);
-      throw error; 
+      throw error;
     } finally {
       setIsReporting(false);
     }
@@ -115,18 +118,20 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
           {isOwnMessage ? (
             <DropdownMenuItem
               onClick={handleDeleteClick}
+              disabled={isDeleting}
               className="message-dropdown-item text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
               onClick={handleReportClick}
+              disabled={isReporting}
               className="message-dropdown-item text-orange-600 focus:text-orange-600 focus:bg-orange-50"
             >
               <Flag className="mr-2 h-4 w-4" />
-              Report
+              {isReporting ? "Reporting..." : "Report"}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -136,7 +141,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReportSubmit}
-        messageId={messageId}
+        reportType="message"
       />
     </>
   );

@@ -17,8 +17,7 @@ namespace BackendMessages.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
-            // Configure all DateTime properties to use timestamp without time zone to match existing database
+
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 foreach (var property in entityType.GetProperties())
@@ -71,7 +70,6 @@ namespace BackendMessages.Data
                 entity.Property(e => e.InitiatorDeletedAt).HasColumnName("initiator_deleted_at");
                 entity.Property(e => e.ReceiverDeletedAt).HasColumnName("receiver_deleted_at");
                 
-                // Foreign key relationship for last message
                 entity.HasOne(c => c.LastMessage)
                     .WithMany()
                     .HasForeignKey(c => c.LastMessageId)
