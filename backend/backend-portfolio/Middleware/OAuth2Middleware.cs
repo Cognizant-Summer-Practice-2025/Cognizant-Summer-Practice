@@ -37,8 +37,8 @@ namespace backend_portfolio.Middleware
                 path == "/" ||
                 path.StartsWith("/health") ||
                 // Allow public read access to portfolios for browsing
-                (path.StartsWith("/api/portfolio") && method == "GET") ||
-                (path.StartsWith("/api/portfoliotemplate") && method == "GET") ||
+                (path.StartsWith("/api/portfolio") && (method == "GET" || (method == "POST" && path.Contains("/view")))) ||
+                (path.StartsWith("/api/portfoliotemplate") && (method == "GET" || (method == "POST" && path.Contains("/seed")))) ||
                 (path.StartsWith("/api/project") && method == "GET") ||
                 (path.StartsWith("/api/bookmark") && method == "GET") ||
                 (path.StartsWith("/api/image") && method == "GET")))

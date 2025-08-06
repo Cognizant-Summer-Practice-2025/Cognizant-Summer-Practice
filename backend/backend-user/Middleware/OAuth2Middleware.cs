@@ -21,6 +21,14 @@ namespace backend_user.Middleware
             context.Response.OnStarting(() => {
                 context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
                 context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                if (!context.Response.Headers.ContainsKey("Content-Type"))
+                {
+                    context.Response.Headers["Content-Type"] = "application/json; charset=utf-8";
+                }
+                // Prevent caching of sensitive API responses
+                context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate, private";
+                context.Response.Headers["Pragma"] = "no-cache";
+                context.Response.Headers["Expires"] = "0";
                 return Task.CompletedTask;
             });
 
@@ -37,7 +45,9 @@ namespace backend_user.Middleware
                 path.StartsWith("/openapi") ||
                 path.StartsWith("/swagger") ||
                 path == "/" ||
-                path.StartsWith("/health")))
+                path.StartsWith("/health") ||
+                // Allow public access to user portfolio info for portfolio display
+                (path.Contains("/api/users/") && path.Contains("/portfolio-info") && context.Request.Method == "GET")))
             {
                 await _next(context);
                 return;

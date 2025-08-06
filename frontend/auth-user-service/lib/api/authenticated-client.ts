@@ -30,7 +30,7 @@ export class AuthenticatedApiClient {
       const session = await getSession()
       console.log('🔐 Auth: Session data:', { 
         hasSession: !!session, 
-        hasAccessToken: !!session?.accessToken,
+        hasAccessToken: session?.accessToken,
         tokenLength: session?.accessToken?.length || 0 
       });
       
