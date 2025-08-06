@@ -47,7 +47,9 @@ namespace backend_user.Middleware
                 path == "/" ||
                 path.StartsWith("/health") ||
                 // Allow public access to user portfolio info for portfolio display
-                (path.Contains("/api/users/") && path.Contains("/portfolio-info") && context.Request.Method == "GET")))
+                (path.Contains("/api/users/") && path.Contains("/portfolio-info") && context.Request.Method == "GET") ||
+                // Allow public access to user information for portfolio cards
+                (path.Contains("/api/users/") && context.Request.Method == "GET" && !path.Contains("/oauth-providers/") && !path.Contains("/bookmarks/"))))
             {
                 await _next(context);
                 return;
