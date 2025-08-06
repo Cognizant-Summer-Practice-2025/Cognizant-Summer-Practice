@@ -18,6 +18,13 @@ namespace backend_portfolio.Middleware
 
         public async Task InvokeAsync(HttpContext context, IUserAuthenticationService userAuthService)
         {
+            // Add security headers to all responses
+            context.Response.OnStarting(() => {
+                context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
+                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                return Task.CompletedTask;
+            });
+
             var path = context.Request.Path.Value?.ToLower();
             var method = context.Request.Method;
             
