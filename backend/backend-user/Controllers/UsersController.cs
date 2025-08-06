@@ -6,6 +6,7 @@ using backend_user.DTO.Authentication.Request;
 using backend_user.DTO.Authentication.Response;
 using backend_user.DTO.OAuthProvider.Request;
 using backend_user.DTO.OAuthProvider.Response;
+using backend_user.DTO.UserReport.Request;
 using backend_user.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,19 +25,22 @@ namespace backend_user.Controllers
         private readonly IUserRegistrationService _userRegistrationService;
         private readonly ILoginService _loginService;
         private readonly IBookmarkService _bookmarkService;
+        private readonly IUserReportService _userReportService;
 
         public UsersController(
             IUserService userService,
             IOAuthProviderService oauthProviderService,
             IUserRegistrationService userRegistrationService,
             ILoginService loginService,
-            IBookmarkService bookmarkService)
+            IBookmarkService bookmarkService,
+            IUserReportService userReportService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _oauthProviderService = oauthProviderService ?? throw new ArgumentNullException(nameof(oauthProviderService));
             _userRegistrationService = userRegistrationService ?? throw new ArgumentNullException(nameof(userRegistrationService));
             _loginService = loginService ?? throw new ArgumentNullException(nameof(loginService));
             _bookmarkService = bookmarkService ?? throw new ArgumentNullException(nameof(bookmarkService));
+            _userReportService = userReportService ?? throw new ArgumentNullException(nameof(userReportService));
         }
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
@@ -362,6 +366,77 @@ namespace backend_user.Controllers
             {
                 var response = await _bookmarkService.GetBookmarkStatusAsync(userId, portfolioId);
                 return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // User Report endpoints
+        /// <summary>
+        /// Report a user
+        /// </summary>
+        /// <param name="userId">The user ID to report</param>
+        /// <param name="request">Report request details</param>
+        /// <returns>Success response</returns>
+        [HttpPost("{userId}/report")]
+        public async Task<IActionResult> ReportUser(Guid userId, [FromBody] UserReportCreateRequestDto request)
+        {
+            try
+            {
+                var response = await _userReportService.CreateUserReportAsync(userId, request);
+                return Ok(new { 
+                    message = "User reported successfully",
+                    reportId = response.Id,
+                    reportedAt = response.CreatedAt
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get reports for a specific user
+        /// </summary>
+        /// <param name="userId">The user ID to get reports for</param>
+        /// <returns>List of reports for the user</returns>
+        [HttpGet("{userId}/reports")]
+        public async Task<IActionResult> GetUserReports(Guid userId)
+        {
+            try
+            {
+                var reports = await _userReportService.GetUserReportsAsync(userId);
+                return Ok(reports);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get reports created by a specific user
+        /// </summary>
+        /// <param name="reporterId">The reporter user ID</param>
+        /// <returns>List of reports created by the user</returns>
+        [HttpGet("reports/by-reporter/{reporterId}")]
+        public async Task<IActionResult> GetReportsByReporter(Guid reporterId)
+        {
+            try
+            {
+                var reports = await _userReportService.GetReportsByReporterAsync(reporterId);
+                return Ok(reports);
             }
             catch (Exception ex)
             {

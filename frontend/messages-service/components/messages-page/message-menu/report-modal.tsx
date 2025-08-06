@@ -8,7 +8,7 @@ interface ReportModalProps {
   onClose: () => void;
   onSubmit: (reason: string) => Promise<void>;
   reportType: 'message' | 'user';
-  targetName?: string; // For user reports, to show user name
+  targetName?: string; 
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
@@ -25,8 +25,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (reason.trim().length < 50) {
-      setError("Reason must be at least 50 characters long");
+    if (reason.trim().length < 10) {
+      setError("Reason must be at least 10 characters long");
       return;
     }
 
@@ -122,7 +122,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 autoFocus
               />
               <div className={`report-modal-char-count ${reason.length >= 50 ? 'minimum-reached' : 'needs-more'}`}>
-                {reason.length}/50 characters minimum
+                {reason.length}/10
               </div>
             </div>
 
