@@ -4,8 +4,8 @@ interface ServiceUserData {
   id: string;
   email: string;
   username: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   professionalTitle?: string;
   bio?: string;
   location?: string;
@@ -13,6 +13,7 @@ interface ServiceUserData {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: string;
+  accessToken?: string;
 }
 
 /**
@@ -24,7 +25,7 @@ export class UserInjectionService {
   /**
    * Inject user data into all other services
    */
-  static async injectUser(user: User): Promise<void> {
+  static async injectUser(user: User, accessToken?: string): Promise<void> {
     try {
       const userData: ServiceUserData = {
         id: user.id,
@@ -39,6 +40,7 @@ export class UserInjectionService {
         isActive: user.isActive,
         isAdmin: user.isAdmin || false,
         lastLoginAt: user.lastLoginAt,
+        accessToken,
       };
 
       const response = await fetch(`${this.baseUrl}/api/services/user-injection`, {

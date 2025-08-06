@@ -4,8 +4,8 @@ interface ServiceUserData {
   id: string;
   email: string;
   username: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   professionalTitle?: string;
   bio?: string;
   location?: string;
@@ -13,6 +13,7 @@ interface ServiceUserData {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: string;
+  accessToken?: string;
 }
 
 // Global storage for user data

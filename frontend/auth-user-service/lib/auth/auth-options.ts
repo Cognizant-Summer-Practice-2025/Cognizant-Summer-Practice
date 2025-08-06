@@ -171,7 +171,7 @@ export const authOptions: AuthOptions = {
           try {
             const userData = await getUserByEmail(user.email);
             if (userData) {
-              await UserInjectionService.injectUser(userData);
+              await UserInjectionService.injectUser(userData, account.access_token);
               console.log('User injected on sign-in:', user.email);
             }
           } catch (error) {
@@ -221,7 +221,7 @@ export const authOptions: AuthOptions = {
             try {
               const userData = await getUserByEmail(user.email);
               if (userData) {
-                await UserInjectionService.injectUser(userData);
+                await UserInjectionService.injectUser(userData, account.access_token);
                 console.log('User injected after adding OAuth provider:', user.email);
               }
             } catch (error) {
@@ -276,8 +276,14 @@ export const authOptions: AuthOptions = {
         return url;
       }
       
-      // Always redirect to home page after successful sign-in
-      return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
+      // Allow redirects to external services (like home-portfolio-service)
+      // Only restrict redirects to same-origin URLs
+      if (url.startsWith(baseUrl) || url.startsWith('http://localhost:3001') || url.startsWith('http://localhost:3002') || url.startsWith('http://localhost:3003')) {
+        return url;
+      }
+      
+      // Default fallback to home page
+      return `${baseUrl}/`;
     },
     
     async session({ session, token }) {
@@ -291,8 +297,8 @@ export const authOptions: AuthOptions = {
           // Fetch full user data and inject into other services
           const userData = await getUserByEmail(session.user.email);
           if (userData) {
-            // Inject user data into all other services
-            await UserInjectionService.injectUser(userData);
+                    // Inject user data into all other services
+        await UserInjectionService.injectUser(userData, token.accessToken as string);
             // Add user data to session
             session.userId = userData.id;
           }

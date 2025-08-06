@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Inject user data into all services
-    await UserInjectionService.injectUser(userData);
+    await UserInjectionService.injectUser(userData, session.accessToken);
 
     // Create a temporary SSO token for the calling service
     const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret');

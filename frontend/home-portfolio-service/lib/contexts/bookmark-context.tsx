@@ -89,10 +89,15 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.id, router]);
 
-  // Load user bookmarks when user changes
+  // Load user bookmarks when user is present and injection is complete
   React.useEffect(() => {
     if (user?.id) {
-      refreshBookmarks();
+      // Add a small delay to ensure user injection is complete
+      const timer = setTimeout(() => {
+        refreshBookmarks();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     } else {
       setBookmarkedPortfolios(new Set());
     }
