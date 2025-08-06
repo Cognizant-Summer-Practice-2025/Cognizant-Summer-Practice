@@ -13,12 +13,66 @@
   height: 100% !important;
 }
 
-/* Virtualized Message Item */
+/* Virtualized Message Item - Let content determine height naturally */
 .virtualized-message-container {
   padding: clamp(0.375rem, 1.2vw, 0.75rem) clamp(0.75rem, 2vw, 1.5rem);
   width: 100%;
   box-sizing: border-box;
   margin-bottom: clamp(8px, 1.5vw, 12px); /* Visual gap between messages */
+  /* Allow content to determine height naturally */
+  min-height: fit-content;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Ensure message wrapper takes full height of container */
+.virtualized-message-container .message-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.375rem, 1vw, 0.75rem);
+  max-width: 100%;
+  flex-shrink: 0;
+  /* Allow natural height */
+  height: auto;
+  min-height: fit-content;
+  /* Ensure wrapper respects container bounds */
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Message bubble intrinsic sizing */
+.virtualized-message-container .message-bubble {
+  /* Let content determine size naturally */
+  height: auto;
+  min-height: fit-content;
+  width: fit-content;
+  max-width: 100%;
+  /* Ensure proper text wrapping */
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  /* Allow the bubble to expand based on content */
+  flex-shrink: 0;
+  /* Better content sizing and containment */
+  box-sizing: border-box;
+  overflow: hidden;
+  /* Prevent any overflow outside container */
+  contain: layout style;
+}
+
+/* Message text natural sizing */
+.virtualized-message-container .message-text {
+  /* Let text determine height naturally */
+  height: auto;
+  line-height: 1.5;
+  /* Ensure proper text flow */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Remove margin from the last message to avoid extra space before input */
@@ -30,6 +84,9 @@
 .virtualized-messages-list > div {
   /* Ensure proper scrolling behavior */
   overflow: visible !important;
+  /* Allow natural height for items */
+  height: auto !important;
+  min-height: 60px; /* Minimum height for very short messages */
 }
 
 /* Performance optimizations */

@@ -246,10 +246,10 @@ namespace BackendMessages.Controllers
                     {
                         var readReceipt = new
                         {
-                            MessageId = message.Id.ToString(),
-                            ConversationId = message.ConversationId.ToString(),
-                            ReadByUserId = request.UserId.ToString(),
-                            ReadAt = message.UpdatedAt
+                            messageId = message.Id.ToString(),
+                            conversationId = message.ConversationId.ToString(),
+                            readByUserId = request.UserId.ToString(),
+                            readAt = message.UpdatedAt
                         };
 
                         // Send read receipt to the sender
@@ -307,6 +307,33 @@ namespace BackendMessages.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                foreach (var message in messages)
+                {
+                    try
+                    {
+                        var readReceipt = new
+                        {
+                            messageId = message.Id.ToString(),
+                            conversationId = message.ConversationId.ToString(),
+                            readByUserId = request.UserId.ToString(),
+                            readAt = message.UpdatedAt
+                        };
+
+                        await _hubContext.Clients.Group($"user_{message.SenderId}")
+                            .SendAsync("MessageRead", readReceipt);
+
+                        await _hubContext.Clients.Group($"user_{request.UserId}")
+                            .SendAsync("MessageRead", readReceipt);
+
+                        _logger.LogInformation("Message {MessageId} marked as read by user {UserId}, receipt sent to sender {SenderId}", 
+                            message.Id, request.UserId, message.SenderId);
+                    }
+                    catch (Exception hubEx)
+                    {
+                        _logger.LogError(hubEx, "Failed to broadcast read receipt for message {MessageId}", message.Id);
+                    }
+                }
 
                 return Ok(new { MarkedCount = messages.Count });
             }

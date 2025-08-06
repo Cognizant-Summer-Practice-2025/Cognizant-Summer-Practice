@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { message } from "@/components/ui/toast";
 import ChatHeader from "../chat-header/chat-header";
-import VirtualizedMessagesList from "./virtualized-messages-list";
+import SimpleMessagesList from "./simple-messages-list";
 import "./style.css";
-import "./virtualized-styles.css";
+import "./simple-messages-styles.css";
 
 interface Message {
     id: string;
@@ -57,28 +57,6 @@ const Chat: React.FC<ChatProps> = ({
                                    }) => {
     const [newMessage, setNewMessage] = useState("");
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-    // Handle container resize for virtualized list
-    useEffect(() => {
-        const updateSize = () => {
-            if (messagesContainerRef.current) {
-                const { width, height } = messagesContainerRef.current.getBoundingClientRect();
-                setContainerSize({ width, height });
-            }
-        };
-
-        updateSize();
-
-        const resizeObserver = new ResizeObserver(updateSize);
-        if (messagesContainerRef.current) {
-            resizeObserver.observe(messagesContainerRef.current);
-        }
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, []);
 
     const handleSendMessage = async () => {
         if (newMessage.trim() && onSendMessage && !sendingMessage) {
@@ -147,22 +125,18 @@ const Chat: React.FC<ChatProps> = ({
             />
             <div
                 ref={messagesContainerRef}
-                className="messages-area virtualized-messages-area"
+                className="messages-area simple-messages-area"
             >
-                {containerSize.height > 0 && (
-                    <VirtualizedMessagesList
-                        messages={messages}
-                        selectedContactAvatar={selectedContact.avatar}
-                        selectedContactName={selectedContact.name}
-                        currentUserAvatar={currentUserAvatar}
-                        height={containerSize.height}
-                        width={containerSize.width}
-                        markMessageAsRead={markMessageAsRead}
-                        onDeleteMessage={handleDeleteMessage}
-                        onReportMessage={handleReportMessage}
-                        onCopyMessage={handleCopyMessage}
-                    />
-                )}
+                <SimpleMessagesList
+                    messages={messages}
+                    selectedContactAvatar={selectedContact.avatar}
+                    selectedContactName={selectedContact.name}
+                    currentUserAvatar={currentUserAvatar}
+                    markMessageAsRead={markMessageAsRead}
+                    onDeleteMessage={handleDeleteMessage}
+                    onReportMessage={handleReportMessage}
+                    onCopyMessage={handleCopyMessage}
+                />
             </div>
 
             {/* Message Input */}

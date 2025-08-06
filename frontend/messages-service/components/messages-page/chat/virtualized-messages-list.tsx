@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { VariableSizeList as List } from 'react-window';
 import VirtualizedMessageItem from './virtualized-message-item';
 
@@ -23,25 +23,8 @@ interface VirtualizedMessagesListProps {
   onCopyMessage?: (text: string) => void;
 }
 
-
 const MESSAGE_GAP = 12;
-
-// Message height estimation based on content length and layout
-const estimateMessageHeight = (message: Message): number => {
-  const baseHeight = 60; 
-  const lineHeight = 24; 
-  const maxWidth = Math.min(window.innerWidth * 0.7, 500); 
-  const avgCharWidth = 9; 
-  
-  const charsPerLine = Math.floor(maxWidth / avgCharWidth);
-  const estimatedLines = Math.max(1, Math.ceil(message.text.length / charsPerLine));
-
-  const footerHeight = 25;
-  const minMessageHeight = 80;
-  const calculatedHeight = baseHeight + (estimatedLines * lineHeight) + footerHeight;
-  
-  return Math.max(minMessageHeight, calculatedHeight);
-};
+const UNIFORM_MESSAGE_HEIGHT = 100; // Base uniform height for virtualization
 
 const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
   messages,
@@ -56,28 +39,13 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
   onCopyMessage
 }) => {
   const listRef = useRef<List>(null);
-  const heightCache = useRef<Record<number, number>>({});
 
-
-  // Memoize message heights to avoid recalculation
-  const messageHeights = useMemo(() => {
-    return messages.map((message, index) => {
-      if (heightCache.current[index]) {
-        return heightCache.current[index];
-      }
-      const estimatedHeight = estimateMessageHeight(message);
-      heightCache.current[index] = estimatedHeight;
-      return estimatedHeight;
-    });
-  }, [messages]);
-
-  // Get item height for react-window
+  // Simple uniform height calculation for virtualization
+  // CSS will handle the actual visual sizing
   const getItemSize = useCallback((index: number) => {
-    const baseHeight = messageHeights[index] || 80;
-    // Add fixed gap to all messages except the last one
     const isLastMessage = index === messages.length - 1;
-    return isLastMessage ? baseHeight : baseHeight + MESSAGE_GAP;
-  }, [messageHeights, messages.length]);
+    return isLastMessage ? UNIFORM_MESSAGE_HEIGHT : UNIFORM_MESSAGE_HEIGHT + MESSAGE_GAP;
+  }, [messages.length]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -86,9 +54,8 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
     }
   }, [messages.length]);
 
-  // Reset height cache when messages change significantly
+  // Reset cache when messages change
   useEffect(() => {
-    heightCache.current = {};
     if (listRef.current) {
       listRef.current.resetAfterIndex(0);
     }
@@ -121,8 +88,6 @@ const VirtualizedMessagesList: React.FC<VirtualizedMessagesListProps> = ({
       />
     );
   }, [messages, selectedContactAvatar, selectedContactName, currentUserAvatar, markMessageAsRead, onDeleteMessage, onReportMessage, onCopyMessage]);
-
-
 
   return (
     <div className="virtualized-messages-container">
