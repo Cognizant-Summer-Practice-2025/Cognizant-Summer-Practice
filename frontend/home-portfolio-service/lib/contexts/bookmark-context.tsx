@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { bookmarkApi, BookmarkToggleRequest } from '@/lib/bookmark/api';
 import { useUser } from './user-context';
-import { useRouter } from 'next/navigation';
 
 interface BookmarkContextType {
   bookmarkedPortfolios: Set<string>;
@@ -18,7 +17,6 @@ const BookmarkContext = createContext<BookmarkContextType | undefined>(undefined
 
 export function BookmarkProvider({ children }: { children: ReactNode }) {
   const { user } = useUser();
-  const router = useRouter();
   const [bookmarkedPortfolios, setBookmarkedPortfolios] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +48,8 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     if (!user?.id) {
       // Preserve current page when redirecting to login
       const currentPath = window.location.pathname + window.location.search;
-      router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+      window.location.href = `${authServiceUrl}/login?callbackUrl=${encodeURIComponent(currentPath)}`;
       return false;
     }
 
@@ -87,7 +86,7 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, router]);
+  }, [user?.id]);
 
   // Load user bookmarks when user is present and injection is complete
   React.useEffect(() => {
