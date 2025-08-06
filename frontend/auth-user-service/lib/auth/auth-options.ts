@@ -10,11 +10,119 @@ declare module "next-auth" {
   interface Session {
     accessToken?: string
     userId?: string
+    error?: "RefreshAccessTokenError"
   }
   interface JWT {
     accessToken?: string
     userId?: string
+    refreshToken?: string
+    expiresAt?: number
+    provider?: string
+    error?: "RefreshAccessTokenError"
   }
+}
+
+interface TokenRefreshResult {
+  accessToken?: string;
+  expiresAt?: number;
+  refreshToken?: string;
+  error?: string;
+}
+
+interface TokenData {
+  accessToken?: string;
+  refreshToken?: string;
+  userId?: string;
+  provider?: string;
+  expiresAt?: number;
+}
+
+interface ProviderData {
+  provider: string;
+  tokenExpiresAt?: string;
+  hasRefreshToken: boolean;
+}
+
+interface StatusData {
+  providers?: ProviderData[];
+}
+
+/**
+ * Refreshes an access token using our backend refresh endpoint
+ */
+async function refreshAccessToken(token: TokenData): Promise<TokenRefreshResult> {
+  try {
+    if (!token.refreshToken) {
+      return { error: "No refresh token available" };
+    }
+
+    const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+    const response = await fetch(`${backendUrl}/api/oauth2/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refreshToken: token.refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Token refresh failed: ${response.status}`);
+    }
+
+    await response.json(); // Consume response but don't use it
+    
+    // After successful refresh, get updated token info from backend
+    if (token.userId) {
+      const tokenStatusResponse = await fetch(`${backendUrl}/api/oauth2/token-status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (tokenStatusResponse.ok) {
+        const statusData: StatusData = await tokenStatusResponse.json();
+        const providerData = statusData.providers?.find((p: ProviderData) => 
+          p.provider.toLowerCase() === token.provider?.toLowerCase()
+        );
+
+        if (providerData) {
+          return {
+            accessToken: token.accessToken, // Will be updated by backend
+            expiresAt: providerData.tokenExpiresAt ? new Date(providerData.tokenExpiresAt).getTime() / 1000 : undefined,
+            refreshToken: providerData.hasRefreshToken ? token.refreshToken : undefined,
+          };
+        }
+      }
+    }
+
+    // Fallback: return current token with extended expiry using UTC time
+    const nowUtc = new Date().getTime();
+    return {
+      accessToken: token.accessToken,
+      expiresAt: Math.floor(nowUtc / 1000) + (60 * 60), // 1 hour from now in UTC
+      refreshToken: token.refreshToken,
+    };
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    return { error: "RefreshAccessTokenError" };
+  }
+}
+
+/**
+ * Gets the provider number for backend API calls
+ */
+function getProviderNumber(provider: string): number {
+  const providerMapping: { [key: string]: number } = {
+    'google': 0,   // Google
+    'github': 1,   // GitHub
+    'linkedin': 2, // LinkedIn
+    'facebook': 3, // Facebook
+  };
+  return providerMapping[provider.toLowerCase()] ?? 0;
 }
 
 export const authOptions: AuthOptions = {
@@ -26,6 +134,13 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
     FacebookProvider({
       clientId: process.env.AUTH_FACEBOOK_ID!,
@@ -166,6 +281,11 @@ export const authOptions: AuthOptions = {
     },
     
     async session({ session, token }) {
+      // Pass any token errors to the session
+      if (token.error === "RefreshAccessTokenError") {
+        session.error = token.error;
+      }
+
       if (session?.user?.email) {
         try {
           // Fetch full user data and inject into other services
@@ -192,7 +312,7 @@ export const authOptions: AuthOptions = {
     
     async jwt({ token, account, user }) {
       if (account && user) {
-        // Store the OAuth provider's access token from our backend
+        // First-time login: Store the OAuth provider's access token from our backend
         try {
           const userData = await getUserByEmail(user.email!);
           if (userData) {
@@ -212,37 +332,45 @@ export const authOptions: AuthOptions = {
               if (oauthData.exists && oauthData.provider) {
                 token.accessToken = oauthData.provider.accessToken;
                 token.userId = userData.id;
+                token.refreshToken = oauthData.provider.refreshToken;
+                token.expiresAt = oauthData.provider.tokenExpiresAt ? new Date(oauthData.provider.tokenExpiresAt).getTime() / 1000 : undefined;
+                token.provider = account.provider;
               }
             }
           }
         } catch (error) {
           console.error('Error fetching OAuth access token:', error);
         }
+      } else if (token.expiresAt && new Date().getTime() < (token.expiresAt as number) * 1000) {
+        // Subsequent logins, but the access token is still valid
+        return token;
+      } else if (token.refreshToken && token.expiresAt && new Date().getTime() >= (token.expiresAt as number) * 1000) {
+        // Subsequent logins, but the access token has expired, try to refresh it
+        console.log('Token expired, attempting refresh...');
+        try {
+          const refreshedToken = await refreshAccessToken(token as TokenData);
+          if (refreshedToken.error) {
+            console.error('Token refresh failed:', refreshedToken.error);
+            // If refresh fails, mark token as invalid but don't throw error to avoid breaking auth
+            token.error = "RefreshAccessTokenError";
+          } else {
+            // Update token with refreshed values
+            token.accessToken = refreshedToken.accessToken;
+            token.expiresAt = refreshedToken.expiresAt;
+            if (refreshedToken.refreshToken) {
+              token.refreshToken = refreshedToken.refreshToken;
+            }
+          }
+        } catch (error) {
+          console.error('Error refreshing access token:', error);
+          token.error = "RefreshAccessTokenError";
+        }
       }
+      
       return token;
     },
   },
   session: {
     strategy: 'jwt',
   },
-}
-
-function getProviderNumber(provider: string): number {
-  const providerMap: { [key: string]: number } = {
-    'google': 0,    // Google
-    'github': 1,    // GitHub  
-    'linkedin': 2,  // LinkedIn
-    'facebook': 3   // Facebook
-  }
-  return providerMap[provider.toLowerCase()] ?? 0
-}
-
-function getProviderName(provider: string): string {
-  const providerMap: { [key: string]: string } = {
-    'google': 'Google',
-    'github': 'GitHub',
-    'linkedin': 'LinkedIn',
-    'facebook': 'Facebook'
-  }
-  return providerMap[provider.toLowerCase()] ?? 'Google'
 }
