@@ -31,8 +31,7 @@ namespace backend_user.tests.Models
             user.OAuthProviders.Should().NotBeNull().And.BeEmpty();
             user.Newsletters.Should().NotBeNull().And.BeEmpty();
             user.UserAnalytics.Should().NotBeNull().And.BeEmpty();
-            user.ReportsCreated.Should().NotBeNull().And.BeEmpty();
-            user.ReportsResolved.Should().NotBeNull().And.BeEmpty();
+            user.UserReports.Should().NotBeNull().And.BeEmpty();
         }
 
         #endregion

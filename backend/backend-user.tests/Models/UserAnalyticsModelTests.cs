@@ -1,7 +1,7 @@
 using Xunit;
 using FluentAssertions;
 using backend_user.Models;
-using backend_user.tests.Helpers;
+using System.Net;
 
 namespace backend_user.tests.Models
 {
@@ -14,79 +14,89 @@ namespace backend_user.tests.Models
             var analytics = new UserAnalytics();
 
             // Assert
-            analytics.Id.Should().NotBe(Guid.Empty);
-            analytics.UserId.Should().Be(Guid.Empty);
-            analytics.SessionId.Should().Be(string.Empty);
-            analytics.EventType.Should().Be(string.Empty);
+            analytics.Id.Should().NotBeEmpty();
+            analytics.UserId.Should().BeEmpty();
+            analytics.SessionId.Should().BeEmpty();
+            analytics.EventType.Should().BeEmpty();
             analytics.EventData.Should().Be("{}");
+            analytics.IpAddress.Should().BeNull();
+            analytics.UserAgent.Should().BeNull();
+            analytics.ReferrerUrl.Should().BeNull();
             analytics.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-            analytics.User.Should().BeNull();
         }
 
         [Fact]
         public void UserAnalytics_WithValidData_ShouldSetPropertiesCorrectly()
         {
             // Arrange
-            var id = Guid.NewGuid();
             var userId = Guid.NewGuid();
             var sessionId = "session-123";
-            var eventType = "login";
-            var eventData = "{\"ip\":\"192.168.1.1\"}";
-            var createdAt = DateTime.UtcNow;
+            var eventType = "page_view";
+            var eventData = "{\"page\":\"/home\"}";
+            var ipAddress = IPAddress.Parse("192.168.1.1");
+            var userAgent = "Mozilla/5.0";
+            var referrerUrl = "https://google.com";
 
             // Act
             var analytics = new UserAnalytics
             {
-                Id = id,
                 UserId = userId,
                 SessionId = sessionId,
                 EventType = eventType,
                 EventData = eventData,
-                CreatedAt = createdAt
+                IpAddress = ipAddress,
+                UserAgent = userAgent,
+                ReferrerUrl = referrerUrl
             };
 
             // Assert
-            analytics.Id.Should().Be(id);
             analytics.UserId.Should().Be(userId);
             analytics.SessionId.Should().Be(sessionId);
             analytics.EventType.Should().Be(eventType);
             analytics.EventData.Should().Be(eventData);
-            analytics.CreatedAt.Should().Be(createdAt);
+            analytics.IpAddress.Should().Be(ipAddress);
+            analytics.UserAgent.Should().Be(userAgent);
+            analytics.ReferrerUrl.Should().Be(referrerUrl);
         }
 
         [Fact]
         public void UserAnalytics_NavigationProperty_ShouldAllowUserAssignment()
         {
             // Arrange
-            var user = TestDataFactory.CreateValidUser();
-            var analytics = TestDataFactory.CreateValidUserAnalytics(user.Id);
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = "test@example.com",
+                Username = "testuser"
+            };
+
+            var analytics = new UserAnalytics
+            {
+                UserId = user.Id,
+                SessionId = "session-123",
+                EventType = "page_view"
+            };
 
             // Act
             analytics.User = user;
 
             // Assert
-            analytics.User.Should().NotBeNull();
             analytics.User.Should().Be(user);
             analytics.UserId.Should().Be(user.Id);
         }
 
         [Theory]
-        [InlineData("login")]
-        [InlineData("logout")]
         [InlineData("page_view")]
         [InlineData("button_click")]
         [InlineData("form_submit")]
+        [InlineData("api_call")]
         public void UserAnalytics_WithDifferentEventTypes_ShouldSetCorrectly(string eventType)
         {
-            // Arrange & Act
+            // Act
             var analytics = new UserAnalytics
             {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                SessionId = "session-123",
                 EventType = eventType,
-                EventData = "{}",
-                CreatedAt = DateTime.UtcNow
+                SessionId = "session-123"
             };
 
             // Assert
@@ -94,21 +104,18 @@ namespace backend_user.tests.Models
         }
 
         [Theory]
+        [InlineData("{\"page\":\"/home\"}")]
+        [InlineData("{\"button\":\"submit\",\"form\":\"login\"}")]
+        [InlineData("{\"api\":\"users\",\"method\":\"GET\"}")]
         [InlineData("{}")]
-        [InlineData("{\"page\":\"/dashboard\"}")]
-        [InlineData("{\"button\":\"save\",\"form\":\"profile\"}")]
-        [InlineData("null")]
         public void UserAnalytics_WithDifferentEventData_ShouldSetCorrectly(string eventData)
         {
-            // Arrange & Act
+            // Act
             var analytics = new UserAnalytics
             {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                SessionId = "session-123",
-                EventType = "test_event",
                 EventData = eventData,
-                CreatedAt = DateTime.UtcNow
+                SessionId = "session-123",
+                EventType = "test"
             };
 
             // Assert
@@ -120,61 +127,51 @@ namespace backend_user.tests.Models
         {
             // Arrange
             var analytics = new UserAnalytics();
-            var newId = Guid.NewGuid();
-            var newUserId = Guid.NewGuid();
-            var newSessionId = "new-session-456";
-            var newEventType = "profile_update";
-            var newEventData = "{\"field\":\"bio\"}";
-            var newCreatedAt = DateTime.UtcNow;
+            var userId = Guid.NewGuid();
+            var sessionId = "new-session";
+            var eventType = "new-event";
+            var eventData = "{\"new\":\"data\"}";
+            var ipAddress = IPAddress.Parse("10.0.0.1");
+            var userAgent = "New Browser";
+            var referrerUrl = "https://bing.com";
 
             // Act
-            analytics.Id = newId;
-            analytics.UserId = newUserId;
-            analytics.SessionId = newSessionId;
-            analytics.EventType = newEventType;
-            analytics.EventData = newEventData;
-            analytics.CreatedAt = newCreatedAt;
+            analytics.UserId = userId;
+            analytics.SessionId = sessionId;
+            analytics.EventType = eventType;
+            analytics.EventData = eventData;
+            analytics.IpAddress = ipAddress;
+            analytics.UserAgent = userAgent;
+            analytics.ReferrerUrl = referrerUrl;
 
             // Assert
-            analytics.Id.Should().Be(newId);
-            analytics.UserId.Should().Be(newUserId);
-            analytics.SessionId.Should().Be(newSessionId);
-            analytics.EventType.Should().Be(newEventType);
-            analytics.EventData.Should().Be(newEventData);
-            analytics.CreatedAt.Should().Be(newCreatedAt);
+            analytics.UserId.Should().Be(userId);
+            analytics.SessionId.Should().Be(sessionId);
+            analytics.EventType.Should().Be(eventType);
+            analytics.EventData.Should().Be(eventData);
+            analytics.IpAddress.Should().Be(ipAddress);
+            analytics.UserAgent.Should().Be(userAgent);
+            analytics.ReferrerUrl.Should().Be(referrerUrl);
         }
 
         [Fact]
-        public void UserAnalytics_WithTestDataFactory_ShouldCreateValidInstance()
+        public void UserAnalytics_WithNullOptionalProperties_ShouldBeValid()
         {
-            // Arrange & Act
-            var analytics = TestDataFactory.CreateValidUserAnalytics();
-
-            // Assert
-            analytics.Id.Should().NotBe(Guid.Empty);
-            analytics.UserId.Should().NotBe(Guid.Empty);
-            analytics.SessionId.Should().NotBeNullOrEmpty();
-            analytics.EventType.Should().NotBeNullOrEmpty();
-            analytics.EventData.Should().NotBeNullOrEmpty();
-            analytics.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
-        }
-
-        [Fact]
-        public void UserAnalytics_WithEmptyEventData_ShouldBeValid()
-        {
-            // Arrange & Act
+            // Act
             var analytics = new UserAnalytics
             {
-                Id = Guid.NewGuid(),
                 UserId = Guid.NewGuid(),
                 SessionId = "session-123",
-                EventType = "test_event",
-                EventData = string.Empty,
-                CreatedAt = DateTime.UtcNow
+                EventType = "test",
+                IpAddress = null,
+                UserAgent = null,
+                ReferrerUrl = null
             };
 
             // Assert
-            analytics.EventData.Should().Be(string.Empty);
+            analytics.IpAddress.Should().BeNull();
+            analytics.UserAgent.Should().BeNull();
+            analytics.ReferrerUrl.Should().BeNull();
         }
     }
-}
+} 

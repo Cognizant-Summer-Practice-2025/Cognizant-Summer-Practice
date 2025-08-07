@@ -3,6 +3,7 @@ using backend_user.Repositories;
 using backend_user.Services.Abstractions;
 using backend_user.DTO.UserReport.Request;
 using backend_user.DTO.UserReport.Response;
+using backend_user.Services.Mappers;
 
 namespace backend_user.Services
 {
@@ -10,11 +11,13 @@ namespace backend_user.Services
     {
         private readonly IUserReportRepository _userReportRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IUserReportMapper _userReportMapper;
 
-        public UserReportService(IUserReportRepository userReportRepository, IUserRepository userRepository)
+        public UserReportService(IUserReportRepository userReportRepository, IUserRepository userRepository, IUserReportMapper userReportMapper)
         {
             _userReportRepository = userReportRepository;
             _userRepository = userRepository;
+            _userReportMapper = userReportMapper;
         }
 
         public async Task<UserReportResponseDto> CreateUserReportAsync(Guid userId, UserReportCreateRequestDto request)
@@ -47,81 +50,36 @@ namespace backend_user.Services
             }
 
             // Create the user report
-            var userReport = new UserReport
-            {
-                UserId = userId,
-                ReportedByUserId = request.ReportedByUserId,
-                Reason = request.Reason,
-                CreatedAt = DateTime.UtcNow
-            };
+            var userReport = _userReportMapper.MapToEntity(request);
+            userReport.UserId = userId; // Override with the path parameter
 
             var createdReport = await _userReportRepository.CreateUserReportAsync(userReport);
 
-            return new UserReportResponseDto
-            {
-                Id = createdReport.Id,
-                UserId = createdReport.UserId,
-                ReportedByUserId = createdReport.ReportedByUserId,
-                Reason = createdReport.Reason,
-                CreatedAt = createdReport.CreatedAt
-            };
+            return _userReportMapper.MapToResponseDto(createdReport);
         }
 
         public async Task<UserReportResponseDto?> GetUserReportByIdAsync(Guid id)
         {
             var userReport = await _userReportRepository.GetUserReportByIdAsync(id);
-            if (userReport == null)
-            {
-                return null;
-            }
-
-            return new UserReportResponseDto
-            {
-                Id = userReport.Id,
-                UserId = userReport.UserId,
-                ReportedByUserId = userReport.ReportedByUserId,
-                Reason = userReport.Reason,
-                CreatedAt = userReport.CreatedAt
-            };
+            return userReport != null ? _userReportMapper.MapToResponseDto(userReport) : null;
         }
 
         public async Task<List<UserReportResponseDto>> GetUserReportsAsync(Guid userId)
         {
             var userReports = await _userReportRepository.GetUserReportsAsync(userId);
-            return userReports.Select(ur => new UserReportResponseDto
-            {
-                Id = ur.Id,
-                UserId = ur.UserId,
-                ReportedByUserId = ur.ReportedByUserId,
-                Reason = ur.Reason,
-                CreatedAt = ur.CreatedAt
-            }).ToList();
+            return userReports.Select(ur => _userReportMapper.MapToResponseDto(ur)).ToList();
         }
 
         public async Task<List<UserReportResponseDto>> GetReportsByReporterAsync(Guid reporterId)
         {
             var userReports = await _userReportRepository.GetReportsByReporterAsync(reporterId);
-            return userReports.Select(ur => new UserReportResponseDto
-            {
-                Id = ur.Id,
-                UserId = ur.UserId,
-                ReportedByUserId = ur.ReportedByUserId,
-                Reason = ur.Reason,
-                CreatedAt = ur.CreatedAt
-            }).ToList();
+            return userReports.Select(ur => _userReportMapper.MapToResponseDto(ur)).ToList();
         }
 
         public async Task<List<UserReportResponseDto>> GetAllUserReportsAsync()
         {
             var userReports = await _userReportRepository.GetAllUserReportsAsync();
-            return userReports.Select(ur => new UserReportResponseDto
-            {
-                Id = ur.Id,
-                UserId = ur.UserId,
-                ReportedByUserId = ur.ReportedByUserId,
-                Reason = ur.Reason,
-                CreatedAt = ur.CreatedAt
-            }).ToList();
+            return userReports.Select(ur => _userReportMapper.MapToResponseDto(ur)).ToList();
         }
     }
 } 

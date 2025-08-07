@@ -93,12 +93,13 @@ namespace backend_user.tests.Helpers
             Guid? userId = null,
             Guid? reportedByUserId = null)
         {
+            var reason = _fixture.Create<string>();
             return new UserReport
             {
                 Id = Guid.NewGuid(),
                 UserId = userId ?? Guid.NewGuid(),
                 ReportedByUserId = reportedByUserId ?? Guid.NewGuid(),
-                Reason = _fixture.Create<string>().Substring(0, 50),
+                Reason = reason.Length > 50 ? reason.Substring(0, 50) : reason,
                 CreatedAt = DateTime.UtcNow
             };
         }

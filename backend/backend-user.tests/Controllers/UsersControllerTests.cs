@@ -23,6 +23,7 @@ namespace backend_user.tests.Controllers
         private readonly Mock<IUserRegistrationService> _mockUserRegistrationService;
         private readonly Mock<ILoginService> _mockLoginService;
         private readonly Mock<IBookmarkService> _mockBookmarkService;
+        private readonly Mock<IUserReportService> _mockUserReportService;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
@@ -32,13 +33,15 @@ namespace backend_user.tests.Controllers
             _mockUserRegistrationService = new Mock<IUserRegistrationService>();
             _mockLoginService = new Mock<ILoginService>();
             _mockBookmarkService = new Mock<IBookmarkService>();
+            _mockUserReportService = new Mock<IUserReportService>();
 
             _controller = new UsersController(
                 _mockUserService.Object,
                 _mockOAuthProviderService.Object,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             );
         }
 
@@ -53,7 +56,8 @@ namespace backend_user.tests.Controllers
                 _mockOAuthProviderService.Object,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             ));
         }
 
@@ -66,7 +70,8 @@ namespace backend_user.tests.Controllers
                 null!,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             ));
         }
 
@@ -79,7 +84,8 @@ namespace backend_user.tests.Controllers
                 _mockOAuthProviderService.Object,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             );
 
             // Assert
