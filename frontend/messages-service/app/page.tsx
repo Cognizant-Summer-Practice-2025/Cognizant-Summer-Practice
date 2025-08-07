@@ -366,7 +366,7 @@ const MessagesPage = () => {
       console.error('Failed to delete conversation:', error);
     }
   };
-  // Show loading while checking authentication
+  // Show loading 
   if (authLoading) {
     return (
       <AlertProvider>
