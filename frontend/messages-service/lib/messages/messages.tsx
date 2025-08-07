@@ -714,27 +714,39 @@ const useMessages = () => {
         updatedAt: apiMessage.updatedAt
       };
       
-      console.log('Message sent via API:', newMessage.id, '- waiting for WebSocket event');
+      console.log('Message sent via API:', newMessage.id, '- updating conversation immediately');
       
-      // Don't add the message locally - let the WebSocket event handle it
-      // This prevents duplicates and ensures consistent behavior
+      // Add message to current conversation immediately for instant UI update
+      setMessages(prevMessages => {
+        // Check if message already exists to avoid duplicates
+        const exists = prevMessages.some(msg => msg.id === newMessage.id);
+        if (exists) {
+          return prevMessages;
+        }
+        const updatedMessages = [...prevMessages, newMessage];
+        
+        // Update message cache with the new message
+        cacheMessages(currentConversation.id, updatedMessages);
+        return updatedMessages;
+      });
       
-      // Update conversation's last message
+      // Update conversation's last message and move to top
       setConversations(prev => {
         const updatedConversations = prev.map(conv => 
           conv.id === currentConversation.id
-            ? { ...conv, lastMessage: newMessage, updatedAt: apiMessage.updatedAt }
+            ? { 
+                ...conv, 
+                lastMessage: newMessage, 
+                updatedAt: apiMessage.updatedAt 
+              }
             : conv
         )
         .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         
-        // Cache the updated conversations
-        cacheConversations(updatedConversations);
+        cacheConversationsRef.current(updatedConversations);
         return updatedConversations;
       });
-      
-      // Clear message cache for this conversation since we sent a new message
-      // It will be refreshed when WebSocket event arrives
+    
       clearMessageCache(currentConversation.id);
       
       return newMessage;
@@ -744,7 +756,7 @@ const useMessages = () => {
     } finally {
       setSendingMessage(false);
     }
-  }, [user?.id, currentConversation, conversations, cacheConversations]);
+  }, [user?.id, currentConversation]);
 
   useEffect(() => {
     if (user?.id) {

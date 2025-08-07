@@ -212,24 +212,20 @@ const SimpleMessagesList: React.FC<SimpleMessagesListProps> = ({
   const isInitialLoad = useRef(true);
   const previousMessageCount = useRef(0);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length === 0) return;
 
-    // On initial load or when opening a chat, instantly jump to bottom
     if (isInitialLoad.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
       isInitialLoad.current = false;
       previousMessageCount.current = messages.length;
     } 
-    // For new messages, use smooth scrolling
     else if (messages.length > previousMessageCount.current) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       previousMessageCount.current = messages.length;
     }
   }, [messages.length]);
 
-  // Reset initial load flag when messages array changes (new chat opened)
   useEffect(() => {
     isInitialLoad.current = true;
     previousMessageCount.current = 0;
