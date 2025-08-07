@@ -20,8 +20,8 @@ export class AuthenticatedClient {
   private async getAuthToken(): Promise<string | null> {
     try {
       // Reference to the same storage used in inject/remove
-      if (typeof global !== 'undefined' && (global as any).homePortfolioServiceUserStorage) {
-        const userStorage = (global as any).homePortfolioServiceUserStorage as Map<string, any>;
+      if (typeof global !== 'undefined' && (global as unknown).homePortfolioServiceUserStorage) {
+        const userStorage = (global as unknown).homePortfolioServiceUserStorage as Map<string, unknown>;
         if (userStorage.size > 0) {
           const userData = Array.from(userStorage.values())[0];
           return userData.accessToken || null;
@@ -35,7 +35,7 @@ export class AuthenticatedClient {
           const userData = await response.json();
           return userData.accessToken || null;
         }
-      } catch (apiError) {
+      } catch {
         // Ignore API errors, just return null
       }
 
@@ -74,7 +74,7 @@ export class AuthenticatedClient {
       this.redirectToLogin();
       throw new Error('Authentication required');
     }
-
+    console.log('Header token:', token);
     const response = await fetch(url, {
       ...options,
       headers: {
