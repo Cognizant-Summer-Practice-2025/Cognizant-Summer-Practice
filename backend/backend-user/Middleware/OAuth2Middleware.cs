@@ -42,6 +42,7 @@ namespace backend_user.Middleware
                 path.Contains("/api/users/email/") ||  // Allow getUserByEmail during auth
                 (path.Contains("/oauth-providers/") && context.Request.Method == "GET") ||  // Allow OAuth provider lookup during auth
                 path.StartsWith("/api/oauth/") ||
+                path.StartsWith("/api/oauth2/") ||
                 path.StartsWith("/openapi") ||
                 path.StartsWith("/swagger") ||
                 path == "/" ||

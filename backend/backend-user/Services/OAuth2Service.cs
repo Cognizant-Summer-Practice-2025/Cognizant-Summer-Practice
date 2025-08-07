@@ -4,6 +4,7 @@ using backend_user.Models;
 using backend_user.Repositories;
 using backend_user.Services.Abstractions;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace backend_user.Services
 {
@@ -14,13 +15,16 @@ namespace backend_user.Services
     {
         private readonly IOAuthProviderRepository _oauthProviderRepository;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<OAuth2Service> _logger;
 
         public OAuth2Service(
             IOAuthProviderRepository oauthProviderRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            ILogger<OAuth2Service> logger)
         {
             _oauthProviderRepository = oauthProviderRepository ?? throw new ArgumentNullException(nameof(oauthProviderRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -60,19 +64,35 @@ namespace backend_user.Services
         /// Refreshes an access token using a refresh token.
         /// </summary>
         /// <param name="refreshToken">The refresh token.</param>
-        /// <returns>True if refresh was successful, false otherwise.</returns>
-        public async Task<bool> RefreshAccessTokenAsync(string refreshToken)
+        /// <returns>Updated OAuth provider data if refresh was successful, null otherwise.</returns>
+        public async Task<OAuthProvider?> RefreshAccessTokenAsync(string refreshToken)
         {
             var oauthProvider = await _oauthProviderRepository.GetByRefreshTokenAsync(refreshToken);
-            if (oauthProvider == null || string.IsNullOrEmpty(oauthProvider.RefreshToken))
-                return false;
+            if (oauthProvider == null)
+            {
+                _logger.LogWarning("Refresh token not found in database");
+                return null;
+            }
+            
+            if (string.IsNullOrEmpty(oauthProvider.RefreshToken))
+            {
+                _logger.LogWarning("OAuth provider {Provider} has empty refresh token", oauthProvider.Provider);
+                return null;
+            }
+
+            _logger.LogInformation("Found OAuth provider for refresh: {Provider} (User: {UserId})", oauthProvider.Provider, oauthProvider.UserId);
 
             try
             {
                 // Call the appropriate OAuth provider's refresh endpoint
                 var refreshResult = await RefreshTokenWithProvider(oauthProvider);
                 if (refreshResult == null)
-                    return false;
+                {
+                    _logger.LogWarning("Token refresh failed for provider {Provider}", oauthProvider.Provider);
+                    return null;
+                }
+
+                _logger.LogInformation("Token refresh successful for provider {Provider}", oauthProvider.Provider);
 
                 // Update the OAuth provider with new tokens
                 oauthProvider.AccessToken = refreshResult.AccessToken;
@@ -85,13 +105,12 @@ namespace backend_user.Services
                 }
 
                 await _oauthProviderRepository.UpdateAsync(oauthProvider);
-                return true;
+                return oauthProvider;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Log the error - use logger instead of Console.WriteLine per user preference
-                // For now, return false to indicate refresh failure
-                return false;
+                _logger.LogError(ex, "Exception during token refresh for provider {Provider}", oauthProvider.Provider);
+                return null;
             }
         }
 
@@ -134,8 +153,14 @@ namespace backend_user.Services
             var clientId = Environment.GetEnvironmentVariable("AUTH_GOOGLE_ID");
             var clientSecret = Environment.GetEnvironmentVariable("AUTH_GOOGLE_SECRET");
 
+            _logger.LogDebug("Google refresh: ClientId exists: {HasClientId}, ClientSecret exists: {HasClientSecret}", 
+                !string.IsNullOrEmpty(clientId), !string.IsNullOrEmpty(clientSecret));
+
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+            {
+                _logger.LogError("Google OAuth credentials missing");
                 return null;
+            }
 
             var requestBody = new FormUrlEncodedContent(new[]
             {
@@ -145,15 +170,31 @@ namespace backend_user.Services
                 new KeyValuePair<string, string>("refresh_token", oauthProvider.RefreshToken!)
             });
 
+            _logger.LogInformation("Calling Google token refresh endpoint: {TokenEndpoint}", tokenEndpoint);
+
             var response = await httpClient.PostAsync(tokenEndpoint, requestBody);
+            
+            _logger.LogInformation("Google refresh response: {StatusCode}", response.StatusCode);
+
             if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Google refresh failed: {StatusCode} - {ErrorContent}", response.StatusCode, errorContent);
                 return null;
+            }
 
             var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Google refresh response received: {ResponseLength} characters", responseContent.Length);
+            
             var tokenResponse = System.Text.Json.JsonSerializer.Deserialize<GoogleTokenResponse>(responseContent);
 
             if (tokenResponse == null || string.IsNullOrEmpty(tokenResponse.access_token))
+            {
+                _logger.LogError("Google refresh response parsing failed or no access token");
                 return null;
+            }
+
+            _logger.LogInformation("New Google token received, length: {TokenLength}", tokenResponse.access_token.Length);
 
             return new TokenRefreshResult
             {

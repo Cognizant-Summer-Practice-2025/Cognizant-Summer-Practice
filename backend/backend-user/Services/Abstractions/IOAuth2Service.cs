@@ -25,7 +25,7 @@ namespace backend_user.Services.Abstractions
         /// Refreshes an access token using a refresh token.
         /// </summary>
         /// <param name="refreshToken">The refresh token.</param>
-        /// <returns>True if refresh was successful, false otherwise.</returns>
-        Task<bool> RefreshAccessTokenAsync(string refreshToken);
+        /// <returns>Updated OAuth provider data if refresh was successful, null otherwise.</returns>
+        Task<OAuthProvider?> RefreshAccessTokenAsync(string refreshToken);
     }
 }

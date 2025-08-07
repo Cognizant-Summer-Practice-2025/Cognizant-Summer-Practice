@@ -60,38 +60,24 @@ export function useTokenStatus() {
 
   const manualRefresh = async () => {
     if (!session?.accessToken) {
+      console.warn('No access token available for manual refresh');
       return false;
     }
 
-    // Get token status first to find refresh token
+    // Check if the provider supports refresh tokens
     const tokenStatus = await checkTokenStatus();
-    const provider = tokenStatus?.providers?.find((p: any) => p.hasRefreshToken);
+    const provider = tokenStatus?.providers?.find((p: any) => p.hasRefreshToken && p.supportsRefresh);
     
-    if (!provider || !provider.hasRefreshToken) {
-      console.warn('No refresh token available for manual refresh');
+    if (!provider) {
+      console.warn('No refresh token available or provider does not support refresh');
       return false;
     }
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-      const response = await fetch(`${backendUrl}/api/oauth2/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          refreshToken: provider.refreshToken,
-        }),
-      });
-
-      if (response.ok) {
-        console.log('Token refreshed successfully');
-        // Force session update by signing in again (will use existing auth)
-        await signIn();
-        return true;
-      }
-      
-      return false;
+      console.log('Triggering manual token refresh through re-authentication');
+      // Force session update by signing in again (will use existing auth and trigger automatic refresh)
+      await signIn();
+      return true;
     } catch (error) {
       console.error('Error manually refreshing token:', error);
       return false;

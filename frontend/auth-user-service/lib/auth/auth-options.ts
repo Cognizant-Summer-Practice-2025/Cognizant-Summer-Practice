@@ -52,11 +52,22 @@ interface StatusData {
  */
 async function refreshAccessToken(token: TokenData): Promise<TokenRefreshResult> {
   try {
+    console.log('🔄 Attempting token refresh with token data:', {
+      hasRefreshToken: !!token.refreshToken,
+      refreshTokenLength: token.refreshToken?.length || 0,
+      hasAccessToken: !!token.accessToken,
+      provider: token.provider,
+      userId: token.userId
+    });
+
     if (!token.refreshToken) {
+      console.error('❌ No refresh token available for refresh');
       return { error: "No refresh token available" };
     }
 
     const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+    console.log('🌐 Calling refresh endpoint:', `${backendUrl}/api/oauth2/refresh`);
+    
     const response = await fetch(`${backendUrl}/api/oauth2/refresh`, {
       method: 'POST',
       headers: {
@@ -67,39 +78,35 @@ async function refreshAccessToken(token: TokenData): Promise<TokenRefreshResult>
       }),
     });
 
+    console.log('📡 Refresh response status:', response.status, response.statusText);
+
     if (!response.ok) {
-      throw new Error(`Token refresh failed: ${response.status}`);
+      const errorText = await response.text();
+      console.error('❌ Refresh failed response:', errorText);
+      throw new Error(`Token refresh failed: ${response.status} - ${errorText}`);
     }
 
-    await response.json(); // Consume response but don't use it
+    const refreshData = await response.json();
+    console.log('✅ Refresh response data:', refreshData);
     
-    // After successful refresh, get updated token info from backend
-    if (token.userId) {
-      const tokenStatusResponse = await fetch(`${backendUrl}/api/oauth2/token-status`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token.accessToken}`,
-          'Content-Type': 'application/json',
-        },
+    // The refresh endpoint now returns the new token data directly
+    if (refreshData.accessToken) {
+      console.log('🔑 Using refreshed token data:', {
+        hasNewAccessToken: !!refreshData.accessToken,
+        newTokenLength: refreshData.accessToken?.length || 0,
+        newExpiresAt: refreshData.tokenExpiresAt,
+        hasRefreshToken: refreshData.hasRefreshToken
       });
-
-      if (tokenStatusResponse.ok) {
-        const statusData: StatusData = await tokenStatusResponse.json();
-        const providerData = statusData.providers?.find((p: ProviderData) => 
-          p.provider.toLowerCase() === token.provider?.toLowerCase()
-        );
-
-        if (providerData) {
-          return {
-            accessToken: token.accessToken, // Will be updated by backend
-            expiresAt: providerData.tokenExpiresAt ? new Date(providerData.tokenExpiresAt).getTime() / 1000 : undefined,
-            refreshToken: providerData.hasRefreshToken ? token.refreshToken : undefined,
-          };
-        }
-      }
+      
+      return {
+        accessToken: refreshData.accessToken,
+        expiresAt: refreshData.tokenExpiresAt ? new Date(refreshData.tokenExpiresAt).getTime() / 1000 : undefined,
+        refreshToken: refreshData.hasRefreshToken ? token.refreshToken : undefined,
+      };
     }
 
     // Fallback: return current token with extended expiry using UTC time
+    console.warn('⚠️ No refreshed token returned, using fallback with extended expiry');
     const nowUtc = new Date().getTime();
     return {
       accessToken: token.accessToken,
@@ -107,7 +114,7 @@ async function refreshAccessToken(token: TokenData): Promise<TokenRefreshResult>
       refreshToken: token.refreshToken,
     };
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    console.error('❌ Error refreshing token:', error);
     return { error: "RefreshAccessTokenError" };
   }
 }

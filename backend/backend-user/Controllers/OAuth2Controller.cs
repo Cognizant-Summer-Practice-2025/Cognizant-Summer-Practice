@@ -11,6 +11,7 @@ namespace backend_user.Controllers
     /// OAuth 2.0 endpoints for authorization and token management.
     /// </summary>
     [Route("api/oauth")]
+    [Route("api/oauth2")]
     [ApiController]
     public class OAuth2Controller : ControllerBase
     {
@@ -70,17 +71,20 @@ namespace backend_user.Controllers
         {
             try
             {
-                var success = await _oauth2Service.RefreshAccessTokenAsync(request.RefreshToken);
-                if (!success)
+                var refreshedProvider = await _oauth2Service.RefreshAccessTokenAsync(request.RefreshToken);
+                if (refreshedProvider == null)
                 {
                     return BadRequest(new { 
-                        message = "Invalid or expired refresh token. Note: GitHub OAuth apps don't support refresh tokens. Only Google with proper configuration provides refresh tokens.", 
+                        message = "Token refresh failed. Please check server logs for details. Common causes: expired refresh token, invalid provider configuration, or provider doesn't support refresh tokens (e.g., GitHub OAuth apps).", 
                         timestamp = DateTime.UtcNow 
                     });
                 }
 
                 return Ok(new { 
                     message = "Token refreshed successfully", 
+                    accessToken = refreshedProvider.AccessToken,
+                    tokenExpiresAt = refreshedProvider.TokenExpiresAt,
+                    hasRefreshToken = !string.IsNullOrEmpty(refreshedProvider.RefreshToken),
                     timestamp = DateTime.UtcNow 
                 });
             }
