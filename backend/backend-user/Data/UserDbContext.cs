@@ -62,27 +62,16 @@ namespace backend_user.Data
             // Configure UserReport entity
             modelBuilder.Entity<UserReport>(entity =>
             {
-                entity.HasOne(ur => ur.Reporter)
-                    .WithMany(u => u.ReportsCreated)
-                    .HasForeignKey(ur => ur.ReporterId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(ur => ur.User)
+                    .WithMany(u => u.UserReports)
+                    .HasForeignKey(ur => ur.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(ur => ur.ResolvedByUser)
-                    .WithMany(u => u.ReportsResolved)
-                    .HasForeignKey(ur => ur.ResolvedBy)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                entity.HasIndex(ur => new { ur.ReportedService, ur.ReportedId });
-                entity.HasIndex(ur => ur.Status);
+                entity.HasIndex(ur => new { ur.UserId, ur.ReportedByUserId })
+                    .IsUnique()
+                    .HasDatabaseName("uk_user_reports_user_reporter");
                 
-                entity.Property(ur => ur.ReportedType)
-                    .HasConversion<int>();
-                    
-                entity.Property(ur => ur.ReportType)
-                    .HasConversion<int>();
-                    
-                entity.Property(ur => ur.Status)
-                    .HasConversion<int>();
+                entity.HasIndex(ur => ur.CreatedAt);
             });
 
             // Configure Bookmark entity

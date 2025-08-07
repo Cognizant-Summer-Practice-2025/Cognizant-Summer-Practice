@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Header from "@/components/header";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
 import { useUser } from "@/lib/contexts/user-context";
+import { useAuth } from "@/lib/contexts/auth-context";
 import { SearchUser } from "@/lib/user";
 import useMessages from "@/lib/messages";
 import { AlertProvider } from "@/components/ui/alert-dialog";
@@ -33,6 +35,7 @@ type MobileView = 'sidebar' | 'chat';
 
 const MessagesPage = () => {
   const { user } = useUser();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { 
     conversations, 
     currentConversation, 
@@ -52,11 +55,19 @@ const MessagesPage = () => {
     reportMessage
   } = useMessages();
 
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+      const currentUrl = window.location.href;
+      window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
+      return;
+    }
+  }, [isAuthenticated, authLoading]);
+
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
   const [isMobile, setIsMobile] = useState(false);
   
-  // Enhanced contacts storage for additional metadata (keeping for potential future use)
   const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -72,7 +83,6 @@ const MessagesPage = () => {
     return new Map();
   });
 
-  // Check if mobile on mount and window resize
   useEffect(() => {
     const checkIsMobile = () => {
       const width = window.innerWidth;
@@ -90,7 +100,6 @@ const MessagesPage = () => {
     }
   }, [isMobile]);
 
-  // Helper function to find the best valid timestamp from multiple options
   const getValidTimestamp = (...timestamps: (string | undefined)[]): string => {
     for (const timestamp of timestamps) {
       if (timestamp && timestamp.trim() !== '') {
@@ -100,19 +109,16 @@ const MessagesPage = () => {
         }
       }
     }
-    // If no valid timestamp found, return current time
     return new Date().toISOString();
   };
 
   const formatTimestamp = (dateString: string): string => {
-    // Handle null, undefined, or empty dateString
     if (!dateString || dateString.trim() === '') {
       return 'Now';
     }
     
     const date = new Date(dateString);
     
-    // Check if the date is valid
     if (isNaN(date.getTime())) {
       console.warn('Invalid date string:', dateString);
       return 'Now';
@@ -133,8 +139,6 @@ const MessagesPage = () => {
   };
 
   const formatMessageTimestamp = (dateString: string): string => {
-    // Since we're now using getValidTimestamp, we should always have a valid date
-    // But keeping validation as a safety net
     if (!dateString || dateString.trim() === '') {
       console.warn('formatMessageTimestamp received empty string, this should not happen');
       dateString = new Date().toISOString();
@@ -142,10 +146,8 @@ const MessagesPage = () => {
     
     const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
     
-    // Check if the date is valid
     if (isNaN(utcDate.getTime())) {
       console.warn('Invalid date string:', dateString);
-      // Fallback to current time if somehow we still get invalid date
       return formatMessageTimestamp(new Date().toISOString());
     }
     
@@ -188,8 +190,6 @@ const MessagesPage = () => {
 
   const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
-    
-    // Determine the best timestamp to use (with fallbacks)
     const timestamp = getValidTimestamp(
       conv.lastMessageTimestamp,
       conv.lastMessage?.createdAt,
@@ -209,8 +209,7 @@ const MessagesPage = () => {
       userId: enhanced?.userId || conv.otherUserId,
       professionalTitle: enhanced?.professionalTitle || conv.otherUserProfessionalTitle
     };
-    
-    // Debug logging
+  
     if (conv.otherUserId === '6677b218-6e92-47b3-9e9f-61bea9f15f8d') {
       console.log(`getEnhancedContact for user ${conv.otherUserId}:`, {
         convOnline: conv.isOnline,
@@ -249,7 +248,6 @@ const MessagesPage = () => {
     autoSelectFirstContact();
   }, [contacts, selectedContact, conversations, selectConversation]);
 
-  // Simpler approach: Update selectedContact whenever conversations change
   useEffect(() => {
     if (selectedContact && conversations.length > 0) {
       const currentConv = conversations.find(conv => conv.id === selectedContact.id);
@@ -359,11 +357,8 @@ const MessagesPage = () => {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
-    console.log("handleDeleteConversation called with ID:", conversationId);
     try {
-      console.log("Calling deleteConversation from useMessages...");
       await deleteConversation(conversationId);
-      console.log("Delete conversation successful");
       if (selectedContact?.id === conversationId) {
         setSelectedContact(null);
       }
@@ -371,6 +366,39 @@ const MessagesPage = () => {
       console.error('Failed to delete conversation:', error);
     }
   };
+  // Show loading 
+  if (authLoading) {
+    return (
+      <AlertProvider>
+        <Header />
+        <div className="messages-page">
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Checking authentication...</p>
+            </div>
+          </div>
+        </div>
+      </AlertProvider>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <AlertProvider>
+        <Header />
+        <div className="messages-page">
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-center">
+              <p className="text-gray-600">Redirecting to login...</p>
+            </div>
+          </div>
+        </div>
+      </AlertProvider>
+    );
+  }
+
   if (loading && conversations.length === 0 && !cacheState.isFromCache) {
     return (
       <div className="messages-page">
@@ -436,9 +464,7 @@ const MessagesPage = () => {
       </div>
     );
   }
-
-  // Removed old loading check - now using optimized skeleton loader above
-
+  
   if (error) {
     return (
       <div style={{ padding: 32, color: "red", textAlign: "center" }}>
@@ -447,13 +473,14 @@ const MessagesPage = () => {
     );
   }
 
-  return (
-    <AlertProvider>
-      <div 
-        className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
-        role="main"
-        aria-label="Messages application"
-      >
+     return (
+     <AlertProvider>
+       <Header />
+       <div 
+         className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
+         role="main"
+         aria-label="Messages application"
+       >
       
       {/* Sidebar - visible on desktop or when mobile view is 'sidebar' */}
       <div 

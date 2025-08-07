@@ -128,8 +128,7 @@ namespace backend_user.tests.Repositories
             result.Should().BeEquivalentTo(users, options => options.Excluding(u => u.OAuthProviders)
                 .Excluding(u => u.Newsletters)
                 .Excluding(u => u.UserAnalytics)
-                .Excluding(u => u.ReportsCreated)
-                .Excluding(u => u.ReportsResolved));
+                .Excluding(u => u.UserReports));
         }
 
         [Fact]

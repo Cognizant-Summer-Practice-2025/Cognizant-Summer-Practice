@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/components/ui/alert-dialog";
+import ReportModal from "./report-modal";
 import "./style.css";
 import "./dropdown-style.css";
 
@@ -16,7 +17,7 @@ interface MessageMenuProps {
   isOwnMessage: boolean;
   onDelete?: (messageId: string) => Promise<void>;
   onCopy?: (text: string) => void;
-  onReport?: (messageId: string) => Promise<void>;
+  onReport?: (messageId: string, reason: string) => Promise<void>;
 }
 
 const MessageMenu: React.FC<MessageMenuProps> = ({
@@ -30,6 +31,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
   const { showConfirm } = useAlert();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -45,14 +47,7 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
 
   const handleReportClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    showConfirm({
-      title: 'Report Message',
-      description: 'Are you sure you want to report this message? This will notify the administrators for review.',
-      type: 'warning',
-      confirmText: 'Report',
-      cancelText: 'Cancel',
-      onConfirm: handleConfirmReport,
-    });
+    setIsReportModalOpen(true);
   };
 
   const handleCopyClick = (e: React.MouseEvent) => {
@@ -83,14 +78,15 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
     }
   };
 
-  const handleConfirmReport = async () => {
+  const handleReportSubmit = async (reason: string) => {
     if (!onReport) return;
     
     setIsReporting(true);
     try {
-      await onReport(messageId);
+      await onReport(messageId, reason);
     } catch (error) {
       console.error("Report error:", error);
+      throw error;
     } finally {
       setIsReporting(false);
     }
@@ -122,22 +118,31 @@ const MessageMenu: React.FC<MessageMenuProps> = ({
           {isOwnMessage ? (
             <DropdownMenuItem
               onClick={handleDeleteClick}
+              disabled={isDeleting}
               className="message-dropdown-item text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
               onClick={handleReportClick}
+              disabled={isReporting}
               className="message-dropdown-item text-orange-600 focus:text-orange-600 focus:bg-orange-50"
             >
               <Flag className="mr-2 h-4 w-4" />
-              Report
+              {isReporting ? "Reporting..." : "Report"}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSubmit={handleReportSubmit}
+        reportType="message"
+      />
     </>
   );
 };

@@ -27,6 +27,10 @@
   order: -1; /* Move to the left of the message bubble */
   margin-right: 4px;
   margin-left: 0;
+  flex-shrink: 0;
+  /* Stabilize position during scroll */
+  position: relative;
+  transform: translateZ(0);
 }
 
 /* Positioning for other messages (received) - button on right side */
@@ -34,6 +38,10 @@
   order: 1; /* Move to the right of the message bubble */
   margin-left: 4px;
   margin-right: 0;
+  flex-shrink: 0;
+  /* Stabilize position during scroll */
+  position: relative;
+  transform: translateZ(0);
 }
 
 .other-message .message-menu-button {
@@ -48,6 +56,9 @@
 /* Ensure the menu button doesn't interfere with message flow */
 .message-wrapper {
   position: relative;
+  /* Stabilize layout during scroll */
+  contain: layout style;
+  transform: translateZ(0);
 }
 
 /* Additional styling for different message types */

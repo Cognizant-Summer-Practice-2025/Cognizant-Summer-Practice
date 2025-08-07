@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import { redirectToService } from "@/lib/config/services";
+import { reportUser } from "@/lib/user/api";
+import { useUser } from "@/lib/contexts/user-context";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAlert } from "@/components/ui/alert-dialog";
+import ReportModal from "../message-menu/report-modal";
 import "./style.css";
 
 interface Contact {
@@ -35,7 +38,10 @@ interface ChatHeaderProps {
 const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation, onBackToSidebar, isMobile = false }) => {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
   const { showConfirm } = useAlert();
+  const { user } = useUser();
 
   const handleMuteNotifications = () => {
     console.log('Mute user:', selectedContact.name);
@@ -49,7 +55,25 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConver
 
   const handleReportUser = () => {
     console.log('Report user:', selectedContact.name);
-    // Add report user logic here
+    setIsReportModalOpen(true);
+  };
+
+  const handleReportSubmit = async (reason: string) => {
+    if (!user?.id || !selectedContact.userId) {
+      console.error('Missing user ID or contact user ID for report');
+      return;
+    }
+
+    setIsReporting(true);
+    try {
+      await reportUser(selectedContact.userId, user.id, reason);
+      console.log('User reported successfully');
+    } catch (error) {
+      console.error('Failed to report user:', error);
+      throw error;
+    } finally {
+      setIsReporting(false);
+    }
   };
 
   const handleDeleteClick = () => {
@@ -116,6 +140,7 @@ You can restore it by sending a new message.`,
   };
 
   return (
+    <>
     <div className="chat-header">
       <div className="chat-header-left">
         {/* Back button for mobile */}
@@ -185,23 +210,34 @@ You can restore it by sending a new message.`,
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={handleReportUser}
+              disabled={isReporting}
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               <AlertTriangle className="mr-2 h-4 w-4" />
-              Report user
+              {isReporting ? "Reporting..." : "Report user"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={handleDeleteClick}
+              disabled={isDeleting}
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete for me
+              {isDeleting ? "Deleting..." : "Delete for me"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </div>
+
+    <ReportModal
+      isOpen={isReportModalOpen}
+      onClose={() => setIsReportModalOpen(false)}
+      onSubmit={handleReportSubmit}
+      reportType="user"
+      targetName={selectedContact.name}
+    />
+    </>
   );
 };
 

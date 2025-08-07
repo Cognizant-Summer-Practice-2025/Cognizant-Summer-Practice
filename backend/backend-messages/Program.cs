@@ -24,6 +24,7 @@ builder.Services.AddHttpClient<IUserSearchService, UserSearchService>(client =>
 // Register repositories
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IMessageReportRepository, MessageReportRepository>();
 
 // Register services
 builder.Services.AddScoped<IUserSearchService, UserSearchService>();

@@ -3,7 +3,15 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/lib/contexts/user-context';
 import MessageMenu from '@/components/messages-page/message-menu/message-menu';
 
-export interface VirtualizedMessageProps {
+export interface Message {
+  id: string;
+  sender: "user" | "other";
+  text: string;
+  timestamp: string;
+  status: "read" | "delivered" | "sent";
+}
+
+export interface SimpleMessageItemProps {
   id: string;
   sender: "user" | "other";
   text: string;
@@ -12,15 +20,25 @@ export interface VirtualizedMessageProps {
   senderAvatar?: string;
   senderName?: string;
   currentUserAvatar?: string;
-  style?: React.CSSProperties; // For react-window positioning
-  isLastMessage?: boolean; // To conditionally apply margin
+  isLastMessage?: boolean;
   markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
   onDeleteMessage?: (messageId: string) => Promise<void>;
-  onReportMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string, reason: string) => Promise<void>;
   onCopyMessage?: (text: string) => void;
 }
 
-const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
+interface SimpleMessagesListProps {
+  messages: Message[];
+  selectedContactAvatar?: string;
+  selectedContactName?: string;
+  currentUserAvatar?: string;
+  markMessageAsRead?: (messageId: string, userId: string) => Promise<void>;
+  onDeleteMessage?: (messageId: string) => Promise<void>;
+  onReportMessage?: (messageId: string, reason: string) => Promise<void>;
+  onCopyMessage?: (text: string) => void;
+}
+
+const SimpleMessageItem = React.memo<SimpleMessageItemProps>(({
   id,
   sender,
   text,
@@ -29,7 +47,6 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   senderAvatar,
   senderName,
   currentUserAvatar,
-  style,
   isLastMessage,
   markMessageAsRead,
   onDeleteMessage,
@@ -41,35 +58,26 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
 
   // Implement visibility detection to mark messages as read
   useEffect(() => {
-    // Only mark as read if:
-    // 1. Message is from another user (sender !== "user")
-    // 2. Message is not already read
-    // 3. We have a markMessageAsRead function
-    // 4. We have a current user
     if (sender !== "user" && status !== "read" && markMessageAsRead && user?.id) {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              console.log(`Message ${id} became visible, marking as read...`);
-              // Mark message as read when it becomes visible
               markMessageAsRead(id, user.id).catch((error) => {
                 console.error('Failed to mark message as read:', error);
               });
-              // Stop observing after marking as read
               observer.unobserve(entry.target);
             }
           });
         },
         {
-          threshold: 0.3, // Mark as read when 30% visible (more aggressive for testing)
-          rootMargin: '0px 0px -20px 0px' // Require message to be within viewport
+          threshold: 0.3,
+          rootMargin: '0px 0px -20px 0px'
         }
       );
 
       if (messageRef.current) {
         observer.observe(messageRef.current);
-        console.log(`Started observing message ${id} for visibility`);
       }
 
       return () => {
@@ -107,15 +115,13 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
     return "transparent"; 
   };
 
-  // Handle copy action with fallback
+  // Handle copy action
   const handleCopy = (text: string) => {
     if (onCopyMessage) {
       onCopyMessage(text);
     } else {
-      // Default copy behavior
       navigator.clipboard.writeText(text).then(() => {
         console.log('Message copied to clipboard');
-        // You might want to show a toast notification here
       }).catch(err => {
         console.error('Failed to copy message: ', err);
       });
@@ -126,17 +132,13 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   const handleDelete = async (messageId: string) => {
     if (onDeleteMessage) {
       await onDeleteMessage(messageId);
-    } else {
-      console.log('Delete functionality not implemented');
     }
   };
 
   // Handle report action
-  const handleReport = async (messageId: string) => {
+  const handleReport = async (messageId: string, reason: string) => {
     if (onReportMessage) {
-      await onReportMessage(messageId);
-    } else {
-      console.log('Report functionality not implemented');
+      await onReportMessage(messageId, reason);
     }
   };
 
@@ -145,8 +147,7 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   return (
     <div 
       ref={messageRef} 
-      style={style} 
-      className={`virtualized-message-container ${isLastMessage ? 'last-message' : ''}`}
+      className={`simple-message-container ${isLastMessage ? 'last-message' : ''}`}
     >
       <div
         className={`message-wrapper ${sender === "user" ? "user-message" : "other-message"}`}
@@ -175,7 +176,6 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
           </div>
         </div>
 
-        {/* Message Menu - positioned via CSS order */}
         <MessageMenu
           messageId={id}
           messageText={text}
@@ -196,6 +196,66 @@ const VirtualizedMessageItem = React.memo<VirtualizedMessageProps>(({
   );
 });
 
-VirtualizedMessageItem.displayName = 'VirtualizedMessageItem';
+SimpleMessageItem.displayName = 'SimpleMessageItem';
 
-export default VirtualizedMessageItem; 
+const SimpleMessagesList: React.FC<SimpleMessagesListProps> = ({
+  messages,
+  selectedContactAvatar,
+  selectedContactName,
+  currentUserAvatar,
+  markMessageAsRead,
+  onDeleteMessage,
+  onReportMessage,
+  onCopyMessage
+}) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true);
+  const previousMessageCount = useRef(0);
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+
+    if (isInitialLoad.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      isInitialLoad.current = false;
+      previousMessageCount.current = messages.length;
+    } 
+    else if (messages.length > previousMessageCount.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      previousMessageCount.current = messages.length;
+    }
+  }, [messages.length]);
+
+  useEffect(() => {
+    isInitialLoad.current = true;
+    previousMessageCount.current = 0;
+  }, [selectedContactName, selectedContactAvatar]);
+
+  return (
+    <div className="simple-messages-container">
+      <div className="simple-messages-list">
+        {messages.map((message, index) => (
+          <SimpleMessageItem
+            key={message.id}
+            id={message.id}
+            sender={message.sender}
+            text={message.text}
+            timestamp={message.timestamp}
+            status={message.status}
+            senderAvatar={selectedContactAvatar}
+            senderName={selectedContactName}
+            currentUserAvatar={currentUserAvatar}
+            isLastMessage={index === messages.length - 1}
+            markMessageAsRead={markMessageAsRead}
+            onDeleteMessage={onDeleteMessage}
+            onReportMessage={onReportMessage}
+            onCopyMessage={onCopyMessage}
+          />
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+    </div>
+  );
+};
+
+export default SimpleMessagesList; 

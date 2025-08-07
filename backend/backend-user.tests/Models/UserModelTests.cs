@@ -31,8 +31,7 @@ namespace backend_user.tests.Models
             user.OAuthProviders.Should().NotBeNull().And.BeEmpty();
             user.Newsletters.Should().NotBeNull().And.BeEmpty();
             user.UserAnalytics.Should().NotBeNull().And.BeEmpty();
-            user.ReportsCreated.Should().NotBeNull().And.BeEmpty();
-            user.ReportsResolved.Should().NotBeNull().And.BeEmpty();
+            user.UserReports.Should().NotBeNull().And.BeEmpty();
         }
 
         #endregion
@@ -134,33 +133,36 @@ namespace backend_user.tests.Models
         }
 
         [Fact]
-        public void User_ReportsCreated_ShouldSupportAddingItems()
+        public void User_UserReports_ShouldSupportAddingItems()
         {
             // Arrange
             var user = TestDataFactory.CreateValidUser();
-            var report = TestDataFactory.CreateValidUserReport(reporterId: user.Id);
+            var report = TestDataFactory.CreateValidUserReport(userId: user.Id);
 
             // Act
-            user.ReportsCreated.Add(report);
+            user.UserReports.Add(report);
 
             // Assert
-            user.ReportsCreated.Should().HaveCount(1);
-            user.ReportsCreated.Should().Contain(report);
+            user.UserReports.Should().HaveCount(1);
+            user.UserReports.Should().Contain(report);
         }
 
         [Fact]
-        public void User_ReportsResolved_ShouldSupportAddingItems()
+        public void User_UserReports_ShouldAllowMultipleReports()
         {
             // Arrange
             var user = TestDataFactory.CreateValidUser();
-            var report = TestDataFactory.CreateValidUserReport(resolvedById: user.Id);
+            var report1 = TestDataFactory.CreateValidUserReport(userId: user.Id);
+            var report2 = TestDataFactory.CreateValidUserReport(userId: user.Id);
 
             // Act
-            user.ReportsResolved.Add(report);
+            user.UserReports.Add(report1);
+            user.UserReports.Add(report2);
 
             // Assert
-            user.ReportsResolved.Should().HaveCount(1);
-            user.ReportsResolved.Should().Contain(report);
+            user.UserReports.Should().HaveCount(2);
+            user.UserReports.Should().Contain(report1);
+            user.UserReports.Should().Contain(report2);
         }
 
         #endregion
@@ -361,45 +363,48 @@ namespace backend_user.tests.Models
         }
 
         [Fact]
-        public void User_ReportsCreated_ShouldAllowAddAndRemove()
+        public void User_UserReports_ShouldAllowAddAndRemove()
         {
             // Arrange
             var user = TestDataFactory.CreateValidUser();
-            var report = TestDataFactory.CreateValidUserReport(user.Id);
+            var report = TestDataFactory.CreateValidUserReport(userId: user.Id);
 
             // Act
-            user.ReportsCreated.Add(report);
+            user.UserReports.Add(report);
 
             // Assert
-            user.ReportsCreated.Should().HaveCount(1);
-            user.ReportsCreated.First().Should().Be(report);
+            user.UserReports.Should().HaveCount(1);
+            user.UserReports.First().Should().Be(report);
             
             // Act - Remove
-            user.ReportsCreated.Remove(report);
+            user.UserReports.Remove(report);
             
             // Assert
-            user.ReportsCreated.Should().BeEmpty();
+            user.UserReports.Should().BeEmpty();
         }
 
         [Fact]
-        public void User_ReportsResolved_ShouldAllowAddAndRemove()
+        public void User_UserReports_ShouldMaintainReferentialIntegrity()
         {
             // Arrange
             var user = TestDataFactory.CreateValidUser();
-            var report = TestDataFactory.CreateValidUserReport(resolvedById: user.Id);
+            var reporter = TestDataFactory.CreateValidUser();
+            var report = TestDataFactory.CreateValidUserReport(userId: user.Id, reportedByUserId: reporter.Id);
 
             // Act
-            user.ReportsResolved.Add(report);
+            user.UserReports.Add(report);
 
             // Assert
-            user.ReportsResolved.Should().HaveCount(1);
-            user.ReportsResolved.First().Should().Be(report);
+            user.UserReports.Should().HaveCount(1);
+            user.UserReports.First().Should().Be(report);
+            user.UserReports.First().UserId.Should().Be(user.Id);
+            user.UserReports.First().ReportedByUserId.Should().Be(reporter.Id);
             
             // Act - Remove
-            user.ReportsResolved.Remove(report);
+            user.UserReports.Remove(report);
             
             // Assert
-            user.ReportsResolved.Should().BeEmpty();
+            user.UserReports.Should().BeEmpty();
         }
 
         [Fact]

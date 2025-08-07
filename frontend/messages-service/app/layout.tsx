@@ -3,8 +3,8 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
-  title: "GoalKeeper",
-  description: "Portfolio and goal tracking application",
+  title: "GoalKeeper Messages",
+  description: "Messages and communication for GoalKeeper",
 };
 
 export default function RootLayout({
@@ -14,14 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="antialiased"
-        style={{
-          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-          '--font-geist-sans': 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          '--font-geist-mono': 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
-        } as React.CSSProperties}
-      >
+      <body className="antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

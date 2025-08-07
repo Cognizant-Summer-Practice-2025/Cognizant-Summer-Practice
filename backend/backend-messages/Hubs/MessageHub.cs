@@ -115,10 +115,10 @@ namespace BackendMessages.Hubs
                     // Broadcast the read receipt to the sender
                     var readReceipt = new
                     {
-                        MessageId = message.Id.ToString(),
-                        ConversationId = message.ConversationId.ToString(),
-                        ReadByUserId = userId,
-                        ReadAt = message.UpdatedAt
+                        messageId = message.Id.ToString(),
+                        conversationId = message.ConversationId.ToString(),
+                        readByUserId = userId,
+                        readAt = message.UpdatedAt
                     };
 
                     // Send read receipt to the sender

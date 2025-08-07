@@ -1,0 +1,65 @@
+using backend_user.DTO.UserReport.Request;
+using backend_user.DTO.UserReport.Response;
+using backend_user.DTO.User.Response;
+using backend_user.Models;
+
+namespace backend_user.Services.Mappers
+{
+    public class UserReportMapper : IUserReportMapper
+    {
+        public UserReport MapToEntity(UserReportCreateRequestDto request)
+        {
+            return new UserReport
+            {
+                UserId = request.UserId,
+                ReportedByUserId = request.ReportedByUserId,
+                Reason = request.Reason,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        public UserReportResponseDto MapToResponseDto(UserReport userReport)
+        {
+            return new UserReportResponseDto
+            {
+                Id = userReport.Id,
+                UserId = userReport.UserId,
+                ReportedByUserId = userReport.ReportedByUserId,
+                Reason = userReport.Reason,
+                CreatedAt = userReport.CreatedAt
+            };
+        }
+
+        public UserReportSummaryDto MapToSummaryDto(UserReport userReport)
+        {
+            return new UserReportSummaryDto
+            {
+                Id = userReport.Id,
+                UserId = userReport.UserId,
+                ReportedByUserId = userReport.ReportedByUserId,
+                Reason = userReport.Reason,
+                CreatedAt = userReport.CreatedAt
+            };
+        }
+
+        public UserReportWithDetailsDto MapToWithDetailsDto(UserReport userReport)
+        {
+            return new UserReportWithDetailsDto
+            {
+                Id = userReport.Id,
+                User = userReport.User != null ? new UserSummaryDto
+                {
+                    Id = userReport.User.Id,
+                    Username = userReport.User.Username,
+                    FirstName = userReport.User.FirstName,
+                    LastName = userReport.User.LastName,
+                    ProfessionalTitle = userReport.User.ProfessionalTitle,
+                    AvatarUrl = userReport.User.AvatarUrl
+                } : new UserSummaryDto(),
+                ReportedByUser = new UserSummaryDto(), // This would need to be populated from a separate query
+                Reason = userReport.Reason,
+                CreatedAt = userReport.CreatedAt
+            };
+        }
+    }
+}

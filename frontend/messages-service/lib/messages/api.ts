@@ -270,4 +270,25 @@ export const messagesApi = {
 
     return response.json();
   },
+
+  // Report message
+  async reportMessage(messageId: string, reportedByUserId: string, reason: string): Promise<{ message: string; reportId: string; reportedAt: string }> {
+    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/${messageId}/report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        reportedByUserId,
+        reason,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(errorData || `Failed to report message: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
 }; 

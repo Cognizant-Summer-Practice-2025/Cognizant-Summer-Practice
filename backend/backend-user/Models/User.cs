@@ -52,8 +52,7 @@ namespace backend_user.Models
         public virtual ICollection<OAuthProvider> OAuthProviders { get; set; } = new List<OAuthProvider>();
         public virtual ICollection<Newsletter> Newsletters { get; set; } = new List<Newsletter>();
         public virtual ICollection<UserAnalytics> UserAnalytics { get; set; } = new List<UserAnalytics>();
-        public virtual ICollection<UserReport> ReportsCreated { get; set; } = new List<UserReport>();
-        public virtual ICollection<UserReport> ReportsResolved { get; set; } = new List<UserReport>();
+        public virtual ICollection<UserReport> UserReports { get; set; } = new List<UserReport>();
         public virtual ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
     }
 }

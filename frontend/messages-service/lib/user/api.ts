@@ -311,3 +311,29 @@ export async function updateUser(userId: string, userData: {
     throw error;
   }
 }
+
+// Report user
+export async function reportUser(userId: string, reportedByUserId: string, reason: string): Promise<{ message: string; reportId: string; reportedAt: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        reportedByUserId,
+        reason,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(errorData || `Failed to report user: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error reporting user:', error);
+    throw error;
+  }
+}

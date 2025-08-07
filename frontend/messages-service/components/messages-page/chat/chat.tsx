@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { message } from "@/components/ui/toast";
 import ChatHeader from "../chat-header/chat-header";
-import VirtualizedMessagesList from "./virtualized-messages-list";
+import SimpleMessagesList from "./simple-messages-list";
 import "./style.css";
-import "./virtualized-styles.css";
+import "./simple-messages-styles.css";
 
 interface Message {
     id: string;
@@ -39,7 +39,7 @@ interface ChatProps {
     onBackToSidebar?: () => void;
     isMobile?: boolean;
     onDeleteMessage?: (messageId: string) => Promise<void>;
-    onReportMessage?: (messageId: string) => Promise<void>;
+    onReportMessage?: (messageId: string, reason: string) => Promise<void>;
 }
 
 const Chat: React.FC<ChatProps> = ({
@@ -57,28 +57,6 @@ const Chat: React.FC<ChatProps> = ({
                                    }) => {
     const [newMessage, setNewMessage] = useState("");
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
-    // Handle container resize for virtualized list
-    useEffect(() => {
-        const updateSize = () => {
-            if (messagesContainerRef.current) {
-                const { width, height } = messagesContainerRef.current.getBoundingClientRect();
-                setContainerSize({ width, height });
-            }
-        };
-
-        updateSize();
-
-        const resizeObserver = new ResizeObserver(updateSize);
-        if (messagesContainerRef.current) {
-            resizeObserver.observe(messagesContainerRef.current);
-        }
-
-        return () => {
-            resizeObserver.disconnect();
-        };
-    }, []);
 
     const handleSendMessage = async () => {
         if (newMessage.trim() && onSendMessage && !sendingMessage) {
@@ -98,7 +76,6 @@ const Chat: React.FC<ChatProps> = ({
         }
     };
 
-    // Handle copy message
     const handleCopyMessage = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -109,7 +86,6 @@ const Chat: React.FC<ChatProps> = ({
         }
     };
 
-    // Handle delete message
     const handleDeleteMessage = async (messageId: string) => {
         if (onDeleteMessage) {
             try {
@@ -125,18 +101,15 @@ const Chat: React.FC<ChatProps> = ({
         }
     };
 
-    // Handle report message
-    const handleReportMessage = async (messageId: string) => {
+    const handleReportMessage = async (messageId: string, reason: string) => {
         if (onReportMessage) {
             try {
-                await onReportMessage(messageId);
+                await onReportMessage(messageId, reason);
                 message.success('Message reported successfully');
             } catch (error) {
-                console.error('Failed to report message:', error);
                 message.error('Failed to report message');
             }
         } else {
-            console.log('Report message functionality not implemented yet');
             message.info('Report functionality will be available soon');
         }
     };
@@ -152,22 +125,18 @@ const Chat: React.FC<ChatProps> = ({
             />
             <div
                 ref={messagesContainerRef}
-                className="messages-area virtualized-messages-area"
+                className="messages-area simple-messages-area"
             >
-                {containerSize.height > 0 && (
-                    <VirtualizedMessagesList
-                        messages={messages}
-                        selectedContactAvatar={selectedContact.avatar}
-                        selectedContactName={selectedContact.name}
-                        currentUserAvatar={currentUserAvatar}
-                        height={containerSize.height}
-                        width={containerSize.width}
-                        markMessageAsRead={markMessageAsRead}
-                        onDeleteMessage={handleDeleteMessage}
-                        onReportMessage={handleReportMessage}
-                        onCopyMessage={handleCopyMessage}
-                    />
-                )}
+                <SimpleMessagesList
+                    messages={messages}
+                    selectedContactAvatar={selectedContact.avatar}
+                    selectedContactName={selectedContact.name}
+                    currentUserAvatar={currentUserAvatar}
+                    markMessageAsRead={markMessageAsRead}
+                    onDeleteMessage={handleDeleteMessage}
+                    onReportMessage={handleReportMessage}
+                    onCopyMessage={handleCopyMessage}
+                />
             </div>
 
             {/* Message Input */}
