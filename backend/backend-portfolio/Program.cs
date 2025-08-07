@@ -6,6 +6,7 @@ using backend_portfolio.Services.Abstractions;
 using backend_portfolio.Services.Mappers;
 using backend_portfolio.Services.Validators;
 using backend_portfolio.Services.External;
+using backend_portfolio.Middleware;
 using backend_portfolio.DTO;
 using backend_portfolio.DTO.Portfolio.Request;
 using backend_portfolio.DTO.Project.Request;
@@ -83,6 +84,9 @@ builder.Services.AddScoped<IValidationService<ProjectUpdateRequest>, ProjectUpda
 
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 
+// Add Authentication services
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+
 builder.Services.AddScoped<ImageUploadUtility>();
 
 builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
@@ -109,6 +113,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
+
+// Use OAuth 2.0 middleware
+app.UseMiddleware<OAuth2Middleware>();
 
 app.UseAuthorization();
 app.MapControllers();

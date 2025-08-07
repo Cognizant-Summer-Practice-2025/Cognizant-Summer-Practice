@@ -4,7 +4,11 @@ using backend_user.Repositories;
 using backend_user.Models;
 using backend_user.Services;
 using backend_user.Services.Abstractions;
+using backend_user.Middleware;
 using Npgsql;
+
+// Load environment variables from .env file
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +59,7 @@ builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 builder.Services.AddScoped<IUserReportService, UserReportService>();
+builder.Services.AddScoped<IOAuth2Service, OAuth2Service>();
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);
@@ -75,6 +80,9 @@ app.UseHttpsRedirection();
 
 // Use CORS
 app.UseCors("AllowFrontend");
+
+// Use OAuth 2.0 middleware
+app.UseMiddleware<OAuth2Middleware>();
 
 app.UseAuthorization();
 app.MapControllers();

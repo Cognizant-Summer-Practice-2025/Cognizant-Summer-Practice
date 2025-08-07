@@ -37,6 +37,7 @@ namespace backend_user.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual User User { get; set; } = null!;
     }
 } 

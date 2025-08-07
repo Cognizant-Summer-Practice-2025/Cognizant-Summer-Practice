@@ -35,14 +35,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Inject user data into all services
-    await UserInjectionService.injectUser(userData);
+    await UserInjectionService.injectUser(userData, session.accessToken);
 
     // Create a temporary SSO token for the calling service
     const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret');
     const token = await new SignJWT({ 
       email: userData.email,
       userId: userData.id,
-      timestamp: Date.now()
+      timestamp: new Date().getTime()
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('5m') // Token expires in 5 minutes

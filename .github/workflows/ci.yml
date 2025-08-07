@@ -4,26 +4,26 @@ on:
   pull_request:
     branches: [ "**" ] 
 
-# jobs:
-#   build:
-#     runs-on: windows-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Setup .NET
-#         uses: actions/setup-dotnet@v4
-#         with:
-#           dotnet-version: '9.0.x'
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
       
-#       # User Service Tests 
-#       - name: Restore dependencies - User Service
-#         run: dotnet restore backend-user.tests/backend-user.tests.csproj
-#         working-directory: ./backend
-#       - name: Build - User Service
-#         run: dotnet build backend-user.tests/backend-user.tests.csproj --no-restore
-#         working-directory: ./backend
-#       - name: Test - User Service
-#         run: dotnet test backend-user.tests/backend-user.tests.csproj --no-build --verbosity normal
-#         working-directory: ./backend
+      # User Service Tests 
+      - name: Restore dependencies - User Service
+        run: dotnet restore backend-user.tests/backend-user.tests.csproj
+        working-directory: ./backend
+      - name: Build - User Service
+        run: dotnet build backend-user.tests/backend-user.tests.csproj --no-restore
+        working-directory: ./backend
+      - name: Test - User Service
+        run: dotnet test backend-user.tests/backend-user.tests.csproj --no-build --verbosity normal
+        working-directory: ./backend
       
       # TODO: Uncomment when tests are implemented for other services
       

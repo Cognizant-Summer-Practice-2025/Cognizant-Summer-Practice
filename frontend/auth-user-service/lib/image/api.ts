@@ -1,4 +1,7 @@
-const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
+import { AuthenticatedApiClient } from '../api/authenticated-client';
+
+// Create authenticated API client for portfolio service (where image upload is handled)
+const portfolioClient = AuthenticatedApiClient.createPortfolioClient();
 
 export interface ImageUploadResponse {
   imagePath: string;
@@ -20,23 +23,7 @@ export interface SupportedSubfoldersResponse {
   subfolders: string[];
 }
 
-async function handleApiResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let errorData: ImageUploadErrorResponse;
-    try {
-      errorData = await response.json();
-    } catch {
-      errorData = {
-        error: 'UnknownError',
-        message: `HTTP error! status: ${response.status}`,
-        supportedFormats: [],
-        supportedSubfolders: []
-      };
-    }
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}
+// Helper function to handle API responses - no longer needed as AuthenticatedApiClient handles this
 
 /**
  * Upload an image file to the specified subfolder
@@ -52,12 +39,43 @@ export async function uploadImage(
   formData.append('imageFile', imageFile);
   formData.append('subfolder', subfolder);
 
-  const response = await fetch(`${API_BASE_URL}/api/ImageUpload/upload`, {
-    method: 'POST',
-    body: formData,
-  });
+  try {
+    // For FormData uploads, we need to use a custom approach since AuthenticatedApiClient expects JSON
+    const session = await import('next-auth/react').then(m => m.getSession());
+    const accessToken = session?.accessToken;
+    
+    if (!accessToken) {
+      throw new Error('No access token available. Please sign in.');
+    }
 
-  return handleApiResponse<ImageUploadResponse>(response);
+    const response = await fetch(`${portfolioClient['baseUrl']}/api/ImageUpload/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorData: ImageUploadErrorResponse;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = {
+          error: 'UnknownError',
+          message: `HTTP error! status: ${response.status}`,
+          supportedFormats: [],
+          supportedSubfolders: []
+        };
+      }
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('📤 API: Error uploading image:', error);
+    throw error;
+  }
 }
 
 /**
@@ -66,11 +84,12 @@ export async function uploadImage(
  * @returns Promise with success message
  */
 export async function deleteImage(imagePath: string): Promise<{ message: string }> {
-  const response = await fetch(`${API_BASE_URL}/api/ImageUpload/delete?imagePath=${encodeURIComponent(imagePath)}`, {
-    method: 'DELETE',
-  });
-
-  return handleApiResponse<{ message: string }>(response);
+  try {
+    return await portfolioClient.delete<{ message: string }>(`/api/ImageUpload/delete?imagePath=${encodeURIComponent(imagePath)}`, true);
+  } catch (error) {
+    console.error('📤 API: Error deleting image:', error);
+    throw error;
+  }
 }
 
 /**
@@ -78,8 +97,7 @@ export async function deleteImage(imagePath: string): Promise<{ message: string 
  * @returns Promise with the list of supported subfolders
  */
 export async function getSupportedSubfolders(): Promise<SupportedSubfoldersResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/ImageUpload/supported-subfolders`);
-  return handleApiResponse<SupportedSubfoldersResponse>(response);
+  return await portfolioClient.get<SupportedSubfoldersResponse>('/api/ImageUpload/supported-subfolders', false);
 }
 
 /**
@@ -91,8 +109,7 @@ export async function checkImageUploadHealth(): Promise<{
   service: string;
   timestamp: string;
 }> {
-  const response = await fetch(`${API_BASE_URL}/api/ImageUpload/health`);
-  return handleApiResponse<{ status: string; service: string; timestamp: string }>(response);
+  return await portfolioClient.get<{ status: string; service: string; timestamp: string }>('/api/ImageUpload/health', false);
 }
 
 /**

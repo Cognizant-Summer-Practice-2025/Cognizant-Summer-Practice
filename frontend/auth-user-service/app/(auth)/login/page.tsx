@@ -75,7 +75,7 @@ const LoginContent = () => {
   } | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   // Parse URL parameters for OAuth registration
   React.useEffect(() => {

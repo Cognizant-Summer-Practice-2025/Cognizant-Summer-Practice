@@ -26,6 +26,8 @@ namespace backend_user.Services.Mappers
                 Provider = provider.Provider,
                 ProviderId = provider.ProviderId,
                 ProviderEmail = provider.ProviderEmail,
+                AccessToken = provider.AccessToken,
+                RefreshToken = provider.RefreshToken,
                 TokenExpiresAt = provider.TokenExpiresAt,
                 CreatedAt = provider.CreatedAt,
                 UpdatedAt = provider.UpdatedAt

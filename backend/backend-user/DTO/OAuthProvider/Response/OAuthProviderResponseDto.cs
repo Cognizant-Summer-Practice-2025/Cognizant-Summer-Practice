@@ -12,6 +12,8 @@ namespace backend_user.DTO.OAuthProvider.Response
         public OAuthProviderType Provider { get; set; }
         public string ProviderId { get; set; } = string.Empty;
         public string ProviderEmail { get; set; } = string.Empty;
+        public string AccessToken { get; set; } = string.Empty;
+        public string? RefreshToken { get; set; }
         public DateTime? TokenExpiresAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

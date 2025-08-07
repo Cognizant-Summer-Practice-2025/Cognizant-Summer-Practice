@@ -39,8 +39,8 @@ export async function createLocalSession(tokenPayload: SSOTokenPayload): Promise
     const sessionData = {
       email: tokenPayload.email,
       userId: tokenPayload.userId,
-      timestamp: Date.now(),
-      expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+          timestamp: new Date().getTime(),
+    expires: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 hours
     };
     
     localStorage.setItem('sso_session', JSON.stringify(sessionData));
@@ -62,7 +62,7 @@ export function getLocalSession(): SSOTokenPayload | null {
     const session = JSON.parse(sessionData);
     
     // Check if session is expired
-    if (Date.now() > session.expires) {
+    if (new Date().getTime() > session.expires) {
       localStorage.removeItem('sso_session');
       return null;
     }
