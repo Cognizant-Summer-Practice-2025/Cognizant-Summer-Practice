@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Header from "@/components/header";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
 import { useUser } from "@/lib/contexts/user-context";
+import { useAuth } from "@/lib/contexts/auth-context";
 import { SearchUser } from "@/lib/user";
 import useMessages from "@/lib/messages";
 import { AlertProvider } from "@/components/ui/alert-dialog";
@@ -33,6 +35,7 @@ type MobileView = 'sidebar' | 'chat';
 
 const MessagesPage = () => {
   const { user } = useUser();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { 
     conversations, 
     currentConversation, 
@@ -51,6 +54,15 @@ const MessagesPage = () => {
     deleteMessage,
     reportMessage
   } = useMessages();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+      const currentUrl = window.location.href;
+      window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
+      return;
+    }
+  }, [isAuthenticated, authLoading]);
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
@@ -354,6 +366,39 @@ const MessagesPage = () => {
       console.error('Failed to delete conversation:', error);
     }
   };
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <AlertProvider>
+        <Header />
+        <div className="messages-page">
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Checking authentication...</p>
+            </div>
+          </div>
+        </div>
+      </AlertProvider>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <AlertProvider>
+        <Header />
+        <div className="messages-page">
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-center">
+              <p className="text-gray-600">Redirecting to login...</p>
+            </div>
+          </div>
+        </div>
+      </AlertProvider>
+    );
+  }
+
   if (loading && conversations.length === 0 && !cacheState.isFromCache) {
     return (
       <div className="messages-page">
@@ -428,13 +473,14 @@ const MessagesPage = () => {
     );
   }
 
-  return (
-    <AlertProvider>
-      <div 
-        className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
-        role="main"
-        aria-label="Messages application"
-      >
+     return (
+     <AlertProvider>
+       <Header />
+       <div 
+         className={`messages-page ${isMobile ? 'mobile' : 'desktop'}`}
+         role="main"
+         aria-label="Messages application"
+       >
       
       {/* Sidebar - visible on desktop or when mobile view is 'sidebar' */}
       <div 
