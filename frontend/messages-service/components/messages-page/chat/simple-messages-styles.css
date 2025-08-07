@@ -8,6 +8,8 @@
   flex-direction: column;
   /* Enable container queries */
   container-type: inline-size;
+  /* Prevent layout shifts during scroll */
+  will-change: scroll-position;
 }
 
 .simple-messages-list {
@@ -28,6 +30,10 @@
   /* Better mobile scrolling */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  /* Stabilize layout during scroll */
+  backface-visibility: hidden;
+  /* Prevent subpixel rendering issues */
+  transform: translateZ(0);
 }
 
 /* Simple Message Item - Pure CSS layout */
@@ -44,8 +50,11 @@
   margin-bottom: clamp(0.5rem, 1vw, 1rem);
   /* Ensure container stays within bounds */
   box-sizing: border-box;
-  /* Performance optimization */
+  /* Performance optimization - prevent layout shifts */
   contain: layout style;
+  /* Stabilize during scroll */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Remove margin from the last message */
@@ -53,7 +62,7 @@
   margin-bottom: 0;
 }
 
-/* Message wrapper natural sizing */
+/* Message wrapper natural sizing - Override conflicting styles */
 .simple-message-container .message-wrapper {
   /* CSS flexbox layout */
   display: flex;
@@ -67,31 +76,40 @@
   min-height: fit-content;
   /* Ensure wrapper respects container bounds */
   box-sizing: border-box;
-  /* No overflow */
+  /* Prevent overflow issues */
   overflow: visible;
+  /* Stabilize layout */
+  position: relative;
+  transform: translateZ(0);
 }
 
-/* User message alignment */
+/* User message alignment - Override general styles */
 .simple-message-container .message-wrapper.user-message {
   justify-content: flex-end;
   margin-left: auto;
+  margin-right: 0;
   max-width: min(80%, 45rem);
+  /* Ensure proper alignment */
+  flex-direction: row;
 }
 
-/* Other message alignment */
+/* Other message alignment - Override general styles */
 .simple-message-container .message-wrapper.other-message {
   justify-content: flex-start;
   margin-right: auto;
+  margin-left: 0;
   max-width: min(80%, 45rem);
+  /* Ensure proper alignment */
+  flex-direction: row;
 }
 
-/* Message bubble CSS-based sizing */
+/* Message bubble CSS-based sizing - Override conflicting styles */
 .simple-message-container .message-bubble {
   /* Natural content-based sizing */
   width: fit-content;
   height: auto;
   min-height: fit-content;
-  max-width: 100%;
+  max-width: calc(100% - clamp(2rem, 4vw, 3rem)); /* Account for avatar space */
   /* Content-based layout */
   display: flex;
   flex-direction: column;
@@ -108,8 +126,24 @@
   /* Ensure bubble stays within bounds */
   box-sizing: border-box;
   overflow: hidden;
-  /* Layout containment */
+  /* Layout containment and stability */
   contain: layout style;
+  position: relative;
+  /* Stabilize during scroll */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Other bubble styling */
+.simple-message-container .other-bubble {
+  background: white;
+  border-color: #e5e7eb;
+}
+
+/* User bubble styling */
+.simple-message-container .user-bubble {
+  background: #3b82f6;
+  border-color: #2563eb;
 }
 
 /* Message text natural sizing */
@@ -125,6 +159,19 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  /* Stabilize text rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Text color for other messages */
+.simple-message-container .other-bubble .message-text {
+  color: #1f2937;
+}
+
+/* Text color for user messages */
+.simple-message-container .user-bubble .message-text {
+  color: white;
 }
 
 /* Message footer layout */
@@ -136,6 +183,44 @@
   margin-top: auto;
   /* Natural height */
   height: auto;
+  min-height: fit-content;
+  /* Prevent layout shifts */
+  position: relative;
+}
+
+/* Message timestamp */
+.simple-message-container .message-timestamp {
+  font-size: clamp(0.6875rem, 1.3vw, 0.875rem);
+  line-height: 1.33;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Timestamp colors */
+.simple-message-container .other-bubble .message-timestamp {
+  color: #6b7280;
+}
+
+.simple-message-container .user-bubble .message-timestamp {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Message status */
+.simple-message-container .message-status {
+  font-size: clamp(0.6875rem, 1.3vw, 0.875rem);
+  font-weight: bold;
+  font-family: 'Inter', sans-serif;
+  transition: color 0.3s ease;
+}
+
+/* Avatar styling to prevent layout shifts */
+.simple-message-container .message-avatar {
+  flex-shrink: 0;
+  width: clamp(1.75rem, 3vw, 2rem);
+  height: clamp(1.75rem, 3vw, 2rem);
+  border-radius: 50%;
+  /* Prevent layout shifts */
+  position: relative;
+  transform: translateZ(0);
 }
 
 /* Responsive scrollbar for simple list */
@@ -156,6 +241,21 @@
 
 .simple-messages-list::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Performance optimizations for scrolling */
+.simple-messages-list * {
+  /* Prevent unnecessary repaints during scroll */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Ensure message menu doesn't interfere with layout */
+.simple-message-container .message-menu {
+  position: absolute;
+  z-index: 10;
+  /* Prevent it from affecting layout flow */
+  pointer-events: auto;
 }
 
 /* Large Desktop (1200px+) */

@@ -39,9 +39,8 @@
   width: 100%;
   /* Ensure messages never overflow horizontally */
   box-sizing: border-box;
-  /* Fix for scroll movement */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  /* Stabilize layout during scroll */
+  backface-visibility: hidden;
 }
 
 /* Simple messages area - natural CSS layout */
@@ -106,9 +105,8 @@
   overflow: hidden;
   /* Prevent any overflow outside container */
   contain: layout style;
-  /* Fix for scroll movement */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  /* Stabilize during scroll */
+  position: relative;
 }
 
 .other-bubble {
@@ -132,9 +130,8 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  /* Fix for scroll movement */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  /* Stabilize text rendering */
+  text-rendering: optimizeLegibility;
 }
 
 .other-bubble .message-text {
