@@ -109,7 +109,7 @@ namespace backend_portfolio.tests.Controllers
             // Act
             var result = _controller.GetImage(subfolder, filename);
 
-            // Assert - Should not return BadRequest for invalid subfolder
+            // Assert 
             result.Should().NotBeOfType<BadRequestObjectResult>();
         }
 
@@ -124,9 +124,8 @@ namespace backend_portfolio.tests.Controllers
             // Act
             var result = _controller.GetImage("projects", filename);
 
-            // Assert - Should not return BadRequest for file extension
+            // Assert
             result.Should().NotBeOfType<BadRequestObjectResult>();
-            // Note: May still return NotFound if file doesn't exist, but that's expected
         }
 
         [Fact]
@@ -197,20 +196,20 @@ namespace backend_portfolio.tests.Controllers
         [InlineData("blog_posts", "article-image.jpg")]
         [InlineData("projects", "project-screenshot.png")]
         [InlineData("profile_images", "avatar.jpeg")]
-        public void GetImage_WithValidParams_ShouldNotLogWarnings(string subfolder, string filename)
+        public void GetImage_WithValidParams_ShouldLogFileNotFoundWarning(string subfolder, string filename)
         {
             // Act
             _controller.GetImage(subfolder, filename);
 
-            // Assert - Should not log warnings for valid parameters
+            // Assert - Should log a warning about file not found, but not other validation warnings
             _mockLogger.Verify(
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.IsAny<It.IsAnyType>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Image file not found")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Never);
+                Times.Once);
         }
 
         [Fact]

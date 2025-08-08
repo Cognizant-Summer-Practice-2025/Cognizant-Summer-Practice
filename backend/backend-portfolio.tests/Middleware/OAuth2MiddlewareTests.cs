@@ -283,7 +283,7 @@ namespace backend_portfolio.tests.Middleware
         {
             // Arrange
             var context = CreateHttpContext();
-            context.Request.Path = "/";  // Public endpoint
+            context.Request.Path = "/"; 
             
             _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
                 .Returns(Task.CompletedTask);
@@ -291,8 +291,8 @@ namespace backend_portfolio.tests.Middleware
             // Act
             await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
             
-            // Simulate response start to trigger OnStarting callback
-            await context.Response.StartAsync();
+            // Trigger the OnStarting callbacks by writing to the response
+            await context.Response.WriteAsync("test");
 
             // Assert
             context.Response.Headers.Should().ContainKey("Cross-Origin-Resource-Policy");

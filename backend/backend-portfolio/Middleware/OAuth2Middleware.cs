@@ -54,7 +54,7 @@ namespace backend_portfolio.Middleware
                 !string.IsNullOrEmpty(authHeader), 
                 authHeader?.Substring(0, Math.Min(20, authHeader?.Length ?? 0)) + "..." ?? "null");
             
-            if (authHeader == null || !authHeader.StartsWith("Bearer "))
+            if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogWarning("🔐 Middleware: Unauthorized request to {Method} {Path}: Missing or invalid Authorization header", method, path);
                 context.Response.StatusCode = 401;
@@ -62,7 +62,7 @@ namespace backend_portfolio.Middleware
                 return;
             }
 
-            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var token = authHeader.Substring(7).Trim(); // "Bearer ".Length is 7
             _logger.LogInformation("🔐 Middleware: Extracted token length: {TokenLength}", token.Length);
             
             if (string.IsNullOrEmpty(token))

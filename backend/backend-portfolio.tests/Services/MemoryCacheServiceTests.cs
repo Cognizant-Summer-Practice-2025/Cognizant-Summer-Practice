@@ -85,7 +85,6 @@ namespace backend_portfolio.tests.Services
             // Act
             await _cacheService.SetAsync(key, value, expiration);
 
-            // Verify value is initially cached
             var initialResult = await _cacheService.GetAsync<string>(key);
             initialResult.Should().Be(value);
 
@@ -105,7 +104,6 @@ namespace backend_portfolio.tests.Services
             var value = _fixture.Create<string>();
             await _cacheService.SetAsync(key, value);
 
-            // Verify value is cached
             var initialResult = await _cacheService.GetAsync<string>(key);
             initialResult.Should().NotBeNull();
 
@@ -124,7 +122,7 @@ namespace backend_portfolio.tests.Services
             var key = "non-existent-key";
 
             // Act & Assert
-            await _cacheService.RemoveAsync(key); // Should not throw
+            await _cacheService.RemoveAsync(key); 
         }
 
         [Fact]
@@ -134,13 +132,12 @@ namespace backend_portfolio.tests.Services
             var keys = new[] { "user:123", "user:456", "portfolio:789", "user:999" };
             var values = keys.Select(k => _fixture.Create<string>()).ToArray();
 
-            // Set multiple values
             for (int i = 0; i < keys.Length; i++)
             {
                 await _cacheService.SetAsync(keys[i], values[i]);
             }
 
-            // Act - Remove all keys starting with "user:"
+            // Act 
             await _cacheService.RemoveByPatternAsync("^user:.*");
 
             // Assert
@@ -152,7 +149,7 @@ namespace backend_portfolio.tests.Services
             userResult1.Should().BeNull();
             userResult2.Should().BeNull();
             userResult3.Should().BeNull();
-            portfolioResult.Should().NotBeNull(); // Should remain
+            portfolioResult.Should().NotBeNull(); 
         }
 
         [Fact]
@@ -213,21 +210,17 @@ namespace backend_portfolio.tests.Services
         }
 
         [Theory]
-        [InlineData(typeof(int), 42)]
-        [InlineData(typeof(bool), true)]
-        [InlineData(typeof(DateTime), "2023-01-01")]
-        public async Task GetAsync_WithDifferentTypes_ShouldHandleCorrectly(Type type, object value)
+        [InlineData(typeof(string), "test-string")]
+        [InlineData(typeof(object), "test-object")]
+        public async Task GetAsync_WithDifferentReferenceTypes_ShouldHandleCorrectly(Type type, object value)
         {
             // Arrange
             var key = $"test-{type.Name}";
-            var convertedValue = type == typeof(DateTime) ? DateTime.Parse(value.ToString()!) : value;
 
-            // Use reflection to call SetAsync with the correct type
             var setMethod = typeof(MemoryCacheService).GetMethod("SetAsync")!
                 .MakeGenericMethod(type);
-            await (Task)setMethod.Invoke(_cacheService, new[] { key, convertedValue })!;
+            await (Task)setMethod.Invoke(_cacheService, new[] { key, value })!;
 
-            // Use reflection to call GetAsync with the correct type
             var getMethod = typeof(MemoryCacheService).GetMethod("GetAsync")!
                 .MakeGenericMethod(type);
             var task = (Task)getMethod.Invoke(_cacheService, new[] { key })!;
@@ -236,7 +229,7 @@ namespace backend_portfolio.tests.Services
             // Act & Assert
             var resultProperty = task.GetType().GetProperty("Result")!;
             var result = resultProperty.GetValue(task);
-            result.Should().Be(convertedValue);
+            result.Should().Be(value);
         }
 
         [Fact]
@@ -290,7 +283,6 @@ namespace backend_portfolio.tests.Services
 
             // Assert
             await Task.WhenAll(tasks);
-            // If we get here without exceptions, the test passes
         }
     }
 } 

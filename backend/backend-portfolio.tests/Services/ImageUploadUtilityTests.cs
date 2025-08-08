@@ -30,8 +30,24 @@ namespace backend_portfolio.tests.Services
             fileMock.Setup(f => f.FileName).Returns(fileName);
             fileMock.Setup(f => f.ContentType).Returns(contentType);
             fileMock.Setup(f => f.Length).Returns(length);
-            fileMock.Setup(f => f.OpenReadStream()).Returns(new MemoryStream());
+            
+            // Create proper image magic bytes based on content type
+            var imageData = CreateMockImageData(contentType);
+            fileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(imageData));
+            
             return fileMock;
+        }
+
+        private static byte[] CreateMockImageData(string contentType)
+        {
+            return contentType.ToLower() switch
+            {
+                "image/jpeg" => new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01 }, // JPEG magic bytes
+                "image/png" => new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D }, // PNG magic bytes
+                "image/gif" => new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00 }, // GIF89a magic bytes
+                "image/webp" => new byte[] { 0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50 }, // WebP magic bytes
+                _ => new byte[] { 0x00, 0x00, 0x00, 0x00 } // Invalid magic bytes for unsupported types
+            };
         }
 
         [Fact]
@@ -115,8 +131,7 @@ namespace backend_portfolio.tests.Services
             // Act
             var result = _service.DeleteImage(fileName);
 
-            // Assert - Since file doesn't actually exist, this will return false
-            // But we're testing that the method executes without throwing
+            // Assert 
             result.Should().BeFalse();
         }
 
@@ -210,7 +225,7 @@ namespace backend_portfolio.tests.Services
             var formFile = CreateMockFormFile("test.jpg", "image/jpeg");
             var subfolder = "invalid_folder";
 
-            // Act - Should not throw, as the method creates the directory if it doesn't exist
+            // Act 
             var result = await _service.SaveImageAsync(formFile.Object, subfolder);
 
             // Assert

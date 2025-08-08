@@ -30,7 +30,15 @@ namespace backend_portfolio.tests.Controllers
             _controller = new BookmarkController(
                 _mockBookmarkRepository.Object,
                 _mockLogger.Object);
+            
             _fixture = new Fixture();
+            // Configure AutoFixture to handle circular references
+            _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+                .ForEach(b => _fixture.Behaviors.Remove(b));
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.Now.AddDays(-new Random().Next(0, 3650))));
         }
 
         [Fact]
