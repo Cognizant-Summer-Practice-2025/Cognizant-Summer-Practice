@@ -74,8 +74,8 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
 
-builder.Services.AddScoped<PortfolioMapper>();
-builder.Services.AddScoped<ProjectMapper>();
+builder.Services.AddScoped<IPortfolioMapper, PortfolioMapper>();
+builder.Services.AddScoped<IProjectMapper, ProjectMapper>();
 
 builder.Services.AddScoped<IValidationService<PortfolioCreateRequest>, PortfolioValidator>();
 builder.Services.AddScoped<IValidationService<PortfolioUpdateRequest>, PortfolioUpdateValidator>();

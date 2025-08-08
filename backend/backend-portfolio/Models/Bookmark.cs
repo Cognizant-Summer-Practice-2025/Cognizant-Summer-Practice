@@ -1,20 +1,28 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend_portfolio.Models.Validation;
 
 namespace backend_portfolio.Models
 {
     [Table("bookmarks")]
     public class Bookmark
     {
+        public Bookmark()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }
 
         [Required]
+        [NotEmptyGuid]
         [Column("user_id")]
         public Guid UserId { get; set; }
 
         [Required]
+        [NotEmptyGuid]
         [Column("portfolio_id")]
         public Guid PortfolioId { get; set; }
 

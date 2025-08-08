@@ -6,6 +6,11 @@ namespace backend_portfolio.Models
     [Table("experience")]
     public class Experience
     {
+        public Experience()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }

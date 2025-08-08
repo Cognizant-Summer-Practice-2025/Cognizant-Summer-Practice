@@ -6,6 +6,11 @@ namespace backend_portfolio.Models
     [Table("blog_posts")]
     public class BlogPost
     {
+        public BlogPost()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }

@@ -75,19 +75,29 @@ namespace backend_portfolio.Middleware
 
             // Validate the access token via user service
             _logger.LogInformation("🔐 Middleware: Validating token with user service...");
-            var principal = await userAuthService.ValidateTokenAsync(token);
-            if (principal == null)
+            try
             {
-                _logger.LogWarning("🔐 Middleware: Unauthorized request to {Method} {Path}: Invalid or expired access token", method, path);
+                var principal = await userAuthService.ValidateTokenAsync(token);
+                if (principal == null)
+                {
+                    _logger.LogWarning("🔐 Middleware: Unauthorized request to {Method} {Path}: Invalid or expired access token", method, path);
+                    context.Response.StatusCode = 401;
+                    await context.Response.WriteAsync("Unauthorized: Invalid or expired access token");
+                    return;
+                }
+
+                // Add user information to the context
+                _logger.LogInformation("🔐 Middleware: Token validated successfully for user: {UserId}", 
+                    principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                context.User = principal;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🔐 Middleware: Error validating token for {Method} {Path}", method, path);
                 context.Response.StatusCode = 401;
-                await context.Response.WriteAsync("Unauthorized: Invalid or expired access token");
+                await context.Response.WriteAsync("Unauthorized: Token validation failed");
                 return;
             }
-
-            // Add user information to the context
-            _logger.LogInformation("🔐 Middleware: Token validated successfully for user: {UserId}", 
-                principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
-            context.User = principal;
 
             await _next(context);
         }

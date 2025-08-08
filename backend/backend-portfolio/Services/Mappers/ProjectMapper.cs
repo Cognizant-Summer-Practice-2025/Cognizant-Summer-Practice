@@ -20,7 +20,7 @@ using backend_portfolio.Services.Abstractions;
 
 namespace backend_portfolio.Services.Mappers
 {
-    public class ProjectMapper : IEntityMapper<Project, ProjectCreateRequest, ProjectResponse, ProjectUpdateRequest>
+    public class ProjectMapper : IProjectMapper
     {
         public ProjectResponse MapToResponseDto(Project entity)
         {

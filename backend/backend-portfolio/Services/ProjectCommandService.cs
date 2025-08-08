@@ -26,14 +26,14 @@ namespace backend_portfolio.Services
         private readonly IProjectRepository _projectRepository;
         private readonly IValidationService<ProjectCreateRequest> _projectValidator;
         private readonly IValidationService<ProjectUpdateRequest> _projectUpdateValidator;
-        private readonly ProjectMapper _projectMapper;
+        private readonly IProjectMapper _projectMapper;
         private readonly ILogger<ProjectCommandService> _logger;
 
         public ProjectCommandService(
             IProjectRepository projectRepository,
             IValidationService<ProjectCreateRequest> projectValidator,
             IValidationService<ProjectUpdateRequest> projectUpdateValidator,
-            ProjectMapper projectMapper,
+            IProjectMapper projectMapper,
             ILogger<ProjectCommandService> logger)
         {
             _projectRepository = projectRepository;
@@ -83,6 +83,11 @@ namespace backend_portfolio.Services
         {
             try
             {
+                // First check if the project exists
+                var existingProject = await _projectRepository.GetProjectByIdAsync(id);
+                if (existingProject == null)
+                    return false;
+
                 return await _projectRepository.DeleteProjectAsync(id);
             }
             catch (Exception ex)

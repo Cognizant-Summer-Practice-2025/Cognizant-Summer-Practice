@@ -20,7 +20,7 @@ using backend_portfolio.Services.Abstractions;
 
 namespace backend_portfolio.Services.Mappers
 {
-    public class PortfolioMapper : IEntityMapper<Portfolio, PortfolioCreateRequest, PortfolioResponse, PortfolioUpdateRequest>
+    public class PortfolioMapper : IPortfolioMapper
     {
         public PortfolioResponse MapToResponseDto(Portfolio entity)
         {

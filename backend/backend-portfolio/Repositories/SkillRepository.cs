@@ -47,6 +47,9 @@ namespace backend_portfolio.Repositories
 
         public async Task<Skill> CreateSkillAsync(SkillCreateRequest request)
         {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
             var skill = new Skill
             {
                 Id = Guid.NewGuid(),

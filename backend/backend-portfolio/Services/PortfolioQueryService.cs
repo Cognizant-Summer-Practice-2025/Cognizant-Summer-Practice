@@ -25,7 +25,7 @@ namespace backend_portfolio.Services
         private readonly IPortfolioTemplateRepository _templateRepository;
         private readonly IExternalUserService _externalUserService;
         private readonly ICacheService _cacheService;
-        private readonly PortfolioMapper _portfolioMapper;
+        private readonly IPortfolioMapper _portfolioMapper;
         private readonly ILogger<PortfolioQueryService> _logger;
 
         public PortfolioQueryService(
@@ -38,7 +38,7 @@ namespace backend_portfolio.Services
             IPortfolioTemplateRepository templateRepository,
             IExternalUserService externalUserService,
             ICacheService cacheService,
-            PortfolioMapper portfolioMapper,
+            IPortfolioMapper portfolioMapper,
             ILogger<PortfolioQueryService> logger)
         {
             _portfolioRepository = portfolioRepository;

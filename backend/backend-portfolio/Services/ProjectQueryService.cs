@@ -16,12 +16,12 @@ namespace backend_portfolio.Services
     public class ProjectQueryService : IProjectQueryService
     {
         private readonly IProjectRepository _projectRepository;
-        private readonly ProjectMapper _projectMapper;
+        private readonly IProjectMapper _projectMapper;
         private readonly ILogger<ProjectQueryService> _logger;
 
         public ProjectQueryService(
             IProjectRepository projectRepository,
-            ProjectMapper projectMapper,
+            IProjectMapper projectMapper,
             ILogger<ProjectQueryService> logger)
         {
             _projectRepository = projectRepository;
