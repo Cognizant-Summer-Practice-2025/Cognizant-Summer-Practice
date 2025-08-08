@@ -94,9 +94,7 @@ const MessagesPage = () => {
           const parsed = JSON.parse(saved);
           return new Map(Object.entries(parsed));
         }
-      } catch (error) {
-        console.warn('Failed to load enhanced contacts from localStorage:', error);
-      }
+      } catch {}
     }
     return new Map();
   });
@@ -138,7 +136,6 @@ const MessagesPage = () => {
     const date = new Date(dateString);
     
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date string:', dateString);
       return 'Now';
     }
     
@@ -158,14 +155,12 @@ const MessagesPage = () => {
 
   const formatMessageTimestamp = (dateString: string): string => {
     if (!dateString || dateString.trim() === '') {
-      console.warn('formatMessageTimestamp received empty string, this should not happen');
       dateString = new Date().toISOString();
     }
     
     const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
     
     if (isNaN(utcDate.getTime())) {
-      console.warn('Invalid date string:', dateString);
       return formatMessageTimestamp(new Date().toISOString());
     }
     
@@ -271,10 +266,6 @@ const MessagesPage = () => {
       const currentConv = conversations.find(conv => conv.id === selectedContact.id);
       if (currentConv) {
         const updatedContact = getEnhancedContact(currentConv);
-        console.log(`Updating selectedContact for ${updatedContact.name}:`, {
-          isOnline: updatedContact.isOnline,
-          conversationOnline: currentConv.isOnline
-        });
         setSelectedContact(prev => ({
           ...prev!,
           isOnline: updatedContact.isOnline,

@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Store user data in global storage
     global.messagesServiceUserStorage.set(userData.email, merged);
 
-    console.log(`User ${userData.email} injected into messages-service`);
+    
 
     return NextResponse.json({ 
       success: true, 

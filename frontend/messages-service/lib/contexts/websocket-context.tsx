@@ -104,43 +104,36 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
           skipNegotiation: false, // Let SignalR negotiate the best transport
         })
         .withAutomaticReconnect([0, 2000, 10000, 30000]) // Retry delays in ms
-        .configureLogging(signalR.LogLevel.Information) // Reduce logging verbosity
+        .configureLogging(signalR.LogLevel.None) // Disable SignalR internal logging in client
         .build();
 
       // Set up event handlers
       newConnection.on('ReceiveMessage', (message: Message) => {
-        console.log('Received message via SignalR:', message);
         messageCallbacks.current.forEach(callback => callback(message));
       });
 
       newConnection.on('ConversationUpdated', (update: ConversationUpdate) => {
-        console.log('Conversation updated via SignalR:', update);
         conversationCallbacks.current.forEach(callback => callback(update));
       });
 
       newConnection.on('UserPresenceUpdate', (update: UserPresenceUpdate) => {
-        console.log('User presence updated via SignalR:', update);
         presenceCallbacks.current.forEach(callback => callback(update));
       });
 
       newConnection.on('MessageRead', (receipt: MessageReadReceipt) => {
-        console.log('Message read receipt via SignalR:', receipt);
         messageReadCallbacks.current.forEach(callback => callback(receipt));
       });
 
       newConnection.on('MessageDeleted', (deletion: MessageDeleted) => {
-        console.log('Message deleted via SignalR:', deletion);
         messageDeletedCallbacks.current.forEach(callback => callback(deletion));
       });
 
       // Handle connection events
       newConnection.onreconnecting((error) => {
-        console.log('SignalR reconnecting:', error);
         setIsConnected(false);
       });
 
       newConnection.onreconnected((connectionId) => {
-        console.log('SignalR reconnected:', connectionId);
         setIsConnected(true);
         // Rejoin user group after reconnection
         if (user?.id) {
@@ -150,24 +143,23 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       });
 
       newConnection.onclose((error) => {
-        console.log('SignalR connection closed:', error);
         setIsConnected(false);
         setIsConnecting(false);
       });
 
       // Start the connection
       await newConnection.start();
-      console.log('SignalR connected successfully');
+      
 
       // Join user group
-      console.log(`Attempting to join user group for user ID: ${user.id}`);
+      
       await newConnection.invoke('JoinUserGroup', user.id.toString());
-      console.log(`Successfully joined user group: ${user.id}`);
+      
 
       setConnection(newConnection);
       setIsConnected(true);
     } catch (error) {
-      console.warn('SignalR connection failed - please ensure messages backend is running:', error instanceof Error ? error.message : error);
+      // keep silent in UI; errors remain actionable via catch sites
       // For messages service, SignalR is more important but still not critical
       // The service can function in read-only mode without real-time updates
     } finally {
@@ -259,7 +251,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     }
     try {
       await connection.invoke('MarkMessageAsRead', messageId, userId);
-      console.log(`Message with ID ${messageId} marked as read by user ${userId}`);
+              
     } catch (error) {
       console.error('Error marking message as read:', error);
     }

@@ -18,7 +18,6 @@ export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {
   try {
     return await authenticatedClient.get<SearchUser[]>(`${MESSAGES_API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`);
   } catch (error) {
-    console.error('Error searching users:', error);
     throw error;
   }
 }
@@ -42,7 +41,6 @@ export async function checkUserExists(email: string): Promise<CheckEmailResponse
 
     return await response.json();
   } catch (error) {
-    console.error('Error checking user existence:', error);
     throw error;
   }
 }
@@ -65,7 +63,6 @@ export async function registerUser(userData: RegisterUserRequest): Promise<User>
 
     return await response.json();
   } catch (error) {
-    console.error('Error registering user:', error);
     throw error;
   }
 }
@@ -89,7 +86,6 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 
     return await response.json();
   } catch (error) {
-    console.error('Error getting user by email:', error);
     throw error;
   }
 }
@@ -117,7 +113,6 @@ export async function registerOAuthUser(userData: RegisterOAuthUserRequest): Pro
 
     return await response.json();
   } catch (error) {
-    console.error('Error registering OAuth user:', error);
     throw error;
   }
 }
@@ -148,7 +143,6 @@ export async function checkOAuthProvider(provider: string, providerId: string): 
 
     return await response.json();
   } catch (error) {
-    console.error('Error checking OAuth provider:', error);
     throw error;
   }
 }
@@ -169,7 +163,6 @@ export async function checkUserOAuthProvider(userId: string, provider: 'Google' 
 
     return await response.json();
   } catch (error) {
-    console.error('Error checking user OAuth provider:', error);
     throw error;
   }
 }
@@ -196,7 +189,6 @@ export async function updateOAuthProvider(providerId: string, updateData: {
 
     return await response.json();
   } catch (error) {
-    console.error('Error updating OAuth provider:', error);
     throw error;
   }
 }
@@ -217,7 +209,6 @@ export async function getUserOAuthProviders(userId: string): Promise<OAuthProvid
 
     return await response.json();
   } catch (error) {
-    console.error('Error getting user OAuth providers:', error);
     throw error;
   }
 }
@@ -248,7 +239,6 @@ export async function addOAuthProvider(oauthData: {
 
     return await response.json();
   } catch (error) {
-    console.error('Error adding OAuth provider:', error);
     throw error;
   }
 }
@@ -267,7 +257,6 @@ export async function removeOAuthProvider(providerId: string): Promise<void> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
   } catch (error) {
-    console.error('Error removing OAuth provider:', error);
     throw error;
   }
 }
@@ -284,7 +273,6 @@ export async function updateUser(userId: string, userData: {
   try {
     return await authenticatedClient.put<User>(`${API_BASE_URL}/api/users/${userId}`, userData);
   } catch (error) {
-    console.error('Error updating user:', error);
     throw error;
   }
 }
@@ -300,7 +288,6 @@ export async function reportUser(userId: string, reportedByUserId: string, reaso
       }
     );
   } catch (error) {
-    console.error('Error reporting user:', error);
     throw error;
   }
 }

@@ -32,14 +32,9 @@ export class AuthenticatedClient {
           if (response.ok) {
             const userData: InjectedUserData = await response.json();
             const token = userData.accessToken || null;
-            if (token) {
-              console.log('[AuthClient] token from /api/user/get:', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
-            } else {
-              console.log('[AuthClient] no token in /api/user/get payload');
-            }
+            // token found
             return token;
           }
-          console.log('[AuthClient] /api/user/get not ok:', response.status);
         } catch {
           // ignore
         }
@@ -52,17 +47,12 @@ export class AuthenticatedClient {
       if (userStorage && userStorage.size > 0) {
         const userData = Array.from(userStorage.values())[0] as InjectedUserData;
         const token = userData.accessToken || null;
-        if (token) {
-          console.log('[AuthClient] token from global storage (server):', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
-        } else {
-          console.log('[AuthClient] no token in global storage');
-        }
+        // token from server-side storage
         return token;
       }
 
       return null;
-    } catch (error) {
-      console.error('Error getting auth token:', error);
+    } catch {
       return null;
     }
   }
@@ -89,11 +79,10 @@ export class AuthenticatedClient {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const perform = async (attempt: number): Promise<Response> => {
+    const perform = async (): Promise<Response> => {
       const token = await this.getAuthToken();
       if (!token) throw new Error('Authentication required');
-      const method = (options.method || 'GET').toUpperCase();
-      console.log('[AuthClient]', method, url, 'attempt', attempt, 'Header token:', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
+      // const method = (options.method || 'GET').toUpperCase();
       return fetch(url, {
         ...options,
         headers: {
@@ -105,16 +94,14 @@ export class AuthenticatedClient {
     };
 
     // First attempt
-    let response = await perform(1);
+    let response = await perform();
 
     // If unauthorized, wait briefly, refresh token and retry once
     if (response.status === 401) {
-      console.warn('[AuthClient] 401 on first attempt, retrying after short wait');
       await new Promise(r => setTimeout(r, 600));
-      response = await perform(2);
+      response = await perform();
       if (response.status === 401) {
         localStorage.removeItem('auth_token');
-        console.error('[AuthClient] 401 on second attempt, giving up');
         throw new Error('Authentication required');
       }
     }

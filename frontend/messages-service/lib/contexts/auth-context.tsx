@@ -90,9 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Server says no user – clear any stale local session
           localStorage.removeItem('sso_session');
         }
-      } catch {
-        // Network errors: do not auto-login from local session to avoid stale auth
-      }
+      } catch {}
 
       // Default to unauthenticated when server has no user or on error
       setIsAuthenticated(false);

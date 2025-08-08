@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Store user data in global memory
     global.adminServiceUserStorage.set(userData.email, merged);
 
-    console.log(`User ${userData.email} injected into admin-service`);
+    
 
     return NextResponse.json({ 
       success: true, 

@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Store user data in global storage
     global.homePortfolioServiceUserStorage.set(userData.email, merged);
 
-    console.log(`User ${userData.email} injected into home-portfolio-service`);
+    
 
     return NextResponse.json({ 
       success: true, 
