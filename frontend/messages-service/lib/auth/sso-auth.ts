@@ -39,8 +39,8 @@ export async function createLocalSession(tokenPayload: SSOTokenPayload): Promise
     const sessionData = {
       email: tokenPayload.email,
       userId: tokenPayload.userId,
-          timestamp: new Date().getTime(),
-    expires: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 hours
+      timestamp: new Date().getTime(),
+      expires: new Date().getTime() + (24 * 60 * 60 * 1000) // 24 hours
     };
     
     localStorage.setItem('sso_session', JSON.stringify(sessionData));

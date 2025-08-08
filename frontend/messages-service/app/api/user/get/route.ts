@@ -1,22 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-interface ServiceUserData {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  professionalTitle?: string;
-  bio?: string;
-  location?: string;
-  profileImage?: string;
-  isActive: boolean;
-  isAdmin: boolean;
-  lastLoginAt?: string;
-}
-
+// Reference to the same storage used in inject/remove
 declare global {
-  var messagesServiceUserStorage: Map<string, ServiceUserData>;
+  var messagesServiceUserStorage: Map<string, any>;
 }
 
 if (!global.messagesServiceUserStorage) {
@@ -24,61 +10,28 @@ if (!global.messagesServiceUserStorage) {
 }
 
 /**
- * Get current user email from request parameters
- */
-function getCurrentUserEmail(request: NextRequest): string | null {
-  try {
-    const url = new URL(request.url);
-    
-    const userEmail = url.searchParams.get('userEmail');
-    if (userEmail) {
-      console.log('Found userEmail parameter:', userEmail);
-      return userEmail;
-    }
-    
-    const userId = url.searchParams.get('userId');
-    if (userId) {
-      console.log('Found userId parameter:', userId);
-      for (const [email, user] of global.messagesServiceUserStorage.entries()) {
-        if (user.id === userId) {
-          return email;
-        }
-      }
-    }
-    
-    console.log('No user identification found in request');
-    return null;
-  } catch (error) {
-    console.error('Error extracting user from request:', error);
-    return null;
-  }
-}
-
-/**
- * Get user data from this service with session-based identification
+ * Get user data from this service
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check if there's any user data stored
     if (global.messagesServiceUserStorage.size === 0) {
       return NextResponse.json({ error: 'No user data found' }, { status: 404 });
     }
 
-    const currentUserEmail = getCurrentUserEmail(request);
-    let userData: ServiceUserData | null = null;
-
-    if (currentUserEmail) {
-      userData = global.messagesServiceUserStorage.get(currentUserEmail) || null;
-    } else {
-      return NextResponse.json({ error: 'No user identification provided' }, { status: 401 });
-    }
+    // For now, return the first (and should be only) user
+    // In a multi-user scenario, this would need session-based identification
+    const userData = Array.from(global.messagesServiceUserStorage.values())[0];
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Transform profileImage to avatarUrl for compatibility with User interface
     const transformedUserData = {
       ...userData,
       avatarUrl: userData.profileImage,
+      // Remove profileImage to avoid confusion
       profileImage: undefined
     };
 

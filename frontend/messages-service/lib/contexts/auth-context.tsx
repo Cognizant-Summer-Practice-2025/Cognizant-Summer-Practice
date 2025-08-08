@@ -74,8 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 await createLocalSession({
                   email: userData.email,
                   userId: userData.id,
-                  timestamp: Date.now(),
-                  exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+                  timestamp: Date.now()
                 });
                 setIsAuthenticated(true);
                 setUserEmail(userData.email);
@@ -111,12 +110,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAuthentication();
 
-    // Set up periodic check for user injection (every 30 seconds)
+    // Set up periodic check for user injection (every 15 seconds)
     const intervalId = setInterval(() => {
       if (!isAuthenticated) {
         checkAuthentication();
       }
-    }, 30000);
+    }, 15000);
 
     // Listen for storage events (when user logs out from another tab)
     const handleStorageChange = (event: StorageEvent) => {

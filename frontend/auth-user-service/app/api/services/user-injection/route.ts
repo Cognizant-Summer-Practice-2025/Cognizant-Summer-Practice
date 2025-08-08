@@ -14,6 +14,7 @@ interface ServiceUserData {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: string;
+  accessToken?: string;
 }
 
 /**

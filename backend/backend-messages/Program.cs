@@ -5,6 +5,7 @@ using BackendMessages.Services;
 using BackendMessages.Services.Abstractions;
 using BackendMessages.Repositories;
 using BackendMessages.Hubs;
+using BackendMessages.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,9 @@ builder.Services.AddScoped<IUserSearchService, UserSearchService>();
 builder.Services.AddScoped<IConversationService, ConversationServiceRefactored>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 
+// Add Authentication services
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+
 builder.Services.AddDbContext<MessagesDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("MessagesDatabase")));
 
@@ -41,6 +45,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
 
 app.UseCors(policy => policy
     .WithOrigins(
@@ -53,7 +59,9 @@ app.UseCors(policy => policy
     .AllowAnyHeader()
     .AllowCredentials());
 
-app.UseHttpsRedirection();
+// Use OAuth 2.0 middleware
+app.UseMiddleware<OAuth2Middleware>();
+
 app.UseAuthorization();
 app.MapControllers();
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Hubs;
+using System.Security.Claims;
 
 namespace BackendMessages.Controllers
 {
@@ -23,6 +24,20 @@ namespace BackendMessages.Controllers
         }
 
         /// <summary>
+        /// Gets the authenticated user ID from the current context.
+        /// </summary>
+        /// <returns>The authenticated user ID, or null if not authenticated.</returns>
+        private Guid? GetAuthenticatedUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdClaim, out var userId))
+            {
+                return userId;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Send a message in a conversation
         /// </summary>
         /// <param name="request">Message details</param>
@@ -32,6 +47,18 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user matches sender
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
+                if (authenticatedUserId != request.SenderId)
+                {
+                    return Forbid("You can only send messages as yourself");
+                }
+
                 if (string.IsNullOrWhiteSpace(request.Content))
                 {
                     return BadRequest("Message content cannot be empty");
@@ -154,6 +181,13 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
                 if (page < 1) page = 1;
                 if (pageSize < 1 || pageSize > 100) pageSize = 50;
 
@@ -164,6 +198,12 @@ namespace BackendMessages.Controllers
                 if (conversation == null)
                 {
                     return NotFound("Conversation not found");
+                }
+
+                // Verify user is part of the conversation
+                if (conversation.InitiatorId != authenticatedUserId && conversation.ReceiverId != authenticatedUserId)
+                {
+                    return Forbid("You are not part of this conversation");
                 }
 
                 var skip = (page - 1) * pageSize;

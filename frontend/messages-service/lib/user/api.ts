@@ -8,6 +8,7 @@ import {
   CheckOAuthProviderResponse,
   SearchUser
 } from './interfaces';
+import { authenticatedClient } from '@/lib/authenticated-client';
 
 const API_BASE_URL = 'http://localhost:5200';
 const MESSAGES_API_BASE_URL = 'http://localhost:5093';
@@ -15,18 +16,7 @@ const MESSAGES_API_BASE_URL = 'http://localhost:5093';
 // Search users by username, first name, last name, or full name
 export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {
   try {
-    const response = await fetch(`${MESSAGES_API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    return await authenticatedClient.get<SearchUser[]>(`${MESSAGES_API_BASE_URL}/api/users/search?q=${encodeURIComponent(searchTerm)}`);
   } catch (error) {
     console.error('Error searching users:', error);
     throw error;
@@ -292,20 +282,7 @@ export async function updateUser(userId: string, userData: {
   profileImage?: string;
 }): Promise<User> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    return await authenticatedClient.put<User>(`${API_BASE_URL}/api/users/${userId}`, userData);
   } catch (error) {
     console.error('Error updating user:', error);
     throw error;
@@ -315,23 +292,13 @@ export async function updateUser(userId: string, userData: {
 // Report user
 export async function reportUser(userId: string, reportedByUserId: string, reason: string): Promise<{ message: string; reportId: string; reportedAt: string }> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/report`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    return await authenticatedClient.post<{ message: string; reportId: string; reportedAt: string }>(
+      `${API_BASE_URL}/api/users/${userId}/report`, 
+      {
         reportedByUserId,
         reason,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(errorData || `Failed to report user: ${response.statusText}`);
-    }
-
-    return await response.json();
+      }
+    );
   } catch (error) {
     console.error('Error reporting user:', error);
     throw error;

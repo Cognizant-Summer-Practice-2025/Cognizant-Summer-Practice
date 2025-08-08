@@ -13,6 +13,7 @@ import {
   Bookmark,
   PortfolioTemplate
 } from './interfaces';
+import { authenticatedClient } from '@/lib/authenticated-client';
 
 const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
 const USER_API_BASE_URL = 'http://localhost:5200'; // User service URL
@@ -682,15 +683,7 @@ export async function getPortfolioCardsForHomePage(): Promise<PortfolioCardDto[]
 }
 
 export async function createPortfolio(portfolioData: PortfolioRequestDto): Promise<UserPortfolio> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(portfolioData),
-  });
-  
-  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  const data = await authenticatedClient.post<PortfolioResponseDto>(`${API_BASE_URL}/api/Portfolio`, portfolioData);
   
   return {
     id: data.id,
@@ -709,15 +702,7 @@ export async function createPortfolio(portfolioData: PortfolioRequestDto): Promi
 }
 
 export async function updatePortfolio(portfolioId: string, portfolioData: PortfolioUpdateDto): Promise<UserPortfolio> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(portfolioData),
-  });
-  
-  const data = await handleApiResponse<PortfolioResponseDto>(response);
+  const data = await authenticatedClient.put<PortfolioResponseDto>(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, portfolioData);
   
   return {
     id: data.id,
@@ -736,55 +721,43 @@ export async function updatePortfolio(portfolioId: string, portfolioData: Portfo
 }
 
 export async function deletePortfolio(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}`, {
-    method: 'DELETE',
-  });
-  
-  if (response.status === 204) {
+  try {
+    await authenticatedClient.delete(`${API_BASE_URL}/api/Portfolio/${portfolioId}`);
     return true;
+  } catch (error) {
+    console.error('Error deleting portfolio:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 export async function incrementViewCount(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/view`, {
-    method: 'POST',
-  });
-  
-  if (response.ok) {
+  try {
+    await authenticatedClient.post(`${API_BASE_URL}/api/Portfolio/${portfolioId}/view`, {});
     return true;
+  } catch (error) {
+    console.error('Error incrementing view count:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 export async function incrementLikeCount(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/like`, {
-    method: 'POST',
-  });
-  
-  if (response.ok) {
+  try {
+    await authenticatedClient.post(`${API_BASE_URL}/api/Portfolio/${portfolioId}/like`, {});
     return true;
+  } catch (error) {
+    console.error('Error incrementing like count:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 export async function decrementLikeCount(portfolioId: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/${portfolioId}/unlike`, {
-    method: 'POST',
-  });
-  
-  if (response.ok) {
+  try {
+    await authenticatedClient.post(`${API_BASE_URL}/api/Portfolio/${portfolioId}/unlike`, {});
     return true;
+  } catch (error) {
+    console.error('Error decrementing like count:', error);
+    return false;
   }
-  
-  await handleApiResponse(response);
-  return false;
 }
 
 
@@ -1095,17 +1068,7 @@ export async function getUserPortfolioComprehensive(userId: string): Promise<Use
 export async function createPortfolioAndGetId(portfolioData: PortfolioRequestDto): Promise<string> {
   console.log('📤 API: Creating portfolio with data:', portfolioData);
   
-  const response = await fetch(`${API_BASE_URL}/api/Portfolio/create-and-get-id`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(portfolioData),
-  });
-  
-  console.log('📤 API: Portfolio creation response status:', response.status);
-  
-  const data = await handleApiResponse<{ portfolioId: string }>(response);
+  const data = await authenticatedClient.post<{ portfolioId: string }>(`${API_BASE_URL}/api/Portfolio/create-and-get-id`, portfolioData);
   console.log('📤 API: Portfolio created with ID:', data.portfolioId);
   return data.portfolioId;
 }
