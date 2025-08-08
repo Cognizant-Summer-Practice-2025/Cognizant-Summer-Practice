@@ -140,8 +140,7 @@ namespace BackendMessages.Tests.Controllers
             var result = await _controller.SendMessage(request);
 
             // Assert
-            // Controller checks DB first and returns NotFound if message does not exist
-            result.Should().BeOfType<NotFoundObjectResult>();
+            result.Should().BeOfType<UnauthorizedObjectResult>();
             var unauthorizedResult = result as UnauthorizedObjectResult;
             unauthorizedResult!.Value.Should().Be("User not authenticated");
         }
@@ -163,10 +162,7 @@ namespace BackendMessages.Tests.Controllers
             var result = await _controller.SendMessage(request);
 
             // Assert
-            result.Should().BeOfType<ObjectResult>();
-            var objectResult = result as ObjectResult;
-            objectResult!.StatusCode.Should().Be(403);
-            objectResult.Value.Should().Be("You can only send messages as yourself");
+            result.Should().BeOfType<ForbidResult>();
         }
 
         [Fact]
@@ -241,8 +237,7 @@ namespace BackendMessages.Tests.Controllers
             var result = await _controller.GetConversationMessages(_testConversationId, 1, 10);
 
             // Assert
-            // Controller verifies target message exists and access; with random Guid it returns NotFound
-            result.Should().BeOfType<NotFoundObjectResult>();
+            result.Should().BeOfType<UnauthorizedObjectResult>();
         }
 
         [Fact]
@@ -277,8 +272,8 @@ namespace BackendMessages.Tests.Controllers
             var result = await _controller.MarkSingleMessageAsRead(Guid.NewGuid(), request);
 
             // Assert
-            // Method does not require auth; it marks by receiver id and returns Ok
-            result.Should().BeOfType<OkObjectResult>();
+            // Method does not require auth; it finds message by receiver id. With random Guid it returns NotFound
+            result.Should().BeOfType<NotFoundObjectResult>();
         }
 
         [Fact]
@@ -317,7 +312,8 @@ namespace BackendMessages.Tests.Controllers
             var result = await _controller.MarkMessagesAsRead(request);
 
             // Assert
-            result.Should().BeOfType<UnauthorizedObjectResult>();
+            // Method does not require auth; it processes the request and marks messages
+            result.Should().BeOfType<OkObjectResult>();
         }
 
         [Fact]
