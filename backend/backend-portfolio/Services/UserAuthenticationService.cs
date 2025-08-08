@@ -70,8 +70,8 @@ namespace backend_portfolio.Services
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.NameIdentifier, userInfo.UserId.ToString()),
-                    new(ClaimTypes.Email, userInfo.Email),
-                    new(ClaimTypes.Name, userInfo.Username),
+                    new(ClaimTypes.Email, userInfo.Email ?? string.Empty),
+                    new(ClaimTypes.Name, userInfo.Username ?? string.Empty),
                     new("IsAdmin", userInfo.IsAdmin.ToString())
                 };
 

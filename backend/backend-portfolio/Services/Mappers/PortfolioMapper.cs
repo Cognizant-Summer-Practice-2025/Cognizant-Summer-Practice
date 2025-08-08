@@ -24,6 +24,9 @@ namespace backend_portfolio.Services.Mappers
     {
         public PortfolioResponse MapToResponseDto(Portfolio entity)
         {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
             return new PortfolioResponse
             {
                 Id = entity.Id,
@@ -43,6 +46,9 @@ namespace backend_portfolio.Services.Mappers
 
         public IEnumerable<PortfolioResponse> MapToResponseDtos(IEnumerable<Portfolio> entities)
         {
+            if (entities == null)
+                return Enumerable.Empty<PortfolioResponse>();
+            
             return entities.Select(MapToResponseDto);
         }
 
@@ -74,6 +80,9 @@ namespace backend_portfolio.Services.Mappers
 
         public PortfolioSummaryResponse MapToSummaryDto(Portfolio entity)
         {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
             return new PortfolioSummaryResponse
             {
                 Id = entity.Id,
@@ -101,6 +110,9 @@ namespace backend_portfolio.Services.Mappers
 
         public IEnumerable<PortfolioSummaryResponse> MapToSummaryDtos(IEnumerable<Portfolio> entities)
         {
+            if (entities == null)
+                return Enumerable.Empty<PortfolioSummaryResponse>();
+            
             return entities.Select(MapToSummaryDto);
         }
 

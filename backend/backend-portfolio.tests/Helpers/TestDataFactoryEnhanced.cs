@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
+using AutoFixture.Kernel;
 using backend_portfolio.Models;
 using backend_portfolio.DTO.Portfolio.Request;
 using backend_portfolio.DTO.Portfolio.Response;
@@ -18,10 +19,27 @@ namespace backend_portfolio.tests.Helpers
 
         static TestDataFactoryEnhanced()
         {
-            // Configure AutoFixture to handle circular references
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+    
+            _fixture.Customizations.Add(new DateOnlyGenerator());
+        }
+
+        private class DateOnlyGenerator : ISpecimenBuilder
+        {
+            public object Create(object request, ISpecimenContext context)
+            {
+                if (request is Type type && type == typeof(DateOnly))
+                {
+                    var random = new Random();
+                    var year = random.Next(1900, 2100);
+                    var month = random.Next(1, 13);
+                    var day = random.Next(1, DateTime.DaysInMonth(year, month) + 1);
+                    return new DateOnly(year, month, day);
+                }
+                return new NoSpecimen();
+            }
         }
 
         #region Portfolio Test Data
@@ -47,12 +65,12 @@ namespace backend_portfolio.tests.Helpers
         public static Portfolio CreatePortfolioWithEdgeCases()
         {
             return _fixture.Build<Portfolio>()
-                .With(p => p.Title, new string('A', 255)) // Max length title
-                .With(p => p.Bio, new string('B', 5000)) // Very long bio
+                .With(p => p.Title, new string('A', 255))       
+                .With(p => p.Bio, new string('B', 5000)) 
                 .With(p => p.Visibility, Visibility.Private)
                 .With(p => p.IsPublished, false)
-                .With(p => p.ViewCount, int.MaxValue) // Extreme view count
-                .With(p => p.LikeCount, int.MaxValue) // Extreme like count
+                .With(p => p.ViewCount, int.MaxValue) 
+                .With(p => p.LikeCount, int.MaxValue) 
                 .Without(p => p.Template)
                 .Without(p => p.Projects)
                 .Without(p => p.Experience)
@@ -74,10 +92,10 @@ namespace backend_portfolio.tests.Helpers
         public static PortfolioCreateRequest CreateInvalidPortfolioRequest()
         {
             return _fixture.Build<PortfolioCreateRequest>()
-                .With(r => r.Title, "") // Invalid empty title
-                .With(r => r.Bio, new string('X', 10000)) // Too long bio
-                .With(r => r.UserId, Guid.Empty) // Invalid empty GUID
-                .With(r => r.TemplateName, "") // Invalid empty template name
+                .With(r => r.Title, "") 
+                .With(r => r.Bio, new string('X', 10000)) 
+                .With(r => r.UserId, Guid.Empty) 
+                .With(r => r.TemplateName, "") 
                 .Create();
         }
 
@@ -99,8 +117,8 @@ namespace backend_portfolio.tests.Helpers
         public static Project CreateProjectWithEdgeCases()
         {
             return _fixture.Build<Project>()
-                .With(p => p.Title, new string('T', 200)) // Max length title
-                .With(p => p.Description, new string('D', 2000)) // Very long description
+                .With(p => p.Title, new string('T', 200)) 
+                .With(p => p.Description, new string('D', 2000)) 
                 .With(p => p.Technologies, new[] { new string('T', 100), new string('U', 100) })
                 .With(p => p.Featured, true)
                 .Without(p => p.Portfolio)
@@ -136,12 +154,12 @@ namespace backend_portfolio.tests.Helpers
         public static Skill CreateSkillWithEdgeCases()
         {
             return _fixture.Build<Skill>()
-                .With(s => s.Name, new string('S', 100)) // Max length name
-                .With(s => s.CategoryType, new string('C', 50)) // Max length category type
-                .With(s => s.Subcategory, new string('S', 100)) // Max length subcategory
-                .With(s => s.Category, new string('C', 255)) // Max length category
-                .With(s => s.ProficiencyLevel, 10) // Max proficiency
-                .With(s => s.DisplayOrder, int.MaxValue) // Extreme display order
+                .With(s => s.Name, new string('S', 100)) 
+                .With(s => s.CategoryType, new string('C', 50)) 
+                .With(s => s.Subcategory, new string('S', 100))
+                .With(s => s.Category, new string('C', 255)) 
+                .With(s => s.ProficiencyLevel, 10) 
+                .With(s => s.DisplayOrder, int.MaxValue) 
                 .Without(s => s.Portfolio)
                 .Create();
         }
@@ -179,7 +197,7 @@ namespace backend_portfolio.tests.Helpers
                 .With(e => e.JobTitle, "Lead Developer")
                 .With(e => e.Description, "Currently working on cutting-edge projects.")
                 .With(e => e.StartDate, DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-6)))
-                .With(e => e.EndDate, (DateOnly?)null) // Current position
+                .With(e => e.EndDate, (DateOnly?)null) 
                 .With(e => e.IsCurrent, true)
                 .Without(e => e.Portfolio)
                 .Create();

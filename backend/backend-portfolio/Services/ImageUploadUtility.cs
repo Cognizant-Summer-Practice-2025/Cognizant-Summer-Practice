@@ -1,6 +1,8 @@
+using backend_portfolio.Services.Abstractions;
+
 namespace backend_portfolio.Services
 {
-    public class ImageUploadUtility
+    public class ImageUploadUtility : IImageUploadUtility
     {
         private readonly ILogger<ImageUploadUtility> _logger;
         private readonly string _serverPath;

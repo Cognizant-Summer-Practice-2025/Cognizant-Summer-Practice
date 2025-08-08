@@ -24,6 +24,9 @@ namespace backend_portfolio.Services.Mappers
     {
         public ProjectResponse MapToResponseDto(Project entity)
         {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
             return new ProjectResponse
             {
                 Id = entity.Id,
@@ -42,6 +45,9 @@ namespace backend_portfolio.Services.Mappers
 
         public IEnumerable<ProjectResponse> MapToResponseDtos(IEnumerable<Project> entities)
         {
+            if (entities == null)
+                return Enumerable.Empty<ProjectResponse>();
+            
             return entities.Select(MapToResponseDto);
         }
 

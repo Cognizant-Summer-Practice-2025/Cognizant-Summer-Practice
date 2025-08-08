@@ -13,7 +13,7 @@ namespace backend_portfolio.Services.External
         {
             _httpClient = httpClient;
             _logger = logger;
-            _userServiceBaseUrl = configuration.GetValue<string>("ExternalServices:UserService:BaseUrl") ?? "http://localhost:5200";
+            _userServiceBaseUrl = configuration["ExternalServices:UserService:BaseUrl"] ?? "http://localhost:5200";
         }
 
         public async Task<UserInformation?> GetUserInformationAsync(Guid userId)

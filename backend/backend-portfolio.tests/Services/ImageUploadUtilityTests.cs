@@ -30,8 +30,6 @@ namespace backend_portfolio.tests.Services
             fileMock.Setup(f => f.FileName).Returns(fileName);
             fileMock.Setup(f => f.ContentType).Returns(contentType);
             fileMock.Setup(f => f.Length).Returns(length);
-            
-            // Create proper image magic bytes based on content type
             var imageData = CreateMockImageData(contentType);
             fileMock.Setup(f => f.OpenReadStream()).Returns(() => new MemoryStream(imageData));
             
