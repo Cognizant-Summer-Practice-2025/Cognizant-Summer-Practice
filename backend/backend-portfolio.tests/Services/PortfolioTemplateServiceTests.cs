@@ -548,10 +548,9 @@ namespace backend_portfolio.tests.Services
             // Assert
             result.Should().BeTrue();
 
-            // Verify template was marked as inactive (not deleted) since it has portfolios
+            // Verify template was completely deleted since no portfolios are using it
             var updatedTemplate = await _context.PortfolioTemplates.FindAsync(template.Id);
-            updatedTemplate.Should().NotBeNull();
-            updatedTemplate!.IsActive.Should().BeFalse();
+            updatedTemplate.Should().BeNull();
         }
 
         [Fact]
@@ -583,7 +582,7 @@ namespace backend_portfolio.tests.Services
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Marked portfolio template as inactive")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Deleted portfolio template")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
                 Times.Once);

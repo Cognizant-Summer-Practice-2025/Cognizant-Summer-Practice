@@ -34,6 +34,9 @@ namespace backend_portfolio.tests.Repositories
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly - generate valid dates
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
         }
 
         public void Dispose()
@@ -60,7 +63,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllTemplatesAsync();
 
             // Assert
-            result.Should().HaveCount(3);
+            Assert.Equal(3, result.Count);
         }
 
         [Fact]
@@ -70,7 +73,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllTemplatesAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -308,8 +311,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetActiveTemplatesAsync();
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(t => t.IsActive);
+            Assert.Equal(2, result.Count);
+            result.All(t => t.IsActive).Should().BeTrue();
         }
 
         [Fact]
@@ -329,7 +332,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetActiveTemplatesAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -339,7 +342,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetActiveTemplatesAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion

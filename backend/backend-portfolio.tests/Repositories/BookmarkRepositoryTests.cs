@@ -34,6 +34,9 @@ namespace backend_portfolio.tests.Repositories
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly - generate valid dates
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
         }
 
         private async Task<Portfolio> CreatePortfolioAsync()
@@ -74,8 +77,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllBookmarksAsync();
 
             // Assert
-            result.Should().HaveCount(3);
-            result.Should().OnlyContain(b => b.Portfolio != null);
+            Assert.Equal(3, result.Count);
+            Assert.True(result.All(b => b.Portfolio != null));
         }
 
         [Fact]
@@ -85,7 +88,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllBookmarksAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -175,10 +178,10 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBookmarksByUserIdAsync(userId);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(b => b.UserId == userId);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(b => b.UserId == userId));
             result.Should().BeInDescendingOrder(b => b.CreatedAt);
-            result.Should().OnlyContain(b => b.Portfolio != null);
+            Assert.True(result.All(b => b.Portfolio != null));
         }
 
         [Fact]
@@ -191,7 +194,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBookmarksByUserIdAsync(nonExistingUserId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -232,10 +235,10 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBookmarksByPortfolioIdAsync(portfolio1.Id);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(b => b.PortfolioId == portfolio1.Id);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(b => b.PortfolioId == portfolio1.Id));
             result.Should().BeInDescendingOrder(b => b.CreatedAt);
-            result.Should().OnlyContain(b => b.Portfolio != null);
+            Assert.True(result.All(b => b.Portfolio != null));
         }
 
         [Fact]
@@ -248,7 +251,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBookmarksByPortfolioIdAsync(nonExistingPortfolioId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -499,10 +502,10 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBookmarksByCollectionAsync(userId, collectionName);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(b => b.UserId == userId && b.CollectionName == collectionName);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(b => b.UserId == userId && b.CollectionName == collectionName));
             result.Should().BeInDescendingOrder(b => b.CreatedAt);
-            result.Should().OnlyContain(b => b.Portfolio != null);
+            Assert.True(result.All(b => b.Portfolio != null));
         }
 
         [Fact]
@@ -516,7 +519,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBookmarksByCollectionAsync(userId, nonExistingCollection);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion

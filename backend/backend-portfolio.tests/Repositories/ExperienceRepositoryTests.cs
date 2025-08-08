@@ -34,6 +34,9 @@ namespace backend_portfolio.tests.Repositories
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly - generate valid dates
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
         }
 
         private async Task<Portfolio> CreatePortfolioAsync()
@@ -74,8 +77,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllExperienceAsync();
 
             // Assert
-            result.Should().HaveCount(3);
-            result.Should().OnlyContain(e => e.Portfolio != null);
+            Assert.Equal(3, result.Count);
+            Assert.True(result.All(e => e.Portfolio != null));
         }
 
         [Fact]
@@ -85,7 +88,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllExperienceAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -167,7 +170,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetExperienceByPortfolioIdAsync(portfolio.Id);
 
             // Assert
-            result.Should().HaveCount(3);
+            Assert.Equal(3, result.Count);
             result.Should().BeInDescendingOrder(e => e.StartDate);
         }
 
@@ -181,7 +184,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetExperienceByPortfolioIdAsync(nonExistingPortfolioId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -381,8 +384,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetCurrentExperienceAsync(portfolio.Id);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(e => e.IsCurrent && e.PortfolioId == portfolio.Id);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(e => e.IsCurrent && e.PortfolioId == portfolio.Id));
         }
 
         [Fact]
@@ -402,7 +405,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetCurrentExperienceAsync(portfolio.Id);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -415,7 +418,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetCurrentExperienceAsync(nonExistingPortfolioId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion

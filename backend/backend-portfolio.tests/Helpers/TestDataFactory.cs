@@ -13,7 +13,8 @@ public static class TestDataFactory
             .ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         
-        _fixture.Register(() => DateOnly.FromDateTime(DateTime.Now.AddDays(-new Random().Next(0, 3650))));
+        // Configure AutoFixture to handle DateOnly properly - generate valid dates
+        _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
     }
 
     public static Portfolio CreatePortfolio(Guid? userId = null)
@@ -26,6 +27,11 @@ public static class TestDataFactory
             .With(p => p.CreatedAt, DateTime.UtcNow)
             .With(p => p.UpdatedAt, DateTime.UtcNow)
             .Without(p => p.Template)
+            .Without(p => p.Projects)
+            .Without(p => p.Experience)
+            .Without(p => p.Skills)
+            .Without(p => p.BlogPosts)
+            .Without(p => p.Bookmarks)
             .Create();
     }
 
@@ -35,6 +41,7 @@ public static class TestDataFactory
             .With(p => p.PortfolioId, portfolioId ?? Guid.NewGuid())
             .With(p => p.CreatedAt, DateTime.UtcNow)
             .With(p => p.UpdatedAt, DateTime.UtcNow)
+            .Without(p => p.Portfolio)
             .Create();
     }
 
@@ -44,6 +51,7 @@ public static class TestDataFactory
             .With(b => b.PortfolioId, portfolioId ?? Guid.NewGuid())
             .With(b => b.CreatedAt, DateTime.UtcNow)
             .With(b => b.UpdatedAt, DateTime.UtcNow)
+            .Without(b => b.Portfolio)
             .Create();
     }
 
@@ -53,6 +61,7 @@ public static class TestDataFactory
             .With(e => e.PortfolioId, portfolioId ?? Guid.NewGuid())
             .With(e => e.StartDate, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-2)))
             .With(e => e.EndDate, DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-1)))
+            .Without(e => e.Portfolio)
             .Create();
     }
 
@@ -60,6 +69,7 @@ public static class TestDataFactory
     {
         return _fixture.Build<Skill>()
             .With(s => s.PortfolioId, portfolioId ?? Guid.NewGuid())
+            .Without(s => s.Portfolio)
             .Create();
     }
 
@@ -68,6 +78,7 @@ public static class TestDataFactory
         return _fixture.Build<Bookmark>()
             .With(b => b.UserId, userId ?? Guid.NewGuid())
             .With(b => b.PortfolioId, portfolioId ?? Guid.NewGuid())
+            .Without(b => b.Portfolio)
             .Create();
     }
 
@@ -76,6 +87,7 @@ public static class TestDataFactory
         return _fixture.Build<PortfolioTemplate>()
             .With(pt => pt.CreatedAt, DateTime.UtcNow)
             .With(pt => pt.UpdatedAt, DateTime.UtcNow)
+            .Without(pt => pt.Portfolios)
             .Create();
     }
 

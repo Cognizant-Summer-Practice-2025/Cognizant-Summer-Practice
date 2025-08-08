@@ -34,6 +34,19 @@ namespace backend_portfolio.tests.Repositories
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly - generate valid dates
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
+            
+            // Configure AutoFixture to not create navigation properties
+            _fixture.Customize<Project>(c => c.Without(p => p.Portfolio));
+            _fixture.Customize<Portfolio>(c => c
+                .Without(p => p.Projects)
+                .Without(p => p.Experience)
+                .Without(p => p.Skills)
+                .Without(p => p.BlogPosts)
+                .Without(p => p.Bookmarks)
+                .Without(p => p.Template));
         }
 
         private async Task<Portfolio> CreatePortfolioAsync()
@@ -74,8 +87,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllProjectsAsync();
 
             // Assert
-            result.Should().HaveCount(3);
-            result.Should().OnlyContain(p => p.Portfolio != null);
+            Assert.Equal(3, result.Count);
+            Assert.True(result.All(p => p.Portfolio != null));
         }
 
         [Fact]
@@ -85,7 +98,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllProjectsAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -176,16 +189,16 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetProjectsByPortfolioIdAsync(portfolio.Id);
 
             // Assert
-            result.Should().HaveCount(4);
+            Assert.Equal(4, result.Count);
             
             // Featured projects should come first
             var featuredProjects = result.Take(2).ToList();
-            featuredProjects.Should().OnlyContain(p => p.Featured);
+            Assert.True(featuredProjects.All(p => p.Featured));
             featuredProjects.Should().BeInAscendingOrder(p => p.Title);
             
             // Non-featured projects should come after, ordered by title
             var nonFeaturedProjects = result.Skip(2).ToList();
-            nonFeaturedProjects.Should().OnlyContain(p => !p.Featured);
+            Assert.True(nonFeaturedProjects.All(p => !p.Featured));
             nonFeaturedProjects.Should().BeInAscendingOrder(p => p.Title);
         }
 
@@ -199,7 +212,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetProjectsByPortfolioIdAsync(nonExistingPortfolioId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -397,9 +410,9 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetFeaturedProjectsAsync();
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(p => p.Featured);
-            result.Should().OnlyContain(p => p.Portfolio != null);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(p => p.Featured));
+            Assert.True(result.All(p => p.Portfolio != null));
         }
 
         [Fact]
@@ -419,7 +432,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetFeaturedProjectsAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -468,8 +481,9 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetFeaturedProjectsByPortfolioIdAsync(portfolio1.Id);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(p => p.PortfolioId == portfolio1.Id && p.Featured);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(p => p.PortfolioId == portfolio1.Id));
+            Assert.True(result.All(p => p.Featured));
         }
 
         [Fact]
@@ -489,7 +503,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetFeaturedProjectsByPortfolioIdAsync(portfolio.Id);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -502,7 +516,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetFeaturedProjectsByPortfolioIdAsync(nonExistingPortfolioId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion

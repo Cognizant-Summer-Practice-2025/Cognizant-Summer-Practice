@@ -34,6 +34,9 @@ namespace backend_portfolio.tests.Repositories
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly - generate valid dates
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
         }
 
         private async Task<Portfolio> CreatePortfolioAsync()
@@ -74,8 +77,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllBlogPostsAsync();
 
             // Assert
-            result.Should().HaveCount(3);
-            result.Should().OnlyContain(b => b.Portfolio != null);
+            Assert.Equal(3, result.Count);
+            Assert.True(result.All(b => b.Portfolio != null));
         }
 
         [Fact]
@@ -85,7 +88,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllBlogPostsAsync();
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -167,7 +170,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBlogPostsByPortfolioIdAsync(portfolio.Id);
 
             // Assert
-            result.Should().HaveCount(3);
+            Assert.Equal(3, result.Count);
             result.Should().BeInDescendingOrder(b => b.CreatedAt);
         }
 
@@ -181,7 +184,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBlogPostsByPortfolioIdAsync(nonExistingPortfolioId);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -376,8 +379,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetPublishedBlogPostsAsync(portfolio.Id);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(b => b.IsPublished);
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(b => b.IsPublished));
             result.Should().BeInDescendingOrder(b => b.PublishedAt);
         }
 
@@ -391,7 +394,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetPublishedBlogPostsAsync(portfolio.Id);
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
@@ -434,8 +437,8 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBlogPostsByTagAsync(targetTag);
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().OnlyContain(b => b.Tags != null && b.Tags.Contains(targetTag));
+            Assert.Equal(2, result.Count);
+            Assert.True(result.All(b => b.Tags != null && b.Tags.Contains(targetTag)));
             result.Should().BeInDescendingOrder(b => b.CreatedAt);
         }
 
@@ -452,7 +455,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBlogPostsByTagAsync("non-existing-tag");
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -472,7 +475,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetBlogPostsByTagAsync("any-tag");
 
             // Assert
-            result.Should().BeEmpty();
+            Assert.Empty(result);
         }
 
         #endregion
