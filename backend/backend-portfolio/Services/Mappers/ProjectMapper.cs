@@ -48,7 +48,7 @@ namespace backend_portfolio.Services.Mappers
             if (entities == null)
                 return Enumerable.Empty<ProjectResponse>();
             
-            return entities.Select(MapToResponseDto);
+            return entities.Where(e => e != null).Select(MapToResponseDto);
         }
 
         public Project MapFromCreateDto(ProjectCreateRequest createDto)

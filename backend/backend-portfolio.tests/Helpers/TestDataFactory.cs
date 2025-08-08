@@ -25,6 +25,7 @@ public static class TestDataFactory
             .With(p => p.IsPublished, true)
             .With(p => p.CreatedAt, DateTime.UtcNow)
             .With(p => p.UpdatedAt, DateTime.UtcNow)
+            .Without(p => p.Template)
             .Create();
     }
 

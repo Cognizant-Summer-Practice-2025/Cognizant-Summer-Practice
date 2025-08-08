@@ -69,7 +69,7 @@ namespace backend_portfolio.Services
                 // Create claims from user info
                 var claims = new List<Claim>
                 {
-                    new(ClaimTypes.NameIdentifier, userInfo.UserId.ToString()),
+                    new(ClaimTypes.NameIdentifier, userInfo.UserId ?? string.Empty),
                     new(ClaimTypes.Email, userInfo.Email ?? string.Empty),
                     new(ClaimTypes.Name, userInfo.Username ?? string.Empty),
                     new("IsAdmin", userInfo.IsAdmin.ToString())
@@ -91,7 +91,7 @@ namespace backend_portfolio.Services
         /// </summary>
         private class UserInfo
         {
-            public Guid UserId { get; set; }
+            public string UserId { get; set; } = string.Empty;
             public string Email { get; set; } = string.Empty;
             public string Username { get; set; } = string.Empty;
             public bool IsAdmin { get; set; }

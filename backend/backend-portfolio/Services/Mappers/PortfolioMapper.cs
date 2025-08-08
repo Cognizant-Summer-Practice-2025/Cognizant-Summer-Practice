@@ -49,7 +49,7 @@ namespace backend_portfolio.Services.Mappers
             if (entities == null)
                 return Enumerable.Empty<PortfolioResponse>();
             
-            return entities.Select(MapToResponseDto);
+            return entities.Where(e => e != null).Select(MapToResponseDto);
         }
 
         public Portfolio MapFromCreateDto(PortfolioCreateRequest createDto)
@@ -113,7 +113,7 @@ namespace backend_portfolio.Services.Mappers
             if (entities == null)
                 return Enumerable.Empty<PortfolioSummaryResponse>();
             
-            return entities.Select(MapToSummaryDto);
+            return entities.Where(e => e != null).Select(MapToSummaryDto);
         }
 
         public PortfolioDetailResponse MapToDetailDto(Portfolio entity)

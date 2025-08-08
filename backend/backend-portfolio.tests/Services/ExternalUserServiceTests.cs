@@ -401,8 +401,9 @@ namespace backend_portfolio.tests.Services
         {
             // Arrange
             var mockConfig = new Mock<IConfiguration>();
-            mockConfig.Setup(x => x.GetValue<string>("ExternalServices:UserService:BaseUrl"))
-                .Returns((string?)null);
+            var mockSection = new Mock<IConfigurationSection>();
+            mockSection.SetupGet(x => x.Value).Returns((string?)null);
+            mockConfig.Setup(x => x["ExternalServices:UserService:BaseUrl"]).Returns((string?)null);
 
             var service = new ExternalUserService(
                 _httpClient,

@@ -267,7 +267,7 @@ namespace backend_portfolio.tests.Services
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().HaveCount(3);
+            result.Should().HaveCount(2); // Only 2 valid projects after filtering out null
             result.Should().AllSatisfy(dto => dto.Should().NotBeNull());
         }
 

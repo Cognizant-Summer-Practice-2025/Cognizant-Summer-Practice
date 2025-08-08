@@ -604,9 +604,10 @@ namespace backend_portfolio.tests.Services
             // Assert
             var templates = await _context.PortfolioTemplates.ToListAsync();
             templates.Should().HaveCount(4);
-            templates.Should().Contain(t => t.Name == "Default Template");
-            templates.Should().Contain(t => t.Name == "Professional Template");
-            templates.Should().Contain(t => t.Name == "Creative Template");
+            templates.Should().Contain(t => t.Name == "Gabriel Bârzu");
+            templates.Should().Contain(t => t.Name == "Modern");
+            templates.Should().Contain(t => t.Name == "Creative");
+            templates.Should().Contain(t => t.Name == "Professional");
         }
 
         [Fact]
@@ -614,7 +615,7 @@ namespace backend_portfolio.tests.Services
         {
             // Arrange
             var existingTemplate = TestDataFactory.CreatePortfolioTemplate();
-            existingTemplate.Name = "Default Template";
+            existingTemplate.Name = "Gabriel Bârzu";
             await _context.PortfolioTemplates.AddAsync(existingTemplate);
             await _context.SaveChangesAsync();
 
@@ -623,10 +624,11 @@ namespace backend_portfolio.tests.Services
 
             // Assert
             var templates = await _context.PortfolioTemplates.ToListAsync();
-            templates.Should().HaveCount(4); // 1 existing + 3 new
-            templates.Should().Contain(t => t.Name == "Default Template");
-            templates.Should().Contain(t => t.Name == "Professional Template");
-            templates.Should().Contain(t => t.Name == "Creative Template");
+            templates.Should().HaveCount(4); // 1 existing (Gabriel Bârzu already exists) + 3 new
+            templates.Should().Contain(t => t.Name == "Gabriel Bârzu");
+            templates.Should().Contain(t => t.Name == "Modern");
+            templates.Should().Contain(t => t.Name == "Creative");
+            templates.Should().Contain(t => t.Name == "Professional");
         }
 
         [Fact]
