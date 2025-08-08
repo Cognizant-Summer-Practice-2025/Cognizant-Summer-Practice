@@ -132,7 +132,8 @@ namespace BackendMessages.Repositories
 
                 if (!includeDeleted)
                 {
-                    query = query.Where(c => !c.IsDeletedByUser(userId));
+                    query = query.Where(c => !((userId == c.InitiatorId && c.InitiatorDeletedAt.HasValue) || 
+                                              (userId == c.ReceiverId && c.ReceiverDeletedAt.HasValue)));
                 }
 
                 return await query
@@ -157,7 +158,8 @@ namespace BackendMessages.Repositories
 
                 if (!includeDeleted)
                 {
-                    query = query.Where(c => !c.IsDeletedByUser(userId));
+                    query = query.Where(c => !((userId == c.InitiatorId && c.InitiatorDeletedAt.HasValue) || 
+                                              (userId == c.ReceiverId && c.ReceiverDeletedAt.HasValue)));
                 }
 
                 return await query.CountAsync();
@@ -209,7 +211,8 @@ namespace BackendMessages.Repositories
                 if (conversation == null) return false;
 
                 return (conversation.InitiatorId == userId || conversation.ReceiverId == userId) 
-                       && !conversation.IsDeletedByUser(userId);
+                       && !((userId == conversation.InitiatorId && conversation.InitiatorDeletedAt.HasValue) || 
+                            (userId == conversation.ReceiverId && conversation.ReceiverDeletedAt.HasValue));
             }
             catch (Exception ex)
             {
@@ -249,7 +252,8 @@ namespace BackendMessages.Repositories
                 return await _context.Conversations
                     .Include(c => c.LastMessage)
                     .Where(c => (c.InitiatorId == userId || c.ReceiverId == userId) 
-                             && !c.IsDeletedByUser(userId))
+                             && !((userId == c.InitiatorId && c.InitiatorDeletedAt.HasValue) || 
+                                  (userId == c.ReceiverId && c.ReceiverDeletedAt.HasValue)))
                     .OrderByDescending(c => c.LastMessageTimestamp)
                     .ToListAsync();
             }
@@ -266,7 +270,8 @@ namespace BackendMessages.Repositories
             {
                 return await _context.Conversations
                     .Where(c => (c.InitiatorId == userId || c.ReceiverId == userId) 
-                             && !c.IsDeletedByUser(userId))
+                             && !((userId == c.InitiatorId && c.InitiatorDeletedAt.HasValue) || 
+                                  (userId == c.ReceiverId && c.ReceiverDeletedAt.HasValue)))
                     .Where(c => c.Messages.Any(m => m.ReceiverId == userId && !m.IsRead && m.DeletedAt == null))
                     .CountAsync();
             }
@@ -284,7 +289,9 @@ namespace BackendMessages.Repositories
                 var conversation = await _context.Conversations
                     .FirstOrDefaultAsync(c => c.Id == conversationId);
 
-                return conversation?.IsDeletedByUser(userId) ?? false;
+                if (conversation == null) return false;
+                return (userId == conversation.InitiatorId && conversation.InitiatorDeletedAt.HasValue) || 
+                       (userId == conversation.ReceiverId && conversation.ReceiverDeletedAt.HasValue);
             }
             catch (Exception ex)
             {

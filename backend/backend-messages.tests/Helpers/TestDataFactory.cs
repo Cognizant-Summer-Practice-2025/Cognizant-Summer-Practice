@@ -177,15 +177,8 @@ namespace BackendMessages.Tests.Helpers
 
         public static Conversation CreateDeletedConversation(Guid userId)
         {
-            var conversation = CreateConversation();
-            if (conversation.InitiatorId == userId)
-            {
-                conversation.InitiatorDeletedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                conversation.ReceiverDeletedAt = DateTime.UtcNow;
-            }
+            var conversation = CreateConversation(initiatorId: userId);
+            conversation.InitiatorDeletedAt = DateTime.UtcNow;
             return conversation;
         }
 
