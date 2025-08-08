@@ -19,24 +19,45 @@ export class AuthenticatedClient {
    */
   private async getAuthToken(): Promise<string | null> {
     try {
+      type InjectedUserData = {
+        id?: string;
+        email?: string;
+        accessToken?: string;
+      };
       // Reference to the same storage used in inject/remove
-      if (typeof global !== 'undefined' && (global as unknown).messagesServiceUserStorage) {
-        const userStorage = (global as unknown).messagesServiceUserStorage as Map<string, unknown>;
-        if (userStorage.size > 0) {
-          const userData = Array.from(userStorage.values())[0];
-          return userData.accessToken || null;
+      // On the client, read the token from injected user API
+      if (typeof window !== 'undefined') {
+        try {
+          const response = await fetch('/api/user/get');
+          if (response.ok) {
+            const userData: InjectedUserData = await response.json();
+            const token = userData.accessToken || null;
+            if (token) {
+              console.log('[AuthClient] token from /api/user/get:', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
+            } else {
+              console.log('[AuthClient] no token in /api/user/get payload');
+            }
+            return token;
+          }
+          console.log('[AuthClient] /api/user/get not ok:', response.status);
+        } catch {
+          // ignore
         }
+        return null;
       }
 
-      // If no token found, try to get from local API (for client-side)
-      try {
-        const response = await fetch('/api/user/get');
-        if (response.ok) {
-          const userData = await response.json();
-          return userData.accessToken || null;
+      // On the server (Node), read from global storage populated by injection
+      const g = global as unknown as { messagesServiceUserStorage?: Map<string, InjectedUserData> };
+      const userStorage: Map<string, InjectedUserData> | undefined = g.messagesServiceUserStorage;
+      if (userStorage && userStorage.size > 0) {
+        const userData = Array.from(userStorage.values())[0] as InjectedUserData;
+        const token = userData.accessToken || null;
+        if (token) {
+          console.log('[AuthClient] token from global storage (server):', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
+        } else {
+          console.log('[AuthClient] no token in global storage');
         }
-      } catch {
-        // Ignore API errors, just return null
+        return token;
       }
 
       return null;
@@ -58,7 +79,7 @@ export class AuthenticatedClient {
    * Redirect to login page
    */
   private redirectToLogin(): void {
-    window.location.href = `${this.baseUrl}/login?redirect=${encodeURIComponent(window.location.href)}`;
+    // Intentionally no redirect. Page-level logic handles unauthenticated redirects to HOME.
   }
 
   /**
@@ -68,27 +89,34 @@ export class AuthenticatedClient {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = await this.getAuthToken();
-    
-    if (!token) {
-      this.redirectToLogin();
-      throw new Error('Authentication required');
-    }
-    console.log('Header token:', token);
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
+    const perform = async (attempt: number): Promise<Response> => {
+      const token = await this.getAuthToken();
+      if (!token) throw new Error('Authentication required');
+      const method = (options.method || 'GET').toUpperCase();
+      console.log('[AuthClient]', method, url, 'attempt', attempt, 'Header token:', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...options.headers,
+        },
+      });
+    };
 
+    // First attempt
+    let response = await perform(1);
+
+    // If unauthorized, wait briefly, refresh token and retry once
     if (response.status === 401) {
-      // Token is invalid, clear it and redirect to login
-      localStorage.removeItem('auth_token');
-      this.redirectToLogin();
-      throw new Error('Authentication required');
+      console.warn('[AuthClient] 401 on first attempt, retrying after short wait');
+      await new Promise(r => setTimeout(r, 600));
+      response = await perform(2);
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        console.error('[AuthClient] 401 on second attempt, giving up');
+        throw new Error('Authentication required');
+      }
     }
 
     if (!response.ok) {
@@ -102,7 +130,7 @@ export class AuthenticatedClient {
   /**
    * Make a POST request with authentication
    */
-  public async post<T>(url: string, data: any): Promise<T> {
+  public async post<T>(url: string, data: unknown): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -121,7 +149,7 @@ export class AuthenticatedClient {
   /**
    * Make a PUT request with authentication
    */
-  public async put<T>(url: string, data: any): Promise<T> {
+  public async put<T>(url: string, data: unknown): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'PUT',
       body: JSON.stringify(data),

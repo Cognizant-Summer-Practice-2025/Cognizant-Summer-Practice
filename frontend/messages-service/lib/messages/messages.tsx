@@ -4,6 +4,7 @@ import { SearchUser } from "../user";
 import { messagesApi, ApiMessage } from "./api";
 import { MessageEncryption } from "../encryption";
 import { useWebSocket } from "../contexts/websocket-context";
+import { authenticatedClient } from "../authenticated-client";
 
 // Helper function to safely decrypt messages
 const safeDecrypt = (content: string, senderId: string): string => {
@@ -330,17 +331,60 @@ const useMessages = () => {
     console.log(`Updated online status for user ${userId}: ${isOnline ? 'online' : 'offline'}`);
   }, []);
 
+  const waitForAuthentication = useCallback(async (maxMs: number = 8000): Promise<boolean> => {
+    const start = Date.now();
+    const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+
+    const getAccessToken = async (): Promise<string | null> => {
+      try {
+        const resp = await fetch('/api/user/get');
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data?.accessToken || null;
+      } catch {
+        return null;
+      }
+    };
+
+    while (Date.now() - start < maxMs) {
+      const token = await getAccessToken();
+      if (token) {
+        console.debug('[useMessages] waitForAuthentication: got token candidate', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
+        // Validate the token against user service to ensure backend will accept it
+        try {
+          // Validate via authenticated client so we see its debug and consistent header formatting
+          await authenticatedClient.get<unknown>(`${USER_API_BASE}/api/oauth/me`);
+          console.debug('[useMessages] token validation via AuthClient: OK');
+          return true;
+        } catch {
+          console.debug('[useMessages] token validation via AuthClient failed');
+        }
+      }
+      await new Promise((res) => setTimeout(res, 250));
+    }
+    return false;
+  }, []);
+
   const loadConversations = useCallback(async (showLoadingSpinner: boolean = true) => {
     if (!user?.id) return;
-    
+
     if (showLoadingSpinner) {
       setLoading(true);
     } else {
       setCacheState(prev => ({ ...prev, isRefreshing: true }));
     }
     setError(null);
-    
+
+    // Ensure we have an authenticated token before calling APIs
     try {
+      console.log('[useMessages] loadConversations: ensuring backend-validated auth...');
+      const becameAuthed = await waitForAuthentication(8000);
+      if (!becameAuthed) {
+        console.warn('[useMessages] loadConversations: still unauthenticated after wait, skipping fetch');
+        return;
+      }
+
+      console.log('[useMessages] loadConversations: proceeding to fetch conversations');
       const apiConversations = await messagesApi.getUserConversations(user.id);
 
       const enrichedConversations = await Promise.all(
@@ -404,12 +448,14 @@ const useMessages = () => {
 
     } catch (err) {
       console.error('Error loading conversations:', err);
-      setError('Failed to load conversations');
+      if (!(err instanceof Error && err.message && err.message.includes('Authentication required'))) {
+        setError('Failed to load conversations');
+      }
     } finally {
       setLoading(false);
       setCacheState(prev => ({ ...prev, isRefreshing: false }));
     }
-  }, [user?.id, cacheConversations]);
+  }, [user?.id, cacheConversations, waitForAuthentication]);
 
   // Load conversations with optimized cache-first strategy
   const loadConversationsWithCache = useCallback(async () => {
@@ -451,6 +497,15 @@ const useMessages = () => {
     setMessagesError(null);
     
     try {
+      // Ensure backend-validated auth before loading messages
+      console.log('[useMessages] loadMessages: ensuring backend-validated auth...');
+      const becameAuthed = await waitForAuthentication(8000);
+      if (!becameAuthed) {
+        console.warn('[useMessages] loadMessages: still unauthenticated after wait, skipping fetch');
+        return;
+      }
+
+      console.log('[useMessages] loadMessages: proceeding to fetch messages for', conversationId);
       const response = await messagesApi.getConversationMessages(conversationId);
       
       const formattedMessages: Message[] = response.messages.map((apiMsg: ApiMessage) => {
@@ -500,11 +555,13 @@ const useMessages = () => {
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
-      setMessagesError('Failed to load messages');
+      if (!(error instanceof Error && error.message && error.message.includes('Authentication required'))) {
+        setMessagesError('Failed to load messages');
+      }
     } finally {
       setMessagesLoading(false);
     }
-  }, [user?.id, cacheMessages]);
+  }, [user?.id, cacheMessages, waitForAuthentication]);
 
   // Load messages with cache-first strategy
   const loadMessagesWithCache = useCallback(async (conversationId: string) => {
@@ -538,7 +595,7 @@ const useMessages = () => {
       console.log(`No message cache found for conversation ${conversationId}, loading with spinner`);
       await loadMessages(conversationId, true); // Show loading spinner
     }
-  }, [user?.id, loadMessagesFromCache, loadMessages]);;
+  }, [user?.id, loadMessagesFromCache, loadMessages]);
 
   const selectConversation = useCallback(async (conversation: Conversation) => {
     setCurrentConversation(conversation);
@@ -756,7 +813,7 @@ const useMessages = () => {
     } finally {
       setSendingMessage(false);
     }
-  }, [user?.id, currentConversation]);
+  }, [user?.id, currentConversation, clearMessageCache, cacheMessages]);
 
   useEffect(() => {
     if (user?.id) {
@@ -928,7 +985,7 @@ const useMessages = () => {
       unsubscribeReadReceipt();
       unsubscribeMessageDeleted();
     };
-  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages, onMessageDeleted]);
+  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages, onMessageDeleted, clearMessageCache]);
 
   return {
     conversations,

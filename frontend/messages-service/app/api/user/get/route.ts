@@ -30,6 +30,11 @@ export async function GET(request: NextRequest) {
     // In a multi-user scenario, this would need session-based identification
     const userData = Array.from(global.messagesServiceUserStorage.values())[0];
 
+    // If accessToken exists but is an empty string, treat as missing and return 404 to force re-injection
+    if (userData && typeof userData.accessToken === 'string' && userData.accessToken.trim() === '') {
+      return NextResponse.json({ error: 'No user data found' }, { status: 404 });
+    }
+
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }

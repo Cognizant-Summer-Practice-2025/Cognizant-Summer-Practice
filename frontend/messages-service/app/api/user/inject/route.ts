@@ -18,7 +18,9 @@ interface ServiceUserData {
 
 // Global storage for user data
 declare global {
-  var messagesServiceUserStorage: Map<string, ServiceUserData>;
+  // Use any to avoid redeclaration type mismatch across sibling routes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  var messagesServiceUserStorage: Map<string, any>;
 }
 
 if (!global.messagesServiceUserStorage) {
@@ -50,15 +52,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User email and ID are required' }, { status: 400 });
     }
 
+    // Preserve existing accessToken if new payload doesn't include one to avoid clobbering
+    const existing = global.messagesServiceUserStorage.get(userData.email);
+    const merged: ServiceUserData = {
+      ...(existing || {}),
+      ...userData,
+      accessToken: userData.accessToken || existing?.accessToken,
+    } as ServiceUserData;
+
     // Store user data in global storage
-    global.messagesServiceUserStorage.set(userData.email, userData);
+    global.messagesServiceUserStorage.set(userData.email, merged);
 
     console.log(`User ${userData.email} injected into messages-service`);
 
     return NextResponse.json({ 
       success: true, 
       message: 'User data injected successfully',
-      userId: userData.id
+      userId: merged.id
     });
   } catch (error) {
     console.error('Error injecting user data:', error);
