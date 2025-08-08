@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { User } from '@/lib/user/interfaces';
-import { getLocalSession } from '@/lib/auth/sso-auth';
 
 interface UserContextType {
   user: User | null;
@@ -33,40 +32,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Get user ID from SSO session for session-based identification
-      const session = getLocalSession();
-      let url = '/api/user/get';
-      
-      // Add user identification parameters for session-based lookup
-      const params = new URLSearchParams();
-      
-      if (session?.userId) {
-        params.append('userId', session.userId);
-        console.log('Fetching user data for userId:', session.userId);
-      }
-      
-      if (session?.email) {
-        params.append('userEmail', session.email);
-        console.log('Fetching user data for email:', session.email);
-      }
-      
-      // Fallback to userEmail from auth context if no session
-      if (!session && userEmail) {
-        params.append('userEmail', userEmail);
-        console.log('Fallback: Fetching user data for auth email:', userEmail);
-      }
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      
-      // Get user data from injected storage with session-based identification
-      const response = await fetch(url);
+      // Get user data from injected storage
+      const response = await fetch('/api/user/get');
       
       if (!response.ok) {
         if (response.status === 404) {
           setUser(null);
-          setError('User not found in this service. Please log in again.');
+          // Avoid showing a scary error on initial render; natural empty state is fine
+          setError(null);
           return;
         }
         throw new Error(`Failed to get user data: ${response.statusText}`);
@@ -74,7 +47,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       
       const userData = await response.json();
       setUser(userData);
-      console.log('Successfully loaded user data:', { email: userData.email, id: userData.id });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
@@ -90,7 +62,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserData = async (_userData: {
+  const updateUserData = async (userData: {
     firstName?: string;
     lastName?: string;
     professionalTitle?: string;
@@ -118,9 +90,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Fetch user data when authenticated
+    // Fetch user data when authenticated, wait a short moment for injection to land
     if (isAuthenticated && userEmail && !user) {
-      fetchUser();
+      const timer = setTimeout(() => {
+        fetchUser();
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, userEmail, authLoading, user]);
 
@@ -145,4 +120,4 @@ export function useUser(): UserContextType {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context;
-} 
+}

@@ -36,9 +36,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const userData = await getUserByEmail(email);
       setUser(userData);
       
-      // Inject user data to all other services
+      // Inject user data to all other services using session accessToken if available
       try {
-        await UserInjectionService.injectUser(userData);
+        const token = (typeof window !== 'undefined') ? (JSON.parse(sessionStorage.getItem('next-auth.session-token') || 'null')?.accessToken || undefined) : undefined;
+        await UserInjectionService.injectUser(userData, token);
         console.log('✅ User data injected to all services after login');
       } catch (injectionError) {
         console.error('❌ Failed to inject user data to other services:', injectionError);
@@ -77,9 +78,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const updatedUser = await updateUser(user.id, userData);
       setUser(updatedUser);
       
-      // Re-inject updated user data to all other services
+      // Re-inject updated user data to all other services using best-effort token
       try {
-        await UserInjectionService.injectUser(updatedUser);
+        const token = (typeof window !== 'undefined') ? (JSON.parse(sessionStorage.getItem('next-auth.session-token') || 'null')?.accessToken || undefined) : undefined;
+        await UserInjectionService.injectUser(updatedUser, token);
         console.log('✅ User data re-injected to all services after profile update');
       } catch (injectionError) {
         console.error('❌ Failed to re-inject user data to other services:', injectionError);

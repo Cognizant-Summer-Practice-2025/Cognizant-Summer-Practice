@@ -50,15 +50,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User email and ID are required' }, { status: 400 });
     }
 
-    // Store user data in global storage
-    global.homePortfolioServiceUserStorage.set(userData.email, userData);
+    // Preserve existing accessToken if not provided
+    const existing = global.homePortfolioServiceUserStorage.get(userData.email);
+    const merged: ServiceUserData = {
+      ...(existing || {}),
+      ...userData,
+      accessToken: userData.accessToken || existing?.accessToken,
+    } as ServiceUserData;
 
-    console.log(`User ${userData.email} injected into home-portfolio-service`);
+    // Store user data in global storage
+    global.homePortfolioServiceUserStorage.set(userData.email, merged);
+
+    
 
     return NextResponse.json({ 
       success: true, 
       message: 'User data injected successfully',
-      userId: userData.id
+      userId: merged.id
     });
   } catch (error) {
     console.error('Error injecting user data:', error);

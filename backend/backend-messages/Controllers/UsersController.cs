@@ -2,6 +2,7 @@ using BackendMessages.Services;
 using BackendMessages.Services.Abstractions;
 using BackendMessages.Hubs;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BackendMessages.Controllers
 {
@@ -16,6 +17,20 @@ namespace BackendMessages.Controllers
         {
             _userSearchService = userSearchService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Gets the authenticated user ID from the current context.
+        /// </summary>
+        /// <returns>The authenticated user ID, or null if not authenticated.</returns>
+        private Guid? GetAuthenticatedUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdClaim, out var userId))
+            {
+                return userId;
+            }
+            return null;
         }
 
         /// <summary>
@@ -37,6 +52,13 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return BadRequest("User ID cannot be empty");
@@ -67,6 +89,12 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
                 var onlineUsers = MessageHub.GetOnlineUsers().ToList();
                 
                 _logger.LogInformation("Debug: Retrieved {Count} tracked users", onlineUsers.Count);
@@ -94,6 +122,13 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
                 if (string.IsNullOrWhiteSpace(q))
                 {
                     return BadRequest("Search query cannot be empty");

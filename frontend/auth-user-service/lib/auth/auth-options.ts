@@ -174,12 +174,27 @@ export const authOptions: AuthOptions = {
         const { exists: providerExists, user: providerUser } = await checkOAuthProvider(account.provider, account.providerAccountId);
         
         if (providerExists && providerUser) {
-          // OAuth provider already exists - inject user data and allow sign-in
+          // OAuth provider already exists - inject user data using the token stored in our backend (DB)
           try {
             const userData = await getUserByEmail(user.email);
             if (userData) {
-              await UserInjectionService.injectUser(userData, account.access_token);
-              console.log('User injected on sign-in:', user.email);
+              let injectedToken = account.access_token || '';
+              try {
+                const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+                const providerNumber = getProviderNumber(account.provider);
+                const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${providerNumber}`;
+                const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                if (resp.ok) {
+                  const oauthData = await resp.json();
+                  if (oauthData.exists && oauthData.provider?.accessToken) {
+                    injectedToken = oauthData.provider.accessToken;
+                  }
+                }
+              } catch (tokenFetchError) {
+                console.warn('Falling back to provider access_token for injection due to fetch error:', tokenFetchError);
+              }
+              await UserInjectionService.injectUser(userData, injectedToken);
+              console.log('User injected on sign-in (DB-backed token preferred):', user.email);
             }
           } catch (error) {
             console.error('Error injecting user on sign-in:', error);
@@ -224,12 +239,27 @@ export const authOptions: AuthOptions = {
               tokenExpiresAt: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : undefined
             });
             
-            // Inject user data after adding OAuth provider
+            // Inject user data after adding OAuth provider using DB-backed access token
             try {
               const userData = await getUserByEmail(user.email);
               if (userData) {
-                await UserInjectionService.injectUser(userData, account.access_token);
-                console.log('User injected after adding OAuth provider:', user.email);
+                let injectedToken = account.access_token || '';
+                try {
+                  const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+                  const providerNumber = getProviderNumber(account.provider);
+                  const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${providerNumber}`;
+                  const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                  if (resp.ok) {
+                    const oauthData = await resp.json();
+                    if (oauthData.exists && oauthData.provider?.accessToken) {
+                      injectedToken = oauthData.provider.accessToken;
+                    }
+                  }
+                } catch (tokenFetchError) {
+                  console.warn('Falling back to provider access_token for injection after provider add:', tokenFetchError);
+                }
+                await UserInjectionService.injectUser(userData, injectedToken);
+                console.log('User injected after adding OAuth provider (DB-backed token preferred):', user.email);
               }
             } catch (error) {
               console.error('Error injecting user after adding OAuth provider:', error);

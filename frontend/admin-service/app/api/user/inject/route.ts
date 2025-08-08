@@ -13,11 +13,14 @@ interface ServiceUserData {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: string;
+  accessToken?: string;
 }
 
 // Global storage for user data (in production, use Redis or database)
 declare global {
-  var adminServiceUserStorage: Map<string, ServiceUserData>;
+  // Use any to avoid redeclaration type mismatch across sibling routes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  var adminServiceUserStorage: Map<string, any>;
 }
 
 // Initialize global storage if it doesn't exist
@@ -50,15 +53,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User email and ID are required' }, { status: 400 });
     }
 
-    // Store user data in global memory
-    global.adminServiceUserStorage.set(userData.email, userData);
+    // Preserve existing accessToken if not provided
+    const existing = global.adminServiceUserStorage.get(userData.email);
+    const merged: ServiceUserData = {
+      ...(existing || {}),
+      ...userData,
+      accessToken: userData.accessToken || existing?.accessToken,
+    } as ServiceUserData;
 
-    console.log(`User ${userData.email} injected into admin-service`);
+    // Store user data in global memory
+    global.adminServiceUserStorage.set(userData.email, merged);
+
+    
 
     return NextResponse.json({ 
       success: true, 
       message: 'User data injected successfully',
-      userId: userData.id
+      userId: merged.id
     });
   } catch (error) {
     console.error('Error injecting user data:', error);

@@ -34,8 +34,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=UserNotFound', request.url));
     }
 
-    // Inject user data into all services
-    await UserInjectionService.injectUser(userData, session.accessToken);
+    // Inject user data into all services using DB-backed token when available
+    let injectedToken = session.accessToken || '';
+    try {
+      if (userData?.id) {
+        const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+        // We need provider number; if unknown here, fall back to token on session
+        // Attempt Google (0) and GitHub (1) in order, use the first that exists
+        const candidateProviders = [0, 1, 2, 3];
+        for (const providerNumber of candidateProviders) {
+          const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${providerNumber}`;
+          const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+          if (resp.ok) {
+            const oauthData = await resp.json();
+            if (oauthData.exists && oauthData.provider?.accessToken) {
+              injectedToken = oauthData.provider.accessToken;
+              break;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Keep session token if DB lookup fails
+    }
+
+    await UserInjectionService.injectUser(userData, injectedToken);
 
     // Create a temporary SSO token for the calling service
     const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret');

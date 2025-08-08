@@ -4,8 +4,8 @@ interface ServiceUserData {
   id: string;
   email: string;
   username: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   professionalTitle?: string;
   bio?: string;
   location?: string;
@@ -13,11 +13,14 @@ interface ServiceUserData {
   isActive: boolean;
   isAdmin: boolean;
   lastLoginAt?: string;
+  accessToken?: string;
 }
 
 // Global storage for user data
 declare global {
-  var messagesServiceUserStorage: Map<string, ServiceUserData>;
+  // Use any to avoid redeclaration type mismatch across sibling routes
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  var messagesServiceUserStorage: Map<string, any>;
 }
 
 if (!global.messagesServiceUserStorage) {
@@ -38,6 +41,7 @@ function verifyServiceAuth(request: NextRequest): boolean {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify service authentication
     if (!verifyServiceAuth(request)) {
       return NextResponse.json({ error: 'Unauthorized service request' }, { status: 401 });
     }
@@ -47,16 +51,29 @@ export async function POST(request: NextRequest) {
     if (!userData.email || !userData.id) {
       return NextResponse.json({ error: 'User email and ID are required' }, { status: 400 });
     }
-    global.messagesServiceUserStorage.set(userData.email, userData);
+
+    // Preserve existing accessToken if new payload doesn't include one to avoid clobbering
+    const existing = global.messagesServiceUserStorage.get(userData.email);
+    const merged: ServiceUserData = {
+      ...(existing || {}),
+      ...userData,
+      accessToken: userData.accessToken || existing?.accessToken,
+    } as ServiceUserData;
+
+    // Store user data in global storage
+    global.messagesServiceUserStorage.set(userData.email, merged);
+
+    
 
     return NextResponse.json({ 
       success: true, 
       message: 'User data injected successfully',
-      userId: userData.id
+      userId: merged.id
     });
   } catch (error) {
+    console.error('Error injecting user data:', error);
     return NextResponse.json(
-      { error: `Failed to inject user data: ${error.message}` },
+      { error: 'Failed to inject user data' },
       { status: 500 }
     );
   }

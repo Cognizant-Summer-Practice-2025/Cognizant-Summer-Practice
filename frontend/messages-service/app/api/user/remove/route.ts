@@ -23,6 +23,7 @@ function verifyServiceAuth(request: NextRequest): boolean {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    // Verify service authentication
     if (!verifyServiceAuth(request)) {
       return NextResponse.json({ error: 'Unauthorized service request' }, { status: 401 });
     }
@@ -32,8 +33,12 @@ export async function DELETE(request: NextRequest) {
     if (!email) {
       return NextResponse.json({ error: 'User email is required' }, { status: 400 });
     }
+
+    // Remove user data from storage
     const existed = global.messagesServiceUserStorage.has(email);
     global.messagesServiceUserStorage.delete(email);
+
+    console.log(`User ${email} removed from messages-service`);
 
     return NextResponse.json({ 
       success: true, 

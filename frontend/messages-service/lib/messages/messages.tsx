@@ -4,6 +4,7 @@ import { SearchUser } from "../user";
 import { messagesApi, ApiMessage } from "./api";
 import { MessageEncryption } from "../encryption";
 import { useWebSocket } from "../contexts/websocket-context";
+import { authenticatedClient } from "../authenticated-client";
 
 // Helper function to safely decrypt messages
 const safeDecrypt = (content: string, senderId: string): string => {
@@ -182,7 +183,7 @@ const useMessages = () => {
         const cacheKey = `messages_${user.id}_${conversationId}`;
         localStorage.removeItem(cacheKey);
         localStorage.removeItem(`${cacheKey}_timestamp`);
-        console.log(`Message cache cleared for conversation ${conversationId}`);
+        
       } catch (error) {
         console.warn(`Failed to clear message cache for conversation ${conversationId}:`, error);
       }
@@ -240,9 +241,6 @@ const useMessages = () => {
           }
           
           keysToRemove.forEach(key => localStorage.removeItem(key));
-          if (keysToRemove.length > 0) {
-            console.log(`Cleaned up ${keysToRemove.length} old cache entries`);
-          }
         } catch (error) {
           console.warn('Failed to cleanup old caches:', error);
         }
@@ -285,9 +283,7 @@ const useMessages = () => {
         
         keysToRemove.forEach(key => localStorage.removeItem(key));
         console.log(`Cleared ${keysToRemove.length} message cache entries`);
-      } catch (error) {
-        console.warn('Failed to clear message caches:', error);
-      }
+      } catch {}
     }
   }, [user?.id]);
 
@@ -296,51 +292,88 @@ const useMessages = () => {
     try {
       const statusResponse = await messagesApi.getUserOnlineStatus(userId);
       return statusResponse.isOnline;
-    } catch (error) {
-      console.error(`Failed to check online status for user ${userId}:`, error);
+    } catch {
       return false;
     }
   }, []);
 
   // Update online status for conversations when presence changes
   const updateConversationOnlineStatus = useCallback((userId: string, isOnline: boolean) => {
-    console.log(`updateConversationOnlineStatus called: userId=${userId}, isOnline=${isOnline}`);
     
     setConversations(prev => {
       const updated = prev.map(conv => {
         if (conv.otherUserId === userId) {
-          console.log(`Updating conversation ${conv.id} online status from ${conv.isOnline} to ${isOnline}`);
           return { ...conv, isOnline };
         }
         return conv;
       });
-      console.log('Updated conversations:', updated.map(c => ({ id: c.id, otherUserId: c.otherUserId, isOnline: c.isOnline })));
+      
       return updated;
     });
-
-   
+    
     setCurrentConversation(prev => {
-      if (prev && prev.otherUserId === userId) {
-        console.log(`Updating currentConversation online status from ${prev.isOnline} to ${isOnline}`);
-        return { ...prev, isOnline };
-      }
+        if (prev && prev.otherUserId === userId) {
+          return { ...prev, isOnline };
+        }
       return prev;
     });
+    
+  }, []);
 
-    console.log(`Updated online status for user ${userId}: ${isOnline ? 'online' : 'offline'}`);
+  const waitForAuthentication = useCallback(async (maxMs: number = 8000): Promise<boolean> => {
+    const start = Date.now();
+    const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+
+    const getAccessToken = async (): Promise<string | null> => {
+      try {
+        const resp = await fetch('/api/user/get');
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data?.accessToken || null;
+      } catch {
+        return null;
+      }
+    };
+
+    while (Date.now() - start < maxMs) {
+      const token = await getAccessToken();
+      if (token) {
+        console.debug('[useMessages] waitForAuthentication: got token candidate', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
+        // Validate the token against user service to ensure backend will accept it
+        try {
+          // Validate via authenticated client so we see its debug and consistent header formatting
+          await authenticatedClient.get<unknown>(`${USER_API_BASE}/api/oauth/me`);
+          console.debug('[useMessages] token validation via AuthClient: OK');
+          return true;
+        } catch {
+          console.debug('[useMessages] token validation via AuthClient failed');
+        }
+      }
+      await new Promise((res) => setTimeout(res, 250));
+    }
+    return false;
   }, []);
 
   const loadConversations = useCallback(async (showLoadingSpinner: boolean = true) => {
     if (!user?.id) return;
-    
+
     if (showLoadingSpinner) {
       setLoading(true);
     } else {
       setCacheState(prev => ({ ...prev, isRefreshing: true }));
     }
     setError(null);
-    
+
+    // Ensure we have an authenticated token before calling APIs
     try {
+      
+      const becameAuthed = await waitForAuthentication(8000);
+      if (!becameAuthed) {
+        console.warn('[useMessages] loadConversations: still unauthenticated after wait, skipping fetch');
+        return;
+      }
+
+      
       const apiConversations = await messagesApi.getUserConversations(user.id);
 
       const enrichedConversations = await Promise.all(
@@ -404,12 +437,14 @@ const useMessages = () => {
 
     } catch (err) {
       console.error('Error loading conversations:', err);
-      setError('Failed to load conversations');
+      if (!(err instanceof Error && err.message && err.message.includes('Authentication required'))) {
+        setError('Failed to load conversations');
+      }
     } finally {
       setLoading(false);
       setCacheState(prev => ({ ...prev, isRefreshing: false }));
     }
-  }, [user?.id, cacheConversations]);
+  }, [user?.id, cacheConversations, waitForAuthentication]);
 
   // Load conversations with optimized cache-first strategy
   const loadConversationsWithCache = useCallback(async () => {
@@ -424,7 +459,7 @@ const useMessages = () => {
     const isCacheFresh = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp) < CACHE_FRESH_TTL);
 
     if (hasCache) {
-      console.log('Using cached data, refreshing in background');
+      
       setCacheState(prev => ({ ...prev, isFromCache: true }));
       
       if (!isCacheFresh) {
@@ -451,6 +486,15 @@ const useMessages = () => {
     setMessagesError(null);
     
     try {
+      // Ensure backend-validated auth before loading messages
+      
+      const becameAuthed = await waitForAuthentication(8000);
+      if (!becameAuthed) {
+        console.warn('[useMessages] loadMessages: still unauthenticated after wait, skipping fetch');
+        return;
+      }
+
+      
       const response = await messagesApi.getConversationMessages(conversationId);
       
       const formattedMessages: Message[] = response.messages.map((apiMsg: ApiMessage) => {
@@ -494,17 +538,17 @@ const useMessages = () => {
           setConversations(prev => prev.map(conv => 
             conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv
           ));
-        } catch (markReadError) {
-          console.error('Failed to mark messages as read:', markReadError);
-        }
+        } catch {}
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
-      setMessagesError('Failed to load messages');
+      if (!(error instanceof Error && error.message && error.message.includes('Authentication required'))) {
+        setMessagesError('Failed to load messages');
+      }
     } finally {
       setMessagesLoading(false);
     }
-  }, [user?.id, cacheMessages]);
+  }, [user?.id, cacheMessages, waitForAuthentication]);
 
   // Load messages with cache-first strategy
   const loadMessagesWithCache = useCallback(async (conversationId: string) => {
@@ -514,7 +558,7 @@ const useMessages = () => {
     const cachedMessages = loadMessagesFromCache(conversationId);
     
     if (cachedMessages && cachedMessages.length > 0) {
-      console.log(`Using cached messages for conversation ${conversationId}, refreshing in background`);
+      
       
       // Show cached messages immediately
       setMessages(cachedMessages);
@@ -535,20 +579,20 @@ const useMessages = () => {
       }
     } else {
       // No cache exists, load with loading spinner
-      console.log(`No message cache found for conversation ${conversationId}, loading with spinner`);
+              
       await loadMessages(conversationId, true); // Show loading spinner
     }
-  }, [user?.id, loadMessagesFromCache, loadMessages]);;
+  }, [user?.id, loadMessagesFromCache, loadMessages]);
 
   const selectConversation = useCallback(async (conversation: Conversation) => {
     setCurrentConversation(conversation);
     loadMessagesWithCache(conversation.id);
     
     // Check online status for the selected user
-    console.log(`Checking online status for user: ${conversation.otherUserId}`);
+    
     try {
       const isOnline = await checkUserOnlineStatus(conversation.otherUserId);
-      console.log(`User ${conversation.otherUserId} online status: ${isOnline}`);
+      
       updateConversationOnlineStatus(conversation.otherUserId, isOnline);
     } catch (error) {
       console.error('Failed to check online status for selected conversation:', error);
@@ -617,12 +661,10 @@ const useMessages = () => {
       return;
     }
 
-    console.log('deleteConversation called with:', { conversationId, userId: user.id });
+    
 
     try {
-      console.log('Making API call to delete conversation...');
       await messagesApi.deleteConversation(conversationId, user.id);
-      console.log('API call successful, updating state...');
       
       // Remove conversation from state
       setConversations(prev => prev.filter(conv => conv.id !== conversationId));
@@ -633,9 +675,8 @@ const useMessages = () => {
         setCurrentConversation(null);
         setMessages([]);
       }
-      console.log('State updated successfully');
+      
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
       throw error;
     }
   }, [user?.id, currentConversation?.id, conversations, cacheConversations]);
@@ -646,12 +687,10 @@ const useMessages = () => {
       return;
     }
 
-    console.log('deleteMessage called with:', { messageId, userId: user.id });
+    
 
     try {
-      console.log('Making API call to delete message...');
       await deleteMessageViaWebSocket(messageId, user.id);
-      console.log('API call successful, updating state...');
       
       // Remove message from state
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
@@ -661,9 +700,8 @@ const useMessages = () => {
         clearMessageCache(currentConversation.id);
       }
       
-      console.log('Message deleted successfully');
+      
     } catch (error) {
-      console.error('Failed to delete message:', error);
       throw error;
     }
   }, [user?.id, currentConversation?.id, clearMessageCache, deleteMessageViaWebSocket]);
@@ -674,15 +712,12 @@ const useMessages = () => {
       return;
     }
 
-    console.log('reportMessage called with:', { messageId, userId: user.id, reason });
+    
 
     try {
       // Call the report message API
       await messagesApi.reportMessage(messageId, user.id, reason);
-      
-      console.log('Message reported successfully');
     } catch (error) {
-      console.error('Failed to report message:', error);
       throw error;
     }
   }, [user?.id]);
@@ -714,7 +749,7 @@ const useMessages = () => {
         updatedAt: apiMessage.updatedAt
       };
       
-      console.log('Message sent via API:', newMessage.id, '- updating conversation immediately');
+      
       
       // Add message to current conversation immediately for instant UI update
       setMessages(prevMessages => {
@@ -750,13 +785,12 @@ const useMessages = () => {
       clearMessageCache(currentConversation.id);
       
       return newMessage;
-    } catch (error) {
-      console.error('Failed to send message:', error);
+    } catch {
       return null;
     } finally {
       setSendingMessage(false);
     }
-  }, [user?.id, currentConversation]);
+  }, [user?.id, currentConversation, clearMessageCache, cacheMessages]);
 
   useEffect(() => {
     if (user?.id) {
@@ -770,7 +804,7 @@ const useMessages = () => {
 
     // Handle new messages
     const unsubscribeMessage = onMessageReceived((newMessage) => {
-      console.log('Received new message:', newMessage);
+      
       
       const formattedMessage: Message = {
         id: newMessage.id,
@@ -789,10 +823,10 @@ const useMessages = () => {
             // Check if message already exists to avoid duplicates
             const exists = prevMessages.some(msg => msg.id === newMessage.id);
             if (exists) {
-              console.log('Duplicate message prevented:', newMessage.id);
+              
               return prevMessages;
             }
-            console.log('Adding real-time message:', newMessage.id);
+            
             const updatedMessages = [...prevMessages, formattedMessage];
             
             // Update message cache with the new message
@@ -839,7 +873,7 @@ const useMessages = () => {
 
     // Handle conversation updates
     const unsubscribeConversation = onConversationUpdated((update) => {
-      console.log('Conversation updated:', update);
+      
       
       setConversations(prevConversations => {
         const updatedConversations = prevConversations.map(conv => {
@@ -928,7 +962,7 @@ const useMessages = () => {
       unsubscribeReadReceipt();
       unsubscribeMessageDeleted();
     };
-  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages, onMessageDeleted]);
+  }, [user?.id, onMessageReceived, onConversationUpdated, onUserPresenceUpdate, updateConversationOnlineStatus, onMessageReadReceipt, markMessageAsRead, currentConversation?.id, cacheMessages, onMessageDeleted, clearMessageCache]);
 
   return {
     conversations,

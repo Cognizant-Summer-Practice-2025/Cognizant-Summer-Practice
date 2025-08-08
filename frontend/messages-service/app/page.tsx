@@ -9,6 +9,7 @@ import { SearchUser } from "@/lib/user";
 import useMessages from "@/lib/messages";
 import { AlertProvider } from "@/components/ui/alert-dialog";
 import "./style.css";
+import Loading from "@/components/loader/loading";
 
 interface Contact {
   id: string;
@@ -34,8 +35,11 @@ interface Message {
 type MobileView = 'sidebar' | 'chat';
 
 const MessagesPage = () => {
-  const { user } = useUser();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { user, loading: userLoading } = useUser();
+  const { isAuthenticated, loading: authLoading, isLoggingOut } = useAuth();
+  const [initialDelayLoading, setInitialDelayLoading] = useState(true);
+  const [redirectGraceMs] = useState(7000);
+  const [graceActive, setGraceActive] = useState(true);
   const { 
     conversations, 
     currentConversation, 
@@ -56,13 +60,27 @@ const MessagesPage = () => {
   } = useMessages();
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
-      const currentUrl = window.location.href;
-      window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
+    if (!authLoading && !userLoading && !isAuthenticated && !isLoggingOut && !graceActive && !initialDelayLoading) {
+      const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+      window.location.href = homeServiceUrl;
       return;
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, userLoading, isLoggingOut, graceActive, initialDelayLoading]);
+
+  // Add a small delay to allow user injection to finish on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialDelayLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Grace period to allow first-time user injection before redirecting unauthenticated users
+  useEffect(() => {
+    if (!authLoading) {
+      setGraceActive(true);
+      const t = setTimeout(() => setGraceActive(false), redirectGraceMs);
+      return () => clearTimeout(t);
+    }
+  }, [authLoading, redirectGraceMs]);
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
@@ -76,9 +94,7 @@ const MessagesPage = () => {
           const parsed = JSON.parse(saved);
           return new Map(Object.entries(parsed));
         }
-      } catch (error) {
-        console.warn('Failed to load enhanced contacts from localStorage:', error);
-      }
+      } catch {}
     }
     return new Map();
   });
@@ -120,7 +136,6 @@ const MessagesPage = () => {
     const date = new Date(dateString);
     
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date string:', dateString);
       return 'Now';
     }
     
@@ -140,14 +155,12 @@ const MessagesPage = () => {
 
   const formatMessageTimestamp = (dateString: string): string => {
     if (!dateString || dateString.trim() === '') {
-      console.warn('formatMessageTimestamp received empty string, this should not happen');
       dateString = new Date().toISOString();
     }
     
     const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
     
     if (isNaN(utcDate.getTime())) {
-      console.warn('Invalid date string:', dateString);
       return formatMessageTimestamp(new Date().toISOString());
     }
     
@@ -253,10 +266,6 @@ const MessagesPage = () => {
       const currentConv = conversations.find(conv => conv.id === selectedContact.id);
       if (currentConv) {
         const updatedContact = getEnhancedContact(currentConv);
-        console.log(`Updating selectedContact for ${updatedContact.name}:`, {
-          isOnline: updatedContact.isOnline,
-          conversationOnline: currentConv.isOnline
-        });
         setSelectedContact(prev => ({
           ...prev!,
           isOnline: updatedContact.isOnline,
@@ -367,16 +376,13 @@ const MessagesPage = () => {
     }
   };
   // Show loading 
-  if (authLoading) {
+  if (authLoading || initialDelayLoading || isLoggingOut) {
     return (
       <AlertProvider>
         <Header />
         <div className="messages-page">
           <div className="flex items-center justify-center w-full h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Checking authentication...</p>
-            </div>
+            <Loading />
           </div>
         </div>
       </AlertProvider>
@@ -390,9 +396,7 @@ const MessagesPage = () => {
         <Header />
         <div className="messages-page">
           <div className="flex items-center justify-center w-full h-full">
-            <div className="text-center">
-              <p className="text-gray-600">Redirecting to login...</p>
-            </div>
+            <Loading />
           </div>
         </div>
       </AlertProvider>

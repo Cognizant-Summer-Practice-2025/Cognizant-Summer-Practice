@@ -5,6 +5,7 @@ using BackendMessages.Models;
 using BackendMessages.Services;
 using BackendMessages.Services.Abstractions;
 using BackendMessages.DTO.Conversation.Request;
+using System.Security.Claims;
 
 namespace BackendMessages.Controllers
 {
@@ -24,6 +25,20 @@ namespace BackendMessages.Controllers
         }
 
         /// <summary>
+        /// Gets the authenticated user ID from the current context.
+        /// </summary>
+        /// <returns>The authenticated user ID, or null if not authenticated.</returns>
+        private Guid? GetAuthenticatedUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdClaim, out var userId))
+            {
+                return userId;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Get all conversations for a user
         /// </summary>
         /// <param name="userId">The ID of the user</param>
@@ -33,6 +48,17 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user matches the requested userId
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
+                if (authenticatedUserId != userId)
+                {
+                    return Forbid("You can only access your own conversations");
+                }
                 var conversations = await _context.Conversations
                     .Where(c => (c.InitiatorId == userId || c.ReceiverId == userId) &&
                                // Filter out conversations deleted by this user
@@ -85,6 +111,18 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user matches the initiator
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
+                if (authenticatedUserId != request.InitiatorId)
+                {
+                    return Forbid("You can only create conversations as yourself");
+                }
+
                 if (request.InitiatorId == request.ReceiverId)
                 {
                     return BadRequest("Cannot create conversation with yourself");
@@ -174,6 +212,13 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
                 var conversation = await _context.Conversations
                     .Include(c => c.LastMessage)
                     .FirstOrDefaultAsync(c => c.Id == conversationId);
@@ -181,6 +226,12 @@ namespace BackendMessages.Controllers
                 if (conversation == null)
                 {
                     return NotFound("Conversation not found");
+                }
+
+                // Verify user is part of the conversation
+                if (conversation.InitiatorId != authenticatedUserId && conversation.ReceiverId != authenticatedUserId)
+                {
+                    return Forbid("You are not part of this conversation");
                 }
 
                 return Ok(new
@@ -225,6 +276,18 @@ namespace BackendMessages.Controllers
 
             try
             {
+                // Validate authenticated user matches the userId parameter
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
+                if (authenticatedUserId != userId)
+                {
+                    return Forbid("You can only delete conversations as yourself");
+                }
+
                 if (userId == Guid.Empty)
                 {
                     _logger.LogWarning("Delete conversation failed: User ID is empty");

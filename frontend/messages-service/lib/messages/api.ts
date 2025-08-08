@@ -1,3 +1,5 @@
+import { authenticatedClient } from '@/lib/authenticated-client';
+
 const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5093';
 
 export interface ApiMessage {
@@ -82,66 +84,20 @@ export interface UserOnlineStatus {
 export const messagesApi = {
   // Conversations
   async getUserConversations(userId: string): Promise<ApiConversation[]> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/conversations/user/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to get user conversations: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.get<ApiConversation[]>(`${MESSAGES_API_BASE}/api/conversations/user/${userId}`);
   },
 
   async createOrGetConversation(request: CreateConversationRequest): Promise<ApiConversation> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/conversations/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to create conversation: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.post<ApiConversation>(`${MESSAGES_API_BASE}/api/conversations/create`, request);
   },
 
   async getConversation(conversationId: string): Promise<ApiConversation> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/conversations/${conversationId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to get conversation: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.get<ApiConversation>(`${MESSAGES_API_BASE}/api/conversations/${conversationId}`);
   },
 
   // Messages
   async sendMessage(request: SendMessageRequest): Promise<ApiMessage> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to send message: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.post<ApiMessage>(`${MESSAGES_API_BASE}/api/messages/send`, request);
   },
 
   async getConversationMessages(
@@ -149,146 +105,56 @@ export const messagesApi = {
     page: number = 1,
     pageSize: number = 50
   ): Promise<MessagesResponse> {
-    const response = await fetch(
-      `${MESSAGES_API_BASE}/api/messages/conversation/${conversationId}?page=${page}&pageSize=${pageSize}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    return authenticatedClient.get<MessagesResponse>(
+      `${MESSAGES_API_BASE}/api/messages/conversation/${conversationId}?page=${page}&pageSize=${pageSize}`
     );
-
-    if (!response.ok) {
-      throw new Error(`Failed to get conversation messages: ${response.statusText}`);
-    }
-
-    return response.json();
   },
 
   async markMessagesAsRead(request: MarkMessagesReadRequest): Promise<{ markedCount: number }> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/mark-read`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to mark messages as read: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.put<{ markedCount: number }>(`${MESSAGES_API_BASE}/api/messages/mark-read`, request);
   },
 
   async markSingleMessageAsRead(messageId: string, request: MarkSingleMessageReadRequest): Promise<{ messageId: string; isRead: boolean; readAt: string }> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/${messageId}/mark-read`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to mark message as read: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.put<{ messageId: string; isRead: boolean; readAt: string }>(`${MESSAGES_API_BASE}/api/messages/${messageId}/mark-read`, request);
   },
 
   async deleteMessage(messageId: string, userId: string): Promise<{ message: string }> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/${messageId}?userId=${userId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete message: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.delete<{ message: string }>(`${MESSAGES_API_BASE}/api/messages/${messageId}?userId=${userId}`);
   },
 
   async deleteConversation(conversationId: string, userId: string): Promise<{ message: string }> {
     const url = `${MESSAGES_API_BASE}/api/conversations/${conversationId}?userId=${userId}`;
     console.log('Making DELETE request to:', url);
     
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('Delete conversation response status:', response.status);
-    console.log('Delete conversation response headers:', Object.fromEntries(response.headers.entries()));
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Delete conversation failed:', errorText);
-      throw new Error(`Failed to delete conversation: ${response.statusText}`);
+    try {
+      const result = await authenticatedClient.delete<{ message: string }>(url);
+      console.log('Delete conversation successful:', result);
+      return result;
+    } catch (error) {
+      console.error('Delete conversation failed:', error);
+      throw error;
     }
-
-    const result = await response.json();
-    console.log('Delete conversation successful:', result);
-    return result;
   },
 
   // User details
   async getUserById(userId: string): Promise<ApiUser> {
     const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-    const response = await fetch(`${USER_API_BASE}/api/users/${userId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to get user: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.get<ApiUser>(`${USER_API_BASE}/api/users/${userId}`);
   },
 
   // Online status
   async getUserOnlineStatus(userId: string): Promise<UserOnlineStatus> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/users/${userId}/online-status`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to get user online status: ${response.statusText}`);
-    }
-
-    return response.json();
+    return authenticatedClient.get<UserOnlineStatus>(`${MESSAGES_API_BASE}/api/users/${userId}/online-status`);
   },
 
   // Report message
   async reportMessage(messageId: string, reportedByUserId: string, reason: string): Promise<{ message: string; reportId: string; reportedAt: string }> {
-    const response = await fetch(`${MESSAGES_API_BASE}/api/messages/${messageId}/report`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    return authenticatedClient.post<{ message: string; reportId: string; reportedAt: string }>(
+      `${MESSAGES_API_BASE}/api/messages/${messageId}/report`, 
+      {
         reportedByUserId,
         reason,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(errorData || `Failed to report message: ${response.statusText}`);
-    }
-
-    return response.json();
+      }
+    );
   },
 }; 
