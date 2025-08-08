@@ -35,7 +35,8 @@ type MobileView = 'sidebar' | 'chat';
 
 const MessagesPage = () => {
   const { user } = useUser();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, isLoggingOut } = useAuth();
+  const [initialDelayLoading, setInitialDelayLoading] = useState(true);
   const { 
     conversations, 
     currentConversation, 
@@ -56,13 +57,19 @@ const MessagesPage = () => {
   } = useMessages();
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated && !isLoggingOut) {
       const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
       const currentUrl = window.location.href;
       window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
       return;
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, isLoggingOut]);
+
+  // Add a small delay to allow user injection to finish on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialDelayLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
@@ -367,7 +374,7 @@ const MessagesPage = () => {
     }
   };
   // Show loading 
-  if (authLoading) {
+  if (authLoading || initialDelayLoading || isLoggingOut) {
     return (
       <AlertProvider>
         <Header />
@@ -375,7 +382,7 @@ const MessagesPage = () => {
           <div className="flex items-center justify-center w-full h-full">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Checking authentication...</p>
+              <p className="text-gray-600">Loading…</p>
             </div>
           </div>
         </div>

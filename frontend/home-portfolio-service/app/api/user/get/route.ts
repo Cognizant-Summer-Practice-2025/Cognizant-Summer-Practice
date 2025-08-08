@@ -14,6 +14,13 @@ if (!global.homePortfolioServiceUserStorage) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // If a forced local logout flag is present, always return 404 and clear storage
+    const { searchParams } = new URL(request.url);
+    if (searchParams.get('localLogout') === '1') {
+      global.homePortfolioServiceUserStorage.clear();
+      return NextResponse.json({ error: 'No user data found' }, { status: 404 });
+    }
+
     // Check if there's any user data stored
     if (global.homePortfolioServiceUserStorage.size === 0) {
       return NextResponse.json({ error: 'No user data found' }, { status: 404 });

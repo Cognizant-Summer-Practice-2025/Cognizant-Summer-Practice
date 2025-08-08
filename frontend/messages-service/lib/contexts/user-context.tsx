@@ -38,7 +38,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         if (response.status === 404) {
           setUser(null);
-          setError('User not found in this service. Please log in again.');
+          // Avoid showing a scary error on initial render; natural empty state is fine
+          setError(null);
           return;
         }
         throw new Error(`Failed to get user data: ${response.statusText}`);
@@ -89,9 +90,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Fetch user data when authenticated
+    // Fetch user data when authenticated, wait a short moment for injection to land
     if (isAuthenticated && userEmail && !user) {
-      fetchUser();
+      const timer = setTimeout(() => {
+        fetchUser();
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, userEmail, authLoading, user]);
 

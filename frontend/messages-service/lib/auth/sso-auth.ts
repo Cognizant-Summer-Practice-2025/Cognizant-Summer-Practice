@@ -100,10 +100,17 @@ export function redirectToAuth(): void {
 export async function logoutFromAllServices(): Promise<void> {
   try {
     const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
-    const currentUrl = window.location.origin;
+    const destinationUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
     
+    // Step 0: Clear this service's local user storage synchronously to avoid races
+    try {
+      await fetch('/api/auth/local-logout', { method: 'POST' });
+    } catch (e) {
+      console.warn('Local logout failed (continuing):', e);
+    }
+
     // Call the auto-signout endpoint that automatically clears NextAuth session
-    const response = await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(currentUrl)}`, {
+    const response = await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(destinationUrl)}`, {
       method: 'POST',
       credentials: 'include', // Include cookies for session
     });
@@ -119,20 +126,19 @@ export async function logoutFromAllServices(): Promise<void> {
       if (data.callbackUrl) {
         window.location.href = data.callbackUrl;
       } else {
-        window.location.href = currentUrl;
+        window.location.href = destinationUrl;
       }
     } else {
       console.warn('Failed to trigger automatic signout, falling back to manual logout');
       // Fallback: clear local session and redirect to home
       clearLocalSession();
-      window.location.href = currentUrl;
+      window.location.href = destinationUrl;
     }
   } catch (error) {
     console.error('Error during automatic signout:', error);
     // Fallback: clear local session and redirect to home
     clearLocalSession();
-    const currentUrl = window.location.origin;
-    window.location.href = currentUrl;
+    window.location.href = destinationUrl;
   }
 }
 

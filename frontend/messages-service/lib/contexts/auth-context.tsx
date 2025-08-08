@@ -1,13 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth, logoutFromAllServices } from '@/lib/auth/sso-auth';
+import { verifySSOToken, createLocalSession, getLocalSession, redirectToAuth, logoutFromAllServices } from '@/lib/auth/sso-auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userEmail: string | null;
   userId: string | null;
   loading: boolean;
+  isLoggingOut: boolean;
   login: () => void;
   logout: () => void;
 }
@@ -19,23 +20,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const login = () => {
     redirectToAuth();
   };
 
   const logout = async () => {
-    // Clear local state immediately for better UX
-    setIsAuthenticated(false);
-    setUserEmail(null);
-    setUserId(null);
-    
-    // Call the logout function that removes user from all services
-    await logoutFromAllServices();
+    setIsLoggingOut(true);
+    try {
+      // Clear local state immediately for better UX
+      setIsAuthenticated(false);
+      setUserEmail(null);
+      setUserId(null);
+      
+      // Call the logout function that removes user from all services
+      await logoutFromAllServices();
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const checkAuthentication = async () => {
     try {
+      // If we are in the middle of logging out, skip auth checks to avoid races
+      if (isLoggingOut) {
+        return;
+      }
       setLoading(true);
 
       // Check for SSO token in URL
@@ -50,53 +61,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsAuthenticated(true);
           setUserEmail(tokenPayload.email);
           setUserId(tokenPayload.userId);
-          
+
           // Remove token from URL
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.delete('ssoToken');
           window.history.replaceState({}, '', newUrl.toString());
-        }
-      } else {
-        // Check existing local session first
-        const session = getLocalSession();
-        if (session) {
-          setIsAuthenticated(true);
-          setUserEmail(session.email);
-          setUserId(session.userId);
-        } else {
-          // Check if user data has been injected by auth service
-          try {
-            const response = await fetch('/api/user/get');
-            if (response.ok) {
-              const userData = await response.json();
-              if (userData && userData.email) {
-                // Create local session from injected data
-                await createLocalSession({
-                  email: userData.email,
-                  userId: userData.id,
-                  timestamp: Date.now()
-                });
-                setIsAuthenticated(true);
-                setUserEmail(userData.email);
-                setUserId(userData.id);
-              } else {
-                setIsAuthenticated(false);
-                setUserEmail(null);
-                setUserId(null);
-              }
-            } else {
-              setIsAuthenticated(false);
-              setUserEmail(null);
-              setUserId(null);
-            }
-          } catch (injectionError) {
-            console.log('No injected user data found, user not authenticated');
-            setIsAuthenticated(false);
-            setUserEmail(null);
-            setUserId(null);
-          }
+          return;
         }
       }
+
+      // Always validate against server-injected data first to avoid stale local sessions
+      try {
+        const response = await fetch('/api/user/get');
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData && userData.email) {
+            await createLocalSession({
+              email: userData.email,
+              userId: userData.id,
+              timestamp: Date.now(),
+            });
+            setIsAuthenticated(true);
+            setUserEmail(userData.email);
+            setUserId(userData.id);
+            return;
+          }
+        } else if (response.status === 404 || response.status === 401) {
+          // Server says no user – clear any stale local session
+          localStorage.removeItem('sso_session');
+        }
+      } catch {
+        // Network errors: do not auto-login from local session to avoid stale auth
+      }
+
+      // Default to unauthenticated when server has no user or on error
+      setIsAuthenticated(false);
+      setUserEmail(null);
+      setUserId(null);
     } catch (error) {
       console.error('Authentication check failed:', error);
       setIsAuthenticated(false);
@@ -110,11 +111,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAuthentication();
 
-    // Set up periodic check for user injection (every 15 seconds)
+    // Periodic check regardless of current auth state to detect cross-service logout
     const intervalId = setInterval(() => {
-      if (!isAuthenticated) {
-        checkAuthentication();
-      }
+      checkAuthentication();
     }, 15000);
 
     // Listen for storage events (when user logs out from another tab)
@@ -129,17 +128,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener('storage', handleStorageChange);
 
+    // Detect when tab becomes active to refresh auth state (helps cross-service logout)
+    const handleVisibilityOrFocus = () => {
+      checkAuthentication();
+    };
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
     return () => {
       clearInterval(intervalId);
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoggingOut]);
 
   const value: AuthContextType = {
     isAuthenticated,
     userEmail,
     userId,
     loading,
+    isLoggingOut,
     login,
     logout,
   };

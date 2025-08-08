@@ -102,6 +102,13 @@ export async function logoutFromAllServices(): Promise<void> {
     const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
     const currentUrl = window.location.origin;
     
+    // Step 0: Clear this service's local user storage synchronously to avoid races
+    try {
+      await fetch('/api/auth/local-logout', { method: 'POST' });
+    } catch (e) {
+      console.warn('Local logout failed (continuing):', e);
+    }
+
     // Call the auto-signout endpoint that automatically clears NextAuth session
     const response = await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(currentUrl)}`, {
       method: 'POST',
