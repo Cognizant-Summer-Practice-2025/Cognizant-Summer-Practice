@@ -32,6 +32,9 @@ namespace backend_portfolio.tests.Repositories
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            
+            // Configure AutoFixture to handle DateOnly properly - generate valid dates
+            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
         }
 
         public void Dispose()
@@ -114,7 +117,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllSkillsAsync();
 
             // Assert
-            result.Should().HaveCount(3);
+            Assert.Equal(3, result.Count);
             result.Select(s => s.Id).Should().BeEquivalentTo(skills.Select(s => s.Id));
         }
 
@@ -145,7 +148,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetSkillsByPortfolioIdAsync(portfolioId);
 
             // Assert
-            result.Should().HaveCount(2);
+            Assert.Equal(2, result.Count);
             result.All(s => s.PortfolioId == portfolioId).Should().BeTrue();
         }
 
@@ -308,7 +311,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetSkillsByPortfolioIdAsync(portfolioId);
 
             // Assert
-            result.Should().HaveCount(3);
+            Assert.Equal(3, result.Count);
             result.Select(s => s.Name).Should().Equal(new[] { "Skill A", "Skill B", "Skill C" });
         }
 

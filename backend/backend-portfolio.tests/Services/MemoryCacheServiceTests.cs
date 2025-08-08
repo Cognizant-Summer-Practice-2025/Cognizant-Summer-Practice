@@ -203,33 +203,44 @@ namespace backend_portfolio.tests.Services
             var prefix = "portfolio";
 
             // Act
-            var result = _cacheService.GenerateKey(prefix, null, "test");
+            var result = _cacheService.GenerateKey(prefix, null!, "test");
 
             // Assert
             result.Should().Be($"{prefix}:null:test");
         }
 
-        [Theory]
-        [InlineData(typeof(string), "test-string")]
-        [InlineData(typeof(object), "test-object")]
-        public async Task GetAsync_WithDifferentReferenceTypes_ShouldHandleCorrectly(Type type, object value)
+        [Fact]
+        public async Task GetAsync_WithStringType_ShouldHandleCorrectly()
         {
             // Arrange
-            var key = $"test-{type.Name}";
+            var key = "test-string";
+            var value = "test-string-value";
 
-            var setMethod = typeof(MemoryCacheService).GetMethod("SetAsync")!
-                .MakeGenericMethod(type);
-            await (Task)setMethod.Invoke(_cacheService, new[] { key, value })!;
+            // Act
+            await _cacheService.SetAsync(key, value);
+            var result = await _cacheService.GetAsync<string>(key);
 
-            var getMethod = typeof(MemoryCacheService).GetMethod("GetAsync")!
-                .MakeGenericMethod(type);
-            var task = (Task)getMethod.Invoke(_cacheService, new[] { key })!;
-            await task;
-
-            // Act & Assert
-            var resultProperty = task.GetType().GetProperty("Result")!;
-            var result = resultProperty.GetValue(task);
+            // Assert
             result.Should().Be(value);
+        }
+
+        [Fact]
+        public async Task GetAsync_WithCustomObjectType_ShouldHandleCorrectly()
+        {
+            // Arrange
+            var key = "test-object";
+            var value = new { Name = "test", Value = 42 };
+
+            // Act
+            await _cacheService.SetAsync(key, value);
+            var result = await _cacheService.GetAsync<object>(key);
+
+            // Assert
+            result.Should().NotBeNull();
+            // Note: When deserializing object from JSON, we get a JsonElement, so we check properties differently
+            var jsonResult = result!.ToString();
+            jsonResult!.Should().Contain("test");
+            jsonResult.Should().Contain("42");
         }
 
         [Fact]

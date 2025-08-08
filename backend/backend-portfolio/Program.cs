@@ -87,7 +87,8 @@ builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 // Add Authentication services
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 
-builder.Services.AddScoped<ImageUploadUtility>();
+// Register services
+builder.Services.AddScoped<IImageUploadUtility, ImageUploadUtility>();
 
 builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
 builder.Services.AddScoped<IPortfolioCommandService, PortfolioCommandService>();
