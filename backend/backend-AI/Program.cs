@@ -1,4 +1,7 @@
 
+// Load environment variables from .env file (like other backends)
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -21,6 +24,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+// HttpClient for calling Ollama
+builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IAiChatService, backend_AI.Services.AiChatService>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -34,8 +43,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
-app.UseHttpsRedirection();
+// Skip HTTPS redirection during local/container testing
 app.UseAuthorization();
+
+// No auth middleware for now (testing from Podman)
 app.MapControllers();
 
 app.Run();
