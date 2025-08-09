@@ -6,6 +6,7 @@ namespace backend_AI.Services.Abstractions
     public interface IAiChatService
     {
         Task<string> GenerateAsync(CancellationToken cancellationToken = default);
+        Task<string> GenerateWithPromptAsync(string prompt, CancellationToken cancellationToken = default);
     }
 }
 

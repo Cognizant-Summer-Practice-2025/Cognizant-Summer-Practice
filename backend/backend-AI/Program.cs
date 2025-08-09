@@ -24,10 +24,31 @@ builder.Services.AddCors(options =>
     });
 });
 
-// HttpClient for calling Ollama
+// HttpClient for calling AI provider (OpenRouter)
 builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IAiChatService, backend_AI.Services.AiChatService>(client =>
 {
-    client.Timeout = TimeSpan.FromMinutes(2);
+    var timeoutEnv = Environment.GetEnvironmentVariable("OPENROUTER_TIMEOUT_SECONDS")
+                      ?? Environment.GetEnvironmentVariable("OLLAMA_TIMEOUT_SECONDS");
+    var timeoutCfg = builder.Configuration["OpenRouter:TimeoutSeconds"]
+                     ?? builder.Configuration["Ollama:TimeoutSeconds"];
+    if (int.TryParse(timeoutEnv, out var envSeconds) && envSeconds > 0)
+    {
+        client.Timeout = TimeSpan.FromSeconds(envSeconds);
+    }
+    else if (int.TryParse(timeoutCfg, out var cfgSeconds) && cfgSeconds > 0)
+    {
+        client.Timeout = TimeSpan.FromSeconds(cfgSeconds);
+    }
+    else
+    {
+        client.Timeout = TimeSpan.FromMinutes(2);
+    }
+});
+
+// HttpClient for calling portfolio backend
+builder.Services.AddHttpClient<backend_AI.Services.External.IPortfolioApiClient, backend_AI.Services.External.PortfolioApiClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 var app = builder.Build();
