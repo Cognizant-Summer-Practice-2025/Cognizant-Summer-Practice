@@ -7,6 +7,30 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Logging configuration: enable fine-grained control via env vars and dev defaults
+builder.Logging.AddConsole();
+var logLevelEnv = Environment.GetEnvironmentVariable("LOG_LEVEL");
+if (!string.IsNullOrWhiteSpace(logLevelEnv) && Enum.TryParse<LogLevel>(logLevelEnv, true, out var minLevel))
+{
+    builder.Logging.SetMinimumLevel(minLevel);
+}
+// Allow overriding log level for AI chat service specifically via AI_LOG_LEVEL
+var aiLogLevelEnv = Environment.GetEnvironmentVariable("AI_LOG_LEVEL");
+if (!string.IsNullOrWhiteSpace(aiLogLevelEnv) && Enum.TryParse<LogLevel>(aiLogLevelEnv, true, out var aiLevel))
+{
+    builder.Logging.AddFilter("backend_AI.Services.AiChatService", aiLevel);
+}
+// Always show detailed ranking logs in Development, or if RANKING_LOG_LEVEL is set
+var rankingLevelEnv = Environment.GetEnvironmentVariable("RANKING_LOG_LEVEL");
+if (!string.IsNullOrWhiteSpace(rankingLevelEnv) && Enum.TryParse<LogLevel>(rankingLevelEnv, true, out var rankingLevel))
+{
+    builder.Logging.AddFilter("backend_AI.Services.PortfolioRankingService", rankingLevel);
+}
+else if (builder.Environment.IsDevelopment())
+{
+    builder.Logging.AddFilter("backend_AI.Services.PortfolioRankingService", LogLevel.Debug);
+}
+
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -50,6 +74,9 @@ builder.Services.AddHttpClient<backend_AI.Services.External.IPortfolioApiClient,
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+
+// Ranking service
+builder.Services.AddScoped<backend_AI.Services.Abstractions.IPortfolioRankingService, backend_AI.Services.PortfolioRankingService>();
 
 var app = builder.Build();
 
