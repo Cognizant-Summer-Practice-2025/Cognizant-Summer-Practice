@@ -47,6 +47,7 @@ namespace backend_AI.Controllers
             {
                 var basePrompt = Environment.GetEnvironmentVariable("BEST_PORTFOLIO_PROMPT")
                                  ?? "Given the following portfolios JSON, analyze and propose the best combined portfolio content.";
+                // Use detailed data for ranking input (as before)
                 var portfoliosJson = await _portfolioApiClient.GetAllPortfoliosDetailedJsonAsync(cancellationToken);
                 var top = _rankingService.SelectTopCandidates(portfoliosJson, topN: 24);
                 _logger.LogInformation("AI: Ranking returned {Count} top candidates", top.Count);
@@ -58,8 +59,53 @@ namespace backend_AI.Controllers
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     _logger.LogInformation("AI Controller: best-portfolio generation returned empty content");
+                    return Ok(new { response = text });
                 }
-                return Ok(new { response = text });
+
+                // Expecting 10 comma-separated UUIDs
+                var ids = text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                              .Select(s => s.Trim())
+                              .Where(s => s.Length == 36)
+                              .Take(10)
+                              .ToList();
+                _logger.LogInformation("AI Controller: received {Count} ids from model", ids.Count);
+
+                // For final items, fetch only the basic portfolio table (not comprehensive details)
+                var allBasic = await _portfolioApiClient.GetAllPortfoliosBasicJsonAsync(cancellationToken);
+                using var basicDoc = System.Text.Json.JsonDocument.Parse(allBasic);
+                var root = basicDoc.RootElement;
+                var wanted = new HashSet<Guid>(ids
+                    .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty)
+                    .Where(g => g != Guid.Empty));
+                var idOrder = ids
+                    .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty)
+                    .Where(g => g != Guid.Empty)
+                    .ToList();
+
+                var map = new Dictionary<Guid, System.Text.Json.JsonElement>();
+                if (root.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    foreach (var el in root.EnumerateArray())
+                    {
+                        if (el.TryGetProperty("id", out var idProp) && idProp.ValueKind == System.Text.Json.JsonValueKind.String)
+                        {
+                            if (Guid.TryParse(idProp.GetString(), out var gid) && wanted.Contains(gid))
+                            {
+                                map[gid] = el.Clone();
+                            }
+                        }
+                    }
+                }
+
+                var results = new List<System.Text.Json.JsonElement>();
+                foreach (var gid in idOrder)
+                {
+                    if (map.TryGetValue(gid, out var el))
+                    {
+                        results.Add(el);
+                    }
+                }
+                return Ok(new { response = results });
             }
             catch (Exception ex)
             {

@@ -5,6 +5,8 @@ namespace backend_AI.Services.External
     public interface IPortfolioApiClient
     {
         Task<string> GetAllPortfoliosDetailedJsonAsync(CancellationToken cancellationToken = default);
+        Task<System.Text.Json.JsonElement?> GetPortfolioByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<string> GetAllPortfoliosBasicJsonAsync(CancellationToken cancellationToken = default);
     }
 
     public class PortfolioApiClient : IPortfolioApiClient
@@ -46,6 +48,70 @@ namespace backend_AI.Services.External
             else
             {
                 _logger.LogWarning("AI: No bearer token found on incoming request to forward to portfolio service");
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync(cancellationToken);
+        }
+
+        public async Task<System.Text.Json.JsonElement?> GetPortfolioByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var portfolioBaseUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL")
+                                   ?? _configuration["PortfolioService:BaseUrl"]
+                                   ?? "http://localhost:5201";
+
+            var url = new Uri(new Uri(portfolioBaseUrl), $"/api/portfolio/{id}");
+            _logger.LogInformation("AI: Fetching portfolio by id from {Url}", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            var incomingAuth = _httpContextAccessor.HttpContext?.Request?.Headers?.Authorization.ToString();
+            if (!string.IsNullOrEmpty(incomingAuth) && incomingAuth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = incomingAuth.Substring(7).Trim();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogWarning("AI: Portfolio {Id} not found", id);
+                return null;
+            }
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("AI: Error fetching portfolio {Id}: {Status} {Body}", id, (int)response.StatusCode, body);
+                return null;
+            }
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            return doc.RootElement.Clone();
+        }
+
+        public async Task<string> GetAllPortfoliosBasicJsonAsync(CancellationToken cancellationToken = default)
+        {
+            var portfolioBaseUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL")
+                                   ?? _configuration["PortfolioService:BaseUrl"]
+                                   ?? "http://localhost:5201";
+
+            var url = new Uri(new Uri(portfolioBaseUrl), "/api/portfolio");
+            _logger.LogInformation("AI: Fetching basic portfolios from {Url}", url);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            var incomingAuth = _httpContextAccessor.HttpContext?.Request?.Headers?.Authorization.ToString();
+            if (!string.IsNullOrEmpty(incomingAuth) && incomingAuth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = incomingAuth.Substring(7).Trim();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
             }
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
