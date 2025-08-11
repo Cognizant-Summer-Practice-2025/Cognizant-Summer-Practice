@@ -1,28 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { ServiceUserData } from '@/types/global';
 
-interface ServiceUserData {
-  id: string;
-  email: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  professionalTitle?: string;
-  bio?: string;
-  location?: string;
-  profileImage?: string;
-  isActive: boolean;
-  isAdmin: boolean;
-  lastLoginAt?: string;
-  accessToken?: string;
-}
-
-// Global storage for user data
-declare global {
-  var homePortfolioServiceUserStorage: Map<string, ServiceUserData>;
-}
-
-if (!global.homePortfolioServiceUserStorage) {
-  global.homePortfolioServiceUserStorage = new Map();
+// Ensure global storage is initialized
+if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
+  global.homePortfolioServiceUserStorage = new Map<string, ServiceUserData>();
 }
 
 /**

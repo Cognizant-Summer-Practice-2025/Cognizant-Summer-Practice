@@ -1,3 +1,5 @@
+import type { ServiceUserData } from '@/types/global';
+
 // Authenticated client for handling authenticated API calls
 export class AuthenticatedClient {
   private static instance: AuthenticatedClient;
@@ -20,10 +22,10 @@ export class AuthenticatedClient {
   private async getAuthToken(): Promise<string | null> {
     try {
       // Reference to the same storage used in inject/remove
-      if (typeof global !== 'undefined' && (global as unknown).homePortfolioServiceUserStorage) {
-        const userStorage = (global as unknown).homePortfolioServiceUserStorage as Map<string, unknown>;
+      if (typeof global !== 'undefined' && global.homePortfolioServiceUserStorage) {
+        const userStorage = global.homePortfolioServiceUserStorage;
         if (userStorage.size > 0) {
-          const userData = Array.from(userStorage.values())[0];
+          const userData: ServiceUserData = Array.from(userStorage.values())[0];
           return userData.accessToken || null;
         }
       }
@@ -102,7 +104,7 @@ export class AuthenticatedClient {
   /**
    * Make a POST request with authentication
    */
-  public async post<T>(url: string, data: any): Promise<T> {
+  public async post<T>(url: string, data: unknown): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -121,7 +123,7 @@ export class AuthenticatedClient {
   /**
    * Make a PUT request with authentication
    */
-  public async put<T>(url: string, data: any): Promise<T> {
+  public async put<T>(url: string, data: unknown): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'PUT',
       body: JSON.stringify(data),

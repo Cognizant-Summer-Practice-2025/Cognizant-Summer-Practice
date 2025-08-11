@@ -61,6 +61,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updateUserData = async (userData: {
     firstName?: string;
     lastName?: string;
