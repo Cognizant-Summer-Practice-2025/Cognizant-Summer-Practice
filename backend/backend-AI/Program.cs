@@ -74,9 +74,16 @@ builder.Services.AddHttpClient<backend_AI.Services.External.IPortfolioApiClient,
 {
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddHttpContextAccessor();
 
 // Ranking service
 builder.Services.AddScoped<backend_AI.Services.Abstractions.IPortfolioRankingService, backend_AI.Services.PortfolioRankingService>();
+
+// User auth service and middleware dependencies
+builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IUserAuthenticationService, backend_AI.Services.UserAuthenticationService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 
 var app = builder.Build();
 
@@ -92,6 +99,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 
 // Skip HTTPS redirection during local/container testing
+app.UseMiddleware<backend_AI.Middleware.OAuth2Middleware>();
 app.UseAuthorization();
 
 // No auth middleware for now (testing from Podman)

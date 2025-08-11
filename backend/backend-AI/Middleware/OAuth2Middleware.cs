@@ -1,9 +1,9 @@
-using backend_portfolio.Services.Abstractions;
+using backend_AI.Services.Abstractions;
 
-namespace backend_portfolio.Middleware
+namespace backend_AI.Middleware
 {
     /// <summary>
-    /// Middleware for OAuth 2.0 authentication that validates tokens via the user service.
+    /// OAuth2 authentication middleware for the AI backend, mirroring the portfolio service behavior.
     /// </summary>
     public class OAuth2Middleware
     {
@@ -18,7 +18,7 @@ namespace backend_portfolio.Middleware
 
         public async Task InvokeAsync(HttpContext context, IUserAuthenticationService userAuthService)
         {
-            // Add security headers to all responses
+            // Security headers
             context.Response.OnStarting(() => {
                 context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
                 context.Response.Headers["X-Content-Type-Options"] = "nosniff";
@@ -27,73 +27,59 @@ namespace backend_portfolio.Middleware
 
             var path = context.Request.Path.Value?.ToLower();
             var method = context.Request.Method;
-            
-            _logger.LogInformation("🔐 Middleware: Processing request {Method} {Path}", method, path);
-            
-            // Skip auth for certain paths
+            _logger.LogInformation("🔐 AI Middleware: Processing {Method} {Path}", method, path);
+
+            // Public endpoints to skip
             if (path != null && (
                 path.StartsWith("/openapi") ||
                 path.StartsWith("/swagger") ||
                 path == "/" ||
                 path.StartsWith("/health") ||
-                // Allow public read access to portfolios for browsing
-                (path.StartsWith("/api/portfolio") && ((method == "GET" && !path.Contains("/detailed-all")) || (method == "POST" && path.Contains("/view")))) ||
-                (path.StartsWith("/api/portfoliotemplate") && (method == "GET" || (method == "POST" && path.Contains("/seed")))) ||
-                (path.StartsWith("/api/project") && method == "GET") ||
-                (path.StartsWith("/api/bookmark") && method == "GET") ||
-                (path.StartsWith("/api/image") && method == "GET")))
+                // Allow GET for generate endpoints during testing? Remove if you want all protected
+                false
+            ))
             {
-                _logger.LogInformation("🔐 Middleware: Skipping auth for public endpoint {Method} {Path}", method, path);
+                _logger.LogInformation("🔐 AI Middleware: Skipping auth for public endpoint {Method} {Path}", method, path);
                 await _next(context);
                 return;
             }
 
-            // Extract access token from Authorization header
             var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-            _logger.LogInformation("🔐 Middleware: Authorization header present: {HasHeader}, Value: {HeaderValue}", 
-                !string.IsNullOrEmpty(authHeader), 
+            _logger.LogInformation("🔐 AI Middleware: Authorization header present: {HasHeader}, Value: {HeaderPreview}",
+                !string.IsNullOrEmpty(authHeader),
                 authHeader?.Substring(0, Math.Min(20, authHeader?.Length ?? 0)) + "..." ?? "null");
-            
+
             if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogWarning("🔐 Middleware: Unauthorized request to {Method} {Path}: Missing or invalid Authorization header", method, path);
+                _logger.LogWarning("🔐 AI Middleware: Missing or invalid Authorization header");
                 context.Response.StatusCode = 401;
                 await context.Response.WriteAsync("Unauthorized: Missing or invalid Authorization header");
                 return;
             }
 
-            var token = authHeader.Substring(7).Trim(); // "Bearer ".Length is 7
-            _logger.LogInformation("🔐 Middleware: Extracted token length: {TokenLength}", token.Length);
-            
+            var token = authHeader.Substring(7).Trim();
             if (string.IsNullOrEmpty(token))
             {
-                _logger.LogWarning("🔐 Middleware: Unauthorized request to {Method} {Path}: Empty access token", method, path);
+                _logger.LogWarning("🔐 AI Middleware: Empty access token");
                 context.Response.StatusCode = 401;
                 await context.Response.WriteAsync("Unauthorized: Empty access token");
                 return;
             }
 
-            // Validate the access token via user service
-            _logger.LogInformation("🔐 Middleware: Validating token with user service...");
             try
             {
                 var principal = await userAuthService.ValidateTokenAsync(token);
                 if (principal == null)
                 {
-                    _logger.LogWarning("🔐 Middleware: Unauthorized request to {Method} {Path}: Invalid or expired access token", method, path);
                     context.Response.StatusCode = 401;
                     await context.Response.WriteAsync("Unauthorized: Invalid or expired access token");
                     return;
                 }
-
-                // Add user information to the context
-                _logger.LogInformation("🔐 Middleware: Token validated successfully for user: {UserId}", 
-                    principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
                 context.User = principal;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "🔐 Middleware: Error validating token for {Method} {Path}", method, path);
+                _logger.LogError(ex, "🔐 AI Middleware: Error validating token");
                 context.Response.StatusCode = 401;
                 await context.Response.WriteAsync("Unauthorized: Token validation failed");
                 return;
@@ -103,3 +89,5 @@ namespace backend_portfolio.Middleware
         }
     }
 }
+
+
