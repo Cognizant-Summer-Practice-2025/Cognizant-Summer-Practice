@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-    } catch (e) {
+    } catch {
       // Keep session token if DB lookup fails
     }
 

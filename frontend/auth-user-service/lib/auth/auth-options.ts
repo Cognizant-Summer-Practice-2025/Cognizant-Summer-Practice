@@ -37,15 +37,6 @@ interface TokenData {
   expiresAt?: number;
 }
 
-interface ProviderData {
-  provider: string;
-  tokenExpiresAt?: string;
-  hasRefreshToken: boolean;
-}
-
-interface StatusData {
-  providers?: ProviderData[];
-}
 
 /**
  * Refreshes an access token using our backend refresh endpoint

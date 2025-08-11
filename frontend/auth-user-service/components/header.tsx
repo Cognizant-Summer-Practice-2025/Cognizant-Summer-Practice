@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft, Bookmark } from 'lucide-react';

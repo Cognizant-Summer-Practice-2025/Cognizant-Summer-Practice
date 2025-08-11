@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
+import { User } from '@/lib/user/interfaces';
 
 // Global storage for user data (similar to other services)
 declare global {
-  var authServiceUserStorage: Map<string, any>;
+  var authServiceUserStorage: Map<string, User>;
   var authServiceSignoutSignals: Set<string>;
 }
 
