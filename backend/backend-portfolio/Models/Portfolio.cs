@@ -1,20 +1,28 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend_portfolio.Models.Validation;
 
 namespace backend_portfolio.Models
 {
     [Table("portfolios")]
     public class Portfolio
     {
+        public Portfolio()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }
 
         [Required]
+        [NotEmptyGuid]
         [Column("user_id")]
         public Guid UserId { get; set; }
 
         [Required]
+        [NotEmptyGuid]
         [Column("template_id")]
         public Guid TemplateId { get; set; }
 

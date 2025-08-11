@@ -3,9 +3,6 @@ import CryptoJS from 'crypto-js';
 export class MessageEncryption {
   private static readonly ENCRYPTION_PREFIX = 'ENC:';
   
-  /**
-   * Derive encryption key from user ID using PBKDF2
-   */
   private static deriveKey(userId: string): string {
     if (!userId || userId.trim() === '') {
       throw new Error('User ID is required for key derivation');
@@ -25,7 +22,7 @@ export class MessageEncryption {
   }
 
   /**
-   * Check if a message is encrypted (has our encryption prefix)
+   * Check if a message is encrypted (has encryption prefix)
    */
   static isEncrypted(message: string): boolean {
     return message.startsWith(this.ENCRYPTION_PREFIX);
@@ -91,40 +88,6 @@ export class MessageEncryption {
     } catch (error) {
       console.error('Failed to decrypt message:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Test function to demonstrate encryption/decryption workflow
-   * This can be removed in production
-   */
-  static testEncryptionFlow(userId: string): void {
-    const testMessage = "Hello, this is a test message!";
-    console.log('🔒 Testing E2E Encryption Flow');
-    console.log('Original message:', testMessage);
-    
-    try {
-      const encrypted = this.encrypt(testMessage, userId);
-      console.log('Encrypted message:', encrypted);
-      console.log('Is encrypted?', this.isEncrypted(encrypted));
-      
-      const decrypted = this.decrypt(encrypted, userId);
-      console.log('Decrypted message:', decrypted);
-      
-      const isValid = testMessage === decrypted;
-      console.log('✅ Encryption test:', isValid ? 'PASSED' : 'FAILED');
-      
-      if (!isValid) {
-        console.error('❌ Original and decrypted messages do not match!');
-      }
-
-      // Test legacy message handling
-      const legacyMessage = "This is a legacy unencrypted message";
-      const legacyDecrypted = this.decrypt(legacyMessage, userId);
-      console.log('🔄 Legacy message handling:', legacyMessage === legacyDecrypted ? 'PASSED' : 'FAILED');
-      
-    } catch (error) {
-      console.error('❌ Encryption test failed:', error);
     }
   }
 } 

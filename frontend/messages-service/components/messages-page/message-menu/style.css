@@ -1,0 +1,71 @@
+.message-menu-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 1;
+  transition: background-color 0.2s ease;
+  color: rgba(92, 92, 92, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.message-menu-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Removed the hover opacity change - button is always visible now */
+
+/* Positioning for own messages (sent) - button on left side */
+.message-wrapper.user-message .message-menu-button {
+  order: -1; /* Move to the left of the message bubble */
+  margin-right: 4px;
+  margin-left: 0;
+  flex-shrink: 0;
+  /* Stabilize position during scroll */
+  position: relative;
+  transform: translateZ(0);
+}
+
+/* Positioning for other messages (received) - button on right side */
+.message-wrapper.other-message .message-menu-button {
+  order: 1; /* Move to the right of the message bubble */
+  margin-left: 4px;
+  margin-right: 0;
+  flex-shrink: 0;
+  /* Stabilize position during scroll */
+  position: relative;
+  transform: translateZ(0);
+}
+
+.other-message .message-menu-button {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.other-message .message-menu-button:hover {
+  color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure the menu button doesn't interfere with message flow */
+.message-wrapper {
+  position: relative;
+  /* Stabilize layout during scroll */
+  contain: layout style;
+  transform: translateZ(0);
+}
+
+/* Additional styling for different message types */
+.own-message-menu {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.other-message-menu {
+  /* Specific styles for other message menu if needed */
+} 

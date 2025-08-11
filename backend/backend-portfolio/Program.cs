@@ -6,6 +6,7 @@ using backend_portfolio.Services.Abstractions;
 using backend_portfolio.Services.Mappers;
 using backend_portfolio.Services.Validators;
 using backend_portfolio.Services.External;
+using backend_portfolio.Middleware;
 using backend_portfolio.DTO;
 using backend_portfolio.DTO.Portfolio.Request;
 using backend_portfolio.DTO.Project.Request;
@@ -39,10 +40,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.WithOrigins(
+                "http://localhost:3000",  // auth-user-service
+                "http://localhost:3001",  // home-portfolio-service
+                "http://localhost:3002",  // messages-service
+                "http://localhost:3003"   // admin-service
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -68,8 +74,8 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
 
-builder.Services.AddScoped<PortfolioMapper>();
-builder.Services.AddScoped<ProjectMapper>();
+builder.Services.AddScoped<IPortfolioMapper, PortfolioMapper>();
+builder.Services.AddScoped<IProjectMapper, ProjectMapper>();
 
 builder.Services.AddScoped<IValidationService<PortfolioCreateRequest>, PortfolioValidator>();
 builder.Services.AddScoped<IValidationService<PortfolioUpdateRequest>, PortfolioUpdateValidator>();
@@ -78,7 +84,11 @@ builder.Services.AddScoped<IValidationService<ProjectUpdateRequest>, ProjectUpda
 
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 
-builder.Services.AddScoped<ImageUploadUtility>();
+// Add Authentication services
+builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+
+// Register services
+builder.Services.AddScoped<IImageUploadUtility, ImageUploadUtility>();
 
 builder.Services.AddScoped<IPortfolioQueryService, PortfolioQueryService>();
 builder.Services.AddScoped<IPortfolioCommandService, PortfolioCommandService>();
@@ -104,6 +114,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
+
+// Use OAuth 2.0 middleware
+app.UseMiddleware<OAuth2Middleware>();
 
 app.UseAuthorization();
 app.MapControllers();

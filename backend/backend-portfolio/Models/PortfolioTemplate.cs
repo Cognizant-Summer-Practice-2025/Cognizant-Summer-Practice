@@ -7,6 +7,11 @@ namespace backend_portfolio.Models
     [Table("portfolio_templates")]
     public class PortfolioTemplate
     {
+        public PortfolioTemplate()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }

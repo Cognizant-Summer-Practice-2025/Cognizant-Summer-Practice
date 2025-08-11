@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Hubs;
+using System.Security.Claims;
 
 namespace BackendMessages.Controllers
 {
@@ -23,6 +24,20 @@ namespace BackendMessages.Controllers
         }
 
         /// <summary>
+        /// Gets the authenticated user ID from the current context.
+        /// </summary>
+        /// <returns>The authenticated user ID, or null if not authenticated.</returns>
+        private Guid? GetAuthenticatedUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdClaim, out var userId))
+            {
+                return userId;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Send a message in a conversation
         /// </summary>
         /// <param name="request">Message details</param>
@@ -32,6 +47,18 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user matches sender
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
+                if (authenticatedUserId != request.SenderId)
+                {
+                    return Forbid("You can only send messages as yourself");
+                }
+
                 if (string.IsNullOrWhiteSpace(request.Content))
                 {
                     return BadRequest("Message content cannot be empty");
@@ -154,6 +181,13 @@ namespace BackendMessages.Controllers
         {
             try
             {
+                // Validate authenticated user
+                var authenticatedUserId = GetAuthenticatedUserId();
+                if (authenticatedUserId == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
                 if (page < 1) page = 1;
                 if (pageSize < 1 || pageSize > 100) pageSize = 50;
 
@@ -164,6 +198,12 @@ namespace BackendMessages.Controllers
                 if (conversation == null)
                 {
                     return NotFound("Conversation not found");
+                }
+
+                // Verify user is part of the conversation
+                if (conversation.InitiatorId != authenticatedUserId && conversation.ReceiverId != authenticatedUserId)
+                {
+                    return Forbid("You are not part of this conversation");
                 }
 
                 var skip = (page - 1) * pageSize;
@@ -246,10 +286,10 @@ namespace BackendMessages.Controllers
                     {
                         var readReceipt = new
                         {
-                            MessageId = message.Id.ToString(),
-                            ConversationId = message.ConversationId.ToString(),
-                            ReadByUserId = request.UserId.ToString(),
-                            ReadAt = message.UpdatedAt
+                            messageId = message.Id.ToString(),
+                            conversationId = message.ConversationId.ToString(),
+                            readByUserId = request.UserId.ToString(),
+                            readAt = message.UpdatedAt
                         };
 
                         // Send read receipt to the sender
@@ -307,6 +347,33 @@ namespace BackendMessages.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                foreach (var message in messages)
+                {
+                    try
+                    {
+                        var readReceipt = new
+                        {
+                            messageId = message.Id.ToString(),
+                            conversationId = message.ConversationId.ToString(),
+                            readByUserId = request.UserId.ToString(),
+                            readAt = message.UpdatedAt
+                        };
+
+                        await _hubContext.Clients.Group($"user_{message.SenderId}")
+                            .SendAsync("MessageRead", readReceipt);
+
+                        await _hubContext.Clients.Group($"user_{request.UserId}")
+                            .SendAsync("MessageRead", readReceipt);
+
+                        _logger.LogInformation("Message {MessageId} marked as read by user {UserId}, receipt sent to sender {SenderId}", 
+                            message.Id, request.UserId, message.SenderId);
+                    }
+                    catch (Exception hubEx)
+                    {
+                        _logger.LogError(hubEx, "Failed to broadcast read receipt for message {MessageId}", message.Id);
+                    }
+                }
 
                 return Ok(new { MarkedCount = messages.Count });
             }
@@ -384,6 +451,73 @@ namespace BackendMessages.Controllers
                 return StatusCode(500, "An error occurred while deleting the message");
             }
         }
+
+        /// <summary>
+        /// Report a message
+        /// </summary>
+        /// <param name="messageId">The message ID to report</param>
+        /// <param name="request">Report request details</param>
+        /// <returns>Success response</returns>
+        [HttpPost("{messageId}/report")]
+        public async Task<IActionResult> ReportMessage(Guid messageId, [FromBody] ReportMessageRequest request)
+        {
+            try
+            {
+                // Verify the message exists and user has access
+                var message = await _context.Messages
+                    .FirstOrDefaultAsync(m => m.Id == messageId && m.DeletedAt == null);
+
+                if (message == null)
+                {
+                    return NotFound("Message not found");
+                }
+
+                // Verify user is part of the conversation (can see the message)
+                var conversation = await _context.Conversations
+                    .FirstOrDefaultAsync(c => c.Id == message.ConversationId &&
+                                              (c.InitiatorId == request.ReportedByUserId || c.ReceiverId == request.ReportedByUserId));
+
+                if (conversation == null)
+                {
+                    return StatusCode(403, "You don't have access to this message");
+                }
+
+                // Check if user has already reported this message
+                var existingReport = await _context.MessageReports
+                    .FirstOrDefaultAsync(mr => mr.MessageId == messageId && mr.ReportedByUserId == request.ReportedByUserId);
+
+                if (existingReport != null)
+                {
+                    return BadRequest("You have already reported this message");
+                }
+
+                // Create the report
+                var report = new BackendMessages.Models.MessageReport
+                {
+                    MessageId = messageId,
+                    ReportedByUserId = request.ReportedByUserId,
+                    Reason = request.Reason,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+
+                _context.MessageReports.Add(report);
+                await _context.SaveChangesAsync();
+
+                _logger.LogWarning("Message {MessageId} reported by user {UserId} for reason: {Reason}", 
+                    messageId, request.ReportedByUserId, request.Reason);
+
+                return Ok(new { 
+                    Message = "Message reported successfully",
+                    ReportId = report.Id,
+                    ReportedAt = report.CreatedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reporting message {MessageId}", messageId);
+                return StatusCode(500, "An error occurred while reporting the message");
+            }
+        }
     }
 
     public class SendMessageRequest
@@ -405,4 +539,10 @@ namespace BackendMessages.Controllers
     {
         public Guid UserId { get; set; }
     }
-} 
+
+    public class ReportMessageRequest
+    {
+        public Guid ReportedByUserId { get; set; }
+        public string Reason { get; set; } = string.Empty;
+    }
+}

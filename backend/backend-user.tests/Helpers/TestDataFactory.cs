@@ -90,22 +90,17 @@ namespace backend_user.tests.Helpers
         }
 
         public static UserReport CreateValidUserReport(
-            Guid? reporterId = null,
-            Guid? resolvedById = null)
+            Guid? userId = null,
+            Guid? reportedByUserId = null)
         {
+            var reason = _fixture.Create<string>();
             return new UserReport
             {
                 Id = Guid.NewGuid(),
-                ReporterId = reporterId ?? Guid.NewGuid(),
-                ResolvedBy = resolvedById,
-                ReportedService = "user-service",
-                ReportedType = ReportedType.User,
-                ReportedId = Guid.NewGuid(),
-                ReportType = ReportType.Spam,
-                Description = _fixture.Create<string>(),
-                Status = ReportStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                ResolvedAt = null
+                UserId = userId ?? Guid.NewGuid(),
+                ReportedByUserId = reportedByUserId ?? Guid.NewGuid(),
+                Reason = reason.Length > 50 ? reason.Substring(0, 50) : reason,
+                CreatedAt = DateTime.UtcNow
             };
         }
 

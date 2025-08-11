@@ -26,6 +26,7 @@ namespace backend_user.Models
 
         // Navigation property
         [ForeignKey("UserId")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual User User { get; set; } = null!;
     }
 } 

@@ -6,6 +6,11 @@ namespace backend_portfolio.Models
     [Table("skills")]
     public class Skill
     {
+        public Skill()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }
@@ -44,6 +49,7 @@ namespace backend_portfolio.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
+        [System.Text.Json.Serialization.JsonIgnore]
         [ForeignKey("PortfolioId")]
         public virtual Portfolio Portfolio { get; set; } = null!;
     }

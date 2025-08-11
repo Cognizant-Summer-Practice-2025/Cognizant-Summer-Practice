@@ -55,6 +55,9 @@ namespace backend_portfolio.Controllers
         {
             try
             {
+                if (id == Guid.Empty)
+                    return BadRequest("Template ID cannot be empty.");
+
                 var template = await _portfolioTemplateService.GetTemplateByIdAsync(id);
                 if (template == null)
                     return NotFound($"Template with ID {id} not found.");
@@ -91,11 +94,19 @@ namespace backend_portfolio.Controllers
         {
             try
             {
+                if (request == null)
+                    return BadRequest("Request cannot be null.");
+
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
                 var template = await _portfolioTemplateService.CreateTemplateAsync(request);
                 return CreatedAtAction(nameof(GetTemplateById), new { id = template.Id }, template);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validation failed while creating template");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -109,6 +120,12 @@ namespace backend_portfolio.Controllers
         {
             try
             {
+                if (id == Guid.Empty)
+                    return BadRequest("Template ID cannot be empty.");
+
+                if (request == null)
+                    return BadRequest("Request cannot be null.");
+
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
@@ -117,6 +134,11 @@ namespace backend_portfolio.Controllers
                     return NotFound($"Template with ID {id} not found.");
 
                 return Ok(template);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validation failed while updating template: {TemplateId}", id);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -130,6 +152,9 @@ namespace backend_portfolio.Controllers
         {
             try
             {
+                if (id == Guid.Empty)
+                    return BadRequest("Template ID cannot be empty.");
+
                 var result = await _portfolioTemplateService.DeleteTemplateAsync(id);
                 if (!result)
                     return NotFound($"Template with ID {id} not found.");

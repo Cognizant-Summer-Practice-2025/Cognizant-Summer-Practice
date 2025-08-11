@@ -15,6 +15,7 @@ using backend_portfolio.DTO.Bookmark.Response;
 using backend_portfolio.DTO.PortfolioTemplate.Response;
 using backend_portfolio.DTO.ImageUpload.Response;
 using backend_portfolio.Services;
+using backend_portfolio.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend_portfolio.Controllers
@@ -23,11 +24,11 @@ namespace backend_portfolio.Controllers
     [ApiController]
     public class ImageUploadController : ControllerBase
     {
-        private readonly ImageUploadUtility _imageUploadUtility;
+        private readonly IImageUploadUtility _imageUploadUtility;
         private readonly ILogger<ImageUploadController> _logger;
 
         public ImageUploadController(
-            ImageUploadUtility imageUploadUtility,
+            IImageUploadUtility imageUploadUtility,
             ILogger<ImageUploadController> logger)
         {
             _imageUploadUtility = imageUploadUtility;

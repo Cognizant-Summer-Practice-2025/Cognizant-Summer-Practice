@@ -12,6 +12,7 @@ using backend_user.DTO.Authentication.Response;
 using backend_user.DTO.OAuthProvider.Request;
 using backend_user.DTO.OAuthProvider.Response;
 using backend_user.tests.Helpers;
+using backend_user.DTO;
 
 namespace backend_user.tests.Controllers
 {
@@ -22,6 +23,7 @@ namespace backend_user.tests.Controllers
         private readonly Mock<IUserRegistrationService> _mockUserRegistrationService;
         private readonly Mock<ILoginService> _mockLoginService;
         private readonly Mock<IBookmarkService> _mockBookmarkService;
+        private readonly Mock<IUserReportService> _mockUserReportService;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
@@ -31,13 +33,15 @@ namespace backend_user.tests.Controllers
             _mockUserRegistrationService = new Mock<IUserRegistrationService>();
             _mockLoginService = new Mock<ILoginService>();
             _mockBookmarkService = new Mock<IBookmarkService>();
+            _mockUserReportService = new Mock<IUserReportService>();
 
             _controller = new UsersController(
                 _mockUserService.Object,
                 _mockOAuthProviderService.Object,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             );
         }
 
@@ -52,7 +56,8 @@ namespace backend_user.tests.Controllers
                 _mockOAuthProviderService.Object,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             ));
         }
 
@@ -65,7 +70,8 @@ namespace backend_user.tests.Controllers
                 null!,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             ));
         }
 
@@ -78,7 +84,8 @@ namespace backend_user.tests.Controllers
                 _mockOAuthProviderService.Object,
                 _mockUserRegistrationService.Object,
                 _mockLoginService.Object,
-                _mockBookmarkService.Object
+                _mockBookmarkService.Object,
+                _mockUserReportService.Object
             );
 
             // Assert
@@ -202,8 +209,8 @@ namespace backend_user.tests.Controllers
             var result = await _controller.GetUserByEmail(email);
 
             // Assert
-            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            okResult.Value.Should().BeNull();
+            var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+            notFoundResult.Value.Should().Be($"User with email {email} not found.");
         }
 
         #endregion
@@ -784,6 +791,181 @@ namespace backend_user.tests.Controllers
             badRequestResult.Value.Should().BeEquivalentTo(new { message = "OAuth registration failed" });
         }
 
+        #endregion
+
+        #region SearchUsers Tests
+        [Fact]
+        public async Task SearchUsers_WithValidQuery_ShouldReturnOkWithUsers()
+        {
+            var query = "john";
+            var users = TestDataFactory.CreateUserList(2);
+            _mockUserService.Setup(x => x.SearchUsersAsync(query)).ReturnsAsync(users);
+
+            var result = await _controller.SearchUsers(query);
+
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.Value.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task SearchUsers_WithEmptyQuery_ShouldReturnBadRequest()
+        {
+            var result = await _controller.SearchUsers("");
+            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequest.Value.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task SearchUsers_WhenServiceThrowsException_ShouldReturnBadRequest()
+        {
+            var query = "john";
+            _mockUserService.Setup(x => x.SearchUsersAsync(query)).ThrowsAsync(new Exception("search error"));
+            var result = await _controller.SearchUsers(query);
+            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequest.Value.Should().NotBeNull();
+        }
+        #endregion
+
+        #region AddBookmark Tests
+        [Fact]
+        public async Task AddBookmark_WithValidRequest_ShouldReturnOkWithBookmark()
+        {
+            var userId = Guid.NewGuid();
+            var request = new AddBookmarkRequest { PortfolioId = "p1" };
+            var response = new BookmarkResponse { Id = Guid.NewGuid(), UserId = userId, PortfolioId = "p1" };
+            _mockBookmarkService.Setup(x => x.AddBookmarkAsync(userId, request)).ReturnsAsync(response);
+            var result = await _controller.AddBookmark(userId, request);
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.Value.Should().Be(response);
+        }
+        [Fact]
+        public async Task AddBookmark_WhenUserNotFound_ShouldReturnNotFound()
+        {
+            var userId = Guid.NewGuid();
+            var request = new AddBookmarkRequest { PortfolioId = "p1" };
+            _mockBookmarkService.Setup(x => x.AddBookmarkAsync(userId, request)).ThrowsAsync(new ArgumentException("User with ID not found."));
+            var result = await _controller.AddBookmark(userId, request);
+            var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+            notFound.Value.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task AddBookmark_WhenAlreadyBookmarked_ShouldReturnConflict()
+        {
+            var userId = Guid.NewGuid();
+            var request = new AddBookmarkRequest { PortfolioId = "p1" };
+            _mockBookmarkService.Setup(x => x.AddBookmarkAsync(userId, request)).ThrowsAsync(new InvalidOperationException("Portfolio is already bookmarked."));
+            var result = await _controller.AddBookmark(userId, request);
+            var conflict = result.Should().BeOfType<ConflictObjectResult>().Subject;
+            conflict.Value.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task AddBookmark_WhenServiceThrowsException_ShouldReturnBadRequest()
+        {
+            var userId = Guid.NewGuid();
+            var request = new AddBookmarkRequest { PortfolioId = "p1" };
+            _mockBookmarkService.Setup(x => x.AddBookmarkAsync(userId, request)).ThrowsAsync(new Exception("add error"));
+            var result = await _controller.AddBookmark(userId, request);
+            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequest.Value.Should().NotBeNull();
+        }
+        #endregion
+
+        #region RemoveBookmark Tests
+        [Fact]
+        public async Task RemoveBookmark_WithValidRequest_ShouldReturnOk()
+        {
+            var userId = Guid.NewGuid();
+            var portfolioId = "p1";
+            _mockBookmarkService.Setup(x => x.RemoveBookmarkAsync(userId, portfolioId)).ReturnsAsync(true);
+            var result = await _controller.RemoveBookmark(userId, portfolioId);
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.Value.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task RemoveBookmark_WhenUserNotFound_ShouldReturnNotFound()
+        {
+            var userId = Guid.NewGuid();
+            var portfolioId = "p1";
+            _mockBookmarkService.Setup(x => x.RemoveBookmarkAsync(userId, portfolioId)).ThrowsAsync(new ArgumentException("User with ID not found."));
+            var result = await _controller.RemoveBookmark(userId, portfolioId);
+            var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+            notFound.Value.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task RemoveBookmark_WhenBookmarkNotFound_ShouldReturnNotFound()
+        {
+            var userId = Guid.NewGuid();
+            var portfolioId = "p1";
+            _mockBookmarkService.Setup(x => x.RemoveBookmarkAsync(userId, portfolioId)).ThrowsAsync(new InvalidOperationException("Bookmark not found."));
+            var result = await _controller.RemoveBookmark(userId, portfolioId);
+            var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+            notFound.Value.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task RemoveBookmark_WhenServiceThrowsException_ShouldReturnBadRequest()
+        {
+            var userId = Guid.NewGuid();
+            var portfolioId = "p1";
+            _mockBookmarkService.Setup(x => x.RemoveBookmarkAsync(userId, portfolioId)).ThrowsAsync(new Exception("remove error"));
+            var result = await _controller.RemoveBookmark(userId, portfolioId);
+            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequest.Value.Should().NotBeNull();
+        }
+        #endregion
+
+        #region GetUserBookmarks Tests
+        [Fact]
+        public async Task GetUserBookmarks_WithValidUser_ShouldReturnOkWithBookmarks()
+        {
+            var userId = Guid.NewGuid();
+            var bookmarks = new List<BookmarkResponse> { new BookmarkResponse { Id = Guid.NewGuid(), UserId = userId, PortfolioId = "p1" } };
+            _mockBookmarkService.Setup(x => x.GetUserBookmarksAsync(userId)).ReturnsAsync(bookmarks);
+            var result = await _controller.GetUserBookmarks(userId);
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.Value.Should().Be(bookmarks);
+        }
+        [Fact]
+        public async Task GetUserBookmarks_WhenUserNotFound_ShouldReturnNotFound()
+        {
+            var userId = Guid.NewGuid();
+            _mockBookmarkService.Setup(x => x.GetUserBookmarksAsync(userId)).ThrowsAsync(new ArgumentException("User with ID not found."));
+            var result = await _controller.GetUserBookmarks(userId);
+            var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+            notFound.Value.Should().NotBeNull();
+        }
+        [Fact]
+        public async Task GetUserBookmarks_WhenServiceThrowsException_ShouldReturnBadRequest()
+        {
+            var userId = Guid.NewGuid();
+            _mockBookmarkService.Setup(x => x.GetUserBookmarksAsync(userId)).ThrowsAsync(new Exception("get error"));
+            var result = await _controller.GetUserBookmarks(userId);
+            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequest.Value.Should().NotBeNull();
+        }
+        #endregion
+
+        #region GetBookmarkStatus Tests
+        [Fact]
+        public async Task GetBookmarkStatus_WithValidRequest_ShouldReturnOkWithStatus()
+        {
+            var userId = Guid.NewGuid();
+            var portfolioId = "p1";
+            var response = new IsBookmarkedResponse { IsBookmarked = true };
+            _mockBookmarkService.Setup(x => x.GetBookmarkStatusAsync(userId, portfolioId)).ReturnsAsync(response);
+            var result = await _controller.GetBookmarkStatus(userId, portfolioId);
+            var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.Value.Should().Be(response);
+        }
+        [Fact]
+        public async Task GetBookmarkStatus_WhenServiceThrowsException_ShouldReturnBadRequest()
+        {
+            var userId = Guid.NewGuid();
+            var portfolioId = "p1";
+            _mockBookmarkService.Setup(x => x.GetBookmarkStatusAsync(userId, portfolioId)).ThrowsAsync(new Exception("status error"));
+            var result = await _controller.GetBookmarkStatus(userId, portfolioId);
+            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            badRequest.Value.Should().NotBeNull();
+        }
         #endregion
     }
 }

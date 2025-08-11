@@ -4,58 +4,152 @@ on:
   pull_request:
     branches: [ "**" ] 
 
-# jobs:
-#   build:
-#     runs-on: windows-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Setup .NET
-#         uses: actions/setup-dotnet@v4
-#         with:
-#           dotnet-version: '9.0.x'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
       
-#       # User Service Tests 
-#       - name: Restore dependencies - User Service
-#         run: dotnet restore backend-user.tests/backend-user.tests.csproj
-#         working-directory: ./backend
-#       - name: Build - User Service
-#         run: dotnet build backend-user.tests/backend-user.tests.csproj --no-restore
-#         working-directory: ./backend
-#       - name: Test - User Service
-#         run: dotnet test backend-user.tests/backend-user.tests.csproj --no-build --verbosity normal
-#         working-directory: ./backend
+      # Install dependencies for coverage calculation
+      - name: Install bc for calculations
+        run: sudo apt-get update && sudo apt-get install -y bc
       
-      # TODO: Uncomment when tests are implemented for other services
+      # User Service Tests with Coverage
+      - name: Restore dependencies - User Service
+        run: dotnet restore backend-user.tests/backend-user.tests.csproj
+        working-directory: ./backend
+      - name: Build - User Service
+        run: dotnet build backend-user.tests/backend-user.tests.csproj --no-restore
+        working-directory: ./backend
+      - name: Test - User Service with Coverage
+        run: |
+          dotnet test backend-user.tests/backend-user.tests.csproj --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory:"./TestResults/User" \
+            --settings:"../CodeCoverage.runsettings"
+        working-directory: ./backend
       
-      # AI Service Tests (Not implemented yet)
-      # - name: Restore dependencies - AI Service
-      #   run: dotnet restore backend-AI.tests/backend-AI.tests.csproj
-      #   working-directory: ./backend
-      # - name: Build - AI Service
-      #   run: dotnet build backend-AI.tests/backend-AI.tests.csproj --no-restore
-      #   working-directory: ./backend
-      # - name: Test - AI Service
-      #   run: dotnet test backend-AI.tests/backend-AI.tests.csproj --no-build --verbosity normal
-      #   working-directory: ./backend
+      # Messages Service Tests with Coverage
+      - name: Restore dependencies - Messages Service
+        run: dotnet restore backend-messages.tests/backend-messages.tests.csproj
+        working-directory: ./backend
+      - name: Build - Messages Service
+        run: dotnet build backend-messages.tests/backend-messages.tests.csproj --no-restore
+        working-directory: ./backend
+      - name: Test - Messages Service with Coverage
+        run: |
+          dotnet test backend-messages.tests/backend-messages.tests.csproj --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory:"./TestResults/Messages" \
+            --settings:"../CodeCoverage.runsettings"
+        working-directory: ./backend
       
-      # Messages Service Tests (Not implemented yet)
-      # - name: Restore dependencies - Messages Service
-      #   run: dotnet restore backend-messages.tests/backend-messages.tests.csproj
-      #   working-directory: ./backend
-      # - name: Build - Messages Service
-      #   run: dotnet build backend-messages.tests/backend-messages.tests.csproj --no-restore
-      #   working-directory: ./backend
-      # - name: Test - Messages Service
-      #   run: dotnet test backend-messages.tests/backend-messages.tests.csproj --no-build --verbosity normal
-      #   working-directory: ./backend
+      # Portfolio Service Tests
+      - name: Restore dependencies - Portfolio Service
+        run: dotnet restore backend-portfolio.tests/backend-portfolio.tests.csproj
+        working-directory: ./backend
+      - name: Build - Portfolio Service
+        run: dotnet build backend-portfolio.tests/backend-portfolio.tests.csproj --no-restore
+        working-directory: ./backend
+      - name: Test - Portfolio Service with Coverage
+        run: |
+          dotnet test backend-portfolio.tests/backend-portfolio.tests.csproj --no-build --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory:"./TestResults/Portfolio" \
+            --settings:"../CodeCoverage.runsettings"
+        working-directory: ./backend
       
-      # Portfolio Service Tests (Not implemented yet)
-      # - name: Restore dependencies - Portfolio Service
-      #   run: dotnet restore backend-portfolio.tests/backend-portfolio.tests.csproj
-      #   working-directory: ./backend
-      # - name: Build - Portfolio Service
-      #   run: dotnet build backend-portfolio.tests/backend-portfolio.tests.csproj --no-restore
-      #   working-directory: ./backend
-      # - name: Test - Portfolio Service
-      #   run: dotnet test backend-portfolio.tests/backend-portfolio.tests.csproj --no-build --verbosity normal
-      #   working-directory: ./backend
+      # Install ReportGenerator for coverage analysis
+      - name: Install ReportGenerator
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      
+      # Generate and analyze coverage reports
+      - name: Generate Coverage Reports and Check Thresholds
+        run: |
+          # Create coverage reports directory
+          mkdir -p ./coverage-reports
+          
+          # Generate User Service coverage report
+          echo "📊 Generating User Service coverage report..."
+          reportgenerator -reports:"./backend/TestResults/User/**/coverage.cobertura.xml" \
+            -targetdir:"./coverage-reports/user" \
+            -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
+          
+          # Generate Messages Service coverage report
+          echo "📊 Generating Messages Service coverage report..."
+          reportgenerator -reports:"./backend/TestResults/Messages/**/coverage.cobertura.xml" \
+            -targetdir:"./coverage-reports/messages" \
+            -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
+          # Generate Portfolio Service coverage report
+          echo "📊 Generating Portfolio Service coverage report..."
+          reportgenerator -reports:"./backend/TestResults/Portfolio/**/coverage.cobertura.xml" \
+            -targetdir:"./coverage-reports/portfolio" \
+            -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
+          
+          # Function to check coverage
+          check_coverage() {
+            local service_name=$1
+            local coverage_file=$2
+            local min_threshold=85
+            
+            if [ ! -f "$coverage_file" ]; then
+              echo "❌ Coverage file not found for $service_name: $coverage_file"
+              exit 1
+            fi
+            
+            # Extract line coverage rate
+            local coverage_rate=$(grep -o 'line-rate="[^"]*"' "$coverage_file" | head -1 | sed 's/line-rate="//' | sed 's/"//')
+            
+            if [ -z "$coverage_rate" ]; then
+              echo "❌ Could not extract coverage rate from $service_name coverage file"
+              exit 1
+            fi
+            
+            # Convert to percentage (multiply by 100 and round)
+            local coverage_percent=$(echo "scale=1; $coverage_rate * 100" | bc -l | cut -d. -f1)
+            
+            echo "📈 $service_name Coverage: ${coverage_percent}%"
+            
+            if [ "$coverage_percent" -lt $min_threshold ]; then
+              echo "❌ $service_name coverage (${coverage_percent}%) is below the required ${min_threshold}% threshold"
+              return 1
+            else
+              echo "✅ $service_name coverage (${coverage_percent}%) meets the ${min_threshold}% threshold"
+              return 0
+            fi
+          }
+          
+          # Check coverage for each service
+          exit_code=0
+          
+          echo "🔍 Checking User Service coverage..."
+          check_coverage "User Service" "./coverage-reports/user/Cobertura.xml" || exit_code=1
+          
+          echo "🔍 Checking Messages Service coverage..."
+          check_coverage "Messages Service" "./coverage-reports/messages/Cobertura.xml" || exit_code=1
+          echo "🔍 Checking Portfolio Service coverage..."
+          check_coverage "Portfolio Service" "./coverage-reports/portfolio/Cobertura.xml" || exit_code=1
+          
+          if [ $exit_code -eq 1 ]; then
+            echo ""
+            echo "💥 Build failed due to insufficient code coverage!"
+            echo "Please add more tests to meet the 85% coverage requirement."
+            exit 1
+          else
+            echo ""
+            echo "🎉 All services meet the code coverage requirements!"
+          fi
+      
+      # Upload coverage reports as artifacts
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage-reports/

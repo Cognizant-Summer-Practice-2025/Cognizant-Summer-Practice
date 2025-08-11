@@ -47,6 +47,9 @@ namespace backend_portfolio.Services
 
         public async Task<PortfolioTemplateResponse?> GetTemplateByNameAsync(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
             var template = await _context.PortfolioTemplates
                 .FirstOrDefaultAsync(t => t.Name.ToLower() == name.ToLower());
 

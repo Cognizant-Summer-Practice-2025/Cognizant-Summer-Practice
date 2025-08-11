@@ -11,8 +11,11 @@ namespace backend_user.Repositories
         Task<OAuthProvider?> GetByUserIdAndProviderAsync(Guid userId, OAuthProviderType provider);
         Task<OAuthProvider?> GetByProviderAndProviderIdAsync(OAuthProviderType provider, string providerId);
         Task<OAuthProvider?> GetByProviderAndEmailAsync(OAuthProviderType provider, string email);
+        Task<OAuthProvider?> GetByAccessTokenAsync(string accessToken);
+        Task<OAuthProvider?> GetByRefreshTokenAsync(string refreshToken);
         Task<OAuthProvider> CreateAsync(OAuthProviderCreateRequestDto request);
         Task<OAuthProvider?> UpdateAsync(Guid id, OAuthProviderUpdateRequestDto request);
+        Task<OAuthProvider> UpdateAsync(OAuthProvider oauthProvider);
         Task<bool> DeleteAsync(Guid id);
         Task<bool> ExistsAsync(OAuthProviderType provider, string providerId);
     }

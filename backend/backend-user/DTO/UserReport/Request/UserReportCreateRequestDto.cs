@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using backend_user.Models;
 
 namespace backend_user.DTO.UserReport.Request
 {
@@ -9,22 +8,12 @@ namespace backend_user.DTO.UserReport.Request
     public class UserReportCreateRequestDto
     {
         [Required]
-        public Guid ReporterId { get; set; }
+        public Guid UserId { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string ReportedService { get; set; } = string.Empty;
+        public Guid ReportedByUserId { get; set; }
 
         [Required]
-        public ReportedType ReportedType { get; set; }
-
-        [Required]
-        public Guid ReportedId { get; set; }
-
-        [Required]
-        public ReportType ReportType { get; set; }
-
-        [Required]
-        public string Description { get; set; } = string.Empty;
+        public string Reason { get; set; } = string.Empty;
     }
 }

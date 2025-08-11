@@ -1,0 +1,36 @@
+.home-page {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.home-main {
+  padding-top: 5rem;
+  min-height: calc(100vh - 5rem);
+}
+
+.home-container {
+  max-width: 100%;
+  margin: 0 auto;
+  background-color: white;
+}
+
+.home-content {
+  display: flex;
+  min-height: calc(100vh - 5rem);
+}
+
+@media (max-width: 768px) {
+  .home-content {
+    flex-direction: column;
+  }
+  
+  .home-main {
+    padding-top: 4.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-main {
+    padding-top: 3.5rem;
+  }
+}

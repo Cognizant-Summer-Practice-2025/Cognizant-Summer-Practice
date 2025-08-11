@@ -64,3 +64,6 @@ podman system prune -a --volumes
 - This will delete **all** stopped containers, unused images, and all volumes. Use with caution!
 
 ---
+podman load -i postgres15.tar
+
+---

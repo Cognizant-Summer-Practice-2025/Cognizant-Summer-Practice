@@ -1,0 +1,178 @@
+.pagination-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 24px;
+  background: white;
+  border-radius: 8px;
+}
+
+.cache-stats {
+  display: flex;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.cache-stat {
+  font-size: 12px;
+  color: #666;
+}
+
+.pagination-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination-info {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.page-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.total-info {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.main-pagination {
+  margin: 0 !important;
+}
+
+.main-pagination .ant-pagination-item {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.2s;
+}
+
+.main-pagination .ant-pagination-item:hover {
+  border-color: #1890ff;
+  transform: translateY(-1px);
+}
+
+.main-pagination .ant-pagination-item-active {
+  border-color: #1890ff;
+  background: #1890ff;
+}
+
+.main-pagination .ant-pagination-item-active a {
+  color: white;
+}
+
+.main-pagination .ant-pagination-prev,
+.main-pagination .ant-pagination-next {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.2s;
+}
+
+.main-pagination .ant-pagination-prev:hover,
+.main-pagination .ant-pagination-next:hover {
+  border-color: #1890ff;
+  transform: translateY(-1px);
+}
+
+.main-pagination .ant-pagination-disabled {
+  opacity: 0.5;
+}
+
+.main-pagination .ant-pagination-disabled:hover {
+  transform: none;
+  border-color: #d9d9d9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .pagination-controls {
+    padding: 12px 0;
+    gap: 12px;
+  }
+  
+  .cache-stats {
+    display: none; /* Hide cache stats on mobile */
+  }
+  
+  .pagination-main .ant-space-item:first-child,
+  .pagination-main .ant-space-item:last-child {
+    display: none; /* Hide quick navigation buttons on mobile */
+  }
+  
+  .main-pagination {
+    font-size: 14px;
+  }
+  
+  .pagination-info {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-controls {
+    padding: 8px 0;
+    gap: 8px;
+  }
+  
+  .main-pagination .ant-pagination-options {
+    display: none; /* Hide quick jumper on very small screens */
+  }
+}
+
+/* Loading state */
+.pagination-controls.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Animation for page transitions */
+.pagination-controls {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Cache status indicators */
+.cache-stats .ant-btn {
+  border: none;
+  box-shadow: none;
+  color: #666;
+  background: transparent;
+}
+
+.cache-stats .ant-btn:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+/* Custom button styles */
+.pagination-main .ant-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.pagination-main .ant-btn:hover:not(.ant-btn-loading):not(:disabled) {
+  border-color: #1890ff;
+  color: #1890ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+}
+
+.pagination-main .ant-btn:disabled {
+  opacity: 0.5;
+}
+
+.pagination-main .ant-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}

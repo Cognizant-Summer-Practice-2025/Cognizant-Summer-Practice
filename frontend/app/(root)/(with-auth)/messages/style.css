@@ -142,10 +142,8 @@
   }
 }
 
-/* Enhanced landscape orientation support for mobile */
 @media (max-width: 479px) and (orientation: landscape) {
   .messages-page {
-    /* Use dynamic viewport height for better landscape support */
     height: 100dvh;
     max-height: 100dvh;
   }
@@ -170,12 +168,10 @@
   }
 }
 
-/* Focus management for keyboard navigation */
 .messages-page:focus-within {
   outline: none;
 }
 
-/* Improve loading performance */
 .messages-page * {
   box-sizing: border-box;
 }

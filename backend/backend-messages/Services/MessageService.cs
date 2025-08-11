@@ -338,10 +338,10 @@ namespace BackendMessages.Services
                 {
                     var readReceipt = new
                     {
-                        MessageId = messageId.ToString(),
-                        ConversationId = message.ConversationId.ToString(),
-                        ReadByUserId = userId.ToString(),
-                        ReadAt = DateTime.UtcNow
+                        messageId = messageId.ToString(),
+                        conversationId = message.ConversationId.ToString(),
+                        readByUserId = userId.ToString(),
+                        readAt = DateTime.UtcNow
                     };
 
                     // Send to sender
@@ -361,9 +361,9 @@ namespace BackendMessages.Services
             {
                 var readReceipt = new
                 {
-                    ConversationId = conversationId.ToString(),
-                    ReadByUserId = userId.ToString(),
-                    ReadAt = DateTime.UtcNow
+                    conversationId = conversationId.ToString(),
+                    readByUserId = userId.ToString(),
+                    readAt = DateTime.UtcNow
                 };
 
                 // Send to all conversation participants

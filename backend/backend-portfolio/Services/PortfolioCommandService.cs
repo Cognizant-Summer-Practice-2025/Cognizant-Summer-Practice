@@ -30,7 +30,7 @@ namespace backend_portfolio.Services
         private readonly IBlogPostRepository _blogPostRepository;
         private readonly IValidationService<PortfolioCreateRequest> _portfolioValidator;
         private readonly IValidationService<PortfolioUpdateRequest> _portfolioUpdateValidator;
-        private readonly PortfolioMapper _portfolioMapper;
+        private readonly IPortfolioMapper _portfolioMapper;
         private readonly ICacheService _cacheService;
         private readonly ILogger<PortfolioCommandService> _logger;
 
@@ -42,7 +42,7 @@ namespace backend_portfolio.Services
             IBlogPostRepository blogPostRepository,
             IValidationService<PortfolioCreateRequest> portfolioValidator,
             IValidationService<PortfolioUpdateRequest> portfolioUpdateValidator,
-            PortfolioMapper portfolioMapper,
+            IPortfolioMapper portfolioMapper,
             ICacheService cacheService,
             ILogger<PortfolioCommandService> logger)
         {

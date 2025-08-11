@@ -8,8 +8,8 @@ CREATE TABLE portfolio_templates (
     description TEXT,
     preview_image_url TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Simplified Portfolios table
@@ -24,8 +24,8 @@ CREATE TABLE portfolios (
     visibility INTEGER NOT NULL DEFAULT 0,
     is_published BOOLEAN NOT NULL DEFAULT FALSE,
     components TEXT, -- JSON array of component configurations
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Projects table
@@ -39,8 +39,8 @@ CREATE TABLE projects (
     github_url TEXT,
     technologies TEXT[],
     featured BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Experience table
@@ -54,8 +54,8 @@ CREATE TABLE experience (
     is_current BOOLEAN NOT NULL DEFAULT FALSE,
     description TEXT,
     skills_used TEXT[],
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Skills table with hierarchical categories
@@ -68,8 +68,8 @@ CREATE TABLE skills (
     category VARCHAR(255), -- Full category path for display (deprecated but kept for backward compatibility)
     proficiency_level INTEGER,
     display_order INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Blog Posts table
@@ -82,9 +82,9 @@ CREATE TABLE blog_posts (
     featured_image_url TEXT,
     tags TEXT[],
     is_published BOOLEAN NOT NULL DEFAULT FALSE,
-    published_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Bookmarks table
@@ -94,7 +94,7 @@ CREATE TABLE bookmarks (
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
     collection_name VARCHAR(100) DEFAULT 'General',
     notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(user_id, portfolio_id)
 );
 

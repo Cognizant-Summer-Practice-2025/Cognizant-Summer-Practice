@@ -28,7 +28,6 @@ namespace BackendMessages.Models
         [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-        // Soft delete fields - track which users have "deleted" this conversation
         public DateTime? InitiatorDeletedAt { get; set; }
         public DateTime? ReceiverDeletedAt { get; set; }
 

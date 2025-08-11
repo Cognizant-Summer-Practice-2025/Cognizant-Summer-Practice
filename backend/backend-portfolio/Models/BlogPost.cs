@@ -6,6 +6,11 @@ namespace backend_portfolio.Models
     [Table("blog_posts")]
     public class BlogPost
     {
+        public BlogPost()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         [Column("id")]
         public Guid Id { get; set; }
@@ -43,6 +48,7 @@ namespace backend_portfolio.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         
+        [System.Text.Json.Serialization.JsonIgnore]
         [ForeignKey("PortfolioId")]
         public virtual Portfolio Portfolio { get; set; } = null!;
     }

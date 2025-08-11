@@ -44,6 +44,7 @@ namespace backend_portfolio.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
+        [System.Text.Json.Serialization.JsonIgnore]
         [ForeignKey("PortfolioId")]
         public virtual Portfolio Portfolio { get; set; } = null!;
     }

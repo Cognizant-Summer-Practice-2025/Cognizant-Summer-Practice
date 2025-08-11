@@ -20,10 +20,13 @@ using backend_portfolio.Services.Abstractions;
 
 namespace backend_portfolio.Services.Mappers
 {
-    public class ProjectMapper : IEntityMapper<Project, ProjectCreateRequest, ProjectResponse, ProjectUpdateRequest>
+    public class ProjectMapper : IProjectMapper
     {
         public ProjectResponse MapToResponseDto(Project entity)
         {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
             return new ProjectResponse
             {
                 Id = entity.Id,
@@ -42,7 +45,10 @@ namespace backend_portfolio.Services.Mappers
 
         public IEnumerable<ProjectResponse> MapToResponseDtos(IEnumerable<Project> entities)
         {
-            return entities.Select(MapToResponseDto);
+            if (entities == null)
+                return Enumerable.Empty<ProjectResponse>();
+            
+            return entities.Where(e => e != null).Select(MapToResponseDto);
         }
 
         public Project MapFromCreateDto(ProjectCreateRequest createDto)
