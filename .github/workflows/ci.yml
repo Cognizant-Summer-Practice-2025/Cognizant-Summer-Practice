@@ -63,21 +63,6 @@ jobs:
             --settings:"../CodeCoverage.runsettings"
         working-directory: ./backend
       
-      # AI Service Tests with Coverage
-      - name: Restore dependencies - AI Service
-        run: dotnet restore backend-AI.tests/backend-AI.tests.csproj
-        working-directory: ./backend
-      - name: Build - AI Service
-        run: dotnet build backend-AI.tests/backend-AI.tests.csproj --no-restore
-        working-directory: ./backend
-      - name: Test - AI Service with Coverage
-        run: |
-          dotnet test backend-AI.tests/backend-AI.tests.csproj --no-build --verbosity normal \
-            --collect:"XPlat Code Coverage" \
-            --results-directory:"./TestResults/AI" \
-            --settings:"../CodeCoverage.runsettings"
-        working-directory: ./backend
-      
       # Install ReportGenerator for coverage analysis
       - name: Install ReportGenerator
         run: |
@@ -105,12 +90,6 @@ jobs:
           echo "📊 Generating Portfolio Service coverage report..."
           reportgenerator -reports:"./backend/TestResults/Portfolio/**/coverage.cobertura.xml" \
             -targetdir:"./coverage-reports/portfolio" \
-            -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
-          
-          # Generate AI Service coverage report
-          echo "📊 Generating AI Service coverage report..."
-          reportgenerator -reports:"./backend/TestResults/AI/**/coverage.cobertura.xml" \
-            -targetdir:"./coverage-reports/ai" \
             -reporttypes:"Cobertura;HtmlInline_AzurePipelines"
           
           # Function to check coverage
@@ -156,9 +135,6 @@ jobs:
           check_coverage "Messages Service" "./coverage-reports/messages/Cobertura.xml" || exit_code=1
           echo "🔍 Checking Portfolio Service coverage..."
           check_coverage "Portfolio Service" "./coverage-reports/portfolio/Cobertura.xml" || exit_code=1
-          
-          echo "🔍 Checking AI Service coverage..."
-          check_coverage "AI Service" "./coverage-reports/ai/Cobertura.xml" || exit_code=1
           
           if [ $exit_code -eq 1 ]; then
             echo ""

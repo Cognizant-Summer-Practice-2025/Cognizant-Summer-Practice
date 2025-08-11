@@ -19,6 +19,5 @@ namespace backend_portfolio.Services.Abstractions
         Task<IEnumerable<PortfolioCardResponse>> GetPortfoliosForHomePageAsync();
         Task<PaginatedResponse<PortfolioCardResponse>> GetPortfoliosForHomePagePaginatedAsync(PaginationRequest request);
         Task<UserPortfolioComprehensiveResponse> GetUserPortfolioComprehensiveAsync(Guid userId);
-        Task<IEnumerable<PortfolioDetailResponse>> GetAllPortfoliosDetailedAsync();
     }
 } 

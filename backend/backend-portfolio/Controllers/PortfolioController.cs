@@ -53,21 +53,6 @@ namespace backend_portfolio.Controllers
             }
         }
 
-        [HttpGet("detailed-all")]
-        public async Task<IActionResult> GetAllPortfoliosDetailed()
-        {
-            try
-            {
-                var portfolios = await _portfolioQueryService.GetAllPortfoliosDetailedAsync();
-                return Ok(portfolios);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while getting all detailed portfolios");
-                return StatusCode(500, "Internal server error");
-            }
-        }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPortfolioById(Guid id)
         {
