@@ -1,3 +1,5 @@
+// Load environment variables from .env file (align with other services)
+DotNetEnv.Env.Load();
 
 using Microsoft.EntityFrameworkCore;
 using BackendMessages.Data;
@@ -10,8 +12,7 @@ using BackendMessages.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 builder.Services.AddSignalR();
 
@@ -42,8 +43,11 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Messages API v1");
+    });
 }
 
 app.UseHttpsRedirection();

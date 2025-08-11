@@ -72,6 +72,11 @@ namespace backend_AI.Controllers
 
                 // For final items, fetch only the basic portfolio table (not comprehensive details)
                 var allBasic = await _portfolioApiClient.GetAllPortfoliosBasicJsonAsync(cancellationToken);
+                if (string.IsNullOrWhiteSpace(allBasic))
+                {
+                    // Fallback to previously fetched JSON if basic endpoint is unavailable in test or env
+                    allBasic = portfoliosJson;
+                }
                 using var basicDoc = System.Text.Json.JsonDocument.Parse(allBasic);
                 var root = basicDoc.RootElement;
                 var wanted = new HashSet<Guid>(ids

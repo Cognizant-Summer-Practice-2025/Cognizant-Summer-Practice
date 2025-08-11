@@ -19,6 +19,8 @@ namespace backend_AI.Middleware
         public async Task InvokeAsync(HttpContext context, IUserAuthenticationService userAuthService)
         {
             // Security headers
+            context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
+            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
             context.Response.OnStarting(() => {
                 context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
                 context.Response.Headers["X-Content-Type-Options"] = "nosniff";
