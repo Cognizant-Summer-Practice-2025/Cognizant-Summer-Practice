@@ -1,6 +1,3 @@
-// Load environment variables from .env file (align with other services)
-DotNetEnv.Env.Load();
-
 using Microsoft.EntityFrameworkCore;
 using BackendMessages.Data;
 using BackendMessages.Services;
@@ -10,6 +7,9 @@ using BackendMessages.Hubs;
 using BackendMessages.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load environment variables from .env file (align with other services)
+DotNetEnv.Env.Load();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
