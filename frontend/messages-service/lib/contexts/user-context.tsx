@@ -9,14 +9,7 @@ interface UserContextType {
   loading: boolean;
   error: string | null;
   refetchUser: () => Promise<void>;
-  updateUserData: (userData: {
-    firstName?: string;
-    lastName?: string;
-    professionalTitle?: string;
-    bio?: string;
-    location?: string;
-    profileImage?: string;
-  }) => Promise<void>;
+  updateUserData: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -62,14 +55,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserData = async (userData: {
-    firstName?: string;
-    lastName?: string;
-    professionalTitle?: string;
-    bio?: string;
-    location?: string;
-    profileImage?: string;
-  }) => {
+  const updateUserData = async () => {
     // User updates should be handled by the auth-user-service
     // Redirect to auth service for profile updates
     const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';

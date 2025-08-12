@@ -138,6 +138,7 @@ export async function logoutFromAllServices(): Promise<void> {
     console.error('Error during automatic signout:', error);
     // Fallback: clear local session and redirect to home
     clearLocalSession();
+    const destinationUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
     window.location.href = destinationUrl;
   }
 }

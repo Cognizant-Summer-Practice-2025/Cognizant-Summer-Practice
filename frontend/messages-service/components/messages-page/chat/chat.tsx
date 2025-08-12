@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,8 +63,8 @@ const Chat: React.FC<ChatProps> = ({
             try {
                 await onSendMessage(newMessage.trim());
                 setNewMessage("");
-            } catch (error) {
-                console.error('Failed to send message:', error);
+            } catch (sendError) {
+                console.error('Failed to send message:', sendError);
             }
         }
     };
@@ -80,8 +80,8 @@ const Chat: React.FC<ChatProps> = ({
         try {
             await navigator.clipboard.writeText(text);
             message.success('Message copied to clipboard');
-        } catch (error) {
-            console.error('Failed to copy message:', error);
+                    } catch (copyError) {
+                console.error('Failed to copy message:', copyError);
             message.error('Failed to copy message');
         }
     };
@@ -91,8 +91,8 @@ const Chat: React.FC<ChatProps> = ({
             try {
                 await onDeleteMessage(messageId);
                 message.success('Message deleted successfully');
-            } catch (error) {
-                console.error('Failed to delete message:', error);
+            } catch (deleteError) {
+                console.error('Failed to delete message:', deleteError);
                 message.error('Failed to delete message');
             }
         } else {
@@ -106,7 +106,7 @@ const Chat: React.FC<ChatProps> = ({
             try {
                 await onReportMessage(messageId, reason);
                 message.success('Message reported successfully');
-            } catch (error) {
+            } catch {
                 message.error('Failed to report message');
             }
         } else {

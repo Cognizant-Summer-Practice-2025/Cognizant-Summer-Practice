@@ -10,10 +10,14 @@ import random
 import subprocess
 import sys
 import time
+import argparse
 from typing import List, Dict, Any
+import os
 
 USER_API_BASE = "http://localhost:5200/api/Users"
-PORTFOLIO_SCRIPT_PATH = "./generate-portfolio-test-data.py"
+# Get the directory where this script is located and find the portfolio script
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PORTFOLIO_SCRIPT_PATH = os.path.join(SCRIPT_DIR, "generate-portfolio-test-data.py")
 
 # Test data arrays
 FIRST_NAMES = [
@@ -84,11 +88,11 @@ def create_user(user_data: Dict[str, str]) -> tuple[bool, str]:
     except Exception as e:
         return False, f"Unexpected error: {str(e)}"
 
-def create_portfolio_for_user(user_id: str) -> tuple[bool, str]:
+def create_portfolio_for_user(user_id: str, token: str) -> tuple[bool, str]:
     """Create a portfolio for the given user ID"""
     try:
         result = subprocess.run(
-            [sys.executable, PORTFOLIO_SCRIPT_PATH, user_id],
+            [sys.executable, PORTFOLIO_SCRIPT_PATH, user_id, token],
             capture_output=True,
             text=True,
             timeout=120  # 2 minute timeout for portfolio creation
@@ -107,6 +111,13 @@ def create_portfolio_for_user(user_id: str) -> tuple[bool, str]:
 
 def main():
     """Main function to orchestrate mass user and portfolio creation"""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Create 100 users and portfolios')
+    parser.add_argument('--token', required=True, help='OAuth token for authentication')
+    args = parser.parse_args()
+    
+    token = args.token
+    
     print("Starting Mass User and Portfolio Creation (100 users)")
     print("=" * 56)
     
@@ -126,7 +137,7 @@ def main():
             user_id = user_result
             print(f"Created (ID: {user_id[:8]}...)")
             print("  Creating portfolio for user... ", end="")
-            portfolio_success, portfolio_result = create_portfolio_for_user(user_id)
+            portfolio_success, portfolio_result = create_portfolio_for_user(user_id, token)
             if portfolio_success:
                 print("Portfolio created!")
                 return (True, user_id, user_data)

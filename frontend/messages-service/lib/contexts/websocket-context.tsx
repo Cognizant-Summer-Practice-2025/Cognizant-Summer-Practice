@@ -129,11 +129,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       });
 
       // Handle connection events
-      newConnection.onreconnecting((error) => {
+      newConnection.onreconnecting(() => {
         setIsConnected(false);
       });
 
-      newConnection.onreconnected((connectionId) => {
+      newConnection.onreconnected(() => {
         setIsConnected(true);
         // Rejoin user group after reconnection
         if (user?.id) {
@@ -142,7 +142,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         }
       });
 
-      newConnection.onclose((error) => {
+      newConnection.onclose(() => {
         setIsConnected(false);
         setIsConnecting(false);
       });
@@ -158,7 +158,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
       setConnection(newConnection);
       setIsConnected(true);
-    } catch (error) {
+    } catch {
       // keep silent in UI; errors remain actionable via catch sites
       // For messages service, SignalR is more important but still not critical
       // The service can function in read-only mode without real-time updates
@@ -174,8 +174,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
           await connection.invoke('LeaveUserGroup', user.id.toString());
         }
         await connection.stop();
-      } catch (error) {
-        console.error('Error disconnecting from SignalR:', error);
+      } catch (disconnectError) {
+        console.error('Error disconnecting from SignalR:', disconnectError);
       } finally {
         setConnection(null);
         setIsConnected(false);
@@ -252,8 +252,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     try {
       await connection.invoke('MarkMessageAsRead', messageId, userId);
               
-    } catch (error) {
-      console.error('Error marking message as read:', error);
+    } catch (readError) {
+      console.error('Error marking message as read:', readError);
     }
   }, [connection]);
 
@@ -265,8 +265,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     try {
       await connection.invoke('DeleteMessage', messageId, userId);
       console.log(`Message with ID ${messageId} deleted by user ${userId}`);
-    } catch (error) {
-      console.error('Error deleting message:', error);
+    } catch (deleteError) {
+      console.error('Error deleting message:', deleteError);
     }
   }, [connection]);
 

@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
+import '@/types/global';
 
-// Reference to the same storage used in inject/remove
-declare global {
-  // eslint-disable-next-line no-var
-  var messagesServiceUserStorage: Map<string, any>;
-}
+// Reference to the same storage used in inject/remove - using global declaration from types/global.ts
 
 if (!global.messagesServiceUserStorage) {
   global.messagesServiceUserStorage = new Map();

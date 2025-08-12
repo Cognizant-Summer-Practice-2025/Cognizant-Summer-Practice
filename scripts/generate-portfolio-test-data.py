@@ -11,15 +11,22 @@ import sys
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-# Accept USER_ID as command line argument
-if len(sys.argv) != 2:
-    print("[ERROR] User ID is required as argument")
-    print("Usage: python3 generate-portfolio-test-data.py <USER_ID>")
+# Accept USER_ID and TOKEN as command line arguments
+if len(sys.argv) != 3:
+    print("[ERROR] User ID and Token are required as arguments")
+    print("Usage: python3 generate-portfolio-test-data.py <USER_ID> <TOKEN>")
     sys.exit(1)
 
 USER_ID = sys.argv[1]
+TOKEN = sys.argv[2]
 PORTFOLIO_API_BASE = "http://localhost:5201/api/Portfolio"
 PORTFOLIO_TEMPLATE_API_BASE = "http://localhost:5201/api/PortfolioTemplate"
+
+# Set up headers for API requests
+HEADERS = {
+    "Authorization": f"Bearer {TOKEN}",
+    "Content-Type": "application/json"
+}
 
 def generate_projects(portfolio_id: str, count: int = 100) -> List[Dict[str, Any]]:
     """Generate project data"""
@@ -227,7 +234,7 @@ def get_available_templates() -> List[Dict[str, Any]]:
     """Get available portfolio templates from the API"""
     print("[TEMPLATES] Fetching available templates...")
     try:
-        response = requests.get(f"{PORTFOLIO_TEMPLATE_API_BASE}/active")
+        response = requests.get(f"{PORTFOLIO_TEMPLATE_API_BASE}/active", headers=HEADERS)
         response.raise_for_status()
         templates = response.json()
         
@@ -277,7 +284,7 @@ def create_portfolio() -> str:
     }
     
     try:
-        response = requests.post(PORTFOLIO_API_BASE, json=portfolio_data)
+        response = requests.post(PORTFOLIO_API_BASE, json=portfolio_data, headers=HEADERS)
         response.raise_for_status()
         
         portfolio = response.json()
@@ -325,7 +332,7 @@ def save_bulk_content(portfolio_id: str):
     
     try:
         url = f"{PORTFOLIO_API_BASE}/{portfolio_id}/save-content"
-        response = requests.post(url, json=bulk_content)
+        response = requests.post(url, json=bulk_content, headers=HEADERS)
         response.raise_for_status()
         
         result = response.json()
