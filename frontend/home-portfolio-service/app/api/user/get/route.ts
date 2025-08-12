@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { ServiceUserData } from '@/types/global';
 
-// Reference to the same storage used in inject/remove
-declare global {
-  var homePortfolioServiceUserStorage: Map<string, any>;
-}
-
-if (!global.homePortfolioServiceUserStorage) {
-  global.homePortfolioServiceUserStorage = new Map();
+// Ensure global storage is initialized
+if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
+  global.homePortfolioServiceUserStorage = new Map<string, ServiceUserData>();
 }
 
 /**
@@ -28,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // For now, return the first (and should be only) user
     // In a multi-user scenario, this would need session-based identification
-    const userData = Array.from(global.homePortfolioServiceUserStorage.values())[0];
+    const userData: ServiceUserData = Array.from(global.homePortfolioServiceUserStorage.values())[0];
 
     // If accessToken exists but is an empty string, treat as missing and return 404 to force re-injection
     if (userData && typeof userData.accessToken === 'string' && userData.accessToken.trim() === '') {

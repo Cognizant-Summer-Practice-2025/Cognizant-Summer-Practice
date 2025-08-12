@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import '@/types/global';
 
-// Reference to the same storage used in inject
-declare global {
-  var messagesServiceUserStorage: Map<string, any>;
-}
+// Reference to the same storage used in inject - using global declaration from types/global.ts
 
 if (!global.messagesServiceUserStorage) {
   global.messagesServiceUserStorage = new Map();

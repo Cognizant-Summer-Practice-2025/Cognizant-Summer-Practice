@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import { redirectToService } from "@/lib/config/services";
@@ -154,7 +155,7 @@ You can restore it by sending a new message.`,
             <ArrowLeft className="w-5 h-5" />
           </Button>
         )}
-        <img 
+        <Image 
           width={40}
           height={40}
           src={selectedContact.avatar} 

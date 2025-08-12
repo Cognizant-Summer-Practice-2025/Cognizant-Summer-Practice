@@ -37,13 +37,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(userData);
       
       // Inject user data to all other services using session accessToken if available
-      try {
-        const token = (typeof window !== 'undefined') ? (JSON.parse(sessionStorage.getItem('next-auth.session-token') || 'null')?.accessToken || undefined) : undefined;
-        await UserInjectionService.injectUser(userData, token);
-        console.log('✅ User data injected to all services after login');
-      } catch (injectionError) {
-        console.error('❌ Failed to inject user data to other services:', injectionError);
-        // Don't throw here as the main fetch succeeded
+      if (userData) {
+        try {
+          const token = (typeof window !== 'undefined') ? (JSON.parse(sessionStorage.getItem('next-auth.session-token') || 'null')?.accessToken || undefined) : undefined;
+          await UserInjectionService.injectUser(userData, token);
+          console.log('✅ User data injected to all services after login');
+        } catch (injectionError) {
+          console.error('❌ Failed to inject user data to other services:', injectionError);
+          // Don't throw here as the main fetch succeeded
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "@/components/header";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
@@ -153,7 +153,7 @@ const MessagesPage = () => {
     }
   };
 
-  const formatMessageTimestamp = (dateString: string): string => {
+  const formatMessageTimestamp = useCallback((dateString: string): string => {
     if (!dateString || dateString.trim() === '') {
       dateString = new Date().toISOString();
     }
@@ -181,7 +181,7 @@ const MessagesPage = () => {
         year: utcDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
       });
     }
-  };
+  }, []);
 
   const currentMessages: Message[] = messages.map(msg => {
     let status: "read" | "delivered" | "sent" = "sent";
@@ -201,7 +201,7 @@ const MessagesPage = () => {
     };
   });
 
-  const getEnhancedContact = (conv: typeof conversations[0]): Contact => {
+  const getEnhancedContact = useCallback((conv: typeof conversations[0]): Contact => {
     const enhanced = enhancedContacts.get(conv.id);
     const timestamp = getValidTimestamp(
       conv.lastMessageTimestamp,
@@ -232,7 +232,7 @@ const MessagesPage = () => {
     }
     
     return result;
-  };
+  }, [enhancedContacts, currentConversation?.id, formatMessageTimestamp]);
 
   const contacts: Contact[] = conversations.map(getEnhancedContact);
 
@@ -274,7 +274,7 @@ const MessagesPage = () => {
         }));
       }
     }
-  }, [conversations]);
+  }, [conversations, selectedContact, getEnhancedContact]);
 
   const handleSelectContact = async (contact: Contact) => {
     const conversation = conversations.find(conv => conv.id === contact.id);
@@ -325,11 +325,11 @@ const MessagesPage = () => {
   };
 
 
-  const handleBackToSidebar = () => {
+  const handleBackToSidebar = useCallback(() => {
     if (isMobile) {
       setMobileView('sidebar');
     }
-  };
+  }, [isMobile]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -352,7 +352,7 @@ const MessagesPage = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isMobile, mobileView]);
+  }, [isMobile, mobileView, handleBackToSidebar]);
 
 
   const handleSendMessage = async (content: string) => {
