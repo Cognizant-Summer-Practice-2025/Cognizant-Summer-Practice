@@ -3,9 +3,11 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { User } from '@/lib/user/interfaces';
+import { ServiceUserData } from '@/types/global';
+import { Logger } from '@/lib/logger';
 
 interface UserContextType {
-  user: User | null;
+  user: (User & { isAdmin: boolean }) | null;
   loading: boolean;
   error: string | null;
   refetchUser: () => Promise<void>;
@@ -23,7 +25,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, userEmail, loading: authLoading } = useAuth();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<(User & { isAdmin: boolean }) | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,12 +46,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
         throw new Error(`Failed to get user data: ${response.statusText}`);
       }
       
-      const userData = await response.json();
-      setUser(userData);
+      const userData: ServiceUserData = await response.json();
+      
+      // Transform ServiceUserData to User format with isAdmin
+      const transformedUser: User & { isAdmin: boolean } = {
+        id: userData.id,
+        email: userData.email,
+        username: userData.username,
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        professionalTitle: userData.professionalTitle,
+        bio: userData.bio,
+        location: userData.location,
+        avatarUrl: userData.profileImage,
+        isActive: userData.isActive,
+        isAdmin: userData.isAdmin,
+        lastLoginAt: userData.lastLoginAt,
+      };
+      
+      setUser(transformedUser);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
-      console.error('Error fetching user data:', err);
+      Logger.error('Error fetching user data', err);
     } finally {
       setLoading(false);
     }

@@ -26,6 +26,7 @@ import {
 } from 'recharts';
 import { AdminAPI } from '@/lib/admin';
 import { Loading } from '@/components/loader';
+import { Logger } from '@/lib/logger';
 
 // Static fallback data for when API fails
 const fallbackUserGrowthData = [
@@ -106,7 +107,7 @@ export const UserGrowthChart: React.FC = () => {
         const data = await AdminAPI.getUserGrowthData();
         setGrowthData(data);
       } catch (error) {
-        console.error('Error fetching growth data:', error);
+        Logger.error('Error fetching growth data', error);
         // Set fallback data only on error, not during loading
         setGrowthData(fallbackUserGrowthData);
       } finally {
@@ -185,7 +186,7 @@ export const ProjectTypesChart: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setProjectData(projectTypesData);
       } catch (error) {
-        console.error('Error fetching project data:', error);
+        Logger.error('Error fetching project data', error);
         setProjectData(projectTypesData);
       } finally {
         setLoading(false);
@@ -252,7 +253,7 @@ export const DailyActivityChart: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 800));
         setActivityData(dailyActivityData);
       } catch (error) {
-        console.error('Error fetching activity data:', error);
+        Logger.error('Error fetching activity data', error);
         setActivityData(dailyActivityData);
       } finally {
         setLoading(false);
@@ -314,7 +315,7 @@ export const TrendChart: React.FC = () => {
         const data = await AdminAPI.getUserGrowthData();
         setGrowthData(data);
       } catch (error) {
-        console.error('Error fetching growth data:', error);
+        Logger.error('Error fetching growth data', error);
         // Set fallback data only on error, not during loading
         setGrowthData(fallbackUserGrowthData);
       } finally {
