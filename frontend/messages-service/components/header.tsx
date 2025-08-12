@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft, Bookmark } from 'lucide-react';
+import { Search, MessageCircle, Plus, User, LogOut, Menu, X, ChevronLeft, Bookmark, Crown } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
@@ -175,6 +175,10 @@ export default function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'settings')}>
+                    <Crown className="mr-2 h-4 w-4" />
+                    Premium
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleMyPortfolioClick}>
                     <Image
                       src="/icons/documentText.svg"
@@ -188,10 +192,6 @@ export default function Header() {
                   <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'bookmarks')}>
                     <Bookmark className="mr-2 h-4 w-4" />
                     Bookmarks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -323,6 +323,16 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
+                    redirectToService('AUTH_USER_SERVICE', 'settings');
+                  }}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <Crown className="w-4 h-4" />
+                  <span className="text-sm">Premium</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
                     handleMyPortfolioClick();
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
@@ -345,16 +355,6 @@ export default function Header() {
                 >
                   <Bookmark className="w-4 h-4" />
                   <span className="text-sm">Bookmarks</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    redirectToService('AUTH_USER_SERVICE', 'settings');
-                  }}
-                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="text-sm">Settings</span>
                 </button>
                 <button
                   onClick={() => {

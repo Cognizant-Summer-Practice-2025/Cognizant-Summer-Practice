@@ -29,13 +29,9 @@ namespace backend_portfolio.tests.Repositories
             _repository = new PortfolioRepository(_context);
             _fixture = new Fixture();
 
-            // Configure AutoFixture to handle circular references
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            
-            // Configure AutoFixture to handle DateOnly properly - generate valid dates
-            _fixture.Register(() => DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-new Random().Next(1, 3650))));
         }
 
         private async Task<PortfolioTemplate> CreateTemplateAsync()
@@ -148,7 +144,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllPortfoliosAsync();
 
             // Assert
-            Assert.Equal(3, result.Count);
+            result.Should().HaveCount(3);
         }
 
         [Fact]
@@ -158,7 +154,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetAllPortfoliosAsync();
 
             // Assert
-            Assert.Empty(result);
+            result.Should().BeEmpty();
         }
 
         [Fact]
@@ -286,7 +282,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetPortfoliosByUserIdAsync(userId);
 
             // Assert
-            Assert.Equal(2, result.Count);
+            result.Should().HaveCount(2);
             result.All(p => p.UserId == userId).Should().BeTrue();
         }
 
@@ -300,7 +296,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetPortfoliosByUserIdAsync(nonExistingUserId);
 
             // Assert
-            Assert.Empty(result);
+            result.Should().BeEmpty();
         }
 
         [Fact]
@@ -310,7 +306,7 @@ namespace backend_portfolio.tests.Repositories
             var result = await _repository.GetPortfoliosByUserIdAsync(Guid.Empty);
 
             // Assert
-            Assert.Empty(result);
+            result.Should().BeEmpty();
         }
 
         [Theory]
