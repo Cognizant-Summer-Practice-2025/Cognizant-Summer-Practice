@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using backend_user.Services;
 using backend_user.Services.Abstractions;
-using backend_user.Models;
+using System.Security.Claims;
 
 namespace backend_user.tests.Services
 {
@@ -129,7 +129,7 @@ namespace backend_user.tests.Services
             // Arrange
             _context.Request.Headers.Authorization = "Bearer invalid-token";
             _mockOAuth2Service.Setup(x => x.GetUserByAccessTokenAsync("invalid-token"))
-                .ReturnsAsync((User?)null);
+                .ReturnsAsync((backend_user.Models.User?)null);
 
             // Act
             var result = await _strategy.AuthenticateAsync(_context);
@@ -140,11 +140,11 @@ namespace backend_user.tests.Services
         }
 
         [Fact]
-        public async Task AuthenticateAsync_ShouldReturnUser_WhenTokenIsValid()
+        public async Task AuthenticateAsync_ShouldReturnPrincipal_WhenTokenIsValid()
         {
             // Arrange
             var validToken = "valid-token-123";
-            var expectedUser = new User
+            var expectedUser = new backend_user.Models.User
             {
                 Id = Guid.NewGuid(),
                 Email = "test@example.com",
@@ -161,7 +161,8 @@ namespace backend_user.tests.Services
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeEquivalentTo(expectedUser);
+            result!.Identity!.IsAuthenticated.Should().BeTrue();
+            result!.FindFirst(ClaimTypes.NameIdentifier)!.Value.Should().Be(expectedUser.Id.ToString());
             _mockOAuth2Service.Verify(x => x.GetUserByAccessTokenAsync(validToken), Times.Once);
         }
 
@@ -187,7 +188,7 @@ namespace backend_user.tests.Services
         {
             // Arrange
             var token = "token-with-spaces";
-            var expectedUser = new User { Id = Guid.NewGuid(), Email = "test@example.com", Username = "testuser" };
+            var expectedUser = new backend_user.Models.User { Id = Guid.NewGuid(), Email = "test@example.com", Username = "testuser" };
             
             _context.Request.Headers.Authorization = $"Bearer   {token}   ";
             _mockOAuth2Service.Setup(x => x.GetUserByAccessTokenAsync(token))

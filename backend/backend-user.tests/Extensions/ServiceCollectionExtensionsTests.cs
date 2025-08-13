@@ -6,7 +6,7 @@ using Moq;
 using backend_user.Extensions;
 using backend_user.Services.Abstractions;
 using backend_user.Services;
-using backend_user.Models;
+using System.Security.Claims;
 
 namespace backend_user.tests.Extensions
 {
@@ -226,12 +226,12 @@ namespace backend_user.tests.Extensions
     public class TestAuthenticationStrategy : IAuthenticationStrategy
     {
         public bool CanHandle(HttpContext context) => false;
-        public Task<User?> AuthenticateAsync(HttpContext context) => Task.FromResult<User?>(null);
+        public Task<ClaimsPrincipal?> AuthenticateAsync(HttpContext context) => Task.FromResult<ClaimsPrincipal?>(null);
     }
 
     public class AnotherTestAuthenticationStrategy : IAuthenticationStrategy
     {
         public bool CanHandle(HttpContext context) => false;
-        public Task<User?> AuthenticateAsync(HttpContext context) => Task.FromResult<User?>(null);
+        public Task<ClaimsPrincipal?> AuthenticateAsync(HttpContext context) => Task.FromResult<ClaimsPrincipal?>(null);
     }
 }

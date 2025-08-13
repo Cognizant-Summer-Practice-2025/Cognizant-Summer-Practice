@@ -1,4 +1,5 @@
-using backend_user.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace backend_user.Services.Abstractions
 {
@@ -12,7 +13,7 @@ namespace backend_user.Services.Abstractions
         /// Attempts to authenticate the request using available strategies.
         /// </summary>
         /// <param name="context">The HTTP context to authenticate.</param>
-        /// <returns>The authenticated user if successful, null otherwise.</returns>
-        Task<User?> AuthenticateAsync(HttpContext context);
+        /// <returns>A ClaimsPrincipal if authentication succeeds, null otherwise.</returns>
+        Task<ClaimsPrincipal?> AuthenticateAsync(HttpContext context);
     }
 }

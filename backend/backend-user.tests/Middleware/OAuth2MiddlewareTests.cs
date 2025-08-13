@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using backend_user.Middleware;
 using backend_user.Services.Abstractions;
-using backend_user.Models;
 using System.Security.Claims;
 using System.IO;
 using System.Text;
@@ -91,7 +90,7 @@ namespace backend_user.tests.Middleware
         {
             // Arrange
             _mockAuthorizationPathService.Setup(x => x.RequiresAuthentication(_context)).Returns(true);
-            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync((User?)null);
+            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync((ClaimsPrincipal?)null);
             
             var responseStream = new MemoryStream();
             _context.Response.Body = responseStream;
@@ -115,24 +114,15 @@ namespace backend_user.tests.Middleware
         public async Task InvokeAsync_ShouldSetUserPrincipal_WhenAuthenticationSucceeds()
         {
             // Arrange
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = "test@example.com",
-                Username = "testuser",
-                IsAdmin = false
-            };
-
             var expectedPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Email, "test@example.com"),
+                new Claim(ClaimTypes.Name, "testuser")
             }, "OAuth2"));
 
             _mockAuthorizationPathService.Setup(x => x.RequiresAuthentication(_context)).Returns(true);
-            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync(user);
-            _mockClaimsBuilderService.Setup(x => x.BuildPrincipal(user, "OAuth2")).Returns(expectedPrincipal);
+            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync(expectedPrincipal);
 
             // Act
             await _middleware.InvokeAsync(_context, _mockSecurityHeadersService.Object, 
@@ -143,7 +133,7 @@ namespace backend_user.tests.Middleware
             _context.User.Should().NotBeNull();
             _context.User.Should().Be(expectedPrincipal);
             _nextCalled.Should().BeTrue();
-            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(user, "OAuth2"), Times.Once);
+            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(It.IsAny<backend_user.Models.User>(), "OAuth2"), Times.Never);
         }
 
         [Fact]
@@ -188,7 +178,7 @@ namespace backend_user.tests.Middleware
             _mockSecurityHeadersService.Verify(x => x.ApplySecurityHeaders(_context), Times.Once);
             _mockAuthorizationPathService.Verify(x => x.RequiresAuthentication(_context), Times.Once);
             _mockAuthenticationService.Verify(x => x.AuthenticateAsync(It.IsAny<HttpContext>()), Times.Never);
-            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(It.IsAny<backend_user.Models.User>(), It.IsAny<string>()), Times.Never);
             
             _nextCalled.Should().BeTrue();
             _context.Response.StatusCode.Should().Be(200);
@@ -198,21 +188,13 @@ namespace backend_user.tests.Middleware
         public async Task InvokeAsync_ShouldFollowCompleteFlow_ForSuccessfulAuthentication()
         {
             // Arrange
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = "test@example.com",
-                Username = "testuser"
-            };
-
             var expectedPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
             }, "OAuth2"));
 
             _mockAuthorizationPathService.Setup(x => x.RequiresAuthentication(_context)).Returns(true);
-            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync(user);
-            _mockClaimsBuilderService.Setup(x => x.BuildPrincipal(user, "OAuth2")).Returns(expectedPrincipal);
+            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync(expectedPrincipal);
 
             // Act
             await _middleware.InvokeAsync(_context, _mockSecurityHeadersService.Object, 
@@ -224,7 +206,7 @@ namespace backend_user.tests.Middleware
             _mockSecurityHeadersService.Verify(x => x.ApplySecurityHeaders(_context), Times.Once);
             _mockAuthorizationPathService.Verify(x => x.RequiresAuthentication(_context), Times.Once);
             _mockAuthenticationService.Verify(x => x.AuthenticateAsync(_context), Times.Once);
-            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(user, "OAuth2"), Times.Once);
+            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(It.IsAny<backend_user.Models.User>(), "OAuth2"), Times.Never);
             
             _context.User.Should().Be(expectedPrincipal);
             _nextCalled.Should().BeTrue();
@@ -247,7 +229,7 @@ namespace backend_user.tests.Middleware
             _mockSecurityHeadersService.Verify(x => x.ApplySecurityHeaders(_context), Times.Once);
             _mockAuthorizationPathService.Verify(x => x.RequiresAuthentication(_context), Times.Once);
             _mockAuthenticationService.Verify(x => x.AuthenticateAsync(It.IsAny<HttpContext>()), Times.Never);
-            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+            _mockClaimsBuilderService.Verify(x => x.BuildPrincipal(It.IsAny<backend_user.Models.User>(), It.IsAny<string>()), Times.Never);
             
             _nextCalled.Should().BeTrue();
             _context.Response.StatusCode.Should().Be(200);
@@ -258,7 +240,7 @@ namespace backend_user.tests.Middleware
         {
             // Arrange
             _mockAuthorizationPathService.Setup(x => x.RequiresAuthentication(_context)).Returns(true);
-            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync((User?)null);
+            _mockAuthenticationService.Setup(x => x.AuthenticateAsync(_context)).ReturnsAsync((ClaimsPrincipal?)null);
             
             var responseStream = new MemoryStream();
             _context.Response.Body = responseStream;

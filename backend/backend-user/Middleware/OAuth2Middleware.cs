@@ -1,5 +1,6 @@
 using backend_user.Services.Abstractions;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace backend_user.Middleware
 {
@@ -41,20 +42,18 @@ namespace backend_user.Middleware
                 }
 
                 // Attempt authentication using strategy pattern  
-                var user = await authenticationService.AuthenticateAsync(context);
-                if (user == null)
+                var principal = await authenticationService.AuthenticateAsync(context);
+                if (principal == null)
                 {
                     _logger.LogWarning("Authentication failed for path: {Path}", context.Request.Path);
                     await WriteUnauthorizedResponse(context, "Unauthorized: Authentication failed");
                     return;
                 }
 
-                // Build user claims and set principal 
-                var principal = claimsBuilderService.BuildPrincipal(user);
                 context.User = principal;
 
-                _logger.LogDebug("Successfully authenticated user {UserId} for path {Path}", 
-                    user.Id, context.Request.Path);
+                _logger.LogDebug("Successfully authenticated request for path {Path}", 
+                    context.Request.Path);
 
                 await _next(context);
             }

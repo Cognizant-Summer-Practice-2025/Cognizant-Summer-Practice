@@ -1,6 +1,6 @@
-using backend_user.Models;
 using backend_user.Services.Abstractions;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace backend_user.Services
 {
@@ -30,9 +30,9 @@ namespace backend_user.Services
         }
 
         /// <summary>
-        /// Authenticates using OAuth2 Bearer token.
+        /// Authenticates using OAuth2 Bearer token and returns a ClaimsPrincipal.
         /// </summary>
-        public async Task<User?> AuthenticateAsync(HttpContext context)
+        public async Task<ClaimsPrincipal?> AuthenticateAsync(HttpContext context)
         {
             try
             {
@@ -57,8 +57,26 @@ namespace backend_user.Services
                     return null;
                 }
 
+                // Build a ClaimsPrincipal directly here to align with other services' contracts
+                var claims = new List<Claim>
+                {
+                    new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new(ClaimTypes.Email, user.Email),
+                    new(ClaimTypes.Name, user.Username),
+                    new("IsAdmin", user.IsAdmin.ToString()),
+                    new("IsActive", user.IsActive.ToString())
+                };
+                if (user.FirstName != null) claims.Add(new Claim(ClaimTypes.GivenName, user.FirstName));
+                if (user.LastName != null) claims.Add(new Claim(ClaimTypes.Surname, user.LastName));
+                if (user.ProfessionalTitle != null) claims.Add(new Claim("ProfessionalTitle", user.ProfessionalTitle));
+                if (user.Location != null) claims.Add(new Claim("Location", user.Location));
+                if (user.LastLoginAt.HasValue) claims.Add(new Claim("LastLogin", user.LastLoginAt.Value.ToString("O")));
+
+                var identity = new ClaimsIdentity(claims, "OAuth2");
+                var principal = new ClaimsPrincipal(identity);
+
                 _logger.LogInformation("Successfully authenticated user with ID: {UserId}", user.Id);
-                return user;
+                return principal;
             }
             catch (Exception ex)
             {
