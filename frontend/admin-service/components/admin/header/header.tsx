@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { EyeOutlined, BarChartOutlined, TeamOutlined, DownloadOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useUser } from '@/lib/contexts/user-context';
@@ -22,7 +21,6 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   activeTab = 'statistics', 
   onTabChange 
 }) => {
-  const router = useRouter();
   const { user } = useUser();
 
   const handleViewSite = () => {

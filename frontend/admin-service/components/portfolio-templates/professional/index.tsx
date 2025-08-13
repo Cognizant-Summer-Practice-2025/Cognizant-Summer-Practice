@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { PortfolioDataFromDB } from '@/lib/portfolio';
 import { TemplateManager, ComponentMap } from '@/lib/template-manager';
-import AppHeader from '@/components/header';
 import { Header } from './components/header';
 import { Stats } from './components/stats';
 import { Contact } from './components/contact';
@@ -110,9 +109,6 @@ export default function ProfessionalTemplate({ data }: ProfessionalTemplateProps
   return (
     <div className="professional-template">
       {/* App Header */}
-      <AppHeader />
-      
-      {/* Fixed Navigation - positioned below app header */}
       <nav className="prof-nav">
         <div className="prof-nav-container">
           <div className="prof-nav-brand">

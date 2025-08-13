@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth } from '@/lib/auth/sso-auth';
+import { verifySSOToken, createLocalSession, getLocalSession, redirectToAuth } from '@/lib/auth/sso-auth';
 import { customSignOut } from '@/lib/auth/custom-signout';
 
 interface AuthContextType {
@@ -75,8 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 await createLocalSession({
                   email: userData.email,
                   userId: userData.id,
-                  timestamp: Date.now(),
-                  exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+                  timestamp: Date.now()
                 });
                 setIsAuthenticated(true);
                 setUserEmail(userData.email);
@@ -91,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setUserEmail(null);
               setUserId(null);
             }
-          } catch (injectionError) {
+          } catch {
             console.log('No injected user data found, user not authenticated');
             setIsAuthenticated(false);
             setUserEmail(null);

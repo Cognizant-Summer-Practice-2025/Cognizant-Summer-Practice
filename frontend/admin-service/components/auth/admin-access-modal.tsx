@@ -24,7 +24,7 @@ export function AdminAccessModal({ isOpen, onSignOut }: AdminAccessModalProps) {
             Admin Access Required
           </DialogTitle>
           <DialogDescription className="text-gray-600 mt-2">
-            You don't have administrator privileges to access this service. 
+            You don&apos;t have administrator privileges to access this service. 
             Please contact your system administrator for access.
           </DialogDescription>
         </DialogHeader>

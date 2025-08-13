@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { ServiceUserData } from '@/types/global';
 
 // Initialize global storage if it doesn't exist
@@ -9,7 +9,7 @@ if (!global.adminServiceUserStorage) {
 /**
  * Get user data from this service
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check if there's any user data stored
     if (global.adminServiceUserStorage.size === 0) {

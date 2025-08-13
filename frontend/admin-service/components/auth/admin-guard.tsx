@@ -77,7 +77,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   // Show loading while checking authentication and admin rights
   if (authLoading || userLoading || isChecking) {
-    return <LoadingOverlay isLoading={true} />;
+    return <LoadingOverlay isOpen={true} />;
   }
 
   // Show access denied modal
@@ -91,5 +91,5 @@ export function AdminGuard({ children }: AdminGuardProps) {
   }
 
   // Default loading state
-  return <LoadingOverlay isLoading={true} />;
+  return <LoadingOverlay isOpen={true} />;
 }

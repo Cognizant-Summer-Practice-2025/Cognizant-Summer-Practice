@@ -5,19 +5,19 @@
 export class Logger {
   private static serviceName = 'admin-service';
 
-  static info(message: string, ...args: any[]): void {
+  static info(message: string, ...args: unknown[]): void {
     console.log(`[${this.serviceName}] INFO: ${message}`, ...args);
   }
 
-  static warn(message: string, ...args: any[]): void {
+  static warn(message: string, ...args: unknown[]): void {
     console.warn(`[${this.serviceName}] WARN: ${message}`, ...args);
   }
 
-  static error(message: string, error?: any, ...args: any[]): void {
+  static error(message: string, error?: unknown, ...args: unknown[]): void {
     console.error(`[${this.serviceName}] ERROR: ${message}`, error, ...args);
   }
 
-  static debug(message: string, ...args: any[]): void {
+  static debug(message: string, ...args: unknown[]): void {
     if (process.env.NODE_ENV === 'development') {
       console.debug(`[${this.serviceName}] DEBUG: ${message}`, ...args);
     }
