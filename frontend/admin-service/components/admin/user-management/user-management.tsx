@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, UserPlus, Eye, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Eye, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI, UserWithPortfolio } from '@/lib/admin';
 import { Loading } from '@/components/loader';
+import { ExportUtils } from '@/lib/utils/export-utils';
+import { Logger } from '@/lib/logger';
 import UserDetailsDialog from './user-details-dialog';
 import './style.css';
 
@@ -34,7 +36,7 @@ const UserManagement: React.FC = () => {
       setUsers(usersData);
       setError(null);
     } catch (err) {
-      console.error('Error fetching users:', err);
+      Logger.error('Error fetching users', err);
       setError('Failed to load users');
     } finally {
       setLoading(false);
@@ -149,7 +151,7 @@ This action cannot be undone.`;
         type: 'success',
       });
     } catch (error) {
-      console.error('Error deleting user:', error);
+      Logger.error('Error deleting user', error);
       const errorMessage = error instanceof Error 
         ? error.message
         : 'Failed to delete user. Please try again.';
@@ -164,22 +166,34 @@ This action cannot be undone.`;
     }
   };
 
-  const handleExportUsers = () => {
-    // TODO: Implement export functionality
-    showAlert({
-      title: 'Export Users',
-      description: 'Export functionality will be implemented soon.',
-      type: 'info',
-    });
-  };
+  const handleExportUsers = async () => {
+    try {
+      if (users.length === 0) {
+        showAlert({
+          title: 'No Data to Export',
+          description: 'There are no users to export.',
+          type: 'info',
+        });
+        return;
+      }
 
-  const handleAddUser = () => {
-    // TODO: Implement add user functionality
-    showAlert({
-      title: 'Add User',
-      description: 'Add user functionality will be implemented soon.',
-      type: 'info',
-    });
+      const xmlContent = ExportUtils.exportUsersToXML(users);
+      const filename = ExportUtils.generateFilename('goalkeeper_users');
+      ExportUtils.downloadXMLFile(xmlContent, filename);
+      
+      showAlert({
+        title: 'Export Successful',
+        description: `Successfully exported ${users.length} users to ${filename}`,
+        type: 'success',
+      });
+    } catch (error) {
+      Logger.error('Error exporting users', error);
+      showAlert({
+        title: 'Export Failed',
+        description: 'Failed to export users. Please try again.',
+        type: 'error',
+      });
+    }
   };
 
   if (loading) {
@@ -221,16 +235,10 @@ This action cannot be undone.`;
             variant="outline" 
             onClick={handleExportUsers}
             className="flex items-center gap-2"
+            disabled={loading || users.length === 0}
           >
             <Download className="w-4 h-4" />
-            Export
-          </Button>
-          <Button 
-            onClick={handleAddUser}
-            className="flex items-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            Add User
+            Export XML
           </Button>
         </div>
       </div>

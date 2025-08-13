@@ -1,27 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface ServiceUserData {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  professionalTitle?: string;
-  bio?: string;
-  location?: string;
-  profileImage?: string;
-  isActive: boolean;
-  isAdmin: boolean;
-  lastLoginAt?: string;
-  accessToken?: string;
-}
-
-// Global storage for user data (in production, use Redis or database)
-declare global {
-  // Use any to avoid redeclaration type mismatch across sibling routes
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  var adminServiceUserStorage: Map<string, any>;
-}
+import { ServiceUserData } from '@/types/global';
 
 // Initialize global storage if it doesn't exist
 if (!global.adminServiceUserStorage) {

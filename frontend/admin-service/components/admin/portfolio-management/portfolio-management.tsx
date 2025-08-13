@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { Download, Eye, Edit, Trash2, Zap, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { AdminAPI, PortfolioWithOwner } from '@/lib/admin';
 import { Loading } from '@/components/loader';
+import { ExportUtils } from '@/lib/utils/export-utils';
+import { Logger } from '@/lib/logger';
 import './style.css';
 
 const PortfolioManagement: React.FC = () => {
@@ -32,7 +34,7 @@ const PortfolioManagement: React.FC = () => {
       setPortfolios(portfoliosData);
       setError(null);
     } catch (err) {
-      console.error('Error fetching portfolios:', err);
+      Logger.error('Error fetching portfolios', err);
       setError('Failed to load portfolios');
     } finally {
       setLoading(false);
@@ -152,16 +154,12 @@ This action cannot be undone.`;
         type: 'success',
       });
     } catch (error) {
-      console.error('🔴 PERFORM DELETE - Error occurred:', error);
-      console.error('🔴 PERFORM DELETE - Error type:', typeof error);
-      console.error('🔴 PERFORM DELETE - Error instance:', error instanceof Error);
+      Logger.error('🔴 PERFORM DELETE - Error occurred', error);
       
       // Show a more detailed error message
       const errorMessage = error instanceof Error 
         ? error.message
         : 'Unknown error occurred';
-      
-      console.error('🔴 PERFORM DELETE - Showing error message:', errorMessage);
       showAlert({
         title: 'Delete Failed',
         description: `Failed to delete portfolio "${portfolioTitle}": ${errorMessage}`,
@@ -172,22 +170,34 @@ This action cannot be undone.`;
     }
   };
 
-  const handleExportPortfolios = () => {
-    // TODO: Implement export functionality
-    showAlert({
-      title: 'Export Portfolios',
-      description: 'Export functionality will be implemented soon.',
-      type: 'info',
-    });
-  };
+  const handleExportPortfolios = async () => {
+    try {
+      if (portfolios.length === 0) {
+        showAlert({
+          title: 'No Data to Export',
+          description: 'There are no portfolios to export.',
+          type: 'info',
+        });
+        return;
+      }
 
-  const handleModeratePorfolios = () => {
-    // TODO: Implement moderation functionality
-    showAlert({
-      title: 'Moderate Portfolios',
-      description: 'Moderation functionality will be implemented soon.',
-      type: 'info',
-    });
+      const xmlContent = ExportUtils.exportPortfoliosToXML(portfolios);
+      const filename = ExportUtils.generateFilename('goalkeeper_portfolios');
+      ExportUtils.downloadXMLFile(xmlContent, filename);
+      
+      showAlert({
+        title: 'Export Successful',
+        description: `Successfully exported ${portfolios.length} portfolios to ${filename}`,
+        type: 'success',
+      });
+    } catch (error) {
+      Logger.error('Error exporting portfolios', error);
+      showAlert({
+        title: 'Export Failed',
+        description: 'Failed to export portfolios. Please try again.',
+        type: 'error',
+      });
+    }
   };
 
   if (loading) {
@@ -224,21 +234,15 @@ This action cannot be undone.`;
     <div className="management-section">
       <div className="section-header">
         <h2>Portfolio Management</h2>
-        <div className="section-actions">
+                <div className="section-actions">
           <Button 
-            variant="outline"
+            variant="outline" 
             onClick={handleExportPortfolios}
             className="flex items-center gap-2"
+            disabled={loading || portfolios.length === 0}
           >
             <Download className="w-4 h-4" />
-            Export
-          </Button>
-          <Button 
-            onClick={handleModeratePorfolios}
-            className="flex items-center gap-2"
-          >
-            <Zap className="w-4 h-4" />
-            Moderate
+            Export XML
           </Button>
         </div>
       </div>

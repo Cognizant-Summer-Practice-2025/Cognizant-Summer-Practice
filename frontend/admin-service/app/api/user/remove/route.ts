@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ServiceUserData } from '@/types/global';
 
 // Reference to the same storage used in inject
 declare global {
-  var adminServiceUserStorage: Map<string, any>;
+  var adminServiceUserStorage: Map<string, ServiceUserData>;
 }
 
 // Initialize global storage if it doesn't exist
