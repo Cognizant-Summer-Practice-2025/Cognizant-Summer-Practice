@@ -25,7 +25,9 @@ public class UserAuthenticationServiceTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["UserServiceUrl"] = "http://user" }).Build();
         var logger = Mock.Of<ILogger<UserAuthenticationService>>();
-        var svc = new UserAuthenticationService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("UserService")).Returns(http);
+        var svc = new UserAuthenticationService(factory.Object, cfg, logger);
 
         var principal = await svc.ValidateTokenAsync("tok");
         principal.Should().NotBeNull();
@@ -40,7 +42,9 @@ public class UserAuthenticationServiceTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<UserAuthenticationService>>();
-        var svc = new UserAuthenticationService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("UserService")).Returns(http);
+        var svc = new UserAuthenticationService(factory.Object, cfg, logger);
 
         var principal = await svc.ValidateTokenAsync("tok");
         principal.Should().BeNull();
@@ -53,7 +57,9 @@ public class UserAuthenticationServiceTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<UserAuthenticationService>>();
-        var svc = new UserAuthenticationService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("UserService")).Returns(http);
+        var svc = new UserAuthenticationService(factory.Object, cfg, logger);
 
         var principal = await svc.ValidateTokenAsync("tok");
         principal.Should().BeNull();

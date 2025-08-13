@@ -26,7 +26,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
 
         var result = await svc.GenerateAsync();
         result.Should().Be("ok-gen");
@@ -46,7 +48,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["OpenRouter:ApiKey"] = "k" }).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
         var text = await svc.GenerateAsync();
         text.Should().Be("x");
     }
@@ -58,7 +62,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
 
         await FluentActions.Awaiting(() => svc.GenerateAsync()).Should().ThrowAsync<InvalidOperationException>();
     }
@@ -74,7 +80,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
 
         var result = await svc.GenerateWithPromptAsync("p");
         result.Should().BeEmpty();
@@ -91,7 +99,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
         var text = await svc.GenerateWithPromptAsync("p");
         text.Should().BeEmpty();
     }
@@ -111,7 +121,9 @@ public class AiChatServiceExtraTests
             ["OpenRouter:Temperature"] = "0.7"
         }).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
         var text = await svc.GenerateWithPromptAsync("p");
         text.Should().Be("ok");
     }
@@ -134,7 +146,9 @@ public class AiChatServiceExtraTests
             var http = new HttpClient(handler);
             var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
             var logger = Mock.Of<ILogger<AiChatService>>();
-            var svc = new AiChatService(http, cfg, logger);
+            var factory = new Mock<IHttpClientFactory>();
+            factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+            var svc = new AiChatService(factory.Object, cfg, logger);
             var text = await svc.GenerateWithPromptAsync("p");
             text.Should().Be("ok");
         }
@@ -152,7 +166,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
         await FluentActions.Awaiting(() => svc.GenerateWithPromptAsync("p")).Should().ThrowAsync<InvalidOperationException>();
     }
 
@@ -167,7 +183,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
         var text = await svc.GenerateWithPromptAsync("p");
         text.Should().Be("   ");
     }
@@ -183,7 +201,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
 
         var result = await svc.GenerateWithPromptAsync("p");
         result.Should().BeEmpty();
@@ -200,7 +220,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
 
         var result = await svc.GenerateAsync();
         result.Should().BeEmpty();
@@ -217,7 +239,9 @@ public class AiChatServiceExtraTests
         var http = new HttpClient(handler);
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
         var logger = Mock.Of<ILogger<AiChatService>>();
-        var svc = new AiChatService(http, cfg, logger);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("AIProvider")).Returns(http);
+        var svc = new AiChatService(factory.Object, cfg, logger);
 
         var result = await svc.GenerateAsync();
         result.Should().BeEmpty();

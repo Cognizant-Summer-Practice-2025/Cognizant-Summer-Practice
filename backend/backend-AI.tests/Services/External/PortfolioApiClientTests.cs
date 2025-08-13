@@ -18,7 +18,9 @@ public class PortfolioApiClientTests
         var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["PortfolioService:BaseUrl"] = baseUrl }).Build();
         var logger = Mock.Of<ILogger<PortfolioApiClient>>();
         var accessor = new HttpContextAccessor { HttpContext = new DefaultHttpContext() };
-        var client = new PortfolioApiClient(http, cfg, logger, accessor);
+        var factory = new Mock<IHttpClientFactory>();
+        factory.Setup(f => f.CreateClient("PortfolioService")).Returns(http);
+        var client = new PortfolioApiClient(factory.Object, cfg, logger, accessor);
         return (client, handler);
     }
 
