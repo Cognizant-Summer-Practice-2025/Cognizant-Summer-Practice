@@ -24,7 +24,8 @@ interface UsePortfolioSearchReturn {
   error: string | null;
   showResults: boolean;
   setShowResults: (show: boolean) => void;
-  searchInputRef: React.RefObject<HTMLInputElement>;
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
+  searchContainerRef: React.RefObject<HTMLDivElement | null>;
   handleResultClick: (result: SearchResult) => void;
   clearSearch: () => void;
 }
@@ -36,8 +37,9 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced search function
   const performSearch = useCallback(async (term: string) => {
@@ -106,7 +108,15 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
   const handleResultClick = useCallback((result: SearchResult) => {
     setShowResults(false);
     setSearchTerm('');
-    router.push(`/portfolio?user=${result.userId}`);
+    
+    const targetPath = `/portfolio?user=${result.userId}`;
+    
+    try {
+      router.push(targetPath);
+    } catch (error) {
+      console.error('Home service - Router push failed:', error);
+      window.location.href = targetPath;
+    }
   }, [router]);
 
   // Clear search
@@ -123,7 +133,15 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
   // Handle clicks outside search component
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+      const target = event.target as Element;
+      
+      const isInsideInput = searchInputRef.current && searchInputRef.current.contains(target);
+      
+      const isInsideContainer = searchContainerRef.current && searchContainerRef.current.contains(target);
+      
+      const isSearchResultButton = target.closest('[data-search-result-button]') !== null;
+      
+      if (!isInsideInput && !isInsideContainer && !isSearchResultButton) {
         setShowResults(false);
       }
     };
@@ -152,6 +170,7 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
     showResults,
     setShowResults,
     searchInputRef,
+    searchContainerRef,
     handleResultClick,
     clearSearch
   };

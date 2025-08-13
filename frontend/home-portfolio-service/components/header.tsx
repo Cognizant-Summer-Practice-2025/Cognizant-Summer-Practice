@@ -39,6 +39,7 @@ export default function Header() {
     showResults,
     setShowResults,
     searchInputRef,
+    searchContainerRef,
     handleResultClick
   } = usePortfolioSearch();
 
@@ -157,6 +158,7 @@ export default function Header() {
                 showResults={showResults}
                 onResultClick={handleResultClick}
                 searchTerm={searchTerm}
+                searchContainerRef={searchContainerRef}
               />
             </div>
           </div>
@@ -310,6 +312,7 @@ export default function Header() {
                   setIsMobileMenuOpen(false); // Close mobile menu when result is clicked
                 }}
                 searchTerm={searchTerm}
+                searchContainerRef={searchContainerRef}
               />
             </div>
           </div>
