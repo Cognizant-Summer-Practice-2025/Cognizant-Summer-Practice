@@ -12,6 +12,7 @@ interface SearchResultsProps {
   showResults: boolean;
   onResultClick: (result: SearchResult) => void;
   searchTerm: string;
+  searchContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
@@ -21,6 +22,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   showResults,
   onResultClick,
   searchTerm,
+  searchContainerRef,
 }) => {
   if (!showResults) return null;
 
@@ -39,7 +41,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   };
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+    <div 
+      ref={searchContainerRef}
+      className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+    >
       {loading && (
         <div className="flex items-center justify-center p-4">
           <Loader2 className="w-5 h-5 animate-spin text-gray-400 mr-2" />
@@ -72,8 +77,21 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             {results.map((result) => (
               <button
                 key={result.id}
-                onClick={() => onResultClick(result)}
-                className="w-full px-3 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 text-left"
+                data-search-result-button="true"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onResultClick(result);
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="w-full px-3 py-3 flex items-start gap-3 hover:bg-gray-50 hover:shadow-sm active:bg-gray-100 transition-all duration-200 border-b border-gray-50 last:border-b-0 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-gray-50"
+                type="button"
+                tabIndex={0}
+                role="button"
+                aria-label={`View ${result.name}'s portfolio`}
               >
                 <div className="flex-shrink-0">
                   <Image

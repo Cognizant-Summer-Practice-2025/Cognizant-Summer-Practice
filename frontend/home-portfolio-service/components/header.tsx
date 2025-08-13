@@ -296,12 +296,13 @@ export default function Header() {
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
               <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onFocus={() => setShowResults(true)}
-                placeholder="Search portfolios, skills, or names..."
-                className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+                 ref={searchInputRef}
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 onFocus={() => setShowResults(true)}
+                 placeholder="Search portfolios, skills, or names..."
+                 className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+               />
               <SearchResults
                 results={results}
                 loading={loading}
