@@ -61,7 +61,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       {!loading && !error && results.length === 0 && searchTerm.trim() && (
         <div className="p-4 text-center">
           <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">No portfolios found for "{searchTerm}"</p>
+          <p className="text-sm text-gray-500">No portfolios found for &quot;{searchTerm}&quot;</p>
           <p className="text-xs text-gray-400 mt-1">Try searching for names, skills, or roles</p>
         </div>
       )}
@@ -70,7 +70,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         <>
           <div className="px-3 py-2 border-b border-gray-100">
             <p className="text-xs text-gray-500">
-              {results.length} result{results.length !== 1 ? 's' : ''} for "{searchTerm}"
+              {results.length} result{results.length !== 1 ? 's' : ''} for &quot;{searchTerm}&quot;
             </p>
           </div>
           <div className="max-h-80 overflow-y-auto">
