@@ -10,8 +10,6 @@ import {
 } from './interfaces';
 import { AuthenticatedApiClient } from '../api/authenticated-client';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-const MESSAGES_API_BASE_URL = 'http://localhost:5093';
 
 // Create authenticated API clients for different services
 const userClient = AuthenticatedApiClient.createUserClient();

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import '@/types/global';
 
-// Reference to the same storage used in inject/remove
-declare global {
-  var messagesServiceUserStorage: Map<string, any>;
-}
+// Reference to the same storage used in inject/remove - using global declaration from types/global.ts
 
 if (!global.messagesServiceUserStorage) {
   global.messagesServiceUserStorage = new Map();
@@ -42,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Transform profileImage to avatarUrl for compatibility with User interface
     const transformedUserData = {
       ...userData,
-      avatarUrl: userData.profileImage,
+      avatarUrl: userData.profileImage || undefined,
       // Remove profileImage to avoid confusion
       profileImage: undefined
     };

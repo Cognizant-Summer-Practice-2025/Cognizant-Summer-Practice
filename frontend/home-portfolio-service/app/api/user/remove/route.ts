@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { ServiceUserData } from '@/types/global';
 
-// Reference to the same storage used in inject
-declare global {
-  var homePortfolioServiceUserStorage: Map<string, any>;
-}
-
-if (!global.homePortfolioServiceUserStorage) {
-  global.homePortfolioServiceUserStorage = new Map();
+// Ensure global storage is initialized
+if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
+  global.homePortfolioServiceUserStorage = new Map<string, ServiceUserData>();
 }
 
 /**

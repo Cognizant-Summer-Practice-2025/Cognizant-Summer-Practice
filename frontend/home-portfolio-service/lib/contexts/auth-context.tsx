@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth, logoutFromAllServices } from '@/lib/auth/sso-auth';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { verifySSOToken, createLocalSession, clearLocalSession, redirectToAuth, logoutFromAllServices } from '@/lib/auth/sso-auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const checkAuthentication = async () => {
+  const checkAuthentication = useCallback(async () => {
     try {
       // If we are in the middle of logging out, skip auth checks to avoid races
       if (isLoggingOut) {
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggingOut]);
 
   useEffect(() => {
     checkAuthentication();
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('focus', handleVisibilityOrFocus);
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
-  }, [isAuthenticated, isLoggingOut]);
+  }, [isAuthenticated, isLoggingOut, checkAuthentication]);
 
   const value: AuthContextType = {
     isAuthenticated,

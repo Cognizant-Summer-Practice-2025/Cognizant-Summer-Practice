@@ -37,15 +37,6 @@ interface TokenData {
   expiresAt?: number;
 }
 
-interface ProviderData {
-  provider: string;
-  tokenExpiresAt?: string;
-  hasRefreshToken: boolean;
-}
-
-interface StatusData {
-  providers?: ProviderData[];
-}
 
 /**
  * Refreshes an access token using our backend refresh endpoint
@@ -416,4 +407,18 @@ export const authOptions: AuthOptions = {
   session: {
     strategy: 'jwt',
   },
+  events: {
+    async signOut(message) {
+      // When NextAuth signOut is called directly, remove user from all services
+      if (message.session?.user?.email) {
+        try {
+          console.log(`NextAuth signOut event - removing user: ${message.session.user.email}`);
+          await UserInjectionService.removeUser(message.session.user.email);
+          console.log(`User ${message.session.user.email} removed from all services during NextAuth signOut`);
+        } catch (error) {
+          console.error('Error removing user during NextAuth signOut:', error);
+        }
+      }
+    }
+  }
 }

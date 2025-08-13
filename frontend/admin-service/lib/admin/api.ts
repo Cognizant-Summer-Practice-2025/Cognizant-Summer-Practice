@@ -1,87 +1,44 @@
 import { AdminUser, AdminPortfolio, AdminStats, UserWithPortfolio, PortfolioWithOwner } from './interfaces';
 import { AdminStatsUtils, AdminChartUtils, AdminTransformUtils } from './utils';
+import { authenticatedClient } from '@/lib/authenticated-client';
+import { Logger } from '@/lib/logger';
 
-const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200/api/users';
+const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
 const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
 
 export class AdminAPI {
   // User-related API calls
   static async getAllUsers(): Promise<AdminUser[]> {
-    const response = await fetch(`${USER_API_BASE}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch users');
-    }
-    return response.json();
+    return authenticatedClient.get<AdminUser[]>(`${USER_API_BASE}/api/users`);
   }
 
   static async getUserById(id: string): Promise<AdminUser> {
-    const response = await fetch(`${USER_API_BASE}/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch user');
-    }
-    return response.json();
+    return authenticatedClient.get<AdminUser>(`${USER_API_BASE}/api/users/${id}`);
   }
 
   static async updateUser(id: string, data: Partial<AdminUser>): Promise<AdminUser> {
-    const response = await fetch(`${USER_API_BASE}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update user');
-    }
-    return response.json();
+    return authenticatedClient.put<AdminUser>(`${USER_API_BASE}/api/users/${id}`, data);
   }
 
   // Portfolio-related API calls
   static async getAllPortfolios(): Promise<AdminPortfolio[]> {
-    const response = await fetch(`${PORTFOLIO_API_BASE}/api/Portfolio`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch portfolios');
-    }
-    return response.json();
+    return authenticatedClient.get<AdminPortfolio[]>(`${PORTFOLIO_API_BASE}/api/Portfolio`);
   }
 
   static async getPortfolioById(id: string): Promise<AdminPortfolio> {
-    const response = await fetch(`${PORTFOLIO_API_BASE}/api/Portfolio/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch portfolio');
-    }
-    return response.json();
+    return authenticatedClient.get<AdminPortfolio>(`${PORTFOLIO_API_BASE}/api/Portfolio/${id}`);
   }
 
   static async getPortfoliosByUserId(userId: string): Promise<AdminPortfolio[]> {
-    const response = await fetch(`${PORTFOLIO_API_BASE}/api/Portfolio/user/${userId}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch user portfolios');
-    }
-    return response.json();
+    return authenticatedClient.get<AdminPortfolio[]>(`${PORTFOLIO_API_BASE}/api/Portfolio/user/${userId}`);
   }
 
   static async deletePortfolio(portfolioId: string): Promise<boolean> {
-    const deleteUrl = `${PORTFOLIO_API_BASE}/api/Portfolio/${portfolioId}`;
-    
     try {
-      const response = await fetch(deleteUrl, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('🗑️ Admin API: Delete error response:', errorText);
-        console.error('🗑️ Admin API: Delete error status text:', response.statusText);
-        throw new Error(`Failed to delete portfolio (${response.status}): ${errorText || response.statusText}`);
-      }
-      
+      await authenticatedClient.deleteVoid(`${PORTFOLIO_API_BASE}/api/Portfolio/${portfolioId}`);
       return true;
     } catch (error) {
-      console.error('🗑️ Admin API: Network or other error:', error);
+      Logger.error('🗑️ Admin API: Error deleting portfolio', error);
       throw error;
     }
   }
@@ -96,7 +53,7 @@ export class AdminAPI {
 
       return AdminTransformUtils.transformUsersWithPortfolios(users, portfolios);
     } catch (error) {
-      console.error('Error fetching users with portfolios:', error);
+      Logger.error('Error fetching users with portfolios', error);
       throw error;
     }
   }
@@ -110,7 +67,7 @@ export class AdminAPI {
 
       return AdminTransformUtils.transformPortfoliosWithOwners(portfolios, users);
     } catch (error) {
-      console.error('Error fetching portfolios with owners:', error);
+      Logger.error('Error fetching portfolios with owners', error);
       throw error;
     }
   }
@@ -125,7 +82,7 @@ export class AdminAPI {
 
       return AdminStatsUtils.calculateStats(users, portfolios);
     } catch (error) {
-      console.error('Error calculating admin stats:', error);
+      Logger.error('Error calculating admin stats', error);
       throw error;
     }
   }
@@ -140,7 +97,7 @@ export class AdminAPI {
 
       return AdminChartUtils.generateGrowthData(users, portfolios, 6);
     } catch (error) {
-      console.error('Error fetching growth data:', error);
+      Logger.error('Error fetching growth data', error);
       throw error;
     }
   }
@@ -154,7 +111,7 @@ export class AdminAPI {
 
       return AdminChartUtils.generateActivityData(users, portfolios);
     } catch (error) {
-      console.error('Error fetching activity data:', error);
+      Logger.error('Error fetching activity data', error);
       throw error;
     }
   }

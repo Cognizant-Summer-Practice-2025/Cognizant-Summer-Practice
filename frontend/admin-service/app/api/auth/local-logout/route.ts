@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
+import { Logger } from '@/lib/logger';
 import '@/types/global';
 
-// Reference to the same storage used in inject/remove - using global declaration from types/global.ts
-
-if (!global.messagesServiceUserStorage) {
-  global.messagesServiceUserStorage = new Map();
+// Ensure global storage is initialized  
+if (typeof global !== 'undefined' && !global.adminServiceUserStorage) {
+  global.adminServiceUserStorage = new Map();
 }
 
 /**
@@ -15,12 +15,10 @@ if (!global.messagesServiceUserStorage) {
  */
 export async function POST() {
   try {
-    global.messagesServiceUserStorage.clear();
+    global.adminServiceUserStorage.clear();
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error clearing local user storage:', error);
+    Logger.error('Error clearing local user storage', error);
     return NextResponse.json({ success: false, error: 'Failed to clear local user storage' }, { status: 500 });
   }
 }
-
-

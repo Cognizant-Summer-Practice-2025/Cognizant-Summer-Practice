@@ -53,7 +53,7 @@ async function injectUserToServices(userData: ServiceUserData) {
         return { service: service.name, success: true };
       } catch (error) {
         console.error(`Error injecting user to ${service.name}:`, error);
-        return { service: service.name, success: false, error: error.message };
+        return { service: service.name, success: false, error: error instanceof Error ? error.message : String(error) };
       }
     })
   );
@@ -98,7 +98,7 @@ async function removeUserFromServices(userEmail: string) {
         return { service: service.name, success: true };
       } catch (error) {
         console.error(`Error removing user from ${service.name}:`, error);
-        return { service: service.name, success: false, error: error.message };
+        return { service: service.name, success: false, error: error instanceof Error ? error.message : String(error) };
       }
     })
   );

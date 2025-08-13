@@ -22,16 +22,20 @@ export async function POST(request: NextRequest) {
     // Get the callback URL from the request or use default
     const { searchParams } = new URL(request.url);
     const callbackUrl = searchParams.get('callbackUrl') || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    
+    // Get the current auth service URL to create absolute URLs
+    const authServiceUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const signoutUrl = `${authServiceUrl}/api/auth/signout?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
     // Create response with automatic redirect to NextAuth signout
     const response = NextResponse.json({ 
       success: true, 
       message: 'User data removed from all services. Redirecting to signout...',
-      redirectUrl: `/api/auth/signout?callbackUrl=${encodeURIComponent(callbackUrl)}`
+      redirectUrl: signoutUrl
     });
 
     // Set immediate redirect headers
-    response.headers.set('Location', `/api/auth/signout?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+    response.headers.set('Location', signoutUrl);
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');

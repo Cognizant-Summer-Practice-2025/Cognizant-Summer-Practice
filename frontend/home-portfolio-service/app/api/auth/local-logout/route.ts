@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
+import '@/types/global';
 
-// Reference to the same storage used in inject/remove
-declare global {
-  // eslint-disable-next-line no-var
-  var homePortfolioServiceUserStorage: Map<string, any>;
-}
-
-if (!global.homePortfolioServiceUserStorage) {
+// Ensure global storage is initialized  
+if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
   global.homePortfolioServiceUserStorage = new Map();
 }
 

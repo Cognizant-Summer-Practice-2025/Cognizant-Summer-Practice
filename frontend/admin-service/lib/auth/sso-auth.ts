@@ -1,3 +1,5 @@
+import { Logger } from '@/lib/logger';
+
 interface SSOTokenPayload {
   email: string;
   userId: string;
@@ -100,30 +102,47 @@ export function redirectToAuth(): void {
 export async function logoutFromAllServices(): Promise<void> {
   try {
     const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const currentUrl = window.location.origin;
     
-    // First, call the signout-all endpoint to remove user from all services
-    const response = await fetch(`${authServiceUrl}/api/auth/signout-all`, {
+    // Step 0: Clear this service's local user storage synchronously to avoid races
+    try {
+      await fetch('/api/auth/local-logout', { method: 'POST' });
+    } catch (e) {
+      Logger.warn('Local logout failed (continuing)', e);
+    }
+
+    // Call the auto-signout endpoint that automatically clears NextAuth session
+    const response = await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(currentUrl)}`, {
       method: 'POST',
       credentials: 'include', // Include cookies for session
     });
     
     if (response.ok) {
-      console.log('User removed from all services');
+      const data = await response.json();
+      Logger.info('User logged out from all services automatically');
+      
+      // Clear local session
+      clearLocalSession();
+      
+      // Redirect to the callback URL (home page)
+      if (data.callbackUrl) {
+        window.location.href = data.callbackUrl;
+      } else {
+        window.location.href = currentUrl;
+      }
     } else {
-      console.warn('Failed to remove user from all services, but continuing with logout');
+      Logger.warn('Failed to trigger automatic signout, falling back to manual logout');
+      // Fallback: clear local session and redirect to home
+      clearLocalSession();
+      window.location.href = currentUrl;
     }
   } catch (error) {
-    console.error('Error during signout-all:', error);
-    // Continue with logout even if signout-all fails
+    Logger.error('Error during automatic signout', error);
+    // Fallback: clear local session and redirect to home
+    clearLocalSession();
+    const currentUrl = window.location.origin;
+    window.location.href = currentUrl;
   }
-  
-  // Clear local session
-  clearLocalSession();
-  
-  // Redirect to auth service logout
-  const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
-  const currentUrl = window.location.origin;
-  window.location.href = `${authServiceUrl}/api/auth/signout?callbackUrl=${encodeURIComponent(currentUrl)}`;
 }
 
 /**
