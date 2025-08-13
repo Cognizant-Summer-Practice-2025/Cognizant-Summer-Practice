@@ -1,4 +1,6 @@
 
+using Microsoft.Extensions.Http;
+
 // Load environment variables from .env file (like other backends)
 DotNetEnv.Env.Load();
 
@@ -48,8 +50,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-// HttpClient for calling AI provider (OpenRouter)
-builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IAiChatService, backend_AI.Services.AiChatService>(client =>
+// Configure HttpClient with connection pooling for AI provider (OpenRouter/Ollama)
+builder.Services.AddHttpClient("AIProvider", client =>
 {
     var timeoutEnv = Environment.GetEnvironmentVariable("OPENROUTER_TIMEOUT_SECONDS")
                       ?? Environment.GetEnvironmentVariable("OLLAMA_TIMEOUT_SECONDS");
@@ -67,23 +69,59 @@ builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IAiChatService, 
     {
         client.Timeout = TimeSpan.FromMinutes(2);
     }
-});
+    client.DefaultRequestHeaders.Add("User-Agent", "AIService/1.0");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    MaxConnectionsPerServer = 5, // Lower for AI API (typically fewer concurrent requests)
+    UseCookies = false
+})
+.SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
-// HttpClient for calling portfolio backend
-builder.Services.AddHttpClient<backend_AI.Services.External.IPortfolioApiClient, backend_AI.Services.External.PortfolioApiClient>(client =>
+// Configure HttpClient with connection pooling for portfolio backend
+builder.Services.AddHttpClient("PortfolioService", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "AIService/1.0");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    MaxConnectionsPerServer = 10,
+    UseCookies = false
+})
+.SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
+// Configure HttpClient with connection pooling for user service
+builder.Services.AddHttpClient("UserService", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.Add("User-Agent", "AIService/1.0");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    MaxConnectionsPerServer = 10,
+    UseCookies = false
+})
+.SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
+// Configure HttpClient factory with global pooling settings
+builder.Services.Configure<HttpClientFactoryOptions>(options =>
+{
+    options.HandlerLifetime = TimeSpan.FromMinutes(5);
 });
+
+// Configure default HttpClient factory for any other HTTP needs
+builder.Services.AddHttpClient();
+
 builder.Services.AddHttpContextAccessor();
+
+// Register services with DI
+builder.Services.AddScoped<backend_AI.Services.Abstractions.IAiChatService, backend_AI.Services.AiChatService>();
+builder.Services.AddScoped<backend_AI.Services.External.IPortfolioApiClient, backend_AI.Services.External.PortfolioApiClient>();
+builder.Services.AddScoped<backend_AI.Services.Abstractions.IUserAuthenticationService, backend_AI.Services.UserAuthenticationService>();
 
 // Ranking service
 builder.Services.AddScoped<backend_AI.Services.Abstractions.IPortfolioRankingService, backend_AI.Services.PortfolioRankingService>();
-
-// User auth service and middleware dependencies
-builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IUserAuthenticationService, backend_AI.Services.UserAuthenticationService>(client =>
-{
-    client.Timeout = TimeSpan.FromSeconds(10);
-});
 
 // Add Authentication services
 builder.Services.AddScoped<backend_AI.Services.Abstractions.ISecurityHeadersService, backend_AI.Services.SecurityHeadersService>();

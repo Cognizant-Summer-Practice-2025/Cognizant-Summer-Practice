@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http;
 using backend_portfolio.Data;
 using backend_portfolio.Repositories;
 using backend_portfolio.Services;
@@ -59,6 +60,26 @@ builder.Services.AddDbContext<PortfolioDbContext>(options =>
     options.UseNpgsql(dataSource)
            .UseSnakeCaseNamingConvention());
 
+// Configure HttpClient with connection pooling and recycling
+builder.Services.AddHttpClient("ExternalUserService", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "PortfolioService/1.0");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    MaxConnectionsPerServer = 10, // Limit concurrent connections per server
+    UseCookies = false // Disable cookies for API calls
+})
+.SetHandlerLifetime(TimeSpan.FromMinutes(5)); // Recycle handlers every 5 minutes
+
+// Configure HttpClient factory with global pooling settings
+builder.Services.Configure<HttpClientFactoryOptions>(options =>
+{
+    options.HandlerLifetime = TimeSpan.FromMinutes(5); // Global handler lifetime
+});
+
+// Configure default HttpClient factory for any other HTTP needs
 builder.Services.AddHttpClient();
 
 // Add Memory Cache

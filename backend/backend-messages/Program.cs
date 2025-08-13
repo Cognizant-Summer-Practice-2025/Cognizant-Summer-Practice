@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http;
 using BackendMessages.Data;
 using BackendMessages.Services;
 using BackendMessages.Services.Abstractions;
@@ -18,10 +19,27 @@ builder.Services.AddSignalR();
 
 builder.Services.AddCors();
 
-builder.Services.AddHttpClient<IUserSearchService, UserSearchService>(client =>
+// Configure HttpClient with connection pooling and recycling for external services
+builder.Services.AddHttpClient("UserService", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "MessagesService/1.0");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    MaxConnectionsPerServer = 10, // Limit concurrent connections per server
+    UseCookies = false // Disable cookies for API calls
+})
+.SetHandlerLifetime(TimeSpan.FromMinutes(5)); // Recycle handlers every 5 minutes
+
+// Configure HttpClient factory with global pooling settings
+builder.Services.Configure<HttpClientFactoryOptions>(options =>
+{
+    options.HandlerLifetime = TimeSpan.FromMinutes(5); // Global handler lifetime
 });
+
+// Configure default HttpClient factory for any other HTTP needs
+builder.Services.AddHttpClient();
 
 // Register repositories
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();

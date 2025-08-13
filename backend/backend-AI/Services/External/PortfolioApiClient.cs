@@ -11,14 +11,14 @@ namespace backend_AI.Services.External
 
     public class PortfolioApiClient : IPortfolioApiClient
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<PortfolioApiClient> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PortfolioApiClient(HttpClient httpClient, IConfiguration configuration, ILogger<PortfolioApiClient> logger, IHttpContextAccessor httpContextAccessor)
+        public PortfolioApiClient(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<PortfolioApiClient> logger, IHttpContextAccessor httpContextAccessor)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
@@ -50,7 +50,8 @@ namespace backend_AI.Services.External
                 _logger.LogWarning("AI: No bearer token found on incoming request to forward to portfolio service");
             }
 
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var httpClient = _httpClientFactory.CreateClient("PortfolioService");
+            var response = await httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync(cancellationToken);
         }
@@ -76,7 +77,8 @@ namespace backend_AI.Services.External
                 }
             }
 
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var httpClient = _httpClientFactory.CreateClient("PortfolioService");
+            var response = await httpClient.SendAsync(request, cancellationToken);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 _logger.LogWarning("AI: Portfolio {Id} not found", id);
@@ -114,7 +116,8 @@ namespace backend_AI.Services.External
                 }
             }
 
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var httpClient = _httpClientFactory.CreateClient("PortfolioService");
+            var response = await httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync(cancellationToken);
         }

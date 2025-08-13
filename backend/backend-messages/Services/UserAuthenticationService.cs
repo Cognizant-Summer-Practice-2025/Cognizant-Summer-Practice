@@ -9,16 +9,16 @@ namespace BackendMessages.Services
     /// </summary>
     public class UserAuthenticationService : IUserAuthenticationService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<UserAuthenticationService> _logger;
 
         public UserAuthenticationService(
-            HttpClient httpClient, 
+            IHttpClientFactory httpClientFactory, 
             IConfiguration configuration,
             ILogger<UserAuthenticationService> logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -36,11 +36,12 @@ namespace BackendMessages.Services
                 _logger.LogInformation("🔐 AuthService: Validating token with user service at {UserServiceUrl}", userServiceUrl);
                 
                 // Call the user service to validate the token and get user info
+                using var httpClient = _httpClientFactory.CreateClient("UserService");
                 var request = new HttpRequestMessage(HttpMethod.Get, $"{userServiceUrl}/api/oauth/me");
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 _logger.LogInformation("🔐 AuthService: Sending validation request to user service with token length: {TokenLength}", token.Length);
 
-                var response = await _httpClient.SendAsync(request);
+                var response = await httpClient.SendAsync(request);
                 _logger.LogInformation("🔐 AuthService: User service response status: {StatusCode}", response.StatusCode);
 
                 if (!response.IsSuccessStatusCode)
