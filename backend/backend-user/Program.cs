@@ -6,6 +6,7 @@ using backend_user.Services;
 using backend_user.Services.Abstractions;
 using backend_user.Services.Mappers;
 using backend_user.Middleware;
+using backend_user.Extensions;
 using Npgsql;
 
 // Load environment variables from .env file
@@ -67,6 +68,9 @@ builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 builder.Services.AddScoped<IUserReportService, UserReportService>();
 builder.Services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
 builder.Services.AddScoped<IOAuth2Service, OAuth2Service>();
+
+// Add Authentication Services 
+builder.Services.AddAuthenticationServices();
 
 // Register data source for disposal
 builder.Services.AddSingleton(dataSource);
