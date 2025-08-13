@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, MessageCircle, Plus, User, Settings, LogOut, Menu, X, ChevronLeft, Bookmark } from 'lucide-react';
+import { Search, MessageCircle, Plus, User, LogOut, Menu, X, ChevronLeft, Bookmark, Crown } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
@@ -17,6 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePortfolioSearch } from '@/hooks/usePortfolioSearch';
+import SearchResults from '@/components/ui/search-results';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -25,6 +27,20 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { navigateBackToHome } = usePortfolioNavigation();
+
+  // Portfolio search functionality
+  const {
+    searchTerm,
+    setSearchTerm,
+    results,
+    loading,
+    error,
+    showResults,
+    setShowResults,
+    searchInputRef,
+    searchContainerRef,
+    handleResultClick
+  } = usePortfolioSearch();
 
   // Helper function to get user's avatar with fallback
   const getUserAvatar = () => {
@@ -128,8 +144,21 @@ export default function Header() {
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
               <Input
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => setShowResults(true)}
                 placeholder="Search portfolios, skills, or names..."
                 className="w-full pl-10 pr-4 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <SearchResults
+                results={results}
+                loading={loading}
+                error={error}
+                showResults={showResults}
+                onResultClick={handleResultClick}
+                searchTerm={searchTerm}
+                searchContainerRef={searchContainerRef}
               />
             </div>
           </div>
@@ -175,6 +204,10 @@ export default function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'settings')}>
+                    <Crown className="mr-2 h-4 w-4" />
+                    Premium
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleMyPortfolioClick}>
                     <Image
                       src="/icons/documentText.svg"
@@ -188,10 +221,6 @@ export default function Header() {
                   <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'bookmarks')}>
                     <Bookmark className="mr-2 h-4 w-4" />
                     Bookmarks
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -267,8 +296,24 @@ export default function Header() {
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#64748B]" />
               <Input
-                placeholder="Search portfolios, skills, or names..."
-                className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    ref={searchInputRef}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setShowResults(true)}
+                    placeholder="Search portfolios, skills, or names..."
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#757575] placeholder:text-[#757575] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+              <SearchResults
+                results={results}
+                loading={loading}
+                error={error}
+                showResults={showResults}
+                onResultClick={(result) => {
+                  handleResultClick(result);
+                  setIsMobileMenuOpen(false);
+                }}
+                searchTerm={searchTerm}
+                searchContainerRef={searchContainerRef}
               />
             </div>
           </div>
@@ -323,6 +368,16 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
+                    redirectToService('AUTH_USER_SERVICE', 'settings');
+                  }}
+                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
+                >
+                  <Crown className="w-4 h-4" />
+                  <span className="text-sm">Premium</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
                     handleMyPortfolioClick();
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
@@ -345,16 +400,6 @@ export default function Header() {
                 >
                   <Bookmark className="w-4 h-4" />
                   <span className="text-sm">Bookmarks</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    redirectToService('AUTH_USER_SERVICE', 'settings');
-                  }}
-                  className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="text-sm">Settings</span>
                 </button>
                 <button
                   onClick={() => {

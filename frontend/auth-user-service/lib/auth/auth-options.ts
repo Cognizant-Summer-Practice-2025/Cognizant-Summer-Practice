@@ -350,7 +350,7 @@ export const authOptions: AuthOptions = {
         try {
           const userData = await getUserByEmail(user.email!);
           if (userData) {
-            // Get the access token from oauth_providers table (unauthenticated call during auth flow)
+            // Get the access token from oauth_providers table 
             const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
             const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${getProviderNumber(account.provider)}`;
             
