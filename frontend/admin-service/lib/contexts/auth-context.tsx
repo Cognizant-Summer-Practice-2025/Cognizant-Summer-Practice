@@ -1,7 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth, logoutFromAllServices } from '@/lib/auth/sso-auth';
+import { verifySSOToken, createLocalSession, getLocalSession, clearLocalSession, redirectToAuth } from '@/lib/auth/sso-auth';
+import { customSignOut } from '@/lib/auth/custom-signout';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -30,8 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserEmail(null);
     setUserId(null);
     
-    // Call the logout function that removes user from all services
-    await logoutFromAllServices();
+    // Use the same logout logic as admin modal
+    await customSignOut();
   };
 
   const checkAuthentication = async () => {

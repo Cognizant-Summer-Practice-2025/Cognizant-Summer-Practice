@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from 'antd';
 import { EyeOutlined, BarChartOutlined, TeamOutlined, DownloadOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useUser } from '@/lib/contexts/user-context';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { customSignOut } from '@/lib/auth/custom-signout';
 import { Logger } from '@/lib/logger';
 import { getSafeImageUrl } from '@/lib/image/utils';
 import './style.css';
@@ -24,7 +24,6 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
 }) => {
   const router = useRouter();
   const { user } = useUser();
-  const { logout } = useAuth();
 
   const handleViewSite = () => {
     // Redirect to home portfolio service
@@ -34,7 +33,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
 
   const handleSignOut = async () => {
     try {
-      await logout();
+      await customSignOut();
     } catch (error) {
       Logger.error('Error during sign out', error);
       // Fallback redirect if logout fails
