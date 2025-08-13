@@ -85,6 +85,12 @@ builder.Services.AddHttpClient<backend_AI.Services.Abstractions.IUserAuthenticat
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
+// Add Authentication services
+builder.Services.AddScoped<backend_AI.Services.Abstractions.ISecurityHeadersService, backend_AI.Services.SecurityHeadersService>();
+builder.Services.AddScoped<backend_AI.Services.Abstractions.IAuthorizationPathService, backend_AI.Services.AuthorizationPathService>();
+builder.Services.AddScoped<backend_AI.Services.Abstractions.IAuthenticationStrategy, backend_AI.Services.OAuth2AuthenticationStrategy>();
+builder.Services.AddScoped<backend_AI.Services.Abstractions.IAuthenticationContextService, backend_AI.Services.AuthenticationContextService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

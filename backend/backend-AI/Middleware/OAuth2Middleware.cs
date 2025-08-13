@@ -16,74 +16,52 @@ namespace backend_AI.Middleware
             _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext context, IUserAuthenticationService userAuthService)
+        public async Task InvokeAsync(
+            HttpContext context,
+            ISecurityHeadersService securityHeadersService,
+            IAuthorizationPathService authorizationPathService,
+            IAuthenticationContextService authenticationContextService)
         {
             // Security headers
-            context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
-            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-            context.Response.OnStarting(() => {
-                context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
-                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-                return Task.CompletedTask;
-            });
+            securityHeadersService.ApplySecurityHeaders(context);
 
             var path = context.Request.Path.Value?.ToLower();
             var method = context.Request.Method;
             _logger.LogInformation("🔐 AI Middleware: Processing {Method} {Path}", method, path);
 
             // Public endpoints to skip
-            if (path != null && (
-                path.StartsWith("/openapi") ||
-                path.StartsWith("/swagger") ||
-                path == "/" ||
-                path.StartsWith("/health") ||
-                // Allow GET for generate endpoints during testing? Remove if you want all protected
-                false
-            ))
+            if (!authorizationPathService.RequiresAuthentication(context))
             {
                 _logger.LogInformation("🔐 AI Middleware: Skipping auth for public endpoint {Method} {Path}", method, path);
                 await _next(context);
                 return;
             }
 
-            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-            _logger.LogInformation("🔐 AI Middleware: Authorization header present: {HasHeader}, Value: {HeaderPreview}",
-                !string.IsNullOrEmpty(authHeader),
-                authHeader?.Substring(0, Math.Min(20, authHeader?.Length ?? 0)) + "..." ?? "null");
-
-            if (authHeader == null || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogWarning("🔐 AI Middleware: Missing or invalid Authorization header");
-                context.Response.StatusCode = 401;
-                await context.Response.WriteAsync("Unauthorized: Missing or invalid Authorization header");
-                return;
-            }
-
-            var token = authHeader.Substring(7).Trim();
-            if (string.IsNullOrEmpty(token))
-            {
-                _logger.LogWarning("🔐 AI Middleware: Empty access token");
-                context.Response.StatusCode = 401;
-                await context.Response.WriteAsync("Unauthorized: Empty access token");
-                return;
-            }
-
             try
             {
-                var principal = await userAuthService.ValidateTokenAsync(token);
+                var principal = await authenticationContextService.AuthenticateAsync(context);
                 if (principal == null)
                 {
-                    context.Response.StatusCode = 401;
-                    await context.Response.WriteAsync("Unauthorized: Invalid or expired access token");
+                    if (!context.Response.HasStarted)
+                    {
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsync("{\"error\": \"Unauthorized\"}");
+                    }
                     return;
                 }
+
                 context.User = principal;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "🔐 AI Middleware: Error validating token");
-                context.Response.StatusCode = 401;
-                await context.Response.WriteAsync("Unauthorized: Token validation failed");
+                _logger.LogError(ex, "🔐 AI Middleware: Error during authentication");
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = 401;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync("{\"error\": \"Unauthorized: Internal authentication error\"}");
+                }
                 return;
             }
 
