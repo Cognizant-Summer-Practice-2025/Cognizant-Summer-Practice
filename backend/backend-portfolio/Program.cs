@@ -84,8 +84,12 @@ builder.Services.AddScoped<IValidationService<ProjectUpdateRequest>, ProjectUpda
 
 builder.Services.AddScoped<IExternalUserService, ExternalUserService>();
 
-// Add Authentication services
+// Add Authentication services 
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+builder.Services.AddScoped<ISecurityHeadersService, SecurityHeadersService>();
+builder.Services.AddScoped<IAuthorizationPathService, AuthorizationPathService>();
+builder.Services.AddScoped<IAuthenticationStrategy, OAuth2AuthenticationStrategy>();
+builder.Services.AddScoped<IAuthenticationContextService, AuthenticationContextService>();
 
 // Register services
 builder.Services.AddScoped<IImageUploadUtility, ImageUploadUtility>();

@@ -59,12 +59,15 @@ namespace backend_portfolio.tests
         {
             // Arrange
             var middleware = CreateMiddleware();
-            var userAuthService = new Mock<IUserAuthenticationService>();
+            var securityHeaders = new Mock<ISecurityHeadersService>();
+            var authzPathService = new Mock<IAuthorizationPathService>();
+            var authContext = new Mock<IAuthenticationContextService>();
             _context.Request.Path = "/swagger";
             _context.Request.Method = "GET";
+            authzPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(false);
 
             // Act
-            await middleware.InvokeAsync(_context, userAuthService.Object);
+            await middleware.InvokeAsync(_context, securityHeaders.Object, authzPathService.Object, authContext.Object);
 
             // Assert
             _nextCalled.Should().BeTrue();
@@ -75,12 +78,15 @@ namespace backend_portfolio.tests
         {
             // Arrange
             var middleware = CreateMiddleware();
-            var userAuthService = new Mock<IUserAuthenticationService>();
+            var securityHeaders = new Mock<ISecurityHeadersService>();
+            var authzPathService = new Mock<IAuthorizationPathService>();
+            var authContext = new Mock<IAuthenticationContextService>();
             _context.Request.Path = "/health";
             _context.Request.Method = "GET";
+            authzPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(false);
 
             // Act
-            await middleware.InvokeAsync(_context, userAuthService.Object);
+            await middleware.InvokeAsync(_context, securityHeaders.Object, authzPathService.Object, authContext.Object);
 
             // Assert
             _nextCalled.Should().BeTrue();
