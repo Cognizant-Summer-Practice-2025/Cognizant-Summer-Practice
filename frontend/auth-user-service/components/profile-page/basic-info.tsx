@@ -193,7 +193,7 @@ export default function BasicInfo() {
           <PlacesAutocomplete
             value={formData.location}
             onChange={(value: string) => handleInputChange('location', value)}
-            placeholder="Enter city or country..."
+            placeholder="Enter city..."
             className="w-full"
           />
         </div>

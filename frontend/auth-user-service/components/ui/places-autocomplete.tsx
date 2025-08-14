@@ -38,7 +38,7 @@ export default function PlacesAutocomplete({
   const searchLocations = useCallback(async (query: string) => {
     setIsLoading(true);
     try {
-      // Using Nominatim API (OpenStreetMap) - completely free
+      // Using Nominatim API 
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?` +
         `q=${encodeURIComponent(query)}&` +
