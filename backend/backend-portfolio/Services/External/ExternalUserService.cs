@@ -5,13 +5,13 @@ namespace backend_portfolio.Services.External
 {
     public class ExternalUserService : IExternalUserService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<ExternalUserService> _logger;
         private readonly string _userServiceBaseUrl;
 
-        public ExternalUserService(HttpClient httpClient, ILogger<ExternalUserService> logger, IConfiguration configuration)
+        public ExternalUserService(IHttpClientFactory httpClientFactory, ILogger<ExternalUserService> logger, IConfiguration configuration)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
             _userServiceBaseUrl = configuration?["ExternalServices:UserService:BaseUrl"] ?? "http://localhost:5200";
         }
@@ -20,7 +20,8 @@ namespace backend_portfolio.Services.External
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}");
+                using var httpClient = _httpClientFactory.CreateClient("ExternalUserService");
+                var response = await httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}");
                 
                 if (!response.IsSuccessStatusCode)
                 {

@@ -11,13 +11,13 @@ namespace backend_AI.Services
     /// </summary>
     public class AiChatService : IAiChatService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AiChatService> _logger;
     
-        public AiChatService(HttpClient httpClient, IConfiguration configuration, ILogger<AiChatService> logger)
+        public AiChatService(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<AiChatService> logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -69,7 +69,8 @@ namespace backend_AI.Services
             // Match minimal example: do not add extra headers
 
             _logger.LogInformation("AI: Sending request to OpenRouter model {Model}", model);
-            var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            using var httpClient = _httpClientFactory.CreateClient("AIProvider");
+            var response = await httpClient.SendAsync(httpRequest, cancellationToken);
             var requestId = response.Headers.TryGetValues("x-request-id", out var idValues) ? (idValues.FirstOrDefault() ?? string.Empty) : string.Empty;
             _logger.LogInformation("AI: OpenRouter responded status={Status} requestId={RequestId}", (int)response.StatusCode, requestId);
             if (!response.IsSuccessStatusCode)
@@ -180,7 +181,8 @@ namespace backend_AI.Services
                 httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
             }
             // Match minimal example: do not add extra headers
-            var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            using var httpClient = _httpClientFactory.CreateClient("AIProvider");
+            var response = await httpClient.SendAsync(httpRequest, cancellationToken);
             var requestId2 = response.Headers.TryGetValues("x-request-id", out var idValues2) ? (idValues2.FirstOrDefault() ?? string.Empty) : string.Empty;
             _logger.LogInformation("AI: OpenRouter responded status={Status} requestId={RequestId}", (int)response.StatusCode, requestId2);
             if (!response.IsSuccessStatusCode)

@@ -16,6 +16,7 @@ namespace backend_portfolio.tests.Services
         private readonly Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private readonly Mock<IConfiguration> _mockConfiguration;
         private readonly Mock<ILogger<ExternalUserService>> _mockLogger;
+        private readonly Mock<IHttpClientFactory> _httpClientFactory;
         private readonly ExternalUserService _service;
         private readonly HttpClient _httpClient;
 
@@ -25,13 +26,15 @@ namespace backend_portfolio.tests.Services
             _mockConfiguration = new Mock<IConfiguration>();
             _mockLogger = new Mock<ILogger<ExternalUserService>>();
             _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
+            _httpClientFactory = new Mock<IHttpClientFactory>();
+            _httpClientFactory.Setup(f => f.CreateClient("ExternalUserService")).Returns(() => new HttpClient(_mockHttpMessageHandler.Object));
             
             // Mock the configuration indexer
             _mockConfiguration.Setup(x => x["ExternalServices:UserService:BaseUrl"])
                 .Returns("http://localhost:5200");
 
             _service = new ExternalUserService(
-                _httpClient,
+                _httpClientFactory.Object,
                 _mockLogger.Object,
                 _mockConfiguration.Object
             );
@@ -44,7 +47,7 @@ namespace backend_portfolio.tests.Services
         {
             // Act
             var service = new ExternalUserService(
-                _httpClient,
+                _httpClientFactory.Object,
                 _mockLogger.Object,
                 _mockConfiguration.Object
             );
@@ -54,7 +57,7 @@ namespace backend_portfolio.tests.Services
         }
 
         [Fact]
-        public void Constructor_ShouldCreateInstance_WhenHttpClientIsNull()
+        public void Constructor_ShouldCreateInstance_WhenHttpClientFactoryIsNull()
         {
             // Act
             var service = new ExternalUserService(
@@ -72,7 +75,7 @@ namespace backend_portfolio.tests.Services
         {
             // Act
             var service = new ExternalUserService(
-                _httpClient,
+                _httpClientFactory.Object,
                 null!,
                 _mockConfiguration.Object
             );
@@ -86,7 +89,7 @@ namespace backend_portfolio.tests.Services
         {
             // Act
             var service = new ExternalUserService(
-                _httpClient,
+                _httpClientFactory.Object,
                 _mockLogger.Object,
                 null!
             );
@@ -113,18 +116,16 @@ namespace backend_portfolio.tests.Services
                 avatarUrl = "https://example.com/avatar.jpg"
             };
 
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(userJson))
-            };
-
             _mockHttpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(response);
+                .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(userJson))
+                });
 
             // Act
             var result = await _service.GetUserInformationAsync(userId);
@@ -406,7 +407,7 @@ namespace backend_portfolio.tests.Services
             mockConfig.Setup(x => x["ExternalServices:UserService:BaseUrl"]).Returns((string?)null);
 
             var service = new ExternalUserService(
-                _httpClient,
+                _httpClientFactory.Object,
                 _mockLogger.Object,
                 mockConfig.Object
             );
@@ -751,20 +752,16 @@ namespace backend_portfolio.tests.Services
                 lastName = "Doe"
             };
 
-            var validResponse = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(userJson))
-            };
-
-            var invalidResponse = new HttpResponseMessage(HttpStatusCode.NotFound);
-
             _mockHttpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString().Contains(validUserId.ToString())),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(validResponse);
+                .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(userJson))
+                });
 
             _mockHttpMessageHandler.Protected()
                 .Setup<Task<HttpResponseMessage>>(
@@ -772,7 +769,7 @@ namespace backend_portfolio.tests.Services
                     ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString().Contains(invalidUserId.ToString())),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .ReturnsAsync(invalidResponse);
+                .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.NotFound));
 
             // Act
             var validTasks = Enumerable.Range(0, 5)

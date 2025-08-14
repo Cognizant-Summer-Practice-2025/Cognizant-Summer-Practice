@@ -15,14 +15,18 @@ namespace backend_portfolio.tests.Middleware
     {
         private readonly Mock<RequestDelegate> _mockNext;
         private readonly Mock<ILogger<OAuth2Middleware>> _mockLogger;
-        private readonly Mock<IUserAuthenticationService> _mockUserAuthService;
+        private readonly Mock<ISecurityHeadersService> _securityHeaders;
+        private readonly Mock<IAuthorizationPathService> _authorizationPathService;
+        private readonly Mock<IAuthenticationContextService> _authenticationContextService;
         private readonly OAuth2Middleware _middleware;
 
         public OAuth2MiddlewareTests()
         {
             _mockNext = new Mock<RequestDelegate>();
             _mockLogger = new Mock<ILogger<OAuth2Middleware>>();
-            _mockUserAuthService = new Mock<IUserAuthenticationService>();
+            _securityHeaders = new Mock<ISecurityHeadersService>();
+            _authorizationPathService = new Mock<IAuthorizationPathService>();
+            _authenticationContextService = new Mock<IAuthenticationContextService>();
             _middleware = new OAuth2Middleware(_mockNext.Object, _mockLogger.Object);
         }
 
@@ -35,92 +39,73 @@ namespace backend_portfolio.tests.Middleware
         }
 
         [Fact]
-        public async Task InvokeAsync_WithValidToken_ShouldCallNext()
+        public async Task InvokeAsync_WithValidPrincipal_ShouldCallNext()
         {
-            // Arrange
             var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer valid-token";
-            
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "user-123"),
-                new Claim(ClaimTypes.Email, "user@example.com")
-            };
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Bearer"));
-            
-            _mockUserAuthService.Setup(x => x.ValidateTokenAsync("valid-token"))
-                .ReturnsAsync(principal);
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .Returns(Task.CompletedTask);
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") }, "Bearer"));
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(true);
+            _authenticationContextService.Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>())).ReturnsAsync(principal);
+            _mockNext.Setup(x => x(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
 
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
 
-            // Assert
             _mockNext.Verify(x => x(context), Times.Once);
             context.User.Should().Be(principal);
+            _securityHeaders.Verify(x => x.ApplySecurityHeaders(context), Times.Once);
         }
 
         [Fact]
-        public async Task InvokeAsync_WithInvalidToken_ShouldReturn401()
+        public async Task InvokeAsync_WithAuthRequiredAndAuthFails_ShouldReturn401()
         {
-            // Arrange
             var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer invalid-token";
-            
-            _mockUserAuthService.Setup(x => x.ValidateTokenAsync("invalid-token"))
-                .ReturnsAsync((ClaimsPrincipal)null!);
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(true);
+            _authenticationContextService.Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>())).ReturnsAsync((ClaimsPrincipal)null!);
 
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
 
-            // Assert
             context.Response.StatusCode.Should().Be(401);
             _mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Never);
         }
 
         [Fact]
-        public async Task InvokeAsync_WithMissingAuthorizationHeader_ShouldReturn401()
+        public async Task InvokeAsync_WithAuthNotRequired_ShouldSkipAuth()
         {
-            // Arrange
             var context = CreateHttpContext();
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(false);
+            _mockNext.Setup(x => x(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
 
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
 
-            // Assert
+            _mockNext.Verify(x => x(context), Times.Once);
+            _authenticationContextService.Verify(x => x.AuthenticateAsync(It.IsAny<HttpContext>()), Times.Never);
+            _securityHeaders.Verify(x => x.ApplySecurityHeaders(context), Times.Once);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_AuthContextThrows_ShouldReturn401()
+        {
+            var context = CreateHttpContext();
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(true);
+            _authenticationContextService.Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>())).ThrowsAsync(new Exception("auth error"));
+
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
+
             context.Response.StatusCode.Should().Be(401);
             _mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Never);
         }
 
         [Fact]
-        public async Task InvokeAsync_WithNonBearerScheme_ShouldReturn401()
+        public async Task InvokeAsync_NextThrows_ShouldReturn401()
         {
-            // Arrange
             var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Basic dXNlcjpwYXNz";
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") }, "Bearer"));
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(true);
+            _authenticationContextService.Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>())).ReturnsAsync(principal);
+            _mockNext.Setup(x => x(It.IsAny<HttpContext>())).ThrowsAsync(new InvalidOperationException("Next middleware error"));
 
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
 
-            // Assert
             context.Response.StatusCode.Should().Be(401);
-            _mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_WithEmptyToken_ShouldReturn401()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer ";
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-
-            // Assert
-            context.Response.StatusCode.Should().Be(401);
-            _mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Never);
         }
 
         [Theory]
@@ -133,186 +118,35 @@ namespace backend_portfolio.tests.Middleware
         [InlineData("/api/project")]
         [InlineData("/api/bookmark")]
         [InlineData("/api/image")]
-        public async Task InvokeAsync_WithPublicEndpoints_ShouldSkipAuth(string path)
+        public async Task InvokeAsync_PublicEndpoints_ShouldSkipAuth(string path)
         {
-            // Arrange
             var context = CreateHttpContext();
             context.Request.Path = path;
             context.Request.Method = "GET";
-            
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .Returns(Task.CompletedTask);
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(false);
+            _mockNext.Setup(x => x(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
 
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
 
-            // Assert
             _mockNext.Verify(x => x(context), Times.Once);
-            _mockUserAuthService.Verify(x => x.ValidateTokenAsync(It.IsAny<string>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_WithNullToken_ShouldReturn401()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer";
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-
-            // Assert
-            context.Response.StatusCode.Should().Be(401);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_WhenUserServiceThrows_ShouldReturn401()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer valid-token";
-            
-            _mockUserAuthService.Setup(x => x.ValidateTokenAsync("valid-token"))
-                .ThrowsAsync(new Exception("Service error"));
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-
-            // Assert
-            context.Response.StatusCode.Should().Be(401);
-            _mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_WhenNextThrows_ShouldPropagateException()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer valid-token";
-            
-            var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Bearer"));
-            
-            _mockUserAuthService.Setup(x => x.ValidateTokenAsync("valid-token"))
-                .ReturnsAsync(principal);
-            
-            var expectedException = new InvalidOperationException("Next middleware error");
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .ThrowsAsync(expectedException);
-
-            // Act & Assert
-            var thrownException = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _middleware.InvokeAsync(context, _mockUserAuthService.Object));
-            
-            thrownException.Should().Be(expectedException);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_WithCaseInsensitiveBearerScheme_ShouldCallNext()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "BEARER valid-token";
-            
-            var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "user-123") };
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Bearer"));
-            
-            _mockUserAuthService.Setup(x => x.ValidateTokenAsync("valid-token"))
-                .ReturnsAsync(principal);
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-
-            // Assert
-            _mockNext.Verify(x => x(context), Times.Once);
-        }
-
-        [Theory]
-        [InlineData("Bearer ")]
-        [InlineData("Bearer\t")]
-        [InlineData("Bearer\n")]
-        [InlineData("Bearer    ")]
-        public async Task InvokeAsync_WithWhitespaceOnlyToken_ShouldReturn401(string authHeader)
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = authHeader;
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-
-            // Assert
-            context.Response.StatusCode.Should().Be(401);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_WithValidTokenAndUserClaims_ShouldSetUserContext()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Headers["Authorization"] = "Bearer valid-token";
-            
-            var expectedUserId = "user-123";
-            var expectedEmail = "user@example.com";
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, expectedUserId),
-                new Claim(ClaimTypes.Email, expectedEmail)
-            };
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Bearer"));
-            
-            _mockUserAuthService.Setup(x => x.ValidateTokenAsync("valid-token"))
-                .ReturnsAsync(principal);
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-
-            // Assert
-            context.User.Should().NotBeNull();
-            context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value.Should().Be(expectedUserId);
-            context.User.FindFirst(ClaimTypes.Email)?.Value.Should().Be(expectedEmail);
-            _mockNext.Verify(x => x(context), Times.Once);
-        }
-
-        [Fact]
-        public async Task InvokeAsync_ShouldRegisterSecurityHeadersCallback()
-        {
-            // Arrange
-            var context = CreateHttpContext();
-            context.Request.Path = "/";  
-            
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
-            _mockNext.Verify(x => x(context), Times.Once);
-            
+            _authenticationContextService.Verify(x => x.AuthenticateAsync(It.IsAny<HttpContext>()), Times.Never);
         }
 
         [Theory]
         [InlineData("/api/portfolio/123/view", "POST")]
         [InlineData("/api/portfoliotemplate/seed", "POST")]
-        public async Task InvokeAsync_WithSpecificPublicPosts_ShouldSkipAuth(string path, string method)
+        public async Task InvokeAsync_SpecificPublicPosts_ShouldSkipAuth(string path, string method)
         {
-            // Arrange
             var context = CreateHttpContext();
             context.Request.Path = path;
             context.Request.Method = method;
-            
-            _mockNext.Setup(x => x(It.IsAny<HttpContext>()))
-                .Returns(Task.CompletedTask);
+            _authorizationPathService.Setup(x => x.RequiresAuthentication(It.IsAny<HttpContext>())).Returns(false);
+            _mockNext.Setup(x => x(It.IsAny<HttpContext>())).Returns(Task.CompletedTask);
 
-            // Act
-            await _middleware.InvokeAsync(context, _mockUserAuthService.Object);
+            await _middleware.InvokeAsync(context, _securityHeaders.Object, _authorizationPathService.Object, _authenticationContextService.Object);
 
-            // Assert
             _mockNext.Verify(x => x(context), Times.Once);
-            _mockUserAuthService.Verify(x => x.ValidateTokenAsync(It.IsAny<string>()), Times.Never);
+            _authenticationContextService.Verify(x => x.AuthenticateAsync(It.IsAny<HttpContext>()), Times.Never);
         }
     }
 } 

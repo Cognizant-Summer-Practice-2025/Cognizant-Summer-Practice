@@ -20,6 +20,7 @@ namespace BackendMessages.Tests.Services
         private readonly Mock<ILogger<UserSearchService>> _loggerMock;
         private readonly Mock<IConfiguration> _configurationMock;
         private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
+        private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
         private readonly HttpClient _httpClient;
         private readonly UserSearchService _service;
 
@@ -29,12 +30,14 @@ namespace BackendMessages.Tests.Services
             _configurationMock = new Mock<IConfiguration>();
             _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
             _httpClient = new HttpClient(_httpMessageHandlerMock.Object);
+            _httpClientFactoryMock = new Mock<IHttpClientFactory>();
+            _httpClientFactoryMock.Setup(f => f.CreateClient("UserService")).Returns(_httpClient);
             
             _configurationMock
                 .Setup(x => x["UserService:BaseUrl"])
                 .Returns("http://localhost:5200");
 
-            _service = new UserSearchService(_httpClient, _loggerMock.Object, _configurationMock.Object);
+            _service = new UserSearchService(_httpClientFactoryMock.Object, _loggerMock.Object, _configurationMock.Object);
         }
 
         [Fact]
@@ -446,7 +449,7 @@ namespace BackendMessages.Tests.Services
                 .Returns(customUrl);
 
             // Act
-            var service = new UserSearchService(_httpClient, _loggerMock.Object, _configurationMock.Object);
+            var service = new UserSearchService(_httpClientFactoryMock.Object, _loggerMock.Object, _configurationMock.Object);
 
             // Assert
             service.Should().NotBeNull();
@@ -461,7 +464,7 @@ namespace BackendMessages.Tests.Services
                 .Returns((string?)null);
 
             // Act
-            var service = new UserSearchService(_httpClient, _loggerMock.Object, _configurationMock.Object);
+            var service = new UserSearchService(_httpClientFactoryMock.Object, _loggerMock.Object, _configurationMock.Object);
 
             // Assert
             service.Should().NotBeNull();

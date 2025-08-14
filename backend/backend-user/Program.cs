@@ -1,97 +1,21 @@
-using Microsoft.EntityFrameworkCore;
-using backend_user.Data;
-using backend_user.Repositories;
-using backend_user.Models;
-using backend_user.Services;
-using backend_user.Services.Abstractions;
-using backend_user.Services.Mappers;
-using backend_user.Middleware;
-using Npgsql;
+using backend_user.Config;
 
 // Load environment variables from .env file
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
-builder.Services.AddOpenApi();
-
-// Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins(
-                "http://localhost:3000",  // auth-user-service
-                "http://localhost:3001",  // home-portfolio-service
-                "http://localhost:3002",  // messages-service
-                "http://localhost:3003"   // admin-service
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
-
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
-dataSourceBuilder.MapEnum<OAuthProviderType>("oauth_provider_type");
-var dataSource = dataSourceBuilder.Build();
-
-builder.Services.AddDbContext<UserDbContext>(options =>
-    options.UseNpgsql(dataSource)
-           .UseSnakeCaseNamingConvention());
-
-// Add Repository services
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IOAuthProviderRepository, OAuthProviderRepository>();
-builder.Services.AddScoped<IBookmarkRepository, BookmarkRepository>();
-builder.Services.AddScoped<IUserReportRepository, UserReportRepository>();
-builder.Services.AddScoped<IUserAnalyticsRepository, UserAnalyticsRepository>();
-
-// Add Mapper services
-builder.Services.AddScoped<IUserAnalyticsMapper, UserAnalyticsMapper>();
-builder.Services.AddScoped<IUserReportMapper, UserReportMapper>();
-
-// Add Business Logic Services 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-builder.Services.AddScoped<IOAuthProviderService, OAuthProviderService>();
-builder.Services.AddScoped<IUserRegistrationService, UserRegistrationService>();
-builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddScoped<IBookmarkService, BookmarkService>();
-builder.Services.AddScoped<IUserReportService, UserReportService>();
-builder.Services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
-builder.Services.AddScoped<IOAuth2Service, OAuth2Service>();
-
-// Register data source for disposal
-builder.Services.AddSingleton(dataSource);
+// Configure services using extension methods
+builder.Services
+    .AddJsonConfiguration()
+    .AddApiDocumentation()
+    .AddCorsConfiguration(builder.Configuration)
+    .AddDatabaseServices(builder.Configuration)
+    .AddApplicationServices();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "User API v1");
-    });
-}
-
-app.UseHttpsRedirection();
-
-// Use CORS
-app.UseCors("AllowFrontend");
-
-// Use OAuth 2.0 middleware
-app.UseMiddleware<OAuth2Middleware>();
-
-app.UseAuthorization();
-app.MapControllers();
+// Configure middleware pipeline
+app.UseApplicationMiddleware();
 
 app.Run();

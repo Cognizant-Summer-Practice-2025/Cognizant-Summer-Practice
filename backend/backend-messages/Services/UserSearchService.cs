@@ -6,13 +6,13 @@ namespace BackendMessages.Services
 {
     public class UserSearchService : IUserSearchService
     {
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<UserSearchService> _logger;
         private readonly string _userServiceBaseUrl;
 
-        public UserSearchService(HttpClient httpClient, ILogger<UserSearchService> logger, IConfiguration configuration)
+        public UserSearchService(IHttpClientFactory httpClientFactory, ILogger<UserSearchService> logger, IConfiguration configuration)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
             _userServiceBaseUrl = configuration["UserService:BaseUrl"] ?? "http://localhost:5200";
         }
@@ -31,7 +31,8 @@ namespace BackendMessages.Services
 
                 _logger.LogInformation("Searching users with term: {SearchTerm}", searchTerm);
 
-                var response = await _httpClient.GetAsync(requestUrl);
+                using var httpClient = _httpClientFactory.CreateClient("UserService");
+                var response = await httpClient.GetAsync(requestUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -75,7 +76,8 @@ namespace BackendMessages.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}");
+                using var httpClient = _httpClientFactory.CreateClient("UserService");
+                var response = await httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}");
                 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -107,7 +109,8 @@ namespace BackendMessages.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}/online-status");
+                using var httpClient = _httpClientFactory.CreateClient("UserService");
+                var response = await httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}/online-status");
                 
                 if (!response.IsSuccessStatusCode)
                 {
