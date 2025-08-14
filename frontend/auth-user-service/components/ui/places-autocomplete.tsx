@@ -32,8 +32,18 @@ export default function PlacesAutocomplete({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [justSelected, setJustSelected] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Ensure suggestions are cleared when component mounts with empty value
+  useEffect(() => {
+    if (!value.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, []);
 
   const searchLocations = useCallback(async (query: string) => {
     setIsLoading(true);
@@ -93,7 +103,7 @@ export default function PlacesAutocomplete({
 
   // Debounced search function
   useEffect(() => {
-    if (!value.trim() || value.length < 2) {
+    if (!value.trim() || value.length < 2 || !hasUserInteracted) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -104,7 +114,7 @@ export default function PlacesAutocomplete({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [value, searchLocations]);
+  }, [value, searchLocations, hasUserInteracted]);
 
   // Update dropdown position on scroll/resize
   useEffect(() => {
@@ -139,6 +149,11 @@ export default function PlacesAutocomplete({
     setShowSuggestions(false);
     setSuggestions([]);
     setSelectedIndex(-1);
+    setJustSelected(true);
+    
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -172,9 +187,19 @@ export default function PlacesAutocomplete({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
+    // Mark that user has interacted with the input
+    setHasUserInteracted(true);
+    // Reset the flag when user starts typing again
+    if (justSelected) {
+      setJustSelected(false);
+    }
   };
 
-  const handleInputBlur = () => {
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (suggestionsRef.current && suggestionsRef.current.contains(e.relatedTarget as Node)) {
+      return;
+    }
+    
     // Delay hiding suggestions to allow for clicks
     setTimeout(() => {
       setShowSuggestions(false);
@@ -195,8 +220,13 @@ export default function PlacesAutocomplete({
 
   const handleInputFocus = () => {
     updateDropdownPosition();
-    if (suggestions.length > 0) {
+    // Only show suggestions if there's a valid search query, suggestions exist, and user has interacted
+    if (value.trim() && value.length >= 2 && suggestions.length > 0 && !justSelected && hasUserInteracted) {
       setShowSuggestions(true);
+    }
+    // Reset the flag after focus
+    if (justSelected) {
+      setJustSelected(false);
     }
   };
 
@@ -248,7 +278,10 @@ export default function PlacesAutocomplete({
                   className={`px-4 py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
                     index === selectedIndex ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
                   }`}
-                  onClick={() => handleSuggestionClick(suggestion)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSuggestionClick(suggestion);
+                  }}
                 >
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-3 w-3 text-gray-400 flex-shrink-0" />
