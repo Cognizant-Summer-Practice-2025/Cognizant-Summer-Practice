@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/lib/contexts/user-context';
 import { Loading } from '@/components/loader';
+import PlacesAutocomplete from '@/components/ui/places-autocomplete';
 
 export default function BasicInfo() {
   const { user, loading, error, updateUserData } = useUser();
@@ -189,11 +190,10 @@ export default function BasicInfo() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Location
           </label>
-          <Input 
-            type="text" 
+          <PlacesAutocomplete
             value={formData.location}
-            onChange={(e) => handleInputChange('location', e.target.value)}
-            placeholder="City, Country" 
+            onChange={(value: string) => handleInputChange('location', value)}
+            placeholder="Enter city or country..."
             className="w-full"
           />
         </div>

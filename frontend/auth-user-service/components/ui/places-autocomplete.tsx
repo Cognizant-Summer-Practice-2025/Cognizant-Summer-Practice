@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
@@ -35,6 +35,62 @@ export default function PlacesAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
+  const searchLocations = useCallback(async (query: string) => {
+    setIsLoading(true);
+    try {
+      // Using Nominatim API (OpenStreetMap) - completely free
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `q=${encodeURIComponent(query)}&` +
+        `format=json&` +
+        `addressdetails=1&` +
+        `limit=5&` +
+        `featuretype=city,country&` +
+        `extratags=1`
+      );
+
+      if (!response.ok) throw new Error('Search failed');
+
+      const data = await response.json();
+      
+      // Filter and format results to show cities and countries
+      const filteredResults: LocationSuggestion[] = data
+        .filter((item: Record<string, unknown>) => {
+          const type = item.type || item.class;
+          return (
+            type === 'city' || 
+            type === 'town' || 
+            type === 'village' || 
+            type === 'country' ||
+            item.addresstype === 'city' ||
+            item.addresstype === 'country'
+          );
+        })
+        .map((item: Record<string, unknown>) => ({
+          display_name: String(item.display_name || ''),
+          name: String(item.name || String(item.display_name || '').split(',')[0]),
+          country: String((item.address as Record<string, unknown>)?.country || String(item.display_name || '').split(',').pop()?.trim() || ''),
+          type: String(item.type || item.class || 'location')
+        }))
+        .slice(0, 5);
+
+      setSuggestions(filteredResults);
+      if (filteredResults.length > 0) {
+        updateDropdownPosition();
+        setShowSuggestions(true);
+      } else {
+        setShowSuggestions(false);
+      }
+      setSelectedIndex(-1);
+    } catch (error) {
+      console.error('Location search error:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Debounced search function
   useEffect(() => {
     if (!value.trim() || value.length < 2) {
@@ -48,7 +104,7 @@ export default function PlacesAutocomplete({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [value]);
+  }, [value, searchLocations]);
 
   // Update dropdown position on scroll/resize
   useEffect(() => {
@@ -72,62 +128,6 @@ export default function PlacesAutocomplete({
       window.removeEventListener('resize', handleResize);
     };
   }, [showSuggestions]);
-
-  const searchLocations = async (query: string) => {
-    setIsLoading(true);
-    try {
-      // Using Nominatim API (OpenStreetMap) - completely free
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(query)}&` +
-        `format=json&` +
-        `addressdetails=1&` +
-        `limit=5&` +
-        `featuretype=city,country&` +
-        `extratags=1`
-      );
-
-      if (!response.ok) throw new Error('Search failed');
-
-      const data = await response.json();
-      
-      // Filter and format results to show cities and countries
-      const filteredResults: LocationSuggestion[] = data
-        .filter((item: any) => {
-          const type = item.type || item.class;
-          return (
-            type === 'city' || 
-            type === 'town' || 
-            type === 'village' || 
-            type === 'country' ||
-            item.addresstype === 'city' ||
-            item.addresstype === 'country'
-          );
-        })
-        .map((item: any) => ({
-          display_name: item.display_name,
-          name: item.name || item.display_name.split(',')[0],
-          country: item.address?.country || item.display_name.split(',').pop()?.trim() || '',
-          type: item.type || item.class || 'location'
-        }))
-        .slice(0, 5);
-
-      setSuggestions(filteredResults);
-      if (filteredResults.length > 0) {
-        updateDropdownPosition();
-        setShowSuggestions(true);
-      } else {
-        setShowSuggestions(false);
-      }
-      setSelectedIndex(-1);
-    } catch (error) {
-      console.error('Location search error:', error);
-      setSuggestions([]);
-      setShowSuggestions(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSuggestionClick = (suggestion: LocationSuggestion) => {
     // Format the selection nicely
