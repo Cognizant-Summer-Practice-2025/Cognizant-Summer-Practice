@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import PlacesAutocomplete from '@/components/ui/places-autocomplete';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -79,7 +80,7 @@ export default function RegistrationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
@@ -185,11 +186,10 @@ export default function RegistrationModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Location
             </label>
-            <Input
-              type="text"
-              placeholder="San Francisco, CA"
+            <PlacesAutocomplete
               value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
+              onChange={(value) => handleInputChange('location', value)}
+              placeholder="Enter city..."
               className="w-full"
               disabled={isLoading}
             />
