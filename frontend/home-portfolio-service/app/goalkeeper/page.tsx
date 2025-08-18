@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Star, Award, Eye, Camera, Palette, Code, FileText } from 'lucide-react';
 import Header from '@/components/header';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import './goalkeeper.css';
 
 export default function GoalKeeperPage() {
@@ -40,6 +41,9 @@ export default function GoalKeeperPage() {
               >
               Discover
             </Button>
+            <Link href="/aboutus" className="about-link">
+              About Us
+            </Link>
           </div>
 
                      {/* Right Illustration */}
