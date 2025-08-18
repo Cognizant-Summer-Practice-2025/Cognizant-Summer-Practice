@@ -1,12 +1,18 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Target, Users, Award } from 'lucide-react';
 import Header from '@/components/header';
 import { motion } from 'framer-motion';
 import './aboutus.css';
 
 export default function AboutUsPage() {
+  const handleGitHubRedirect = (url: string) => {
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    }
+  };
 
   return (
     <div className="aboutus-container">
@@ -101,27 +107,25 @@ export default function AboutUsPage() {
           <div className="creators-container">
             <h4 className="creators-title">Created by</h4>
             <div className="creators-list">
-              <motion.div 
-                className="creator-item"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
+              <div 
+                className="creator-item clickable"
+                onClick={() => handleGitHubRedirect('https://github.com/Theo3883')}
               >
                 <div className="creator-avatar">
-                  <img src="/images/theodor-avatar.svg" alt="Theodor Sandu" />
+                  <Image src="/images/theodor-avatar.svg" alt="Theodor Sandu" width={50} height={50} />
                 </div>
                 <span className="creator-name">Theodor Sandu</span>
-              </motion.div>
+              </div>
 
-              <motion.div 
-                className="creator-item"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
+              <div 
+                className="creator-item clickable"
+                onClick={() => handleGitHubRedirect('https://github.com/biancamilea04')}
               >
                 <div className="creator-avatar">
-                  <img src="/images/bianca-avatar.svg" alt="Milea Bianca" />
+                  <Image src="/images/bianca-avatar.svg" alt="Milea Bianca" width={50} height={50} />
                 </div>
                 <span className="creator-name">Milea Bianca</span>
-              </motion.div>
+              </div>
             </div>
           </div>
         </motion.div>
