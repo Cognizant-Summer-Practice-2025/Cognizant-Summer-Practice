@@ -168,7 +168,7 @@ describe('Input', () => {
   it('should handle file input type', () => {
     render(<Input type="file" />)
     
-    const input = screen.getByTestId('input') || document.querySelector('input[type="file"]')
+    const input = document.querySelector('input[type="file"]')
     expect(input).toHaveAttribute('type', 'file')
     expect(input).toHaveClass('file:text-foreground')
   })

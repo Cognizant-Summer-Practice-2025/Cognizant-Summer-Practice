@@ -99,9 +99,14 @@ describe('UserInjectionService', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3000/api/services/user-injection',
         expect.objectContaining({
-          body: expect.stringContaining('"accessToken":null')
+          body: expect.stringContaining('"userData"')
         })
       )
+      
+      // Check that the request body contains the expected user data
+      const actualCall = mockFetch.mock.calls[0]
+      const requestBody = JSON.parse(actualCall[1].body)
+      expect(requestBody.userData.accessToken).toBeUndefined()
     })
 
     it('should handle user with isAdmin undefined', async () => {

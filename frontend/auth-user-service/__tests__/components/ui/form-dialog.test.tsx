@@ -93,37 +93,74 @@ describe('FormDialog', () => {
   it('should call onFormChange when input values change', async () => {
     const user = userEvent.setup()
     const handleFormChange = jest.fn()
+    let formData = {}
     
-    render(
-      <FormDialog 
-        {...defaultProps} 
-        isOpen={true} 
-        onFormChange={handleFormChange}
-      />
-    )
+    // Simulate parent component updating formData
+    const updateFormData = (field: string, value: unknown) => {
+      formData = { ...formData, [field]: value }
+      handleFormChange(field, value)
+    }
+    
+    const TestComponent = () => {
+      const [localFormData, setLocalFormData] = React.useState({})
+      
+      const handleChange = (field: string, value: unknown) => {
+        setLocalFormData(prev => ({ ...prev, [field]: value }))
+        updateFormData(field, value)
+      }
+      
+      return (
+        <FormDialog 
+          {...defaultProps} 
+          isOpen={true} 
+          formData={localFormData}
+          onFormChange={handleChange}
+        />
+      )
+    }
+    
+    render(<TestComponent />)
     
     const titleInput = screen.getByLabelText('Title *')
     await user.type(titleInput, 'Test Title')
     
-    expect(handleFormChange).toHaveBeenCalledWith('title', 'Test Title')
+    // Check that handleFormChange was called correctly for each character
+    expect(handleFormChange).toHaveBeenCalledTimes('Test Title'.length)
+    // Check the final accumulated value
+    expect(handleFormChange).toHaveBeenLastCalledWith('title', 'Test Title')
   })
 
   it('should call onFormChange when textarea values change', async () => {
     const user = userEvent.setup()
     const handleFormChange = jest.fn()
     
-    render(
-      <FormDialog 
-        {...defaultProps} 
-        isOpen={true} 
-        onFormChange={handleFormChange}
-      />
-    )
+    const TestComponent = () => {
+      const [localFormData, setLocalFormData] = React.useState({})
+      
+      const handleChange = (field: string, value: unknown) => {
+        setLocalFormData(prev => ({ ...prev, [field]: value }))
+        handleFormChange(field, value)
+      }
+      
+      return (
+        <FormDialog 
+          {...defaultProps} 
+          isOpen={true} 
+          formData={localFormData}
+          onFormChange={handleChange}
+        />
+      )
+    }
+    
+    render(<TestComponent />)
     
     const descriptionTextarea = screen.getByLabelText('Description')
     await user.type(descriptionTextarea, 'Test Description')
     
-    expect(handleFormChange).toHaveBeenCalledWith('description', 'Test Description')
+    // Check that handleFormChange was called correctly for each character
+    expect(handleFormChange).toHaveBeenCalledTimes('Test Description'.length)
+    // Check the final accumulated value
+    expect(handleFormChange).toHaveBeenLastCalledWith('description', 'Test Description')
   })
 
   it('should call onFormChange when checkbox is toggled', async () => {
@@ -316,38 +353,67 @@ describe('FormDialog', () => {
     const user = userEvent.setup()
     const handleFormChange = jest.fn()
     
-    render(
-      <FormDialog 
-        {...defaultProps} 
-        isOpen={true} 
-        onFormChange={handleFormChange}
-      />
-    )
+    const TestComponent = () => {
+      const [localFormData, setLocalFormData] = React.useState({})
+      
+      const handleChange = (field: string, value: unknown) => {
+        setLocalFormData(prev => ({ ...prev, [field]: value }))
+        handleFormChange(field, value)
+      }
+      
+      return (
+        <FormDialog 
+          {...defaultProps} 
+          isOpen={true} 
+          formData={localFormData}
+          onFormChange={handleChange}
+        />
+      )
+    }
+    
+    render(<TestComponent />)
     
     const dateInput = screen.getByLabelText('Publish Date')
     expect(dateInput).toHaveAttribute('type', 'date')
     
     await user.type(dateInput, '2023-12-25')
+    // Date inputs behave differently - they typically only fire onChange once
     expect(handleFormChange).toHaveBeenCalledWith('publishDate', '2023-12-25')
+    expect(handleFormChange).toHaveBeenCalledTimes(1)
   })
 
   it('should handle url input type correctly', async () => {
     const user = userEvent.setup()
     const handleFormChange = jest.fn()
     
-    render(
-      <FormDialog 
-        {...defaultProps} 
-        isOpen={true} 
-        onFormChange={handleFormChange}
-      />
-    )
+    const TestComponent = () => {
+      const [localFormData, setLocalFormData] = React.useState({})
+      
+      const handleChange = (field: string, value: unknown) => {
+        setLocalFormData(prev => ({ ...prev, [field]: value }))
+        handleFormChange(field, value)
+      }
+      
+      return (
+        <FormDialog 
+          {...defaultProps} 
+          isOpen={true} 
+          formData={localFormData}
+          onFormChange={handleChange}
+        />
+      )
+    }
+    
+    render(<TestComponent />)
     
     const urlInput = screen.getByLabelText('Website URL')
     expect(urlInput).toHaveAttribute('type', 'url')
     
     await user.type(urlInput, 'https://example.com')
-    expect(handleFormChange).toHaveBeenCalledWith('url', 'https://example.com')
+    // Check that handleFormChange was called correctly for each character
+    expect(handleFormChange).toHaveBeenCalledTimes('https://example.com'.length)
+    // Check the final accumulated value
+    expect(handleFormChange).toHaveBeenLastCalledWith('url', 'https://example.com')
   })
 
   it('should set textarea rows correctly', () => {

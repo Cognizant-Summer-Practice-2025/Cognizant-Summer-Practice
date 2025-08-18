@@ -128,7 +128,7 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
       
       const isInsideInput = searchInputRef.current && searchInputRef.current.contains(target);
       const isInsideContainer = searchContainerRef.current && searchContainerRef.current.contains(target);
-      const isSearchResultButton = target.closest('[data-search-result-button]') !== null;
+      const isSearchResultButton = target.closest && target.closest('[data-search-result-button]') !== null;
       
       if (!isInsideInput && !isInsideContainer && !isSearchResultButton) {
         setShowResults(false);

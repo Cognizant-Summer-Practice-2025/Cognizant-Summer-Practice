@@ -47,3 +47,4 @@ public static class DatabaseConfiguration
         return dataSourceBuilder.Build();
     }
 }
+

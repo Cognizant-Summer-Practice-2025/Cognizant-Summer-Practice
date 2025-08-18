@@ -1,5 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Button } from '@/components/ui/button'
 
 describe('Button', () => {
@@ -133,18 +134,19 @@ describe('Button', () => {
     expect(button).toHaveClass('focus-visible:border-ring', 'focus-visible:ring-ring/50')
   })
 
-  it('should handle keyboard navigation', () => {
+  it('should handle keyboard navigation', async () => {
+    const user = userEvent.setup()
     const handleClick = jest.fn()
     render(<Button onClick={handleClick}>Keyboard Button</Button>)
     
     const button = screen.getByRole('button')
-    button.focus()
+    await user.click(button) // First click to focus
     
-    fireEvent.keyDown(button, { key: 'Enter' })
-    expect(handleClick).toHaveBeenCalledTimes(1)
+    await user.keyboard('{Enter}')
+    expect(handleClick).toHaveBeenCalledTimes(2) // Once for focus click, once for Enter
     
-    fireEvent.keyDown(button, { key: ' ' })
-    expect(handleClick).toHaveBeenCalledTimes(2)
+    await user.keyboard(' ')
+    expect(handleClick).toHaveBeenCalledTimes(3) // Once more for Space
   })
 
   it('should render with SVG icons correctly', () => {
