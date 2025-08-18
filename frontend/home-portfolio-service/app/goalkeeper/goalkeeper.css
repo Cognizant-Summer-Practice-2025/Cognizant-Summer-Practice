@@ -428,6 +428,11 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+  .hero-main {
+    padding: 6rem 2rem 4rem 2rem;
+    min-height: calc(100vh - 80px);
+  }
+  
   .hero-container {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -459,7 +464,8 @@
 
 @media (max-width: 768px) {
   .hero-main {
-    padding: 2rem 1rem;
+    padding: 5rem 1rem 2rem 1rem;
+    min-height: calc(100vh - 70px);
   }
   
   .hero-title {
@@ -490,6 +496,11 @@
 }
 
 @media (max-width: 480px) {
+  .hero-main {
+    padding: 4.5rem 1rem 2rem 1rem;
+    min-height: calc(100vh - 60px);
+  }
+  
   .hero-title {
     font-size: 2rem;
   }
