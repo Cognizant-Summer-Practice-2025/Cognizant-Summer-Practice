@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Briefcase, TrendingUp, Users, Star, Award, Eye, Camera, Palette, Code, FileText } from 'lucide-react';
+import { Users, Star, Award, Eye, Camera, Palette, Code, FileText } from 'lucide-react';
 import Header from '@/components/header';
 import { motion } from 'framer-motion';
 import './goalkeeper.css';
@@ -34,11 +34,11 @@ export default function GoalKeeperPage() {
             <p className="hero-description">
                Showcase your work, connect with professionals, and build your career
             </p>
-            <Button
-              onClick={handleGoToHome}
-              className="get-started-btn"
-            >
-              GET STARTED
+                          <Button
+                onClick={handleGoToHome}
+                className="discover-btn"
+              >
+              Discover
             </Button>
           </div>
 

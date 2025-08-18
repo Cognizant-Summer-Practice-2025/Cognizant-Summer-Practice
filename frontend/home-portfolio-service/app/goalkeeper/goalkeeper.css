@@ -55,7 +55,7 @@
   max-width: 450px;
 }
 
-.get-started-btn {
+.discover-btn {
   background: var(--app-blue-primary) !important;
   color: white !important;
   border: none;
@@ -70,13 +70,13 @@
   box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
 }
 
-.get-started-btn:hover {
+.discover-btn:hover {
   background: var(--app-blue-hover) !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
 }
 
-.get-started-btn:active {
+.discover-btn:active {
   transform: translateY(0);
 }
 
@@ -509,7 +509,7 @@
     gap: 2rem;
   }
   
-  .get-started-btn {
+  .discover-btn {
     padding: 0.875rem 2rem;
     font-size: 0.8rem;
   }
