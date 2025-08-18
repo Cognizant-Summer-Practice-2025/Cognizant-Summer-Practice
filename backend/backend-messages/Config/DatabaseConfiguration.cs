@@ -16,8 +16,8 @@ public static class DatabaseConfiguration
     /// <returns>Configured service collection</returns>
     public static IServiceCollection AddDatabaseServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("MessagesDatabase")
-            ?? throw new InvalidOperationException("Database connection string 'MessagesDatabase' is not configured.");
+        var connectionString = configuration.GetConnectionString("Database_Messages")
+            ?? throw new InvalidOperationException("Database connection string 'Database_Messages' is not configured.");
 
         services.AddDbContext<MessagesDbContext>(options =>
             options.UseNpgsql(connectionString));

@@ -18,8 +18,8 @@ public static class DatabaseConfiguration
     /// <returns>Configured service collection</returns>
     public static IServiceCollection AddDatabaseServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Database connection string 'DefaultConnection' is not configured.");
+        var connectionString = configuration.GetConnectionString("Database_User")
+            ?? throw new InvalidOperationException("Database connection string 'Database_User' is not configured.");
 
         var dataSource = CreateDataSourceWithEnumMapping(connectionString);
 

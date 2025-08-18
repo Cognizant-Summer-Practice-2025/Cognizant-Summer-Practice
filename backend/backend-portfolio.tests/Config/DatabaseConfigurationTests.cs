@@ -15,7 +15,7 @@ namespace backend_portfolio.tests.Config
         {
             var dict = new Dictionary<string, string?>
             {
-                {"ConnectionStrings:DefaultConnection", "Host=localhost;Username=test;Password=test;Database=test"}
+                {"ConnectionStrings:Database_Portfolio", "Host=localhost;Username=test;Password=test;Database=test"}
             };
             var cfg = new ConfigurationBuilder().AddInMemoryCollection(dict!).Build();
             var services = new ServiceCollection();
