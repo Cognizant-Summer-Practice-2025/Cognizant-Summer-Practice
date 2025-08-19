@@ -9,9 +9,10 @@ describe('Input', () => {
 		expect(input).toHaveAttribute('data-slot', 'input')
 	})
 
-	it('respects input type', () => {
-		render(<Input type="password" data-testid="password-input" />)
-		const input = screen.getByTestId('password-input') as HTMLInputElement
-		expect(input.type).toBe('password')
+	it('respects input type and placeholder', () => {
+		render(<Input type="text" placeholder="Type your message..." data-testid="text-input" />)
+		const input = screen.getByTestId('text-input') as HTMLInputElement
+		expect(input.type).toBe('text')
+		expect(input.placeholder).toBe('Type your message...')
 	})
 }) 
