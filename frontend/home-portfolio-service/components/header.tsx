@@ -81,7 +81,7 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const handleLogin = () => {
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
     const currentUrl = window.location.href;
     window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
   };

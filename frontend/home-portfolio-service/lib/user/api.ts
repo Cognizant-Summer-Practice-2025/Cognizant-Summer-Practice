@@ -9,8 +9,8 @@ import {
   SearchUser
 } from './interfaces';
 
-const API_BASE_URL = 'http://localhost:5200';
-const MESSAGES_API_BASE_URL = 'http://localhost:5093';
+const API_BASE_URL = process.env.NEXT_PUBLIC_USER_API_URL;
+const MESSAGES_API_BASE_URL = process.env.NEXT_PUBLIC_MESSAGES_API_URL;
 
 // Search users by username, first name, last name, or full name
 export async function searchUsers(searchTerm: string): Promise<SearchUser[]> {

@@ -6,7 +6,11 @@ export class AuthenticatedClient {
   private baseUrl: string;
 
   private constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
+    if (!baseUrl) {
+      throw new Error('NEXT_PUBLIC_AUTH_USER_SERVICE environment variable is not set');
+    }
+    this.baseUrl = baseUrl;
   }
 
   public static getInstance(): AuthenticatedClient {

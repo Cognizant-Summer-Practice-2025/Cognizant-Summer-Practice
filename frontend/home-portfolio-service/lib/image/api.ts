@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL;
 
 export interface ImageUploadResponse {
   imagePath: string;

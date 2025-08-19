@@ -204,7 +204,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
 
     try {
       // Load page without updating UI state
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5201';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
       const queryParams = new URLSearchParams();
       
       queryParams.append('page', request.page.toString());
@@ -315,7 +315,7 @@ export function HomePageCacheProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5201';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
       const queryParams = new URLSearchParams();
       
       queryParams.append('page', request.page.toString());

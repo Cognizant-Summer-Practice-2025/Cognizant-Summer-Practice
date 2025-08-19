@@ -4,10 +4,18 @@
  */
 
 export const SERVICES = {
-  AUTH_USER_SERVICE: process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || process.env.AUTH_USER_SERVICE || 'http://localhost:3000',
-  HOME_PORTFOLIO_SERVICE: process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || process.env.HOME_PORTFOLIO_SERVICE || 'http://localhost:3001',
-  MESSAGES_SERVICE: process.env.NEXT_PUBLIC_MESSAGES_SERVICE || process.env.MESSAGES_SERVICE || 'http://localhost:3002',
-  ADMIN_SERVICE: process.env.NEXT_PUBLIC_ADMIN_SERVICE || process.env.ADMIN_SERVICE || 'http://localhost:3003',
+  AUTH_USER_SERVICE: process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || (() => {
+    throw new Error('NEXT_PUBLIC_AUTH_USER_SERVICE environment variable is not set');
+  })(),
+  HOME_PORTFOLIO_SERVICE: process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || (() => {
+    throw new Error('NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE environment variable is not set');
+  })(),
+  MESSAGES_SERVICE: process.env.NEXT_PUBLIC_MESSAGES_SERVICE || (() => {
+    throw new Error('NEXT_PUBLIC_MESSAGES_SERVICE environment variable is not set');
+  })(),
+  ADMIN_SERVICE: process.env.NEXT_PUBLIC_ADMIN_SERVICE || (() => {
+    throw new Error('NEXT_PUBLIC_ADMIN_SERVICE environment variable is not set');
+  })(),
 } as const;
 
 /**

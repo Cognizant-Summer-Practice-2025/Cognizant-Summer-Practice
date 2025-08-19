@@ -72,7 +72,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }) => {
     // User updates should be handled by the auth-user-service
     // Redirect to auth service for profile updates
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
     window.location.href = `${authServiceUrl}/profile`;
   };
 

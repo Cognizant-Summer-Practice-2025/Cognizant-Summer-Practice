@@ -1,6 +1,6 @@
 import { authenticatedClient } from '@/lib/authenticated-client';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL;
 
 export interface BookmarkToggleRequest {
   userId: string;

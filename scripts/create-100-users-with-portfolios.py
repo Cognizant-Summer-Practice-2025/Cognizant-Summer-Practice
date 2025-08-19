@@ -14,7 +14,7 @@ import argparse
 from typing import List, Dict, Any
 import os
 
-USER_API_BASE = "http://localhost:5200/api/Users"
+USER_API_BASE = "https://auth-user-service.kindmoss-e060904c.westeurope.azurecontainerapps.io/api/Users"
 # Get the directory where this script is located and find the portfolio script
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PORTFOLIO_SCRIPT_PATH = os.path.join(SCRIPT_DIR, "generate-portfolio-test-data.py")

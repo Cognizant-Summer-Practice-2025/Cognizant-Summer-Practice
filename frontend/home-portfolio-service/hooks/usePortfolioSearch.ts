@@ -53,7 +53,7 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
     setError(null);
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5201';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
       const queryParams = new URLSearchParams();
       
       queryParams.append('page', '1');

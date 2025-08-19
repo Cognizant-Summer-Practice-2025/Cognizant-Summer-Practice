@@ -5,6 +5,7 @@ This script creates a comprehensive portfolio for testing with 100 items in each
 """
 
 import json
+import os
 import requests
 import random
 import sys
@@ -19,8 +20,17 @@ if len(sys.argv) != 3:
 
 USER_ID = sys.argv[1]
 TOKEN = sys.argv[2]
-PORTFOLIO_API_BASE = "http://localhost:5201/api/Portfolio"
-PORTFOLIO_TEMPLATE_API_BASE = "http://localhost:5201/api/PortfolioTemplate"
+
+# Resolve API base from environment (deployed) or fallback to localhost (dev)
+portfolio_base_root = (
+    os.getenv("PORTFOLIO_API_BASE_URL")
+    or os.getenv("NEXT_PUBLIC_PORTFOLIO_API_URL")
+    or os.getenv("NEXT_PUBLIC_API_BASE_URL")
+    or "http://localhost:5201"
+).rstrip("/")
+
+PORTFOLIO_API_BASE = f"{portfolio_base_root}/api/Portfolio"
+PORTFOLIO_TEMPLATE_API_BASE = f"{portfolio_base_root}/api/PortfolioTemplate"
 
 # Set up headers for API requests
 HEADERS = {
@@ -366,8 +376,14 @@ def main():
         print("   [SKILLS] Skills: 100 (across 10 categories)")
         print("   [BLOG] Blog Posts: 100 (33% published)")
         print()
-        print(f"[URL] Portfolio URL: http://localhost:3000/portfolio/{portfolio_id}")
-        print(f"[ADMIN] Admin Panel: http://localhost:3000/admin/portfolio/{portfolio_id}")
+        # Resolve frontend URL if available
+        frontend_base = (
+            os.getenv("NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE")
+            or os.getenv("NEXT_PUBLIC_AUTH_USER_SERVICE")
+            or "http://localhost:3001"
+        ).rstrip("/")
+        print(f"[URL] Portfolio URL: {frontend_base}/portfolio/{portfolio_id}")
+        print(f"[ADMIN] Admin Panel: {frontend_base}/admin/portfolio/{portfolio_id}")
         print()
         print("[COMPLETE] Portfolio test data generation completed successfully!")
         print(f"[ID] Portfolio ID: {portfolio_id}")

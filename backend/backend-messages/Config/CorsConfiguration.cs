@@ -32,6 +32,12 @@ public static class CorsConfiguration
     /// <returns>Array of allowed frontend URLs</returns>
     private static string[] GetFrontendUrls(IConfiguration configuration)
     {
+        var allowed = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS");
+        if (!string.IsNullOrWhiteSpace(allowed))
+        {
+            return allowed.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
+
         var configuredUrls = configuration.GetSection("FrontendUrls").Get<string[]>();
         
         if (configuredUrls?.Length > 0)

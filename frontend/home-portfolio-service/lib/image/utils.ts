@@ -1,9 +1,9 @@
-const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL;
 
 /**
  * Convert a server image path to a full API URL
  * @param imagePath - Path like "server/portfolio/projects/uuid.jpg"
- * @returns Full API URL like "http://localhost:5201/api/Image/projects/uuid.jpg"
+ * @returns Full API URL like "https://backend-portfolio.lemongrass-88207da5.northeurope.azurecontainerapps.io/api/Image/projects/uuid.jpg"
  */
 export function getImageUrl(imagePath: string): string {
   if (!imagePath) return '';
