@@ -121,7 +121,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 disabled={isSubmitting}
                 autoFocus
               />
-              <div className={`report-modal-char-count ${reason.length >= 50 ? 'minimum-reached' : 'needs-more'}`}>
+              <div className={`report-modal-char-count ${reason.length >= 10 ? 'minimum-reached' : 'needs-more'}`}>
                 {reason.length}/10
               </div>
             </div>
@@ -144,7 +144,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
               <button
                 type="submit"
                 className="report-modal-submit"
-                disabled={isSubmitting || reason.trim().length < 50}
+                disabled={isSubmitting || reason.trim().length < 10}
               >
                 {isSubmitting ? "Submitting..." : "Submit Report"}
               </button>
