@@ -10,8 +10,8 @@ describe('Input', () => {
 	})
 
 	it('respects input type', () => {
-		render(<Input type="password" />)
-		const input = screen.getByRole('textbox') as HTMLInputElement
+		render(<Input type="password" data-testid="password-input" />)
+		const input = screen.getByTestId('password-input') as HTMLInputElement
 		expect(input.type).toBe('password')
 	})
 }) 

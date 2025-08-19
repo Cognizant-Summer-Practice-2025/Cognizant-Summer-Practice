@@ -20,9 +20,14 @@ describe('useModalAnimation', () => {
 		expect(result.current.isVisible).toBe(true)
 		expect(result.current.isAnimatingOut).toBe(false)
 
-		rerender({ isOpen: false, onClose, duration: 50 })
+		// Trigger close
+		act(() => {
+			rerender({ isOpen: false, onClose, duration: 50 })
+		})
+		
 		expect(result.current.isAnimatingOut).toBe(true)
 
+		// Advance timers in act
 		act(() => {
 			jest.advanceTimersByTime(50)
 		})
@@ -44,7 +49,10 @@ describe('useModalAnimation', () => {
 		expect(onClose).toHaveBeenCalledTimes(1)
 
 		// Start closing animation
-		rerender({ isOpen: false, onClose, duration: 50 })
+		act(() => {
+			rerender({ isOpen: false, onClose, duration: 50 })
+		})
+		
 		act(() => {
 			result.current.handleClose()
 		})
