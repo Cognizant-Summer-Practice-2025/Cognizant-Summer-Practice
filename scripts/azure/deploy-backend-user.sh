@@ -65,21 +65,50 @@ echo "  ALLOWED_ORIGINS: $ALLOWED_ORIGINS"
 echo "  ConnectionStrings__Database_User: ${ConnectionStrings__Database_User:0:50}..."
 echo ""
 
-az containerapp up \
-  --name "$APP_NAME" \
-  --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
-  --environment "$AZ_ENV_NAME" \
-  --image "$FQ_IMAGE" \
-  ${ACR_PASSWORD:+--registry-server "$ACR_LOGIN_SERVER"} \
-  ${ACR_PASSWORD:+--registry-username "$ACR_USERNAME"} \
-  ${ACR_PASSWORD:+--registry-password "$ACR_PASSWORD"} \
-  --ingress external \
-  --target-port 5200 \
-  --env-vars \
-    ConnectionStrings__Database_User="Host=$USER_DB_HOST;Port=5432;Database=user_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
-    ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
-    LOGGING_LOGLEVEL_DEFAULT=Information \
-    LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
+if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&1; then
+  echo "Updating existing Container App: $APP_NAME"
+  az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
+    --image "$FQ_IMAGE" \
+    --set-env-vars \
+      ConnectionStrings__Database_User="Host=$USER_DB_HOST;Port=5432;Database=user_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
+      ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      AUTH_GOOGLE_ID="${AUTH_GOOGLE_ID:-}" \
+      AUTH_GOOGLE_SECRET="${AUTH_GOOGLE_SECRET:-}" \
+      AUTH_GITHUB_ID="${AUTH_GITHUB_ID:-}" \
+      AUTH_GITHUB_SECRET="${AUTH_GITHUB_SECRET:-}" \
+      AUTH_LINKEDIN_ID="${AUTH_LINKEDIN_ID:-}" \
+      AUTH_LINKEDIN_SECRET="${AUTH_LINKEDIN_SECRET:-}" \
+      AUTH_FACEBOOK_ID="${AUTH_FACEBOOK_ID:-}" \
+      AUTH_FACEBOOK_SECRET="${AUTH_FACEBOOK_SECRET:-}" \
+      LOGGING_LOGLEVEL_DEFAULT=Information \
+      LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
+else
+  az containerapp up \
+    --name "$APP_NAME" \
+    --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
+    --environment "$AZ_ENV_NAME" \
+    --image "$FQ_IMAGE" \
+    ${ACR_PASSWORD:+--registry-server "$ACR_LOGIN_SERVER"} \
+    ${ACR_PASSWORD:+--registry-username "$ACR_USERNAME"} \
+    ${ACR_PASSWORD:+--registry-password "$ACR_PASSWORD"} \
+    --ingress external \
+    --target-port 5200 \
+    --env-vars \
+      ConnectionStrings__Database_User="Host=$USER_DB_HOST;Port=5432;Database=user_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
+      ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      AUTH_GOOGLE_ID="${AUTH_GOOGLE_ID:-}" \
+      AUTH_GOOGLE_SECRET="${AUTH_GOOGLE_SECRET:-}" \
+      AUTH_GITHUB_ID="${AUTH_GITHUB_ID:-}" \
+      AUTH_GITHUB_SECRET="${AUTH_GITHUB_SECRET:-}" \
+      AUTH_LINKEDIN_ID="${AUTH_LINKEDIN_ID:-}" \
+      AUTH_LINKEDIN_SECRET="${AUTH_LINKEDIN_SECRET:-}" \
+      AUTH_FACEBOOK_ID="${AUTH_FACEBOOK_ID:-}" \
+      AUTH_FACEBOOK_SECRET="${AUTH_FACEBOOK_SECRET:-}" \
+      LOGGING_LOGLEVEL_DEFAULT=Information \
+      LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
+fi
 
 echo "Deployed $APP_NAME"
 

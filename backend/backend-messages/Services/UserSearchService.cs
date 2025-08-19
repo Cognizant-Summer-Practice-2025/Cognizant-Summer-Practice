@@ -15,9 +15,7 @@ namespace BackendMessages.Services
             _httpClientFactory = httpClientFactory;
             _logger = logger;
             _userServiceBaseUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
-                                   ?? configuration["UserServiceUrl"]
-                                   ?? configuration["UserService:BaseUrl"]
-                                   ?? "http://localhost:5200";
+                                   ?? throw new InvalidOperationException("USER_SERVICE_URL environment variable is not set");
         }
 
         public async Task<List<SearchUser>> SearchUsersAsync(string searchTerm)

@@ -69,28 +69,48 @@ echo "  USER_SERVICE_URL: $USER_SVC_URL"
 echo "  PORTFOLIO_SERVICE_URL: $PORTFOLIO_SVC_URL"
 echo "  ALLOWED_ORIGINS: $ALLOWED_ORIGINS"
 
-az containerapp up \
-  --name "$APP_NAME" \
-  --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
-  --environment "$AZ_ENV_NAME" \
-  --image "$FQ_IMAGE" \
-  ${ACR_PASSWORD:+--registry-server "$ACR_LOGIN_SERVER"} \
-  ${ACR_PASSWORD:+--registry-username "$ACR_USERNAME"} \
-  ${ACR_PASSWORD:+--registry-password "$ACR_PASSWORD"} \
-  --ingress external \
-  --target-port 5134 \
-  --env-vars \
-    USER_SERVICE_URL="$USER_SVC_URL" \
-    PORTFOLIO_SERVICE_URL="$PORTFOLIO_SVC_URL" \
-    ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
-    OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" \
-    OPENROUTER_MODEL="${OPENROUTER_MODEL:-openai/gpt-oss-20b:free}" \
-    OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}" \
-    OPENROUTER_PROMPT="${OPENROUTER_PROMPT:-What is the meaning of life?}" \
-    BEST_PORTFOLIO_PROMPT="${BEST_PORTFOLIO_PROMPT:-}" \
-    RANKING_LOG_LEVEL="${RANKING_LOG_LEVEL:-Information}" \
-    LOG_LEVEL="${LOG_LEVEL:-Information}" \
-    AI_LOG_LEVEL="${AI_LOG_LEVEL:-Information}"
+if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&1; then
+  echo "Updating existing Container App: $APP_NAME"
+  az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
+    --image "$FQ_IMAGE" \
+    --set-env-vars \
+      USER_SERVICE_URL="$USER_SVC_URL" \
+      PORTFOLIO_SERVICE_URL="$PORTFOLIO_SVC_URL" \
+      ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" \
+      OPENROUTER_MODEL="${OPENROUTER_MODEL:-openai/gpt-oss-20b:free}" \
+      OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}" \
+      OPENROUTER_PROMPT="${OPENROUTER_PROMPT:-What is the meaning of life?}" \
+      BEST_PORTFOLIO_PROMPT="${BEST_PORTFOLIO_PROMPT:-}" \
+      RANKING_LOG_LEVEL="${RANKING_LOG_LEVEL:-Information}" \
+      LOG_LEVEL="${LOG_LEVEL:-Information}" \
+      AI_LOG_LEVEL="${AI_LOG_LEVEL:-Information}"
+else
+  az containerapp up \
+    --name "$APP_NAME" \
+    --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
+    --environment "$AZ_ENV_NAME" \
+    --image "$FQ_IMAGE" \
+    ${ACR_PASSWORD:+--registry-server "$ACR_LOGIN_SERVER"} \
+    ${ACR_PASSWORD:+--registry-username "$ACR_USERNAME"} \
+    ${ACR_PASSWORD:+--registry-password "$ACR_PASSWORD"} \
+    --ingress external \
+    --target-port 5134 \
+    --env-vars \
+      USER_SERVICE_URL="$USER_SVC_URL" \
+      PORTFOLIO_SERVICE_URL="$PORTFOLIO_SVC_URL" \
+      ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" \
+      OPENROUTER_MODEL="${OPENROUTER_MODEL:-openai/gpt-oss-20b:free}" \
+      OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}" \
+      OPENROUTER_PROMPT="${OPENROUTER_PROMPT:-What is the meaning of life?}" \
+      BEST_PORTFOLIO_PROMPT="${BEST_PORTFOLIO_PROMPT:-}" \
+      RANKING_LOG_LEVEL="${RANKING_LOG_LEVEL:-Information}" \
+      LOG_LEVEL="${LOG_LEVEL:-Information}" \
+      AI_LOG_LEVEL="${AI_LOG_LEVEL:-Information}"
+fi
 
 echo "Deployed $APP_NAME"
 

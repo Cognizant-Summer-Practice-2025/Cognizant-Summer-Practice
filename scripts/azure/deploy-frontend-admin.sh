@@ -63,16 +63,25 @@ docker buildx build --platform linux/amd64 -f "$DOCKERFILE" \
   -t "$FQ_IMAGE" "$CONTEXT_DIR" --push
 
 echo "Deploying container app: $APP_NAME"
-az containerapp up \
-  --name "$APP_NAME" \
-  --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
-  --environment "$AZ_ENV_NAME" \
-  --image "$FQ_IMAGE" \
-  ${ACR_PASSWORD:+--registry-server "$ACR_LOGIN_SERVER"} \
-  ${ACR_PASSWORD:+--registry-username "$ACR_USERNAME"} \
-  ${ACR_PASSWORD:+--registry-password "$ACR_PASSWORD"} \
-  --ingress external \
-  --target-port 3003
+if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&1; then
+  echo "Updating existing Container App: $APP_NAME"
+  az containerapp update \
+    --name "$APP_NAME" \
+    --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
+    --image "$FQ_IMAGE"
+else
+  echo "Creating Container App: $APP_NAME"
+  az containerapp up \
+    --name "$APP_NAME" \
+    --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
+    --environment "$AZ_ENV_NAME" \
+    --image "$FQ_IMAGE" \
+    ${ACR_PASSWORD:+--registry-server "$ACR_LOGIN_SERVER"} \
+    ${ACR_PASSWORD:+--registry-username "$ACR_USERNAME"} \
+    ${ACR_PASSWORD:+--registry-password "$ACR_PASSWORD"} \
+    --ingress external \
+    --target-port 3003
+fi
 
 echo "Deployed $APP_NAME"
 

@@ -15,8 +15,8 @@ import {
 } from './interfaces';
 import { authenticatedClient } from '@/lib/authenticated-client';
 
-const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
-const USER_API_BASE_URL = 'http://localhost:5200'; // User service URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL!;
+const USER_API_BASE_URL = process.env.NEXT_PUBLIC_USER_API_URL!;
 
 // User info for portfolio cards
 export interface UserPortfolioInfo {
