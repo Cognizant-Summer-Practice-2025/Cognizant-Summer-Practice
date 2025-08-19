@@ -6,6 +6,11 @@ if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
   global.homePortfolioServiceUserStorage = new Map<string, ServiceUserData>();
 }
 
+// Session-based storage for user data
+if (typeof global !== 'undefined' && !global.homePortfolioServiceSessionStorage) {
+  global.homePortfolioServiceSessionStorage = new Map<string, ServiceUserData>();
+}
+
 /**
  * Get user data from this service
  */
@@ -15,17 +20,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     if (searchParams.get('localLogout') === '1') {
       global.homePortfolioServiceUserStorage.clear();
+      global.homePortfolioServiceSessionStorage.clear();
       return NextResponse.json({ error: 'No user data found' }, { status: 404 });
     }
 
-    // Check if there's any user data stored
-    if (global.homePortfolioServiceUserStorage.size === 0) {
-      return NextResponse.json({ error: 'No user data found' }, { status: 404 });
+    // Read session cookie to get user data for this specific session
+    const sessionId = request.cookies.get('hp_sid')?.value;
+    
+    if (!sessionId) {
+      return NextResponse.json({ error: 'No session found. Please log in.' }, { status: 401 });
     }
 
-    // For now, return the first (and should be only) user
-    // In a multi-user scenario, this would need session-based identification
-    const userData: ServiceUserData = Array.from(global.homePortfolioServiceUserStorage.values())[0];
+    // Get user data for this session
+    const userData: ServiceUserData | undefined = global.homePortfolioServiceSessionStorage.get(sessionId);
+    
+    if (!userData) {
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 });
+    }
 
     // If accessToken exists but is an empty string, treat as missing and return 404 to force re-injection
     if (userData && typeof userData.accessToken === 'string' && userData.accessToken.trim() === '') {

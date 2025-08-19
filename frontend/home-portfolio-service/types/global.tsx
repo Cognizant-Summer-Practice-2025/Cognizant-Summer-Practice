@@ -19,6 +19,8 @@ export interface ServiceUserData {
 declare global {
   // eslint-disable-next-line no-var
   var homePortfolioServiceUserStorage: Map<string, ServiceUserData>;
+  // eslint-disable-next-line no-var
+  var homePortfolioServiceSessionStorage: Map<string, ServiceUserData>;
 }
 
 export {};

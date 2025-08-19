@@ -1,9 +1,10 @@
 using BackendMessages.Config;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load environment variables from .env file
-DotNetEnv.Env.Load();
+// Load environment variables from .env file located in the project content root
+DotNetEnv.Env.Load(Path.Combine(builder.Environment.ContentRootPath, ".env"));
 
 // Configure services using extension methods
 builder.Services

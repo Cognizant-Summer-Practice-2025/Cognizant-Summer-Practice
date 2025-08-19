@@ -7,6 +7,11 @@ if (!global.messagesServiceUserStorage) {
   global.messagesServiceUserStorage = new Map();
 }
 
+// Session-based storage for user data
+if (!global.messagesServiceSessionStorage) {
+  global.messagesServiceSessionStorage = new Map();
+}
+
 /**
  * Verify service-to-service authentication
  */
@@ -36,7 +41,18 @@ export async function DELETE(request: NextRequest) {
     const existed = global.messagesServiceUserStorage.has(email);
     global.messagesServiceUserStorage.delete(email);
 
-    console.log(`User ${email} removed from messages-service`);
+    // Also remove all sessions for this user
+    const sessionsToRemove: string[] = [];
+    for (const [sessionId, userData] of global.messagesServiceSessionStorage.entries()) {
+      if (userData.email === email) {
+        sessionsToRemove.push(sessionId);
+      }
+    }
+    sessionsToRemove.forEach(sessionId => {
+      global.messagesServiceSessionStorage.delete(sessionId);
+    });
+
+    console.log(`User ${email} and ${sessionsToRemove.length} sessions removed from messages-service`);
 
     return NextResponse.json({ 
       success: true, 

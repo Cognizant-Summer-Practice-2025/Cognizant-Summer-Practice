@@ -18,6 +18,7 @@ export interface ServiceUserData {
 
 declare global {
   var messagesServiceUserStorage: Map<string, ServiceUserData>;
+  var messagesServiceSessionStorage: Map<string, ServiceUserData>;
 }
 
 export {};

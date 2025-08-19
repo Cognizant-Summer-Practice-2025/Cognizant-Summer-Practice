@@ -56,16 +56,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Verify and create local session from SSO token
         const tokenPayload = await verifySSOToken(ssoToken);
         if (tokenPayload) {
-          await createLocalSession(tokenPayload);
-          setIsAuthenticated(true);
-          setUserEmail(tokenPayload.email);
-          setUserId(tokenPayload.userId);
+          // Establish session cookies by calling inject-client endpoint
+          try {
+            const injectResponse = await fetch('/api/user/inject-client', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ ssoToken }),
+            });
 
-          // Remove token from URL
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('ssoToken');
-          window.history.replaceState({}, '', newUrl.toString());
-          return;
+            if (!injectResponse.ok) {
+              console.error('Failed to establish session cookies:', injectResponse.statusText);
+              throw new Error('Failed to establish session');
+            }
+
+            await createLocalSession(tokenPayload);
+            setIsAuthenticated(true);
+            setUserEmail(tokenPayload.email);
+            setUserId(tokenPayload.userId);
+
+            // Remove token from URL
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('ssoToken');
+            window.history.replaceState({}, '', newUrl.toString());
+            return;
+          } catch (error) {
+            console.error('Error establishing session:', error);
+            // Fall through to handle as unauthenticated
+          }
         }
       }
 
@@ -86,7 +105,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
         } else if (response.status === 404 || response.status === 401) {
-          // Server says no user – clear any stale local session
+          // Server says no user session - try to establish session from global storage
+          // This handles cases where server-to-server injection worked but session cookies weren't set
+          try {
+            const establishResponse = await fetch('/api/user/establish-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (establishResponse.ok) {
+              const sessionData = await establishResponse.json();
+              if (sessionData.success && sessionData.userEmail) {
+                console.log('✅ Session established from global storage for:', sessionData.userEmail);
+                await createLocalSession({
+                  email: sessionData.userEmail,
+                  userId: sessionData.userId,
+                  timestamp: Date.now(),
+                });
+                setIsAuthenticated(true);
+                setUserEmail(sessionData.userEmail);
+                setUserId(sessionData.userId);
+                return;
+              }
+            }
+          } catch (establishError) {
+            console.log('No session could be established from global storage:', establishError);
+          }
+          
+          // Clear any stale local session if no server session available
           clearLocalSession();
         }
       } catch {

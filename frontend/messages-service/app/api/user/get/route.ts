@@ -7,6 +7,11 @@ if (!global.messagesServiceUserStorage) {
   global.messagesServiceUserStorage = new Map();
 }
 
+// Session-based storage for user data
+if (!global.messagesServiceSessionStorage) {
+  global.messagesServiceSessionStorage = new Map();
+}
+
 /**
  * Get user data from this service
  */
@@ -16,17 +21,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     if (searchParams.get('localLogout') === '1') {
       global.messagesServiceUserStorage.clear();
+      global.messagesServiceSessionStorage.clear();
       return NextResponse.json({ error: 'No user data found' }, { status: 404 });
     }
 
-    // Check if there's any user data stored
-    if (global.messagesServiceUserStorage.size === 0) {
-      return NextResponse.json({ error: 'No user data found' }, { status: 404 });
+    // Read session cookie to get user data for this specific session
+    const sessionId = request.cookies.get('ms_sid')?.value;
+    
+    if (!sessionId) {
+      return NextResponse.json({ error: 'No session found. Please log in.' }, { status: 401 });
     }
 
-    // For now, return the first (and should be only) user
-    // In a multi-user scenario, this would need session-based identification
-    const userData = Array.from(global.messagesServiceUserStorage.values())[0];
+    // Get user data for this session
+    const userData = global.messagesServiceSessionStorage.get(sessionId);
+    
+    if (!userData) {
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 });
+    }
 
     // If accessToken exists but is an empty string, treat as missing and return 404 to force re-injection
     if (userData && typeof userData.accessToken === 'string' && userData.accessToken.trim() === '') {

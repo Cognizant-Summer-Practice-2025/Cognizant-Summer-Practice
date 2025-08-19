@@ -6,6 +6,11 @@ if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
   global.homePortfolioServiceUserStorage = new Map<string, ServiceUserData>();
 }
 
+// Session-based storage for user data
+if (typeof global !== 'undefined' && !global.homePortfolioServiceSessionStorage) {
+  global.homePortfolioServiceSessionStorage = new Map<string, ServiceUserData>();
+}
+
 /**
  * Verify service-to-service authentication
  */
@@ -35,7 +40,18 @@ export async function DELETE(request: NextRequest) {
     const existed = global.homePortfolioServiceUserStorage.has(email);
     global.homePortfolioServiceUserStorage.delete(email);
 
-    console.log(`User ${email} removed from home-portfolio-service`);
+    // Also remove all sessions for this user
+    const sessionsToRemove: string[] = [];
+    for (const [sessionId, userData] of global.homePortfolioServiceSessionStorage.entries()) {
+      if (userData.email === email) {
+        sessionsToRemove.push(sessionId);
+      }
+    }
+    sessionsToRemove.forEach(sessionId => {
+      global.homePortfolioServiceSessionStorage.delete(sessionId);
+    });
+
+    console.log(`User ${email} and ${sessionsToRemove.length} sessions removed from home-portfolio-service`);
 
     return NextResponse.json({ 
       success: true, 

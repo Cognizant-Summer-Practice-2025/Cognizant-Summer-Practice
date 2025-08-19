@@ -6,6 +6,11 @@ if (typeof global !== 'undefined' && !global.homePortfolioServiceUserStorage) {
   global.homePortfolioServiceUserStorage = new Map<string, ServiceUserData>();
 }
 
+// Session-based storage for user data
+if (typeof global !== 'undefined' && !global.homePortfolioServiceSessionStorage) {
+  global.homePortfolioServiceSessionStorage = new Map<string, ServiceUserData>();
+}
+
 /**
  * Verify service-to-service authentication
  */
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'User data injected successfully',
+      message: 'User data injected successfully (server-to-server)',
       userId: merged.id
     });
   } catch (error) {

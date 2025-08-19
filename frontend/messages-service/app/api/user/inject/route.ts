@@ -8,6 +8,11 @@ if (!global.messagesServiceUserStorage) {
   global.messagesServiceUserStorage = new Map();
 }
 
+// Session-based storage for user data
+if (!global.messagesServiceSessionStorage) {
+  global.messagesServiceSessionStorage = new Map();
+}
+
 /**
  * Verify service-to-service authentication
  */
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'User data injected successfully',
+      message: 'User data injected successfully (server-to-server)',
       userId: merged.id
     });
   } catch (error) {
