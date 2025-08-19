@@ -47,6 +47,33 @@ if [[ -z "$USER_DB_HOST" ]]; then
 fi
 USER_DB_HOST="${USER_DB_HOST:-user-db}"
 
+# Ensure user_db exists and is initialized when connecting to Azure PG Flexible Server
+if [[ "$USER_DB_HOST" == *".postgres.database.azure.com"* ]]; then
+  echo "Ensuring database 'user_db' exists on $USER_DB_HOST with SSL"
+  docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$USER_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -tc \
+    "SELECT 1 FROM pg_database WHERE datname='user_db'" | grep -q 1 || \
+  docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$USER_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -c \
+    "CREATE DATABASE user_db;"
+
+  # Initialize schema if core table is missing
+  echo "Checking if schema is initialized in 'user_db'"
+  if ! docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$USER_DB_HOST port=5432 dbname=user_db user=$POSTGRES_USER sslmode=require" -tAc \
+    "SELECT to_regclass('public.users')" | grep -q users; then
+    echo "Initializing schema from database/user-db/user_db_init.sql"
+    SQL_FILE="$SCRIPT_DIR/../../database/user-db/user_db_init.sql"
+    if [[ -f "$SQL_FILE" ]]; then
+      docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" -v "$REPO_ROOT:/repo" postgres:15 \
+        psql "host=$USER_DB_HOST port=5432 dbname=user_db user=$POSTGRES_USER sslmode=require" -f \
+        "/repo/database/user-db/user_db_init.sql"
+    else
+      echo "Warning: SQL init file not found at $SQL_FILE; skipping schema init"
+    fi
+  fi
+fi
+
 # Build ALLOWED_ORIGINS from deployed frontend FQDNs when available
 FRONT_ORIGINS=()
 for APP in auth-user-service home-portfolio-service messages-service admin-service; do

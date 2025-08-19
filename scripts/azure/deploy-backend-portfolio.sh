@@ -46,6 +46,33 @@ if [[ -z "$PORTFOLIO_DB_HOST" ]]; then
 fi
 PORTFOLIO_DB_HOST="${PORTFOLIO_DB_HOST:-portfolio-db}"
 
+# Ensure portfolio_db exists and is initialized when connecting to Azure PG Flexible Server
+if [[ "$PORTFOLIO_DB_HOST" == *".postgres.database.azure.com"* ]]; then
+  echo "Ensuring database 'portfolio_db' exists on $PORTFOLIO_DB_HOST with SSL"
+  docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -tc \
+    "SELECT 1 FROM pg_database WHERE datname='portfolio_db'" | grep -q 1 || \
+  docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -c \
+    "CREATE DATABASE portfolio_db;"
+
+  # Initialize schema if core table is missing
+  echo "Checking if schema is initialized in 'portfolio_db'"
+  if ! docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=portfolio_db user=$POSTGRES_USER sslmode=require" -tAc \
+    "SELECT to_regclass('public.portfolios')" | grep -q portfolios; then
+    echo "Initializing schema from database/portfolio-db/portfolio_db_init.sql"
+    SQL_FILE="$SCRIPT_DIR/../../database/portfolio-db/portfolio_db_init.sql"
+    if [[ -f "$SQL_FILE" ]]; then
+      docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" -v "$REPO_ROOT:/repo" postgres:15 \
+        psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=portfolio_db user=$POSTGRES_USER sslmode=require" -f \
+        "/repo/database/portfolio-db/portfolio_db_init.sql"
+    else
+      echo "Warning: SQL init file not found at $SQL_FILE; skipping schema init"
+    fi
+  fi
+fi
+
 USER_SVC_URL="${USER_SVC_URL:-}"
 if [[ -z "$USER_SVC_URL" ]]; then
   USER_SVC_URL="$(az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n backend-user --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || true)"

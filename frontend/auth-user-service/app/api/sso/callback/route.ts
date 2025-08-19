@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const callbackUrl = searchParams.get('callbackUrl');
+    const silent = searchParams.get('silent') === 'true';
     
     if (!callbackUrl) {
       return NextResponse.redirect(new URL('/', request.url));
@@ -21,7 +22,15 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
-      // User is not authenticated, redirect to login with callback
+      // Handle silent authentication failure
+      if (silent) {
+        return NextResponse.json({
+          error: 'No active session',
+          requiresLogin: true
+        }, { status: 401 });
+      }
+      
+      // Normal flow: redirect to login with callback
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', callbackUrl);
       return NextResponse.redirect(loginUrl);

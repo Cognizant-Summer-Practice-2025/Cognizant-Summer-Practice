@@ -45,6 +45,33 @@ if [[ -z "$MESSAGES_DB_HOST" ]]; then
 fi
 MESSAGES_DB_HOST="${MESSAGES_DB_HOST:-messages-db}"
 
+# Ensure messages_db exists and is initialized when connecting to Azure PG Flexible Server
+if [[ "$MESSAGES_DB_HOST" == *".postgres.database.azure.com"* ]]; then
+  echo "Ensuring database 'messages_db' exists on $MESSAGES_DB_HOST with SSL"
+  docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$MESSAGES_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -tc \
+    "SELECT 1 FROM pg_database WHERE datname='messages_db'" | grep -q 1 || \
+  docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$MESSAGES_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -c \
+    "CREATE DATABASE messages_db;"
+
+  # Initialize schema if core table is missing
+  echo "Checking if schema is initialized in 'messages_db'"
+  if ! docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
+    psql "host=$MESSAGES_DB_HOST port=5432 dbname=messages_db user=$POSTGRES_USER sslmode=require" -tAc \
+    "SELECT to_regclass('public.messages')" | grep -q messages; then
+    echo "Initializing schema from database/messages-db/messages_db_init.sql"
+    SQL_FILE="$SCRIPT_DIR/../../database/messages-db/messages_db_init.sql"
+    if [[ -f "$SQL_FILE" ]]; then
+      docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" -v "$REPO_ROOT:/repo" postgres:15 \
+        psql "host=$MESSAGES_DB_HOST port=5432 dbname=messages_db user=$POSTGRES_USER sslmode=require" -f \
+        "/repo/database/messages-db/messages_db_init.sql"
+    else
+      echo "Warning: SQL init file not found at $SQL_FILE; skipping schema init"
+    fi
+  fi
+fi
+
 USER_SVC_URL="${USER_SVC_URL:-}"
 if [[ -z "$USER_SVC_URL" ]]; then
   USER_SVC_URL="$(az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n backend-user --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || true)"

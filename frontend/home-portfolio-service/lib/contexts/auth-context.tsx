@@ -105,34 +105,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
         } else if (response.status === 404 || response.status === 401) {
-          // Server says no user session - try to establish session from global storage
-          // This handles cases where server-to-server injection worked but session cookies weren't set
+          // Server says no user session - try silent authentication
+          // This automatically identifies the user through background SSO
           try {
-            const establishResponse = await fetch('/api/user/establish-session', {
+            console.log('🔄 Attempting silent authentication...');
+            const silentResponse = await fetch('/api/auth/silent-sso', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include' // Include cookies for user identification
             });
             
-            if (establishResponse.ok) {
-              const sessionData = await establishResponse.json();
-              if (sessionData.success && sessionData.userEmail) {
-                console.log('✅ Session established from global storage for:', sessionData.userEmail);
-                await createLocalSession({
-                  email: sessionData.userEmail,
-                  userId: sessionData.userId,
-                  timestamp: Date.now(),
-                });
-                setIsAuthenticated(true);
-                setUserEmail(sessionData.userEmail);
-                setUserId(sessionData.userId);
-                return;
+            if (silentResponse.ok) {
+              const silentData = await silentResponse.json();
+              if (silentData.success && silentData.ssoToken) {
+                console.log('✅ Silent authentication successful');
+                
+                // Verify the SSO token and establish session
+                const tokenPayload = await verifySSOToken(silentData.ssoToken);
+                if (tokenPayload) {
+                  // Establish session cookies by calling inject-client endpoint
+                  const injectResponse = await fetch('/api/user/inject-client', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ssoToken: silentData.ssoToken }),
+                  });
+
+                  if (injectResponse.ok) {
+                    await createLocalSession(tokenPayload);
+                    setIsAuthenticated(true);
+                    setUserEmail(tokenPayload.email);
+                    setUserId(tokenPayload.userId);
+                    console.log('✅ Auto-authentication successful for user:', tokenPayload.email);
+                    return;
+                  }
+                }
+              }
+            } else {
+              // Log detailed error information for debugging
+              const errorData = await silentResponse.json().catch(() => ({}));
+              if (silentResponse.status === 401) {
+                console.log('🔒 Silent authentication: No active session in auth service (expected if user not logged in)');
+              } else {
+                console.log('🔒 Silent authentication failed with status:', silentResponse.status, errorData);
               }
             }
-          } catch (establishError) {
-            console.log('No session could be established from global storage:', establishError);
+          } catch (silentError) {
+            console.log('🔒 Silent authentication error:', silentError);
           }
           
-          // Clear any stale local session if no server session available
+          // Clear local session if silent auth failed
           clearLocalSession();
         }
       } catch {
