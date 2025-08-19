@@ -181,7 +181,10 @@ const FormContent = React.memo<{
           disabled={loading}
           className="flex-1 bg-app-blue hover:bg-app-blue-hover text-white"
         >
-          {loading ? 'Saving...' : submitLabel || (isEdit ? 'Update' : 'Add')}
+          {loading 
+            ? (isEdit ? 'Saving...' : 'Creating...') 
+            : submitLabel || (isEdit ? 'Save Changes' : 'Create')
+          }
         </Button>
         <Button
           variant="outline"

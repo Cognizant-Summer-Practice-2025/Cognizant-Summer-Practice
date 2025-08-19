@@ -116,7 +116,7 @@ const MessagesPage = () => {
     }
   }, [isMobile]);
 
-  const getValidTimestamp = (...timestamps: (string | undefined)[]): string => {
+  const getValidTimestamp = useCallback((...timestamps: (string | undefined)[]): string => {
     for (const timestamp of timestamps) {
       if (timestamp && timestamp.trim() !== '') {
         const testDate = new Date(timestamp);
@@ -126,9 +126,9 @@ const MessagesPage = () => {
       }
     }
     return new Date().toISOString();
-  };
+  }, []);
 
-  const formatTimestamp = (dateString: string): string => {
+  const formatTimestamp = useCallback((dateString: string): string => {
     if (!dateString || dateString.trim() === '') {
       return 'Now';
     }
@@ -151,7 +151,7 @@ const MessagesPage = () => {
       const diffInDays = Math.floor(diffInHours / 24);
       return `${diffInDays}d`;
     }
-  };
+  }, []);
 
   const formatMessageTimestamp = useCallback((dateString: string): string => {
     if (!dateString || dateString.trim() === '') {
@@ -232,7 +232,7 @@ const MessagesPage = () => {
     }
     
     return result;
-  }, [enhancedContacts, currentConversation?.id, formatMessageTimestamp]);
+  }, [enhancedContacts, currentConversation?.id, formatMessageTimestamp, getValidTimestamp]);
 
   const contacts: Contact[] = conversations.map(getEnhancedContact);
 
@@ -266,15 +266,22 @@ const MessagesPage = () => {
       const currentConv = conversations.find(conv => conv.id === selectedContact.id);
       if (currentConv) {
         const updatedContact = getEnhancedContact(currentConv);
-        setSelectedContact(prev => ({
-          ...prev!,
-          isOnline: updatedContact.isOnline,
-          lastMessage: updatedContact.lastMessage,
-          timestamp: updatedContact.timestamp
-        }));
+        // Only update if the relevant fields have actually changed
+        if (
+          selectedContact.isOnline !== updatedContact.isOnline ||
+          selectedContact.lastMessage !== updatedContact.lastMessage ||
+          selectedContact.timestamp !== updatedContact.timestamp
+        ) {
+          setSelectedContact(prev => ({
+            ...prev!,
+            isOnline: updatedContact.isOnline,
+            lastMessage: updatedContact.lastMessage,
+            timestamp: updatedContact.timestamp
+          }));
+        }
       }
     }
-  }, [conversations, selectedContact, getEnhancedContact]);
+  }, [conversations, selectedContact?.id, selectedContact?.isOnline, selectedContact?.lastMessage, selectedContact?.timestamp, getEnhancedContact]);
 
   const handleSelectContact = async (contact: Contact) => {
     const conversation = conversations.find(conv => conv.id === contact.id);
