@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { User, MoreHorizontal, Volume2, Shield, AlertTriangle, Trash2, ArrowLeft } from "lucide-react";
+import { User, MoreHorizontal, AlertTriangle, ArrowLeft } from "lucide-react";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import { redirectToService } from "@/lib/config/services";
 import { reportUser } from "@/lib/user/api";
@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAlert } from "@/components/ui/alert-dialog";
 import ReportModal from "../message-menu/report-modal";
 import "./style.css";
 
@@ -36,23 +35,11 @@ interface ChatHeaderProps {
   isMobile?: boolean;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConversation, onBackToSidebar, isMobile = false }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSidebar, isMobile = false }) => {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
-  const { showConfirm } = useAlert();
   const { user } = useUser();
-
-  const handleMuteNotifications = () => {
-    console.log('Mute user:', selectedContact.name);
-    // Add mute user logic here
-  };
-
-  const handleBlockUser = () => {
-    console.log('Block user:', selectedContact.name);
-    // Add block user logic here
-  };
 
   const handleReportUser = () => {
     console.log('Report user:', selectedContact.name);
@@ -74,36 +61,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onDeleteConver
       throw error;
     } finally {
       setIsReporting(false);
-    }
-  };
-
-  const handleDeleteClick = () => {
-    console.log('Delete conversation clicked for:', selectedContact.name);
-    showConfirm({
-      title: 'Delete Conversation',
-      description: `Are you sure you want to delete the conversation with ${selectedContact.name}? 
-This will remove the conversation from your chat list, but ${selectedContact.name} will still see it. 
-You can restore it by sending a new message.`,
-      type: 'warning',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      onConfirm: handleConfirmDelete,
-    });
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!onDeleteConversation) return;
-    
-    console.log('Confirming delete for conversation:', selectedContact.id);
-    setIsDeleting(true);
-    try {
-      console.log('Calling onDeleteConversation...');
-      await onDeleteConversation(selectedContact.id);
-      console.log('Delete successful');
-    } catch (error) {
-      console.error('Delete conversation error:', error);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -136,7 +93,7 @@ You can restore it by sending a new message.`,
       console.log('Navigating to portfolio with portfolioId:', portfolioId);
       redirectToService('HOME_PORTFOLIO_SERVICE', `portfolio?portfolio=${portfolioId}`);
     } else {
-      console.log('❌ No portfolio ID available for:', selectedContact.name);
+      console.log('No portfolio ID available for:', selectedContact.name);
     }
   };
 
@@ -198,17 +155,6 @@ You can restore it by sending a new message.`,
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleMuteNotifications}>
-              <Volume2 className="mr-2 h-4 w-4" />
-              Mute notifications
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={handleBlockUser}
-              className="text-red-600 focus:text-red-600 focus:bg-red-50"
-            >
-              <Shield className="mr-2 h-4 w-4" />
-              Block user
-            </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={handleReportUser}
               disabled={isReporting}
@@ -218,14 +164,6 @@ You can restore it by sending a new message.`,
               {isReporting ? "Reporting..." : "Report user"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={handleDeleteClick}
-              disabled={isDeleting}
-              className="text-red-600 focus:text-red-600 focus:bg-red-50"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? "Deleting..." : "Delete for me"}
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
