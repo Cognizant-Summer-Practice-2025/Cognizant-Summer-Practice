@@ -45,3 +45,4 @@ public static class MiddlewareConfiguration
         return app;
     }
 }
+

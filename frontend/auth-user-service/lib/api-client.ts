@@ -7,7 +7,9 @@ interface ApiClientOptions {
 }
 
 export class ApiClient {
-  private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+  private static get baseUrl() {
+    return process.env.NEXT_PUBLIC_BACKEND_URL
+  }
 
   static async request<T>(
     endpoint: string,
