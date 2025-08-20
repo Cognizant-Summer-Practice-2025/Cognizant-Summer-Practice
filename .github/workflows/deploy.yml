@@ -23,62 +23,101 @@ jobs:
           'deploy-backend-messages.sh',
           'deploy-backend-ai.sh'
         ]
-    env:
-      # Repo root for build contexts (override azure.env hardcoded path)
-      REPO_ROOT: ${{ github.workspace }}
-      # Azure
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZ_SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZ_RG: ${{ secrets.AZ_RG }}
-      AZ_LOCATION: ${{ secrets.AZ_LOCATION }}
-      AZ_PG_LOCATION: ${{ secrets.AZ_PG_LOCATION }}
-      AZ_ENV_NAME: ${{ secrets.AZ_ENV_NAME }}
-      AZ_ACR_NAME: ${{ secrets.AZ_ACR_NAME }}
-
-      # Backend-to-backend
-      USER_SERVICE_URL: ${{ secrets.USER_SERVICE_URL }}
-      PORTFOLIO_SERVICE_URL: ${{ secrets.PORTFOLIO_SERVICE_URL }}
-
-      # DB creds (flex servers are discovered; these are used for connection strings)
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-
-      # CORS
-      ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
-
-      # Auth
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-      SERVICE_AUTH_SECRET: ${{ secrets.SERVICE_AUTH_SECRET }}
-
-      # Social login providers (used by backend-user)
-      AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
-      AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
-      AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-      AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-      AUTH_LINKEDIN_ID: ${{ secrets.AUTH_LINKEDIN_ID }}
-      AUTH_LINKEDIN_SECRET: ${{ secrets.AUTH_LINKEDIN_SECRET }}
-      AUTH_FACEBOOK_ID: ${{ secrets.AUTH_FACEBOOK_ID }}
-      AUTH_FACEBOOK_SECRET: ${{ secrets.AUTH_FACEBOOK_SECRET }}
-
-      # Logging
-      LOGGING_LOGLEVEL_DEFAULT: ${{ secrets.LOGGING_LOGLEVEL_DEFAULT }}
-      LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE: ${{ secrets.LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE }}
-
-      # AI service
-      BEST_PORTFOLIO_PROMPT: ${{ secrets.BEST_PORTFOLIO_PROMPT }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
-      OPENROUTER_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
-      OPENROUTER_PROMPT: ${{ secrets.OPENROUTER_PROMPT }}
-      RANKING_LOG_LEVEL: ${{ secrets.RANKING_LOG_LEVEL }}
-      LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
-      AI_LOG_LEVEL: ${{ secrets.AI_LOG_LEVEL }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare env files (scripts/azure/.state/azure.env and .env)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/azure
+          mkdir -p .state
+
+          # .state/azure.env (sourced by deploy scripts)
+          cat > .state/azure.env << 'EOF'
+          AZ_RG=${{ secrets.AZ_RG }}
+          AZ_ENV_RG=${{ secrets.AZ_RG }}
+          AZ_LOCATION=${{ secrets.AZ_LOCATION }}
+          AZ_PG_LOCATION=${{ secrets.AZ_PG_LOCATION }}
+          AZ_ENV_NAME=${{ secrets.AZ_ENV_NAME }}
+          AZ_ACR_NAME=${{ secrets.AZ_ACR_NAME }}
+          ACR_LOGIN_SERVER=${{ secrets.AZ_ACR_NAME }}.azurecr.io
+          ACR_USERNAME=${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD=${{ secrets.ACR_PASSWORD }}
+          USER_DB_HOST=${{ secrets.USER_DB_HOST }}
+          PORTFOLIO_DB_HOST=${{ secrets.PORTFOLIO_DB_HOST }}
+          MESSAGES_DB_HOST=${{ secrets.MESSAGES_DB_HOST }}
+          REPO_ROOT=$GITHUB_WORKSPACE
+          EOF
+
+          # .env (exported by deploy scripts)
+          cat > .env << 'EOF'
+          # Azure
+          AZ_SUBSCRIPTION=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZ_LOCATION=${{ secrets.AZ_LOCATION }}
+          AZ_PG_LOCATION=${{ secrets.AZ_PG_LOCATION }}
+          AZ_ENV_NAME=${{ secrets.AZ_ENV_NAME }}
+
+          # Public service URLs
+          NEXT_PUBLIC_AUTH_USER_SERVICE=${{ secrets.NEXT_PUBLIC_AUTH_USER_SERVICE }}
+          NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${{ secrets.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE }}
+          NEXT_PUBLIC_MESSAGES_SERVICE=${{ secrets.NEXT_PUBLIC_MESSAGES_SERVICE }}
+          NEXT_PUBLIC_ADMIN_SERVICE=${{ secrets.NEXT_PUBLIC_ADMIN_SERVICE }}
+
+          NEXT_PUBLIC_USER_API_URL=${{ secrets.NEXT_PUBLIC_USER_API_URL }}
+          NEXT_PUBLIC_PORTFOLIO_API_URL=${{ secrets.NEXT_PUBLIC_PORTFOLIO_API_URL }}
+          NEXT_PUBLIC_MESSAGES_API_URL=${{ secrets.NEXT_PUBLIC_MESSAGES_API_URL }}
+          NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
+          # Backend-to-backend URLs
+          USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}
+          PORTFOLIO_SERVICE_URL=${{ secrets.PORTFOLIO_SERVICE_URL }}
+          USER_SVC_URL=${{ secrets.USER_SERVICE_URL }}
+          PORTFOLIO_SVC_URL=${{ secrets.PORTFOLIO_SERVICE_URL }}
+
+          # DB creds
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+          # CORS
+          ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
+
+          # Auth
+          AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          SERVICE_AUTH_SECRET=${{ secrets.SERVICE_AUTH_SECRET }}
+
+          # Social login providers (used by backend-user)
+          AUTH_GITHUB_ID=${{ secrets.AUTH_GITHUB_ID }}
+          AUTH_GITHUB_SECRET=${{ secrets.AUTH_GITHUB_SECRET }}
+          AUTH_GOOGLE_ID=${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET=${{ secrets.AUTH_GOOGLE_SECRET }}
+          AUTH_LINKEDIN_ID=${{ secrets.AUTH_LINKEDIN_ID }}
+          AUTH_LINKEDIN_SECRET=${{ secrets.AUTH_LINKEDIN_SECRET }}
+          AUTH_FACEBOOK_ID=${{ secrets.AUTH_FACEBOOK_ID }}
+          AUTH_FACEBOOK_SECRET=${{ secrets.AUTH_FACEBOOK_SECRET }}
+
+          # EmailJS
+          NEXT_PUBLIC_EMAILJS_SERVICE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+          NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
+          NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
+
+          # Logging
+          LOGGING_LOGLEVEL_DEFAULT=${{ secrets.LOGGING_LOGLEVEL_DEFAULT }}
+          LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=${{ secrets.LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE }}
+
+          # AI service
+          BEST_PORTFOLIO_PROMPT=${{ secrets.BEST_PORTFOLIO_PROMPT }}
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL=${{ secrets.OPENROUTER_MODEL }}
+          OPENROUTER_BASE_URL=${{ secrets.OPENROUTER_BASE_URL }}
+          OPENROUTER_PROMPT=${{ secrets.OPENROUTER_PROMPT }}
+          RANKING_LOG_LEVEL=${{ secrets.RANKING_LOG_LEVEL }}
+          LOG_LEVEL=${{ secrets.LOG_LEVEL }}
+          AI_LOG_LEVEL=${{ secrets.AI_LOG_LEVEL }}
+          EOF
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
@@ -111,55 +150,101 @@ jobs:
           'deploy-frontend-messages.sh',
           'deploy-frontend-admin.sh'
         ]
-    env:
-      # Repo root for build contexts (override azure.env hardcoded path)
-      REPO_ROOT: ${{ github.workspace }}
-      # Azure
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZ_SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZ_RG: ${{ secrets.AZ_RG }}
-      AZ_LOCATION: ${{ secrets.AZ_LOCATION }}
-      AZ_PG_LOCATION: ${{ secrets.AZ_PG_LOCATION }}
-      AZ_ENV_NAME: ${{ secrets.AZ_ENV_NAME }}
-      AZ_ACR_NAME: ${{ secrets.AZ_ACR_NAME }}
-
-      # Public URLs (build-time for frontends; also used at runtime where applicable)
-      NEXT_PUBLIC_AUTH_USER_SERVICE: ${{ secrets.NEXT_PUBLIC_AUTH_USER_SERVICE }}
-      NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE: ${{ secrets.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE }}
-      NEXT_PUBLIC_MESSAGES_SERVICE: ${{ secrets.NEXT_PUBLIC_MESSAGES_SERVICE }}
-      NEXT_PUBLIC_ADMIN_SERVICE: ${{ secrets.NEXT_PUBLIC_ADMIN_SERVICE }}
-
-      NEXT_PUBLIC_USER_API_URL: ${{ secrets.NEXT_PUBLIC_USER_API_URL }}
-      NEXT_PUBLIC_PORTFOLIO_API_URL: ${{ secrets.NEXT_PUBLIC_PORTFOLIO_API_URL }}
-      NEXT_PUBLIC_MESSAGES_API_URL: ${{ secrets.NEXT_PUBLIC_MESSAGES_API_URL }}
-      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-
-      # CORS
-      ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
-
-      # Auth + EmailJS
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-      AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
-      AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
-      AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-      AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-      AUTH_LINKEDIN_ID: ${{ secrets.AUTH_LINKEDIN_ID }}
-      AUTH_LINKEDIN_SECRET: ${{ secrets.AUTH_LINKEDIN_SECRET }}
-      AUTH_FACEBOOK_ID: ${{ secrets.AUTH_FACEBOOK_ID }}
-      AUTH_FACEBOOK_SECRET: ${{ secrets.AUTH_FACEBOOK_SECRET }}
-      NEXT_PUBLIC_EMAILJS_SERVICE_ID: ${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
-      NEXT_PUBLIC_EMAILJS_TEMPLATE_ID: ${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
-      NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
-
-      # Logging
-      LOGGING_LOGLEVEL_DEFAULT: ${{ secrets.LOGGING_LOGLEVEL_DEFAULT }}
-      LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE: ${{ secrets.LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare env files (scripts/azure/.state/azure.env and .env)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/azure
+          mkdir -p .state
+
+          # .state/azure.env (sourced by deploy scripts)
+          cat > .state/azure.env << 'EOF'
+          AZ_RG=${{ secrets.AZ_RG }}
+          AZ_ENV_RG=${{ secrets.AZ_RG }}
+          AZ_LOCATION=${{ secrets.AZ_LOCATION }}
+          AZ_PG_LOCATION=${{ secrets.AZ_PG_LOCATION }}
+          AZ_ENV_NAME=${{ secrets.AZ_ENV_NAME }}
+          AZ_ACR_NAME=${{ secrets.AZ_ACR_NAME }}
+          ACR_LOGIN_SERVER=${{ secrets.AZ_ACR_NAME }}.azurecr.io
+          ACR_USERNAME=${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD=${{ secrets.ACR_PASSWORD }}
+          USER_DB_HOST=${{ secrets.USER_DB_HOST }}
+          PORTFOLIO_DB_HOST=${{ secrets.PORTFOLIO_DB_HOST }}
+          MESSAGES_DB_HOST=${{ secrets.MESSAGES_DB_HOST }}
+          REPO_ROOT=$GITHUB_WORKSPACE
+          EOF
+
+          # .env (exported by deploy scripts)
+          cat > .env << 'EOF'
+          # Azure
+          AZ_SUBSCRIPTION=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZ_LOCATION=${{ secrets.AZ_LOCATION }}
+          AZ_PG_LOCATION=${{ secrets.AZ_PG_LOCATION }}
+          AZ_ENV_NAME=${{ secrets.AZ_ENV_NAME }}
+
+          # Public service URLs
+          NEXT_PUBLIC_AUTH_USER_SERVICE=${{ secrets.NEXT_PUBLIC_AUTH_USER_SERVICE }}
+          NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${{ secrets.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE }}
+          NEXT_PUBLIC_MESSAGES_SERVICE=${{ secrets.NEXT_PUBLIC_MESSAGES_SERVICE }}
+          NEXT_PUBLIC_ADMIN_SERVICE=${{ secrets.NEXT_PUBLIC_ADMIN_SERVICE }}
+
+          NEXT_PUBLIC_USER_API_URL=${{ secrets.NEXT_PUBLIC_USER_API_URL }}
+          NEXT_PUBLIC_PORTFOLIO_API_URL=${{ secrets.NEXT_PUBLIC_PORTFOLIO_API_URL }}
+          NEXT_PUBLIC_MESSAGES_API_URL=${{ secrets.NEXT_PUBLIC_MESSAGES_API_URL }}
+          NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
+          # Backend-to-backend URLs
+          USER_SERVICE_URL=${{ secrets.USER_SERVICE_URL }}
+          PORTFOLIO_SERVICE_URL=${{ secrets.PORTFOLIO_SERVICE_URL }}
+          USER_SVC_URL=${{ secrets.USER_SERVICE_URL }}
+          PORTFOLIO_SVC_URL=${{ secrets.PORTFOLIO_SERVICE_URL }}
+
+          # DB creds
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
+          # CORS
+          ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
+
+          # Auth
+          AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          SERVICE_AUTH_SECRET=${{ secrets.SERVICE_AUTH_SECRET }}
+
+          # Social login providers (used by backend-user)
+          AUTH_GITHUB_ID=${{ secrets.AUTH_GITHUB_ID }}
+          AUTH_GITHUB_SECRET=${{ secrets.AUTH_GITHUB_SECRET }}
+          AUTH_GOOGLE_ID=${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET=${{ secrets.AUTH_GOOGLE_SECRET }}
+          AUTH_LINKEDIN_ID=${{ secrets.AUTH_LINKEDIN_ID }}
+          AUTH_LINKEDIN_SECRET=${{ secrets.AUTH_LINKEDIN_SECRET }}
+          AUTH_FACEBOOK_ID=${{ secrets.AUTH_FACEBOOK_ID }}
+          AUTH_FACEBOOK_SECRET=${{ secrets.AUTH_FACEBOOK_SECRET }}
+
+          # EmailJS
+          NEXT_PUBLIC_EMAILJS_SERVICE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+          NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
+          NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
+
+          # Logging
+          LOGGING_LOGLEVEL_DEFAULT=${{ secrets.LOGGING_LOGLEVEL_DEFAULT }}
+          LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=${{ secrets.LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE }}
+
+          # AI service
+          BEST_PORTFOLIO_PROMPT=${{ secrets.BEST_PORTFOLIO_PROMPT }}
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL=${{ secrets.OPENROUTER_MODEL }}
+          OPENROUTER_BASE_URL=${{ secrets.OPENROUTER_BASE_URL }}
+          OPENROUTER_PROMPT=${{ secrets.OPENROUTER_PROMPT }}
+          RANKING_LOG_LEVEL=${{ secrets.RANKING_LOG_LEVEL }}
+          LOG_LEVEL=${{ secrets.LOG_LEVEL }}
+          AI_LOG_LEVEL=${{ secrets.AI_LOG_LEVEL }}
+          EOF
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
