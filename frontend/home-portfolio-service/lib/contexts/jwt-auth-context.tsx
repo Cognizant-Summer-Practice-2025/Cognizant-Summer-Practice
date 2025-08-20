@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { SERVICES } from '@/lib/config';
 
 interface JWTUser {
   id: string;
@@ -70,11 +71,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
   // Verify JWT token with auth service
   const verifyToken = useCallback(async (token: string): Promise<JWTUser | null> => {
     try {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-      if (!authServiceUrl) {
-        console.error('Auth service URL not configured');
-        return null;
-      }
+      const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
 
       // Validate the URL format
       try {
@@ -116,8 +113,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
   // Try to obtain a new JWT from auth service if user has an active NextAuth session
   const attemptAutoLogin = useCallback(async (): Promise<boolean> => {
     try {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-      if (!authServiceUrl) return false;
+      const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
 
       const resp = await fetch(`${authServiceUrl}/api/auth/get-jwt`, {
         method: 'GET',
@@ -171,12 +167,12 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     clearStoredToken();
     try {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-      if (typeof window !== 'undefined' && authServiceUrl) {
+      if (typeof window !== 'undefined') {
+        const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
         const callbackUrl = window.location.origin;
         const services = [
-          process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE,
-          process.env.NEXT_PUBLIC_MESSAGES_SERVICE,
+          SERVICES.HOME_PORTFOLIO_SERVICE,
+          SERVICES.MESSAGES_SERVICE,
         ].filter(Boolean).join(',');
         // First clear NextAuth cookies, then cascade signout across services, end at current origin
         await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(callbackUrl)}`, {

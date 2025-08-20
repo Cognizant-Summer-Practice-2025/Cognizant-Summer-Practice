@@ -253,8 +253,15 @@ export const authOptions: AuthOptions = {
       }
       
       // Allow redirects to external services (like home-portfolio-service)
-      // Only restrict redirects to same-origin URLs
-      if (url.startsWith(baseUrl) || url.startsWith('http://localhost:3001') || url.startsWith('http://localhost:3002') || url.startsWith('http://localhost:3003')) {
+      // Use environment variables for production URLs, fallback to localhost for development
+      const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+      const messagesServiceUrl = process.env.NEXT_PUBLIC_MESSAGES_SERVICE || 'http://localhost:3002';
+      const adminServiceUrl = process.env.NEXT_PUBLIC_ADMIN_SERVICE || 'http://localhost:3003';
+      
+      if (url.startsWith(baseUrl) || 
+          url.startsWith(homeServiceUrl) || 
+          url.startsWith(messagesServiceUrl) || 
+          url.startsWith(adminServiceUrl)) {
         return url;
       }
       

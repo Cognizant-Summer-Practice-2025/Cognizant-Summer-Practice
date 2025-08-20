@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No active session found' }, { status: 401 });
     }
 
-    // Get the callback URL from the request or use default
-    const { searchParams } = new URL(request.url);
-    const callbackUrl = searchParams.get('callbackUrl') || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    // Get the callback URL from the request or use current origin
+    const { searchParams, origin } = new URL(request.url);
+    const callbackUrl = searchParams.get('callbackUrl') || origin;
     
-    // Get the current auth service URL to create absolute URLs
-    const authServiceUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    // Use the request origin for the auth service URL to ensure it works in production
+    const authServiceUrl = origin;
     const signoutUrl = `${authServiceUrl}/api/auth/signout?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
     // Create response with automatic redirect to NextAuth signout

@@ -8,7 +8,7 @@ import { Search, MessageCircle, Plus, User, LogOut, Menu, X, ChevronLeft, Bookma
 import { useAuth } from '@/lib/hooks/use-auth';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
-import { redirectToService } from '@/lib/config';
+import { redirectToService, SERVICES } from '@/lib/config';
 import { getSafeImageUrl } from '@/lib/image';
 import { usePortfolioSearch } from '@/hooks/usePortfolioSearch';
 import { Input } from '@/components/ui/input';
@@ -81,8 +81,8 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const handleLogin = () => {
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
     const currentUrl = window.location.href;
+    const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
     window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
   };
 

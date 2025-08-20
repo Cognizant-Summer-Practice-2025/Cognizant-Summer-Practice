@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { SERVICES } from '@/lib/config';
 
 interface JWTUser {
   id: string;
@@ -55,43 +56,60 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem('jwt_auth_token');
   }, []);
 
+  // Verify JWT token with auth service
   const verifyToken = useCallback(async (token: string): Promise<JWTUser | null> => {
     try {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-      if (!authServiceUrl) return null;
-      const resp = await fetch(`${authServiceUrl}/api/auth/verify-jwt`, {
+      const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
+
+      // Validate the URL format
+      try {
+        new URL(authServiceUrl);
+      } catch {
+        console.error('Invalid auth service URL:', authServiceUrl);
+        return null;
+      }
+
+      const response = await fetch(`${authServiceUrl}/api/auth/verify-jwt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ token }),
       });
-      if (!resp.ok) {
-        if (resp.status === 401) {
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token is invalid or expired
           clearStoredToken();
           return null;
         }
-        return null;
+        throw new Error(`Auth service error: ${response.status}`);
       }
-      const data = await resp.json();
-      return data?.success && data?.user ? data.user : null;
-    } catch {
+
+      const data = await response.json();
+      if (data.success && data.user) {
+        return data.user;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error verifying JWT token:', error);
       return null;
     }
   }, [clearStoredToken]);
 
+  // Try to obtain a new JWT from auth service if user has an active NextAuth session
   const attemptAutoLogin = useCallback(async (): Promise<boolean> => {
     try {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-      if (!authServiceUrl) {
-        return false;
-      }
+      const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
+
       const resp = await fetch(`${authServiceUrl}/api/auth/get-jwt`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // send cookies to auth domain
         headers: { 'Content-Type': 'application/json' },
       });
-      if (!resp.ok) {
-        return false;
-      }
+
+      if (!resp.ok) return false;
       const data = await resp.json();
       if (data?.success && data?.token) {
         const userData = await verifyToken(data.token);
@@ -124,27 +142,32 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
     }
   }, [verifyToken, storeToken]);
 
+  // Logout
   const logout = useCallback(async () => {
     setUser(null);
     setIsAuthenticated(false);
     clearStoredToken();
     try {
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-      if (typeof window !== 'undefined' && authServiceUrl) {
-        const callbackUrl = window.location.origin + (window.location.search ? window.location.search : '');
+      if (typeof window !== 'undefined') {
+        const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
+        const callbackUrl = window.location.origin;
         const services = [
-          process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE,
-          process.env.NEXT_PUBLIC_MESSAGES_SERVICE,
+          SERVICES.HOME_PORTFOLIO_SERVICE,
+          SERVICES.MESSAGES_SERVICE,
         ].filter(Boolean).join(',');
+        // First clear NextAuth cookies, then cascade signout across services, end at current origin
         await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(callbackUrl)}`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
         });
-        const cascadeUrl = `${authServiceUrl}/api/auth/cascade-signout?services=${encodeURIComponent(services)}&return=${encodeURIComponent(window.location.origin)}`;
+        const cascadeUrl = `${authServiceUrl}/api/auth/cascade-signout?services=${encodeURIComponent(services)}&return=${encodeURIComponent(callbackUrl)}`;
         window.location.href = cascadeUrl;
       }
-    } catch {}
+    } catch {
+      // no-op
+    }
+    console.log('🔒 User logged out');
   }, [clearStoredToken]);
 
   const refreshAuth = useCallback(async () => {
