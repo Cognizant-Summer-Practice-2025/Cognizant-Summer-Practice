@@ -20,6 +20,8 @@ public class PortfolioApiClientTests
         var accessor = new HttpContextAccessor { HttpContext = new DefaultHttpContext() };
         var factory = new Mock<IHttpClientFactory>();
         factory.Setup(f => f.CreateClient("PortfolioService")).Returns(http);
+        // Ensure env var required by GetAllPortfoliosDetailedJsonAsync is set for tests
+        Environment.SetEnvironmentVariable("PORTFOLIO_SERVICE_URL", baseUrl);
         var client = new PortfolioApiClient(factory.Object, cfg, logger, accessor);
         return (client, handler);
     }
