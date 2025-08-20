@@ -25,7 +25,17 @@ jest.mock('@/lib/contexts/user-context', () => ({
 
 // Mock ReportModal component
 jest.mock('@/components/messages-page/message-menu/report-modal', () => {
-	return function MockReportModal({ isOpen, onClose, onSubmit }: any) {
+	return function MockReportModal({ 
+		isOpen, 
+		onClose, 
+		onSubmit 
+	}: {
+		isOpen: boolean;
+		onClose: () => void;
+		onSubmit: (reason: string) => Promise<void>;
+		reportType?: 'message' | 'user';
+		targetName?: string;
+	}) {
 		if (!isOpen) return null
 		return (
 			<div data-testid="report-modal">

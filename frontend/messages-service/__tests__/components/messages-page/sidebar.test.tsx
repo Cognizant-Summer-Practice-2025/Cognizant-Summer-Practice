@@ -4,11 +4,19 @@ import MessagesSidebar from '@/components/messages-page/sidebar/sidebar'
 
 // Mock UserSearchModal component
 jest.mock('@/components/messages-page/user-search-modal/user-search-modal', () => {
-	return function MockUserSearchModal({ visible, onClose, onUserSelect }: any) {
+	return function MockUserSearchModal({ 
+		visible, 
+		onClose, 
+		onUserSelect 
+	}: {
+		visible: boolean;
+		onClose: () => void;
+		onUserSelect: (user: { id: string; fullName: string; username?: string; professionalTitle?: string; avatarUrl?: string; isActive?: boolean; }) => void;
+	}) {
 		if (!visible) return null
 		return (
 			<div data-testid="user-search-modal">
-				<button onClick={() => onUserSelect({ id: 'new-user', name: 'New User' })}>
+				<button onClick={() => onUserSelect({ id: 'new-user', fullName: 'New User', username: 'newuser', isActive: true })}>
 					Select User
 				</button>
 				<button onClick={onClose}>Close</button>
@@ -148,7 +156,7 @@ describe('MessagesSidebar', () => {
 		const selectUserButton = screen.getByText('Select User')
 		await user.click(selectUserButton)
 		
-		expect(onNewConversation).toHaveBeenCalledWith({ id: 'new-user', name: 'New User' })
+		expect(onNewConversation).toHaveBeenCalledWith({ id: 'new-user', fullName: 'New User', username: 'newuser', isActive: true })
 	})
 
 	it('handles empty contact list', () => {
