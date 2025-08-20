@@ -21,7 +21,7 @@ export interface AIGeneratedPortfolio {
 
 // Response from AI generate-best-portfolio endpoint
 export interface AIPortfolioResponse {
-  response: AIGeneratedPortfolio[];
+  response: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any - Backend returns JsonElement[], not structured objects
 }
 
 // Helper function to handle API responses
@@ -36,7 +36,7 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
 }
 
 // Generate best portfolios using AI
-export async function generateBestPortfolios(): Promise<AIGeneratedPortfolio[]> {
+export async function generateBestPortfolios(): Promise<any[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
   // Get session for authentication
   const session = await getSession();
   
@@ -57,65 +57,78 @@ export async function generateBestPortfolios(): Promise<AIGeneratedPortfolio[]> 
   });
   
   const data = await handleApiResponse<AIPortfolioResponse>(response);
-  return data.response;
+  console.log('Backend AI Response:', data); // Debug log
+  return data.response || [];
 }
 
 // Convert AI portfolio data to PortfolioCard format
-export async function convertAIPortfoliosToCards(aiPortfolios: AIGeneratedPortfolio[]): Promise<import('../portfolio/api').PortfolioCardDto[]> {
+export async function convertAIPortfoliosToCards(aiPortfolios: any[]): Promise<import('../portfolio/api').PortfolioCardDto[]> { // eslint-disable-line @typescript-eslint/no-explicit-any
   const { getUserPortfolioInfo } = await import('../portfolio/api');
   
   const portfolioCards = await Promise.all(
-    aiPortfolios.map(async (portfolio) => {
+    aiPortfolios.map(async (portfolio, index) => {
       try {
-        const userInfo = await getUserPortfolioInfo(portfolio.userId);
+        // Handle both structured data and raw JSON elements
+        const portfolioId = portfolio.id || portfolio.Id || `ai-portfolio-${index}`;
+        const portfolioUserId = portfolio.userId || portfolio.UserId || 'unknown-user';
+        const portfolioBio = portfolio.bio || portfolio.Bio || '';
+        const updatedAt = portfolio.updatedAt || portfolio.UpdatedAt || new Date().toISOString();
+        const viewCount = portfolio.viewCount || portfolio.ViewCount || 0;
+        const likeCount = portfolio.likeCount || portfolio.LikeCount || 0;
+        
+        let userInfo;
+        try {
+          userInfo = await getUserPortfolioInfo(portfolioUserId);
+        } catch (userError) {
+          console.warn(`Failed to fetch user info for ${portfolioUserId}:`, userError);
+          userInfo = null;
+        }
         
         // Format the date
-        const formattedDate = new Date(portfolio.updatedAt).toLocaleDateString('en-US', {
+        const formattedDate = new Date(updatedAt).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
           year: 'numeric'
         });
         
         return {
-          id: portfolio.id,
-          userId: portfolio.userId,
-          name: userInfo.name || userInfo.username,
-          role: userInfo.professionalTitle,
-          location: userInfo.location,
-          description: portfolio.bio || 'AI-generated portfolio with curated content',
+          id: portfolioId,
+          userId: portfolioUserId,
+          name: userInfo?.name || userInfo?.username || 'Portfolio Creator',
+          role: userInfo?.professionalTitle || 'Professional',
+          location: userInfo?.location || 'Location not specified',
+          description: portfolioBio || 'AI-generated portfolio with curated content',
           skills: [], // Will be populated from the actual portfolio data if needed
-          views: portfolio.viewCount,
-          likes: portfolio.likeCount,
+          views: viewCount,
+          likes: likeCount,
           comments: 0, // Not available in AI response
           bookmarks: 0, // Not available in AI response
           date: formattedDate,
-          avatar: userInfo.avatarUrl,
+          avatar: userInfo?.avatarUrl,
           featured: false,
           templateName: undefined
         } as import('../portfolio/api').PortfolioCardDto;
       } catch (error) {
-        console.error(`Error fetching user info for ${portfolio.userId}:`, error);
+        console.error(`Error processing portfolio at index ${index}:`, error, portfolio);
         
         // Return card with fallback values
-        const formattedDate = new Date(portfolio.updatedAt).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        });
-        
         return {
-          id: portfolio.id,
-          userId: portfolio.userId,
+          id: `ai-error-portfolio-${index}`,
+          userId: 'unknown',
           name: 'Portfolio Creator',
-          role: 'Professional',
+          role: 'Professional', 
           location: 'Location not specified',
-          description: portfolio.bio || 'AI-generated portfolio with curated content',
+          description: 'AI-generated portfolio (error processing)',
           skills: [],
-          views: portfolio.viewCount,
-          likes: portfolio.likeCount,
+          views: 0,
+          likes: 0,
           comments: 0,
           bookmarks: 0,
-          date: formattedDate,
+          date: new Date().toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric', 
+            year: 'numeric'
+          }),
           avatar: undefined,
           featured: false,
           templateName: undefined

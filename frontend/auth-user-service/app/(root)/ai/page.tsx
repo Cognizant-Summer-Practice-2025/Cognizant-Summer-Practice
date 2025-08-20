@@ -13,6 +13,7 @@ interface AIPageState {
   loading: boolean;
   error: string | null;
   hasGenerated: boolean;
+  rawResponse: any; // Store raw JSON response for debugging
 }
 
 export default function AIPage() {
@@ -20,7 +21,8 @@ export default function AIPage() {
     portfolios: [],
     loading: false,
     error: null,
-    hasGenerated: false
+    hasGenerated: false,
+    rawResponse: null
   });
 
   const handleGeneratePortfolios = async () => {
@@ -30,6 +32,8 @@ export default function AIPage() {
       // Call AI service to generate best portfolios
       const aiPortfolios = await generateBestPortfolios();
       
+      console.log('Raw AI Response:', aiPortfolios); // Debug log
+      
       // Convert to portfolio card format
       const portfolioCards = await convertAIPortfoliosToCards(aiPortfolios);
       
@@ -37,7 +41,8 @@ export default function AIPage() {
         portfolios: portfolioCards,
         loading: false,
         error: null,
-        hasGenerated: true
+        hasGenerated: true,
+        rawResponse: aiPortfolios
       });
     } catch (error) {
       console.error('Error generating portfolios:', error);
@@ -143,6 +148,57 @@ export default function AIPage() {
                   />
                 ))}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Raw JSON Response Debug Display */}
+        {state.rawResponse && !state.loading && (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden mt-8">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <Brain className="w-5 h-5 text-green-600" />
+                Raw Backend AI Response
+              </h2>
+              <p className="text-gray-600 mt-1">
+                JSON data returned from backend-AI service
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <div className="bg-gray-50 rounded-lg p-4 border">
+                <pre className="text-sm text-gray-800 overflow-x-auto whitespace-pre-wrap">
+                  {JSON.stringify(state.rawResponse, null, 2)}
+                </pre>
+              </div>
+              
+              {Array.isArray(state.rawResponse) && state.rawResponse.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Individual Portfolio Cards
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {state.rawResponse.map((item: any, index: number) => (
+                      <div key={index} className="ant-card-body bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium text-gray-900">Portfolio #{index + 1}</h4>
+                          <span className="text-xs text-gray-500">ID: {item.id || 'No ID'}</span>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          {Object.entries(item).map(([key, value]) => (
+                            <div key={key} className="flex">
+                              <span className="font-medium text-gray-600 w-32 flex-shrink-0">{key}:</span>
+                              <span className="text-gray-800 break-words">
+                                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
