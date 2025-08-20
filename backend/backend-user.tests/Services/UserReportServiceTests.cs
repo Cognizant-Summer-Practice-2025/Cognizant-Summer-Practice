@@ -7,6 +7,7 @@ using backend_user.Services.Mappers;
 using backend_user.Repositories;
 using backend_user.DTO.UserReport.Request;
 using backend_user.DTO.UserReport.Response;
+using backend_user.DTO.User.Response;
 using backend_user.Models;
 using backend_user.tests.Helpers;
 
@@ -403,18 +404,27 @@ namespace backend_user.tests.Services
                 TestDataFactory.CreateValidUserReport()
             };
 
-            var responses = entities.Select(e => new UserReportResponseDto
+            var responses = entities.Select(e => new UserReportWithDetailsDto
             {
                 Id = e.Id,
                 UserId = e.UserId,
                 ReportedByUserId = e.ReportedByUserId,
                 Reason = e.Reason,
-                CreatedAt = e.CreatedAt
+                CreatedAt = e.CreatedAt,
+                User = new UserSummaryDto(),
+                ReportedByUser = new UserSummaryDto()
             }).ToList();
 
+            var reporterUser = TestDataFactory.CreateValidUser();
+            reporterUser.Id = entities[0].ReportedByUserId;
+            var reporterUser2 = TestDataFactory.CreateValidUser();
+            reporterUser2.Id = entities[1].ReportedByUserId;
+
             _mockRepository.Setup(r => r.GetAllUserReportsAsync()).ReturnsAsync(entities);
-            _mockMapper.Setup(m => m.MapToResponseDto(entities[0])).Returns(responses[0]);
-            _mockMapper.Setup(m => m.MapToResponseDto(entities[1])).Returns(responses[1]);
+            _mockMapper.Setup(m => m.MapToWithDetailsDto(entities[0])).Returns(responses[0]);
+            _mockMapper.Setup(m => m.MapToWithDetailsDto(entities[1])).Returns(responses[1]);
+            _mockUserRepository.Setup(r => r.GetUserById(entities[0].ReportedByUserId)).ReturnsAsync(reporterUser);
+            _mockUserRepository.Setup(r => r.GetUserById(entities[1].ReportedByUserId)).ReturnsAsync(reporterUser2);
 
             // Act
             var result = await _service.GetAllUserReportsAsync();
@@ -425,7 +435,8 @@ namespace backend_user.tests.Services
             result.Should().BeEquivalentTo(responses);
 
             _mockRepository.Verify(r => r.GetAllUserReportsAsync(), Times.Once);
-            _mockMapper.Verify(m => m.MapToResponseDto(It.IsAny<UserReport>()), Times.Exactly(2));
+            _mockMapper.Verify(m => m.MapToWithDetailsDto(It.IsAny<UserReport>()), Times.Exactly(2));
+            _mockUserRepository.Verify(r => r.GetUserById(It.IsAny<Guid>()), Times.Exactly(2));
         }
 
         [Fact]

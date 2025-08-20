@@ -6,6 +6,7 @@ using BackendMessages.Controllers;
 using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Hubs;
+using BackendMessages.Repositories;
 using BackendMessages.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,7 @@ namespace BackendMessages.Tests.Controllers
         private readonly Mock<IHubContext<MessageHub>> _hubContextMock;
         private readonly Mock<IClientProxy> _clientProxyMock;
         private readonly Mock<IGroupManager> _groupManagerMock;
+        private readonly Mock<IMessageReportRepository> _messageReportRepositoryMock;
         private readonly MessagesController _controller;
         private readonly Guid _testUserId = Guid.NewGuid();
         private readonly Guid _testConversationId = Guid.NewGuid();
@@ -43,6 +45,7 @@ namespace BackendMessages.Tests.Controllers
             _hubContextMock = new Mock<IHubContext<MessageHub>>();
             _clientProxyMock = new Mock<IClientProxy>();
             _groupManagerMock = new Mock<IGroupManager>();
+            _messageReportRepositoryMock = new Mock<IMessageReportRepository>();
 
             // Setup hub context
             var hubClientsMock = new Mock<IHubClients>();
@@ -53,7 +56,7 @@ namespace BackendMessages.Tests.Controllers
                 .Returns(Task.CompletedTask);
 
             // Create controller
-            _controller = new MessagesController(_context, _loggerMock.Object, _hubContextMock.Object);
+            _controller = new MessagesController(_context, _loggerMock.Object, _hubContextMock.Object, _messageReportRepositoryMock.Object);
 
             // Setup test data
             SetupTestData();

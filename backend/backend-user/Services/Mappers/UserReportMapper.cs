@@ -47,16 +47,22 @@ namespace backend_user.Services.Mappers
             return new UserReportWithDetailsDto
             {
                 Id = userReport.Id,
+                UserId = userReport.UserId,
+                ReportedByUserId = userReport.ReportedByUserId,
                 User = userReport.User != null ? new UserSummaryDto
                 {
                     Id = userReport.User.Id,
+                    Email = userReport.User.Email,
                     Username = userReport.User.Username,
                     FirstName = userReport.User.FirstName,
                     LastName = userReport.User.LastName,
                     ProfessionalTitle = userReport.User.ProfessionalTitle,
-                    AvatarUrl = userReport.User.AvatarUrl
+                    Location = userReport.User.Location,
+                    AvatarUrl = userReport.User.AvatarUrl,
+                    IsActive = userReport.User.IsActive,
+                    CreatedAt = userReport.User.CreatedAt
                 } : new UserSummaryDto(),
-                ReportedByUser = new UserSummaryDto(), // This would need to be populated from a separate query
+                ReportedByUser = new UserSummaryDto(), // This will be populated in the service
                 Reason = userReport.Reason,
                 CreatedAt = userReport.CreatedAt
             };

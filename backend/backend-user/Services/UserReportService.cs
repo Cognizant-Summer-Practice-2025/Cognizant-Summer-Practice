@@ -3,6 +3,7 @@ using backend_user.Repositories;
 using backend_user.Services.Abstractions;
 using backend_user.DTO.UserReport.Request;
 using backend_user.DTO.UserReport.Response;
+using backend_user.DTO.User.Response;
 using backend_user.Services.Mappers;
 
 namespace backend_user.Services
@@ -76,10 +77,38 @@ namespace backend_user.Services
             return userReports.Select(ur => _userReportMapper.MapToResponseDto(ur)).ToList();
         }
 
-        public async Task<List<UserReportResponseDto>> GetAllUserReportsAsync()
+        public async Task<List<UserReportWithDetailsDto>> GetAllUserReportsAsync()
         {
             var userReports = await _userReportRepository.GetAllUserReportsAsync();
-            return userReports.Select(ur => _userReportMapper.MapToResponseDto(ur)).ToList();
+            var result = new List<UserReportWithDetailsDto>();
+            
+            foreach (var report in userReports)
+            {
+                var reportDto = _userReportMapper.MapToWithDetailsDto(report);
+                
+                // Get the reporter details
+                var reporter = await _userRepository.GetUserById(report.ReportedByUserId);
+                if (reporter != null)
+                {
+                    reportDto.ReportedByUser = new UserSummaryDto
+                    {
+                        Id = reporter.Id,
+                        Email = reporter.Email,
+                        Username = reporter.Username,
+                        FirstName = reporter.FirstName,
+                        LastName = reporter.LastName,
+                        ProfessionalTitle = reporter.ProfessionalTitle,
+                        Location = reporter.Location,
+                        AvatarUrl = reporter.AvatarUrl,
+                        IsActive = reporter.IsActive,
+                        CreatedAt = reporter.CreatedAt
+                    };
+                }
+                
+                result.Add(reportDto);
+            }
+            
+            return result;
         }
     }
 } 

@@ -6,18 +6,21 @@ using backend_user.Repositories;
 using backend_user.Models;
 using backend_user.DTO.User.Request;
 using backend_user.tests.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace backend_user.tests.Services
 {
     public class UserServiceTests
     {
         private readonly Mock<IUserRepository> _mockUserRepository;
+        private readonly Mock<ILogger<UserService>> _mockLogger;
         private readonly UserService _userService;
 
         public UserServiceTests()
         {
             _mockUserRepository = new Mock<IUserRepository>();
-            _userService = new UserService(_mockUserRepository.Object);
+            _mockLogger = new Mock<ILogger<UserService>>();
+            _userService = new UserService(_mockUserRepository.Object, _mockLogger.Object);
         }
 
         #region Constructor Tests
@@ -26,14 +29,14 @@ namespace backend_user.tests.Services
         public void Constructor_WithNullUserRepository_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new UserService(null!));
+            Assert.Throws<ArgumentNullException>(() => new UserService(null!, _mockLogger.Object));
         }
 
         [Fact]
         public void Constructor_WithValidRepository_ShouldCreateInstance()
         {
             // Act
-            var service = new UserService(_mockUserRepository.Object);
+            var service = new UserService(_mockUserRepository.Object, _mockLogger.Object);
 
             // Assert
             service.Should().NotBeNull();

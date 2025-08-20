@@ -11,7 +11,11 @@ export type {
   PortfolioWithOwner
 } from './interfaces';
 
-// Utility classes
+export type {
+  UserReport,
+  MessageReport
+} from './api';
+
 export {
   AdminDateUtils,
   AdminDataUtils,

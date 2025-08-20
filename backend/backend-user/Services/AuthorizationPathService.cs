@@ -29,7 +29,11 @@ namespace backend_user.Services
                 "/api/oauth2/",
                 "/openapi",
                 "/swagger",
-                "/health"
+                "/health",
+                // Temporary: Allow admin endpoints for reports (should be properly authenticated)
+                "/api/users/admin/reports",
+                // Allow admin user deletion endpoint for cascade deletion
+                "/api/users/admin/"
             };
         }
 

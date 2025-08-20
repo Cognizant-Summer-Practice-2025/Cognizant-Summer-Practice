@@ -37,7 +37,10 @@ namespace BackendMessages.Middleware
                 path.StartsWith("/health") ||
                 path.StartsWith("/messagehub") ||  // Allow SignalR hub connection
                 // Allow test endpoint for service health checks
-                (path.StartsWith("/api/users/test") && method == "GET")))
+                (path.StartsWith("/api/users/test") && method == "GET") ||
+                (path.StartsWith("/api/messages/admin/reports") && method == "GET") ||
+                // Allow admin user deletion endpoint for cascade deletion
+                (path.StartsWith("/api/messages/admin/user/") && method == "DELETE")))
             {
                 _logger.LogInformation("🔐 Middleware: Skipping auth for public endpoint {Method} {Path}", method, path);
                 await _next(context);

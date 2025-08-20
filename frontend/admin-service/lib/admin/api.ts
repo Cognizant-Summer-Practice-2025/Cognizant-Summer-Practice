@@ -3,8 +3,32 @@ import { AdminStatsUtils, AdminChartUtils, AdminTransformUtils } from './utils';
 import { authenticatedClient } from '@/lib/authenticated-client';
 import { Logger } from '@/lib/logger';
 
-const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
+const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5002'; // Fixed port
 const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
+const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5003'; // Added messages service
+
+// Add interfaces for report types
+export interface UserReport extends Record<string, unknown> {
+  id: string;
+  reportedUserId: string;
+  reporterUserId: string;
+  reason: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessageReport extends Record<string, unknown> {
+  id: string;
+  messageId: string;
+  reporterUserId: string;
+  reason: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export class AdminAPI {
   // User-related API calls
@@ -18,6 +42,17 @@ export class AdminAPI {
 
   static async updateUser(id: string, data: Partial<AdminUser>): Promise<AdminUser> {
     return authenticatedClient.put<AdminUser>(`${USER_API_BASE}/api/users/${id}`, data);
+  }
+
+  static async deleteUser(userId: string): Promise<void> {
+    try {
+      // The user service now handles cascade deletion across all services
+      await authenticatedClient.deleteVoid(`${USER_API_BASE}/api/users/admin/${userId}`);
+      Logger.info('Successfully deleted user and all related data', { userId });
+    } catch (error) {
+      Logger.error('Error deleting user', error);
+      throw error;
+    }
   }
 
   // Portfolio-related API calls
@@ -72,6 +107,25 @@ export class AdminAPI {
     }
   }
 
+  // Reports-related API calls
+  static async getAllUserReports(): Promise<UserReport[]> {
+    try {
+      return authenticatedClient.get<UserReport[]>(`${USER_API_BASE}/api/users/admin/reports`);
+    } catch (error) {
+      Logger.error('Error fetching user reports', error);
+      throw error;
+    }
+  }
+
+  static async getAllMessageReports(): Promise<MessageReport[]> {
+    try {
+      return authenticatedClient.get<MessageReport[]>(`${MESSAGES_API_BASE}/api/messages/admin/reports`);
+    } catch (error) {
+      Logger.error('Error fetching message reports', error);
+      throw error;
+    }
+  }
+
   // Statistics calculation
   static async getAdminStats(): Promise<AdminStats> {
     try {
@@ -87,7 +141,25 @@ export class AdminAPI {
     }
   }
 
-  // Growth data for charts
+  // Chart data
+  static async getChartData() {
+    try {
+      const [users, portfolios] = await Promise.all([
+        this.getAllUsers(),
+        this.getAllPortfolios()
+      ]);
+
+      return {
+        growthData: AdminChartUtils.generateGrowthData(users, portfolios),
+        activityData: AdminChartUtils.generateActivityData(users, portfolios)
+      };
+    } catch (error) {
+      Logger.error('Error generating chart data', error);
+      throw error;
+    }
+  }
+
+  // User growth data for charts
   static async getUserGrowthData(): Promise<{ month: string; users: number; portfolios: number }[]> {
     try {
       const [users, portfolios] = await Promise.all([
@@ -95,23 +167,9 @@ export class AdminAPI {
         this.getAllPortfolios()
       ]);
 
-      return AdminChartUtils.generateGrowthData(users, portfolios, 6);
+      return AdminChartUtils.generateGrowthData(users, portfolios);
     } catch (error) {
-      Logger.error('Error fetching growth data', error);
-      throw error;
-    }
-  }
-
-  static async getActivityData(): Promise<{ name: string; value: number }[]> {
-    try {
-      const [users, portfolios] = await Promise.all([
-        this.getAllUsers(),
-        this.getAllPortfolios()
-      ]);
-
-      return AdminChartUtils.generateActivityData(users, portfolios);
-    } catch (error) {
-      Logger.error('Error fetching activity data', error);
+      Logger.error('Error generating user growth data', error);
       throw error;
     }
   }

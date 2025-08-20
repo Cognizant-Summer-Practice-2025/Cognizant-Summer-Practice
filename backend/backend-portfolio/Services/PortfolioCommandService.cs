@@ -307,5 +307,67 @@ namespace backend_portfolio.Services
                 throw;
             }
         }
+
+        public async Task DeleteAllUserPortfolioDataAsync(Guid userId)
+        {
+            try
+            {
+                _logger.LogInformation("Starting cascade deletion of all portfolio data for user {UserId}", userId);
+
+                // Get all portfolios for the user
+                var portfolios = await _portfolioRepository.GetPortfoliosByUserIdAsync(userId);
+                var portfolioIds = portfolios.Select(p => p.Id).ToList();
+
+                if (portfolioIds.Any())
+                {
+                    _logger.LogInformation("Found {Count} portfolios to delete for user {UserId}", portfolioIds.Count, userId);
+
+                    // Delete all related data for each portfolio
+                    foreach (var portfolioId in portfolioIds)
+                    {
+                        // Delete projects
+                        var projects = await _projectRepository.GetProjectsByPortfolioIdAsync(portfolioId);
+                        foreach (var project in projects)
+                        {
+                            await _projectRepository.DeleteProjectAsync(project.Id);
+                        }
+
+                        // Delete experience
+                        var experiences = await _experienceRepository.GetExperienceByPortfolioIdAsync(portfolioId);
+                        foreach (var experience in experiences)
+                        {
+                            await _experienceRepository.DeleteExperienceAsync(experience.Id);
+                        }
+
+                        // Delete skills
+                        var skills = await _skillRepository.GetSkillsByPortfolioIdAsync(portfolioId);
+                        foreach (var skill in skills)
+                        {
+                            await _skillRepository.DeleteSkillAsync(skill.Id);
+                        }
+
+                        // Delete blog posts
+                        var blogPosts = await _blogPostRepository.GetBlogPostsByPortfolioIdAsync(portfolioId);
+                        foreach (var blogPost in blogPosts)
+                        {
+                            await _blogPostRepository.DeleteBlogPostAsync(blogPost.Id);
+                        }
+
+                        // Finally delete the portfolio itself
+                        await _portfolioRepository.DeletePortfolioAsync(portfolioId);
+                    }
+                }
+
+                // Invalidate cache
+                await InvalidatePortfolioCacheAsync();
+
+                _logger.LogInformation("Successfully deleted all portfolio data for user {UserId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting all portfolio data for user {UserId}", userId);
+                throw;
+            }
+        }
     }
 } 
