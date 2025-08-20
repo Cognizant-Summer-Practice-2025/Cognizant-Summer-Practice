@@ -144,9 +144,13 @@ const PortfolioGrid: React.FC<PortfolioGridProps> = ({ className = '' }) => {
 
       <div className="portfolio-grid-content">
         {loading && sortedPortfolios.length === 0 ? (
-          <div className="portfolio-grid-loading">
-            <Loading className="scale-50" backgroundColor="white" />
-            <p>Loading amazing portfolios...</p>
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:p-8 w-full max-w-md min-h-[200px]">
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loading className="scale-50" backgroundColor="white" />
+                <span className="mt-4 text-gray-600">Loading amazing portfolios...</span>
+              </div>
+            </div>
           </div>
         ) : error ? (
           <div className="portfolio-grid-error">

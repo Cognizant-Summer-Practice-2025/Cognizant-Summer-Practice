@@ -1717,20 +1717,8 @@
 }
 
 /* Loading States */
-.portfolio-grid-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-}
 
-.portfolio-grid-loading p {
-  margin-top: 16px;
-  font-size: 16px;
-  color: #8c8c8c;
-}
+
 
 .portfolio-grid-loading-overlay {
   position: absolute;
@@ -1821,9 +1809,8 @@
     margin-bottom: 20px;
   }
   
-  .portfolio-grid-loading {
-    padding: 60px 16px;
-  }
+
+
   
   .portfolio-grid-error,
   .portfolio-grid-empty {
@@ -1858,13 +1845,10 @@
     margin-bottom: 16px;
   }
   
-  .portfolio-grid-loading {
-    padding: 40px 12px;
-  }
-  
-  .portfolio-grid-loading p {
-    font-size: 14px;
-  }
+
+
+
+
   
   .portfolio-grid-error,
   .portfolio-grid-empty {
