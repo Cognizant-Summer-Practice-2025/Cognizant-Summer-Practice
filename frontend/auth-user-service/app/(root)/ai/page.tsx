@@ -13,7 +13,6 @@ interface AIPageState {
   loading: boolean;
   error: string | null;
   hasGenerated: boolean;
-  rawResponse: any; // Store raw JSON response for debugging
 }
 
 export default function AIPage() {
@@ -21,8 +20,7 @@ export default function AIPage() {
     portfolios: [],
     loading: false,
     error: null,
-    hasGenerated: false,
-    rawResponse: null
+    hasGenerated: false
   });
 
   const handleGeneratePortfolios = async () => {
@@ -34,23 +32,53 @@ export default function AIPage() {
       
       console.log('Raw AI Response:', aiPortfolios); // Debug log
       
+      // Check if we have enough portfolios for AI generation
+      if (!aiPortfolios || aiPortfolios.length === 0) {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'Insufficient portfolio data. The AI requires at least 10 portfolios in the database to generate recommendations. Please add more portfolios and try again.'
+        }));
+        return;
+      }
+      
       // Convert to portfolio card format
       const portfolioCards = await convertAIPortfoliosToCards(aiPortfolios);
+      
+      // Additional check after conversion
+      if (portfolioCards.length === 0) {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'No valid portfolios could be processed. The AI requires at least 10 portfolios in the database to generate recommendations.'
+        }));
+        return;
+      }
       
       setState({
         portfolios: portfolioCards,
         loading: false,
         error: null,
-        hasGenerated: true,
-        rawResponse: aiPortfolios
+        hasGenerated: true
       });
     } catch (error) {
       console.error('Error generating portfolios:', error);
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : 'Failed to generate portfolios. Please try again.'
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate portfolios. Please try again.';
+      
+      // Check if the error is related to insufficient data
+      if (errorMessage.toLowerCase().includes('insufficient') || errorMessage.toLowerCase().includes('not enough')) {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'Insufficient portfolio data. The AI requires at least 10 portfolios in the database to generate recommendations. Please add more portfolios and try again.'
+        }));
+      } else {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: errorMessage
+        }));
+      }
     }
   };
 
@@ -88,15 +116,48 @@ export default function AIPage() {
         {/* Error Message */}
         {state.error && (
           <div className="mb-8">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-700">{state.error}</p>
-              <Button
-                onClick={handleGeneratePortfolios}
-                variant="outline"
-                className="mt-3 border-red-200 text-red-700 hover:bg-red-50"
-              >
-                Try Again
-              </Button>
+            <div className={`rounded-lg p-4 ${
+              state.error.toLowerCase().includes('insufficient') 
+                ? 'bg-amber-50 border border-amber-200' 
+                : 'bg-red-50 border border-red-200'
+            }`}>
+              <div className="flex items-start gap-3">
+                {state.error.toLowerCase().includes('insufficient') ? (
+                  <Brain className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                ) : (
+                  <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center mt-0.5">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className={`font-medium mb-1 ${
+                    state.error.toLowerCase().includes('insufficient')
+                      ? 'text-amber-800'
+                      : 'text-red-700'
+                  }`}>
+                    {state.error.toLowerCase().includes('insufficient') 
+                      ? 'Not Enough Portfolio Data' 
+                      : 'Error'
+                    }
+                  </p>
+                  <p className={`text-sm ${
+                    state.error.toLowerCase().includes('insufficient')
+                      ? 'text-amber-700'
+                      : 'text-red-700'
+                  }`}>
+                    {state.error}
+                  </p>
+                  {!state.error.toLowerCase().includes('insufficient') && (
+                    <Button
+                      onClick={handleGeneratePortfolios}
+                      variant="outline"
+                      className="mt-3 border-red-200 text-red-700 hover:bg-red-50"
+                    >
+                      Try Again
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -152,56 +213,7 @@ export default function AIPage() {
           </div>
         )}
 
-        {/* Raw JSON Response Debug Display */}
-        {state.rawResponse && !state.loading && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden mt-8">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Brain className="w-5 h-5 text-green-600" />
-                Raw Backend AI Response
-              </h2>
-              <p className="text-gray-600 mt-1">
-                JSON data returned from backend-AI service
-              </p>
-            </div>
-            
-            <div className="p-6">
-              <div className="bg-gray-50 rounded-lg p-4 border">
-                <pre className="text-sm text-gray-800 overflow-x-auto whitespace-pre-wrap">
-                  {JSON.stringify(state.rawResponse, null, 2)}
-                </pre>
-              </div>
-              
-              {Array.isArray(state.rawResponse) && state.rawResponse.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Individual Portfolio Cards
-                  </h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {state.rawResponse.map((item: any, index: number) => (
-                      <div key={index} className="ant-card-body bg-white border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-gray-900">Portfolio #{index + 1}</h4>
-                          <span className="text-xs text-gray-500">ID: {item.id || 'No ID'}</span>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          {Object.entries(item).map(([key, value]) => (
-                            <div key={key} className="flex">
-                              <span className="font-medium text-gray-600 w-32 flex-shrink-0">{key}:</span>
-                              <span className="text-gray-800 break-words">
-                                {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+
 
         {/* Empty State - Show only if user hasn't generated yet */}
         {!state.hasGenerated && !state.loading && !state.error && (

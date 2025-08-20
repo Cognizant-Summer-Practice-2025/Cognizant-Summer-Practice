@@ -30,6 +30,13 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
     const errorData = await response.json().catch(() => ({ 
       message: `HTTP error! status: ${response.status}` 
     }));
+    
+    // Handle specific error cases from backend
+    if (response.status === 400 && errorData.error) {
+      // BadRequest from backend with specific error message
+      throw new Error(errorData.error);
+    }
+    
     throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
   }
   return response.json();
