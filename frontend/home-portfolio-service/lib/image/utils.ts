@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL ?? '';
 
 /**
  * Convert a server image path to a full API URL
@@ -25,6 +25,9 @@ export function getImageUrl(imagePath: string): string {
     const subfolder = pathParts[2];
     const filename = pathParts.slice(3).join('/'); // In case filename has slashes
     
+    if (!API_BASE_URL) {
+      throw new Error('Portfolio API URL is not configured');
+    }
     return `${API_BASE_URL}/api/Image/${subfolder}/${filename}`;
   }
   

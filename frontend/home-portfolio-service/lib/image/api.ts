@@ -1,4 +1,17 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL ?? '';
+
+function requireApiBase(): string {
+  if (!API_BASE_URL) {
+    throw new Error('Portfolio API URL is not configured');
+  }
+  return API_BASE_URL;
+}
+
+export function buildImageUrl(path: string): string {
+  const base = requireApiBase();
+  const clean = path.startsWith('/') ? path.slice(1) : path;
+  return `${base}/${clean}`;
+}
 
 export interface ImageUploadResponse {
   imagePath: string;
