@@ -9,5 +9,6 @@ namespace BackendMessages.Repositories
         Task<IEnumerable<MessageReport>> GetReportsByMessageIdAsync(Guid messageId);
         Task<IEnumerable<MessageReport>> GetReportsByUserIdAsync(Guid userId);
         Task<MessageReport?> GetReportByIdAsync(Guid reportId);
+        Task<IEnumerable<MessageReport>> GetAllMessageReportsAsync();
     }
 } 

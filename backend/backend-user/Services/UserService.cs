@@ -5,6 +5,7 @@ using backend_user.Repositories;
 using backend_user.Services.Abstractions;
 using backend_user.Services.Mappers;
 using backend_user.Services.Validators;
+using Microsoft.Extensions.Logging;
 
 namespace backend_user.Services
 {
@@ -14,10 +15,12 @@ namespace backend_user.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, ILogger<UserService> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<User?> GetUserByIdAsync(Guid id)
@@ -113,6 +116,76 @@ namespace backend_user.Services
                 return null;
 
             return UserMapper.ToPortfolioInfo(user);
+        }
+
+        public async Task<bool> DeleteUserAsync(Guid id)
+        {
+            var validation = UserValidator.ValidateUserId(id);
+            if (!validation.IsValid)
+                throw new ArgumentException(string.Join(", ", validation.Errors));
+
+            try
+            {
+                _logger.LogInformation("Starting cascade deletion for user {UserId}", id);
+
+                try
+                {
+                    var portfolioServiceUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL") ?? "http://localhost:5201";
+                    using var httpClient = new HttpClient();
+                    var portfolioResponse = await httpClient.DeleteAsync($"{portfolioServiceUrl}/api/Portfolio/admin/user/{id}");
+                    
+                    if (portfolioResponse.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Successfully deleted portfolio data for user {UserId}", id);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to delete portfolio data for user {UserId}: {StatusCode}", id, portfolioResponse.StatusCode);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error calling portfolio service to delete data for user {UserId}", id);
+                }
+
+                try
+                {
+                    var messagesServiceUrl = Environment.GetEnvironmentVariable("MESSAGES_SERVICE_URL") ?? "http://localhost:5003";
+                    using var httpClient = new HttpClient();
+                    var messagesResponse = await httpClient.DeleteAsync($"{messagesServiceUrl}/api/messages/admin/user/{id}");
+                    
+                    if (messagesResponse.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("Successfully deleted message data for user {UserId}", id);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to delete message data for user {UserId}: {StatusCode}", id, messagesResponse.StatusCode);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error calling messages service to delete data for user {UserId}", id);
+                }
+
+                var result = await _userRepository.DeleteUserAsync(id);
+                
+                if (result)
+                {
+                    _logger.LogInformation("Successfully completed cascade deletion for user {UserId}", id);
+                }
+                else
+                {
+                    _logger.LogWarning("User {UserId} not found during deletion", id);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during cascade deletion for user {UserId}", id);
+                throw;
+            }
         }
     }
 }

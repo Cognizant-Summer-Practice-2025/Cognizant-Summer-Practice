@@ -93,6 +93,7 @@ namespace backend_user.Services.Mappers
             return new UserSummaryDto
             {
                 Id = user.Id,
+                Email = user.Email,
                 Username = user.Username,
                 FirstName = user.FirstName,
                 LastName = user.LastName,

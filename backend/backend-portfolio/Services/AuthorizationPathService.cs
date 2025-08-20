@@ -86,6 +86,12 @@ namespace backend_portfolio.Services
                 return true;
             }
 
+            // Allow admin DELETE endpoints for cascade deletion
+            if (path.StartsWith("/api/portfolio/admin/user/") && string.Equals(method, "DELETE", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
             return false;
         }
     }

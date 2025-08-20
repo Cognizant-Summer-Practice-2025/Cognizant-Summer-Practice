@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Hubs;
+using BackendMessages.Repositories;
+using BackendMessages.DTO.Message.Response;
 using System.Security.Claims;
 
 namespace BackendMessages.Controllers
@@ -15,12 +17,14 @@ namespace BackendMessages.Controllers
         private readonly MessagesDbContext _context;
         private readonly ILogger<MessagesController> _logger;
         private readonly IHubContext<MessageHub> _hubContext;
+        private readonly IMessageReportRepository _messageReportRepository;
 
-        public MessagesController(MessagesDbContext context, ILogger<MessagesController> logger, IHubContext<MessageHub> hubContext)
+        public MessagesController(MessagesDbContext context, ILogger<MessagesController> logger, IHubContext<MessageHub> hubContext, IMessageReportRepository messageReportRepository)
         {
             _context = context;
             _logger = logger;
             _hubContext = hubContext;
+            _messageReportRepository = messageReportRepository;
         }
 
         /// <summary>
@@ -516,6 +520,111 @@ namespace BackendMessages.Controllers
             {
                 _logger.LogError(ex, "Error reporting message {MessageId}", messageId);
                 return StatusCode(500, "An error occurred while reporting the message");
+            }
+        }
+
+        /// <summary>
+        /// Get all message reports (Admin only)
+        /// </summary>
+        /// <returns>List of all message reports with message details</returns>
+        [HttpGet("admin/reports")]
+        public async Task<IActionResult> GetAllMessageReports()
+        {
+            try
+            {
+                var reports = await _messageReportRepository.GetAllMessageReportsAsync();
+                var reportDtos = reports.Select(r => new MessageReportResponseDto
+                {
+                    Id = r.Id,
+                    MessageId = r.MessageId,
+                    ReportedByUserId = r.ReportedByUserId,
+                    Reason = r.Reason,
+                    CreatedAt = r.CreatedAt,
+                    Message = r.Message != null ? new MessageReportDetailsDto
+                    {
+                        Id = r.Message.Id,
+                        ConversationId = r.Message.ConversationId,
+                        SenderId = r.Message.SenderId,
+                        ReceiverId = r.Message.ReceiverId,
+                        Content = r.Message.Content ?? string.Empty,
+                        MessageType = r.Message.MessageType,
+                        CreatedAt = r.Message.CreatedAt
+                    } : null
+                }).ToList();
+                
+                return Ok(reportDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all message reports");
+                return StatusCode(500, "An error occurred while retrieving message reports");
+            }
+        }
+
+        /// <summary>
+        /// Delete all message data for a user (Admin only - called during user deletion)
+        /// </summary>
+        /// <param name="userId">The user ID whose message data should be deleted</param>
+        /// <returns>Success response</returns>
+        [HttpDelete("admin/user/{userId}")]
+        public async Task<IActionResult> DeleteUserMessageData(Guid userId)
+        {
+            try
+            {
+                _logger.LogInformation("Starting cascade deletion of all message data for user {UserId}", userId);
+
+                // Delete all conversations where user is initiator or receiver
+                var conversations = await _context.Conversations
+                    .Where(c => c.InitiatorId == userId || c.ReceiverId == userId)
+                    .ToListAsync();
+
+                var allMessageReports = new List<MessageReport>();
+
+                foreach (var conversation in conversations)
+                {
+                    // Delete all messages in the conversation
+                    var messages = await _context.Messages
+                        .Where(m => m.ConversationId == conversation.Id)
+                        .ToListAsync();
+
+                    // Delete message reports for these messages
+                    var messageIds = messages.Select(m => m.Id).ToList();
+                    var messageReports = await _context.MessageReports
+                        .Where(mr => messageIds.Contains(mr.MessageId))
+                        .ToListAsync();
+
+                    allMessageReports.AddRange(messageReports);
+                    _context.MessageReports.RemoveRange(messageReports);
+                    _context.Messages.RemoveRange(messages);
+                }
+
+                // Delete conversations
+                _context.Conversations.RemoveRange(conversations);
+
+                // Delete message reports created by this user (for messages they reported)
+                var userReports = await _context.MessageReports
+                    .Where(mr => mr.ReportedByUserId == userId)
+                    .ToListAsync();
+
+                _context.MessageReports.RemoveRange(userReports);
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully deleted all message data for user {UserId}. " +
+                    "Deleted {ConversationCount} conversations, {MessageCount} messages, {ReportCount} reports",
+                    userId, conversations.Count, conversations.Sum(c => c.Messages.Count), 
+                    allMessageReports.Count + userReports.Count);
+
+                return Ok(new { 
+                    message = "User message data deleted successfully",
+                    deletedConversations = conversations.Count,
+                    deletedReports = allMessageReports.Count + userReports.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting message data for user {UserId}", userId);
+                return StatusCode(500, new { message = "An error occurred while deleting user message data" });
             }
         }
     }

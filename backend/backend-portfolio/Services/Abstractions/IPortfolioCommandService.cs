@@ -27,5 +27,6 @@ namespace backend_portfolio.Services.Abstractions
         Task<bool> IncrementViewCountAsync(Guid id);
         Task<bool> IncrementLikeCountAsync(Guid id);
         Task<bool> DecrementLikeCountAsync(Guid id);
+        Task DeleteAllUserPortfolioDataAsync(Guid userId);
     }
 } 
