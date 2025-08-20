@@ -7,6 +7,29 @@ const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:
 const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
 const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5003'; // Added messages service
 
+// Add interfaces for report types
+interface UserReport {
+  id: string;
+  reportedUserId: string;
+  reporterUserId: string;
+  reason: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MessageReport {
+  id: string;
+  messageId: string;
+  reporterUserId: string;
+  reason: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class AdminAPI {
   // User-related API calls
   static async getAllUsers(): Promise<AdminUser[]> {
@@ -85,18 +108,18 @@ export class AdminAPI {
   }
 
   // Reports-related API calls
-  static async getAllUserReports(): Promise<any[]> {
+  static async getAllUserReports(): Promise<UserReport[]> {
     try {
-      return authenticatedClient.get<any[]>(`${USER_API_BASE}/api/users/admin/reports`);
+      return authenticatedClient.get<UserReport[]>(`${USER_API_BASE}/api/users/admin/reports`);
     } catch (error) {
       Logger.error('Error fetching user reports', error);
       throw error;
     }
   }
 
-  static async getAllMessageReports(): Promise<any[]> {
+  static async getAllMessageReports(): Promise<MessageReport[]> {
     try {
-      return authenticatedClient.get<any[]>(`${MESSAGES_API_BASE}/api/messages/admin/reports`);
+      return authenticatedClient.get<MessageReport[]>(`${MESSAGES_API_BASE}/api/messages/admin/reports`);
     } catch (error) {
       Logger.error('Error fetching message reports', error);
       throw error;

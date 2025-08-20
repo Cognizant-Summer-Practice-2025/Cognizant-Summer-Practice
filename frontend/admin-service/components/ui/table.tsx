@@ -9,7 +9,7 @@ interface Column<T> {
   title: string
   key: string
   dataIndex?: keyof T
-  render?: (value: any, record: T, index: number) => React.ReactNode
+  render?: (value: T[keyof T], record: T, index: number) => React.ReactNode
   className?: string
 }
 
@@ -28,7 +28,7 @@ interface TableProps<T> {
   className?: string
 }
 
-function Table<T extends Record<string, any>>({
+function Table<T extends Record<string, unknown>>({
   columns,
   dataSource,
   rowKey,
@@ -40,7 +40,7 @@ function Table<T extends Record<string, any>>({
   const [currentPage, setCurrentPage] = React.useState(1)
   const [pageSize, setPageSize] = React.useState(pagination?.pageSize || 10)
 
-  const getRowKey = (record: T, index: number): string => {
+  const getRowKey = (record: T): string => {
     if (typeof rowKey === 'function') {
       return rowKey(record)
     }
@@ -93,7 +93,7 @@ function Table<T extends Record<string, any>>({
             <tbody>
               {currentData.map((record, index) => (
                 <tr
-                  key={getRowKey(record, index)}
+                  key={getRowKey(record)}
                   className="border-b transition-colors hover:bg-muted/50"
                 >
                   {columns.map((column) => (
