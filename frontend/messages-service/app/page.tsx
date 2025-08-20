@@ -4,7 +4,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/messages-page/sidebar/sidebar";
 import Chat from "@/components/messages-page/chat/chat";
 import { useUser } from "@/lib/contexts/user-context";
-import { useAuth } from "@/lib/contexts/auth-context";
+import { useAuth } from "@/lib/hooks/use-auth";
 import { SearchUser } from "@/lib/user";
 import useMessages from "@/lib/messages";
 import { AlertProvider } from "@/components/ui/alert-dialog";
@@ -37,9 +37,6 @@ type MobileView = 'sidebar' | 'chat';
 const MessagesPage = () => {
   const { user, loading: userLoading } = useUser();
   const { isAuthenticated, loading: authLoading, isLoggingOut } = useAuth();
-  const [initialDelayLoading, setInitialDelayLoading] = useState(true);
-  const [redirectGraceMs] = useState(7000);
-  const [graceActive, setGraceActive] = useState(true);
   const { 
     conversations, 
     currentConversation, 
@@ -59,28 +56,16 @@ const MessagesPage = () => {
     reportMessage
   } = useMessages();
 
+  
+
+  // No need for artificial delays with JWT-based auth - redirect immediately if not authenticated
   useEffect(() => {
-    if (!authLoading && !userLoading && !isAuthenticated && !isLoggingOut && !graceActive && !initialDelayLoading) {
+    if (!authLoading && !userLoading && !isAuthenticated && !isLoggingOut) {
       const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
       window.location.href = homeServiceUrl;
       return;
     }
-  }, [isAuthenticated, authLoading, userLoading, isLoggingOut, graceActive, initialDelayLoading]);
-
-  // Add a small delay to allow user injection to finish on initial load
-  useEffect(() => {
-    const timer = setTimeout(() => setInitialDelayLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Grace period to allow first-time user injection before redirecting unauthenticated users
-  useEffect(() => {
-    if (!authLoading) {
-      setGraceActive(true);
-      const t = setTimeout(() => setGraceActive(false), redirectGraceMs);
-      return () => clearTimeout(t);
-    }
-  }, [authLoading, redirectGraceMs]);
+  }, [isAuthenticated, authLoading, userLoading, isLoggingOut]);
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
@@ -382,8 +367,8 @@ const MessagesPage = () => {
       console.error('Failed to delete conversation:', error);
     }
   };
-  // Show loading 
-  if (authLoading || initialDelayLoading || isLoggingOut) {
+  // Show loading only for essential auth/user loading
+  if (authLoading || userLoading || isLoggingOut) {
     return (
       <AlertProvider>
         <Header />

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, MessageCircle, Plus, User, LogOut, Menu, X, ChevronLeft, Bookmark, Crown } from 'lucide-react';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { redirectToService } from '@/lib/config';

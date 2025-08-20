@@ -1,16 +1,16 @@
 import type { ServiceUserData } from '@/types/global';
 
-// Authenticated client for handling authenticated API calls
+// Authenticated client for handling authenticated API calls using JWT stored in browser storage
 export class AuthenticatedClient {
   private static instance: AuthenticatedClient;
-  private baseUrl: string;
+  private authServiceBaseUrl: string;
 
   private constructor() {
     const baseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
     if (!baseUrl) {
       throw new Error('NEXT_PUBLIC_AUTH_USER_SERVICE environment variable is not set');
     }
-    this.baseUrl = baseUrl;
+    this.authServiceBaseUrl = baseUrl;
   }
 
   public static getInstance(): AuthenticatedClient {
@@ -20,81 +20,54 @@ export class AuthenticatedClient {
     return AuthenticatedClient.instance;
   }
 
-  /**
-   * Get the current user's authentication token from injected user data
-   */
-  private async getAuthToken(): Promise<string | null> {
-    try {
-      // Reference to the same storage used in inject/remove
-      if (typeof global !== 'undefined' && global.homePortfolioServiceUserStorage) {
-        const userStorage = global.homePortfolioServiceUserStorage;
-        if (userStorage.size > 0) {
-          const userData: ServiceUserData = Array.from(userStorage.values())[0];
-          return userData.accessToken || null;
-        }
-      }
-
-      // If no token found, try to get from local API (for client-side)
-      try {
-        const response = await fetch('/api/user/get');
-        if (response.ok) {
-          const userData = await response.json();
-          return userData.accessToken || null;
-        }
-      } catch {
-        // Ignore API errors, just return null
-      }
-
-      return null;
-    } catch (error) {
-      console.error('Error getting auth token:', error);
-      return null;
-    }
+  // Retrieve JWT issued by auth service from storage
+  private getStoredJwt(): string | null {
+    if (typeof window === 'undefined') return null;
+    return (
+      localStorage.getItem('jwt_auth_token') ||
+      sessionStorage.getItem('jwt_auth_token') ||
+      null
+    );
   }
 
-  /**
-   * Check if user is authenticated
-   */
   public async isAuthenticated(): Promise<boolean> {
-    const token = await this.getAuthToken();
-    return !!token;
+    return !!this.getStoredJwt();
   }
 
-  /**
-   * Redirect to login page
-   */
-  private redirectToLogin(): void {
-    window.location.href = `${this.baseUrl}/login?redirect=${encodeURIComponent(window.location.href)}`;
+  // Do not auto-redirect to login here to avoid loops. Let callers decide.
+  private buildLoginUrl(): string {
+    if (typeof window === 'undefined') return `${this.authServiceBaseUrl}/login`;
+    const currentUrl = window.location.href;
+    return `${this.authServiceBaseUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
   }
 
-  /**
-   * Make an authenticated API request
-   */
+  public getLoginUrl(): string {
+    return this.buildLoginUrl();
+  }
+
   public async authenticatedRequest<T>(
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = await this.getAuthToken();
-    
+    const token = this.getStoredJwt();
+
     if (!token) {
-      this.redirectToLogin();
-      throw new Error('Authentication required');
+      // No token yet; avoid redirect to prevent loops during SSO processing
+      throw new Error('Authentication required (no JWT)');
     }
-    console.log('Header token:', token);
+
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       },
     });
 
     if (response.status === 401) {
-      // Token is invalid, clear it and redirect to login
-      localStorage.removeItem('auth_token');
-      this.redirectToLogin();
-      throw new Error('Authentication required');
+      // Token invalid/expired; let caller decide how to recover
+      throw new Error('Authentication required (401)');
     }
 
     if (!response.ok) {
@@ -105,9 +78,6 @@ export class AuthenticatedClient {
     return response.json();
   }
 
-  /**
-   * Make a POST request with authentication
-   */
   public async post<T>(url: string, data: unknown): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'POST',
@@ -115,18 +85,12 @@ export class AuthenticatedClient {
     });
   }
 
-  /**
-   * Make a GET request with authentication
-   */
   public async get<T>(url: string): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'GET',
     });
   }
 
-  /**
-   * Make a PUT request with authentication
-   */
   public async put<T>(url: string, data: unknown): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'PUT',
@@ -134,9 +98,6 @@ export class AuthenticatedClient {
     });
   }
 
-  /**
-   * Make a DELETE request with authentication
-   */
   public async delete<T>(url: string): Promise<T> {
     return this.authenticatedRequest<T>(url, {
       method: 'DELETE',
@@ -144,5 +105,4 @@ export class AuthenticatedClient {
   }
 }
 
-// Export singleton instance
 export const authenticatedClient = AuthenticatedClient.getInstance(); 

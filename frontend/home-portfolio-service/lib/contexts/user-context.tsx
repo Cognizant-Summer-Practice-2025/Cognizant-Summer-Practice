@@ -1,17 +1,20 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth } from '@/lib/contexts/auth-context';
-import { User } from '@/lib/user/interfaces';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { getUserByEmail } from '@/lib/user';
+import type { User } from '@/lib/user/interfaces';
 
 interface UserContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
+  fetchUser: (email: string) => Promise<void>;
   refetchUser: () => Promise<void>;
   updateUserData: (userData: {
     firstName?: string;
     lastName?: string;
+    username?: string;
     professionalTitle?: string;
     bio?: string;
     location?: string;
@@ -22,29 +25,16 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, userEmail, loading: authLoading } = useAuth();
+  const { userEmail, loading: authLoading, currentUser } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUser = async () => {
+  const fetchUser = async (email: string) => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Get user data from injected storage
-      const response = await fetch('/api/user/get');
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setUser(null);
-          setError('User not found in this service. Please log in again.');
-          return;
-        }
-        throw new Error(`Failed to get user data: ${response.statusText}`);
-      }
-      
-      const userData = await response.json();
+      const userData = await getUserByEmail(email);
       setUser(userData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
@@ -56,50 +46,56 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const refetchUser = async () => {
-    if (isAuthenticated) {
-      await fetchUser();
+    if (userEmail) {
+      await fetchUser(userEmail);
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updateUserData = async (userData: {
     firstName?: string;
     lastName?: string;
+    username?: string;
     professionalTitle?: string;
     bio?: string;
     location?: string;
     profileImage?: string;
   }) => {
-    // User updates should be handled by the auth-user-service
-    // Redirect to auth service for profile updates
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-    window.location.href = `${authServiceUrl}/profile`;
+    if (!user) return;
+    
+    setUser(prev => prev ? { ...prev, ...userData } : null);
   };
 
+  // Immediately hydrate from JWT auth user to avoid UI waiting
   useEffect(() => {
-    // Reset user state when auth changes
-    if (authLoading) {
-      setLoading(true);
-      return;
+    if (currentUser) {
+      setUser(prev => prev ?? {
+        id: currentUser.id,
+        email: currentUser.email,
+        username: currentUser.username || currentUser.email.split('@')[0],
+        firstName: currentUser.firstName,
+        lastName: currentUser.lastName,
+        professionalTitle: currentUser.professionalTitle,
+        bio: currentUser.bio,
+        location: currentUser.location,
+        avatarUrl: currentUser.avatarUrl,
+        isActive: currentUser.isActive ?? true,
+        isAdmin: currentUser.isAdmin ?? false,
+        lastLoginAt: currentUser.lastLoginAt,
+      });
     }
+  }, [currentUser]);
 
-    if (!isAuthenticated || !userEmail) {
-      setUser(null);
-      setLoading(false);
-      setError(null);
-      return;
+  useEffect(() => {
+    if (userEmail && !authLoading) {
+      fetchUser(userEmail);
     }
-
-    // Fetch user data when authenticated
-    if (isAuthenticated && userEmail && !user) {
-      fetchUser();
-    }
-  }, [isAuthenticated, userEmail, authLoading, user]);
+  }, [userEmail, authLoading]);
 
   const value: UserContextType = {
     user,
     loading: loading || authLoading,
     error,
+    fetchUser,
     refetchUser,
     updateUserData,
   };
