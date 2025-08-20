@@ -8,16 +8,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Table, Column } from '@/components/ui/table';
 import { useAlert } from '@/components/ui/alert-dialog';
 import { message } from '@/components/ui/toast';
-import { AdminAPI } from '@/lib/admin';
+import { AdminAPI, UserReport, MessageReport } from '@/lib/admin';
 import { Logger } from '@/lib/logger';
 import './style.css';
 
-interface UserReport {
-  id: string;
-  userId: string;
-  reportedByUserId: string;
-  reason: string;
-  createdAt: string;
+// Extended interfaces to include optional user/message data for display
+interface UserReportWithUser extends UserReport {
   user?: {
     id: string;
     username: string;
@@ -27,12 +23,7 @@ interface UserReport {
   };
 }
 
-interface MessageReport {
-  id: string;
-  messageId: string;
-  reportedByUserId: string;
-  reason: string;
-  createdAt: string;
+interface MessageReportWithMessage extends MessageReport {
   message?: {
     id: string;
     content: string;
@@ -43,8 +34,8 @@ interface MessageReport {
 }
 
 const ReportsManagement: React.FC = () => {
-  const [userReports, setUserReports] = useState<UserReport[]>([]);
-  const [messageReports, setMessageReports] = useState<MessageReport[]>([]);
+  const [userReports, setUserReports] = useState<UserReportWithUser[]>([]);
+  const [messageReports, setMessageReports] = useState<MessageReportWithMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('user-reports');
   const { showConfirm } = useAlert();
@@ -100,7 +91,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
           await AdminAPI.deleteUser(userId);
           message.success('User account and all associated data deleted successfully');
           // Remove reports for deleted user
-          setUserReports(prev => prev.filter(report => report.userId !== userId));
+          setUserReports(prev => prev.filter(report => report.reportedUserId !== userId));
           fetchReports(); // Refresh to get updated data
         } catch (error) {
           Logger.error('Error deleting user:', error);
@@ -109,7 +100,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
       }
     });
 
-  const userReportsColumns: Column<UserReport>[] = [
+  const userReportsColumns: Column<UserReportWithUser>[] = [
     {
       title: 'Reported User',
       key: 'reportedUser',
@@ -129,9 +120,9 @@ This action cannot be undone and will remove ALL user data from the entire syste
       title: 'Reason',
       key: 'reason',
       dataIndex: 'reason',
-      render: (reason: string) => (
+      render: (value) => (
         <Badge variant="secondary" className="badge-orange">
-          {reason}
+          {String(value)}
         </Badge>
       ),
     },
@@ -139,7 +130,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
       title: 'Reported At',
       key: 'createdAt',
       dataIndex: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (value) => new Date(String(value)).toLocaleString(),
     },
     {
       title: 'Actions',
@@ -148,7 +139,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
         <Button
           variant="destructive"
           size="sm"
-          onClick={() => handleDeleteUser(record.userId, record.user?.username || 'Unknown')}
+          onClick={() => handleDeleteUser(record.reportedUserId, record.user?.username || 'Unknown')}
           className="gap-2"
         >
           <Trash2 className="h-4 w-4" />
@@ -158,7 +149,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
     },
   ];
 
-  const messageReportsColumns: Column<MessageReport>[] = [
+  const messageReportsColumns: Column<MessageReportWithMessage>[] = [
     {
       title: 'Message Content',
       key: 'messageContent',
@@ -177,9 +168,9 @@ This action cannot be undone and will remove ALL user data from the entire syste
       title: 'Reason',
       key: 'reason',
       dataIndex: 'reason',
-      render: (reason: string) => (
+      render: (value) => (
         <Badge variant="secondary" className="badge-red">
-          {reason}
+          {String(value)}
         </Badge>
       ),
     },
@@ -187,15 +178,15 @@ This action cannot be undone and will remove ALL user data from the entire syste
       title: 'Reported At',
       key: 'createdAt',
       dataIndex: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (value) => new Date(String(value)).toLocaleString(),
     },
     {
       title: 'Message ID',
       key: 'messageId',
       dataIndex: 'messageId',
-      render: (messageId: string) => (
+      render: (value) => (
         <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-          {messageId.substring(0, 8)}...
+          {String(value).substring(0, 8)}...
         </code>
       ),
     },
@@ -222,7 +213,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
 
         <TabsContent value="user-reports" className="mt-6">
           <div className="reports-table-container">
-            <Table
+            <Table<UserReportWithUser>
               columns={userReportsColumns}
               dataSource={userReports}
               rowKey="id"
@@ -240,7 +231,7 @@ This action cannot be undone and will remove ALL user data from the entire syste
 
         <TabsContent value="message-reports" className="mt-6">
           <div className="reports-table-container">
-            <Table
+            <Table<MessageReportWithMessage>
               columns={messageReportsColumns}
               dataSource={messageReports}
               rowKey="id"

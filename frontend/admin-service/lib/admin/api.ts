@@ -8,7 +8,7 @@ const PORTFOLIO_API_BASE = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://
 const MESSAGES_API_BASE = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5003'; // Added messages service
 
 // Add interfaces for report types
-interface UserReport {
+export interface UserReport extends Record<string, unknown> {
   id: string;
   reportedUserId: string;
   reporterUserId: string;
@@ -19,7 +19,7 @@ interface UserReport {
   updatedAt: string;
 }
 
-interface MessageReport {
+export interface MessageReport extends Record<string, unknown> {
   id: string;
   messageId: string;
   reporterUserId: string;

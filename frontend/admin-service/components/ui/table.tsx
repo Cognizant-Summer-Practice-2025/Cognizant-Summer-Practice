@@ -106,12 +106,12 @@ function Table<T extends Record<string, unknown>>({
                     >
                       {column.render
                         ? column.render(
-                            column.dataIndex ? record[column.dataIndex] : record,
+                            column.dataIndex ? record[column.dataIndex] : (record as T[keyof T]),
                             record,
                             index
                           )
                         : column.dataIndex
-                        ? record[column.dataIndex]
+                        ? String(record[column.dataIndex] ?? '')
                         : ''}
                     </td>
                   ))}
