@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { SignoutHandler } from "@/components/signout-handler";
 
 export const metadata: Metadata = {
   title: "GoalKeeper",
@@ -12,6 +13,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (typeof window !== 'undefined') {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('signout') === '1') {
+        localStorage.removeItem('jwt_auth_token');
+        sessionStorage.removeItem('jwt_auth_token');
+        url.searchParams.delete('signout');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch {}
+  }
   return (
     <html lang="en">
       <body
@@ -22,7 +34,10 @@ export default function RootLayout({
           '--font-geist-mono': 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
         } as React.CSSProperties}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <SignoutHandler />
+          {children}
+        </Providers>
       </body>
     </html>
   );

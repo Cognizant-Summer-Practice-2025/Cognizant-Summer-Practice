@@ -291,7 +291,7 @@ const useMessages = () => {
     
   }, []);
 
-  const waitForAuthentication = useCallback(async (maxMs: number = 8000): Promise<boolean> => {
+  const waitForAuthentication = useCallback(async (): Promise<boolean> => {
     // With JWT-based auth, rely on jwt_auth_token presence; backend will 401 if invalid
     return true;
   }, []);
@@ -311,7 +311,7 @@ const useMessages = () => {
     // Ensure we have an authenticated token before calling APIs
     try {
       
-      const becameAuthed = await waitForAuthentication(8000);
+      const becameAuthed = await waitForAuthentication();
       if (!becameAuthed) {
         console.warn('[useMessages] loadConversations: still unauthenticated after wait, skipping fetch');
         return;
@@ -426,7 +426,7 @@ const useMessages = () => {
     try {
       // Ensure backend-validated auth before loading messages
       
-      const becameAuthed = await waitForAuthentication(8000);
+      const becameAuthed = await waitForAuthentication();
       if (!becameAuthed) {
         console.warn('[useMessages] loadMessages: still unauthenticated after wait, skipping fetch');
         return;

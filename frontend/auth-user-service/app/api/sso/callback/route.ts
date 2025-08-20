@@ -42,8 +42,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=UserNotFound', request.url));
     }
 
-    // Create a temporary SSO token for the calling service
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret');
+    // Create a temporary SSO token for the calling service using shared secret
+    const rawSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!rawSecret) {
+      console.error('AUTH_SECRET (or NEXTAUTH_SECRET) not configured');
+      return NextResponse.redirect(new URL('/login?error=ServerConfig', request.url));
+    }
+    const secret = new TextEncoder().encode(rawSecret);
     const token = await new SignJWT({ 
       email: userData.email,
       userId: userData.id,

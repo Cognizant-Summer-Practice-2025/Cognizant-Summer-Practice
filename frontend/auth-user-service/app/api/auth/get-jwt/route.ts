@@ -34,8 +34,13 @@ export async function GET(request: Request) {
       }, { status: 401, headers: buildCorsHeaders(request) });
     }
 
-    // Create a JWT token for the calling service
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret');
+    // Create a JWT token for the calling service using shared secret
+    const rawSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!rawSecret) {
+      console.error('AUTH_SECRET (or NEXTAUTH_SECRET) not configured');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500, headers: buildCorsHeaders(request) });
+    }
+    const secret = new TextEncoder().encode(rawSecret);
     const token = await new SignJWT({ 
       email: session.user.email,
       userId: session.userId,

@@ -1,4 +1,3 @@
-import type { ServiceUserData } from '@/types/global';
 
 // Authenticated client for handling authenticated API calls using JWT stored in browser storage
 export class AuthenticatedClient {
@@ -30,6 +29,44 @@ export class AuthenticatedClient {
     );
   }
 
+  // Decode JWT payload safely (no verification, client-side only)
+  private getJwtPayload(token: string): Record<string, unknown> | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length < 2) return null;
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const json = typeof window !== 'undefined'
+        ? decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+        : Buffer.from(base64, 'base64').toString('utf8');
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
+
+  // Try to refresh JWT token from auth service using cookies
+  private async refreshJwtFromAuth(): Promise<boolean> {
+    try {
+      const resp = await fetch(`${this.authServiceBaseUrl}/api/auth/get-jwt`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!resp.ok) return false;
+      const data = await resp.json();
+      if (data?.success && data?.token) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('jwt_auth_token', data.token);
+        }
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   public async isAuthenticated(): Promise<boolean> {
     return !!this.getStoredJwt();
   }
@@ -49,25 +86,43 @@ export class AuthenticatedClient {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = this.getStoredJwt();
+    const jwt = this.getStoredJwt();
+    if (!jwt) throw new Error('Authentication required');
+    const payload = this.getJwtPayload(jwt) as { accessToken?: string } | null;
+    const access = payload?.accessToken;
 
-    if (!token) {
-      // No token yet; avoid redirect to prevent loops during SSO processing
-      throw new Error('Authentication required (no JWT)');
+    const requestWithBearer = async (bearer: string): Promise<Response> => {
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${bearer}`,
+          ...options.headers,
+        },
+      });
+    };
+
+    // Try provider access token first if available, else JWT
+    let response = await requestWithBearer(access && access.length > 0 ? access : jwt);
+
+    // If unauthorized and we tried access token, fallback to JWT once
+    if (response.status === 401 && access && access.length > 0) {
+      response = await requestWithBearer(jwt);
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
-
+    // If still unauthorized, try to refresh JWT from auth and retry once
     if (response.status === 401) {
-      // Token invalid/expired; let caller decide how to recover
-      throw new Error('Authentication required (401)');
+      const refreshed = await this.refreshJwtFromAuth();
+      if (refreshed) {
+        const newJwt = this.getStoredJwt();
+        const newPayload = newJwt ? (this.getJwtPayload(newJwt) as { accessToken?: string } | null) : null;
+        const newAccess = newPayload?.accessToken;
+        response = await requestWithBearer(newAccess && newAccess.length > 0 ? newAccess : (newJwt || ''));
+      }
+      if (response.status === 401) {
+        localStorage.removeItem('jwt_auth_token');
+        throw new Error('Authentication required (401)');
+      }
     }
 
     if (!response.ok) {

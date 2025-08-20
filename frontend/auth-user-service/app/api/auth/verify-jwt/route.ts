@@ -32,10 +32,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400, headers: buildCorsHeaders(request) });
     }
 
-    // Verify the JWT token using jose library
-    const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+    // Verify the JWT token using a single shared secret
+    const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
     if (!secret) {
-      console.error('NEXTAUTH_SECRET or AUTH_SECRET not configured');
+      console.error('AUTH_SECRET (or NEXTAUTH_SECRET) not configured');
       return NextResponse.json({ 
         error: 'Server configuration error' 
       }, { status: 500, headers: buildCorsHeaders(request) });

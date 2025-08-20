@@ -137,7 +137,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
         }
       }
       return false;
-    } catch (e) {
+    } catch {
       return false;
     }
   }, [storeToken, verifyToken]);
@@ -174,12 +174,18 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
       const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
       if (typeof window !== 'undefined' && authServiceUrl) {
         const callbackUrl = window.location.origin;
+        const services = [
+          process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE,
+          process.env.NEXT_PUBLIC_MESSAGES_SERVICE,
+        ].filter(Boolean).join(',');
+        // First clear NextAuth cookies, then cascade signout across services, end at current origin
         await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(callbackUrl)}`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
         });
-        window.location.href = callbackUrl;
+        const cascadeUrl = `${authServiceUrl}/api/auth/cascade-signout?services=${encodeURIComponent(services)}&return=${encodeURIComponent(callbackUrl)}`;
+        window.location.href = cascadeUrl;
       }
     } catch {
       // no-op

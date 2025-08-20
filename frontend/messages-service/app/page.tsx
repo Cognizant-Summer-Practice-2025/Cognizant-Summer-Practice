@@ -36,7 +36,7 @@ type MobileView = 'sidebar' | 'chat';
 
 const MessagesPage = () => {
   const { user, loading: userLoading } = useUser();
-  const { isAuthenticated, loading: authLoading, isLoggingOut } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { 
     conversations, 
     currentConversation, 
@@ -60,12 +60,12 @@ const MessagesPage = () => {
 
   // No need for artificial delays with JWT-based auth - redirect immediately if not authenticated
   useEffect(() => {
-    if (!authLoading && !userLoading && !isAuthenticated && !isLoggingOut) {
+    if (!authLoading && !userLoading && !isAuthenticated) {
       const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
       window.location.href = homeServiceUrl;
       return;
     }
-  }, [isAuthenticated, authLoading, userLoading, isLoggingOut]);
+  }, [isAuthenticated, authLoading, userLoading]);
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
@@ -233,18 +233,21 @@ const MessagesPage = () => {
   }, [enhancedContacts]);
 
   useEffect(() => {
+    let cancelled = false;
     const autoSelectFirstContact = async () => {
       if (contacts.length > 0 && !selectedContact) {
-        setSelectedContact(contacts[0]);
-        const conversation = conversations.find(conv => conv.id === contacts[0].id);
+        if (cancelled) return;
+        const first = contacts[0];
+        setSelectedContact(first);
+        const conversation = conversations.find(conv => conv.id === first.id);
         if (conversation) {
           await selectConversation(conversation);
         }
       }
     };
-    
     autoSelectFirstContact();
-  }, [contacts, selectedContact, conversations, selectConversation]);
+    return () => { cancelled = true; };
+  }, [contacts, conversations, selectConversation, selectedContact?.id]);
 
   useEffect(() => {
     if (selectedContact && conversations.length > 0) {
@@ -368,7 +371,7 @@ const MessagesPage = () => {
     }
   };
   // Show loading only for essential auth/user loading
-  if (authLoading || userLoading || isLoggingOut) {
+  if (authLoading || userLoading) {
     return (
       <AlertProvider>
         <Header />

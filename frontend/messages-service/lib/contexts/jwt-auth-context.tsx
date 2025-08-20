@@ -103,7 +103,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
         }
       }
       return false;
-    } catch (error) {
+    } catch {
       return false;
     }
   }, [storeToken, verifyToken]);
@@ -131,13 +131,18 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
     try {
       const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
       if (typeof window !== 'undefined' && authServiceUrl) {
-        const callbackUrl = window.location.origin;
+        const callbackUrl = window.location.origin + (window.location.search ? window.location.search : '');
+        const services = [
+          process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE,
+          process.env.NEXT_PUBLIC_MESSAGES_SERVICE,
+        ].filter(Boolean).join(',');
         await fetch(`${authServiceUrl}/api/auth/auto-signout?callbackUrl=${encodeURIComponent(callbackUrl)}`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
         });
-        window.location.href = callbackUrl;
+        const cascadeUrl = `${authServiceUrl}/api/auth/cascade-signout?services=${encodeURIComponent(services)}&return=${encodeURIComponent(window.location.origin)}`;
+        window.location.href = cascadeUrl;
       }
     } catch {}
   }, [clearStoredToken]);
@@ -206,7 +211,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
           }
         }
-      } catch (error) {
+      } catch {
         setIsAuthenticated(false);
         setUser(null);
       } finally {
