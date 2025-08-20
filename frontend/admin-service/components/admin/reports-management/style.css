@@ -1,0 +1,127 @@
+.reports-management {
+  padding: 24px;
+  background: hsl(var(--background));
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border));
+}
+
+.reports-header {
+  margin-bottom: 24px;
+}
+
+.reports-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.reports-header p {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+}
+
+.reports-tabs {
+  margin-top: 16px;
+}
+
+.reports-table-container {
+  margin-top: 16px;
+}
+
+/* User report specific styles */
+.user-report-row {
+  cursor: pointer;
+}
+
+.user-report-row:hover {
+  background: hsl(var(--muted) / 0.5);
+}
+
+/* Message report specific styles */
+.message-content-cell {
+  max-width: 300px;
+}
+
+.message-content-cell .message-preview {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Action buttons */
+.action-button {
+  margin-right: 8px;
+}
+
+/* Tags/Badges */
+.report-reason-tag {
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .reports-management {
+    padding: 16px;
+  }
+  
+  .reports-header h2 {
+    font-size: 20px;
+  }
+}
+
+/* Loading state */
+.reports-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+/* Empty state */
+.reports-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: hsl(var(--muted-foreground));
+}
+
+.reports-empty .empty-description {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Status indicators */
+.report-status-pending {
+  color: hsl(var(--warning));
+}
+
+.report-status-resolved {
+  color: hsl(var(--success));
+}
+
+.report-status-dismissed {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Custom badge variants for reports */
+.badge-orange {
+  background-color: rgb(254 215 170);
+  color: rgb(154 52 18);
+  border: 1px solid rgb(251 191 36);
+}
+
+.badge-orange:hover {
+  background-color: rgb(253 186 116);
+}
+
+.badge-red {
+  background-color: rgb(254 202 202);
+  color: rgb(153 27 27);
+  border: 1px solid rgb(248 113 113);
+}
+
+.badge-red:hover {
+  background-color: rgb(252 165 165);
+} 

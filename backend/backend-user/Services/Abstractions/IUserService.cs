@@ -71,5 +71,12 @@ namespace backend_user.Services.Abstractions
         /// <param name="id">The user ID</param>
         /// <returns>Portfolio information object or null if user not found</returns>
         Task<object?> GetUserPortfolioInfoAsync(Guid id);
+        
+        /// <summary>
+        /// Deletes a user account.
+        /// </summary>
+        /// <param name="id">The user ID</param>
+        /// <returns>True if user was deleted, false if not found</returns>
+        Task<bool> DeleteUserAsync(Guid id);
     }
 }

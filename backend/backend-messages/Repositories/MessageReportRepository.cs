@@ -81,5 +81,13 @@ namespace BackendMessages.Repositories
                 .Include(mr => mr.Message)
                 .FirstOrDefaultAsync(mr => mr.Id == reportId);
         }
+
+        public async Task<IEnumerable<MessageReport>> GetAllMessageReportsAsync()
+        {
+            return await _context.MessageReports
+                .Include(mr => mr.Message)
+                .OrderByDescending(mr => mr.CreatedAt)
+                .ToListAsync();
+        }
     }
 } 

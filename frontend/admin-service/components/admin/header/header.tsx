@@ -3,14 +3,14 @@
 import React from 'react';
 import Image from 'next/image';
 import { Button } from 'antd';
-import { EyeOutlined, BarChartOutlined, TeamOutlined, DownloadOutlined, LogoutOutlined } from '@ant-design/icons';
+import { EyeOutlined, BarChartOutlined, TeamOutlined, ExclamationCircleOutlined, DownloadOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useUser } from '@/lib/contexts/user-context';
 import { customSignOut } from '@/lib/auth/custom-signout';
 import { Logger } from '@/lib/logger';
 import { getSafeImageUrl } from '@/lib/image/utils';
 import './style.css';
 
-type TabType = 'statistics' | 'management' | 'export';
+type TabType = 'statistics' | 'management' | 'reports' | 'export';
 
 interface AdminHeaderProps {
   activeTab?: TabType;
@@ -102,6 +102,13 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
             >
               <TeamOutlined className="nav-tab-icon" />
               <span className="nav-tab-text">Management</span>
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'reports' ? 'active' : ''}`}
+              onClick={() => onTabChange?.('reports')}
+            >
+              <ExclamationCircleOutlined className="nav-tab-icon" />
+              <span className="nav-tab-text">Reports</span>
             </button>
             <button
               className={`nav-tab ${activeTab === 'export' ? 'active' : ''}`}

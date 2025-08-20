@@ -116,20 +116,31 @@ const UserManagement: React.FC = () => {
   const handleDeleteUser = (user: UserWithPortfolio) => {
     const deleteMessage = `Are you sure you want to delete user "${getUserDisplayName(user)}"?
 
-This action will permanently delete:
-• The user account and all profile data
-• Associated portfolio (if any)
-• All projects, experiences, and skills
-• All messages and conversations
-• All bookmarks and activity
+This action will permanently delete across ALL services:
 
-This action cannot be undone.`;
+📊 USER SERVICE:
+• User account and profile data
+• OAuth provider connections
+• Newsletter subscriptions
+• User analytics and activity logs
+• User reports and bookmarks
+
+💼 PORTFOLIO SERVICE:
+• All portfolios (${user.portfolioStatus !== 'None' ? '1 portfolio found' : 'no portfolios'})
+• All projects, experiences, and skills
+• All blog posts and portfolio bookmarks
+
+💬 MESSAGES SERVICE:
+• All conversations and messages
+• All message reports
+
+⚠️ This action cannot be undone and will remove ALL user data from the entire system.`;
 
     showConfirm({
-      title: 'Delete User',
+      title: 'Delete User - Cascade Deletion',
       description: deleteMessage,
       type: 'error',
-      confirmText: 'Delete User',
+      confirmText: 'Delete All User Data',
       cancelText: 'Cancel',
       onConfirm: () => performDeleteUser(user.id, getUserDisplayName(user)),
     });
@@ -139,17 +150,19 @@ This action cannot be undone.`;
     try {
       setDeletingUserId(userId);
       
-      // TODO: Implement actual user deletion API
-      // await AdminAPI.deleteUser(userId);
+      // Use AdminAPI to delete user with cascade deletion across all services
+      await AdminAPI.deleteUser(userId);
       
-      // For now, just remove from local state (simulated)
+      // Remove from local state after successful deletion
       setUsers(prev => prev.filter(u => u.id !== userId));
       
       showAlert({
-        title: 'User Deleted',
-        description: `User "${userName}" has been deleted successfully.`,
+        title: 'User Deleted Successfully',
+        description: `User "${userName}" and all associated data have been permanently deleted from all services.`,
         type: 'success',
       });
+
+      Logger.info('User successfully deleted with cascade deletion', { userId, userName });
     } catch (error) {
       Logger.error('Error deleting user', error);
       const errorMessage = error instanceof Error 

@@ -444,5 +444,47 @@ namespace backend_user.Controllers
             }
         }
 
+        // Admin endpoints
+        /// <summary>
+        /// Get all user reports (Admin only)
+        /// </summary>
+        /// <returns>List of all user reports with user details</returns>
+        [HttpGet("admin/reports")]
+        public async Task<IActionResult> GetAllUserReports()
+        {
+            try
+            {
+                var reports = await _userReportService.GetAllUserReportsAsync();
+                return Ok(reports);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a user account (Admin only)
+        /// </summary>
+        /// <param name="userId">The user ID to delete</param>
+        /// <returns>Success response</returns>
+        [HttpDelete("admin/{userId}")]
+        public async Task<IActionResult> DeleteUser(Guid userId)
+        {
+            try
+            {
+                var success = await _userService.DeleteUserAsync(userId);
+                if (success)
+                {
+                    return Ok(new { message = "User deleted successfully" });
+                }
+                return NotFound(new { message = "User not found" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

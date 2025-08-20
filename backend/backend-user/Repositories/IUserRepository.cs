@@ -14,5 +14,6 @@ namespace backend_user.Repositories
         Task<User> CreateUser(User user);
         Task<User?> UpdateUser(Guid id, UpdateUserRequest request);
         Task<bool> UpdateLastLoginAsync(Guid userId, DateTime lastLoginAt);
+        Task<bool> DeleteUserAsync(Guid id);
     }
 }

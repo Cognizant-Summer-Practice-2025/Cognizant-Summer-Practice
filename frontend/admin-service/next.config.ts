@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    USER_SERVICE_URL: process.env.USER_SERVICE_URL || 'http://localhost:5002',
+    MESSAGES_SERVICE_URL: process.env.MESSAGES_SERVICE_URL || 'http://localhost:5003',
+    PORTFOLIO_SERVICE_URL: process.env.PORTFOLIO_SERVICE_URL || 'http://localhost:5201',
+    AI_SERVICE_URL: process.env.AI_SERVICE_URL || 'http://localhost:5004',
+  },
   output: 'standalone',
   images: {
     remotePatterns: [

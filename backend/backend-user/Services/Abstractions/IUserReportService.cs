@@ -9,6 +9,6 @@ namespace backend_user.Services.Abstractions
         Task<UserReportResponseDto?> GetUserReportByIdAsync(Guid id);
         Task<List<UserReportResponseDto>> GetUserReportsAsync(Guid userId);
         Task<List<UserReportResponseDto>> GetReportsByReporterAsync(Guid reporterId);
-        Task<List<UserReportResponseDto>> GetAllUserReportsAsync();
+        Task<List<UserReportWithDetailsDto>> GetAllUserReportsAsync();
     }
 } 
