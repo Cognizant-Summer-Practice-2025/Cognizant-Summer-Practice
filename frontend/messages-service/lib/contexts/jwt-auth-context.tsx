@@ -150,7 +150,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
     try {
       if (typeof window !== 'undefined') {
         const authServiceUrl = SERVICES.AUTH_USER_SERVICE;
-        const callbackUrl = window.location.origin;
+        const callbackUrl = SERVICES.MESSAGES_SERVICE;
         const services = [
           SERVICES.HOME_PORTFOLIO_SERVICE,
           SERVICES.MESSAGES_SERVICE,
