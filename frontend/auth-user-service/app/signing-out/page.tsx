@@ -75,6 +75,7 @@ function SigningOutContent() {
         message="Please wait a moment"
         showBackdrop={false}
         textColor="#e5e7eb"
+        backgroundColor="#0b0f1a"
       />
     </div>
   );
@@ -84,7 +85,7 @@ export default function SigningOutPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen w-full bg-[#0b0f1a]">
-        <LoadingOverlay isOpen={true} title="Signing out…" showBackdrop={false} textColor="#e5e7eb" />
+        <LoadingOverlay isOpen={true} title="Signing out…" showBackdrop={false} textColor="#e5e7eb" backgroundColor="#0b0f1a" />
       </div>
     }>
       <SigningOutContent />

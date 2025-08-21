@@ -23,7 +23,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, userEmail, loading: authLoading } = useAuth();
+  const { isAuthenticated, user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<(User & { isAdmin: boolean }) | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,24 +32,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      console.log('[admin][user] fetchUser: start', { isAuthenticated, userEmail });
-      // Map from JWT auth user directly; this already includes isAdmin from verify-jwt
-      // We only need minimal mapping to the local User shape
-      if (isAuthenticated && userEmail) {
-        setUser(prev => prev ?? ({
-          id: '',
-          email: userEmail,
-          username: '',
-          firstName: '',
-          lastName: '',
+      console.log('[admin][user] fetchUser: start', { isAuthenticated, hasAuthUser: !!authUser });
+      if (isAuthenticated && authUser) {
+        const mapped: User & { isAdmin: boolean } = {
+          id: authUser.id || '',
+          email: authUser.email,
+          username: authUser.username || '',
+          firstName: authUser.firstName || '',
+          lastName: authUser.lastName || '',
           professionalTitle: '',
           bio: '',
           location: '',
-          avatarUrl: '',
+          avatarUrl: authUser.avatarUrl || '',
           isActive: true,
-          isAdmin: true, // Will be corrected below if available from window.authUser
+          isAdmin: !!authUser.isAdmin,
           lastLoginAt: null,
-        } as unknown as User & { isAdmin: boolean }));
+        } as unknown as User & { isAdmin: boolean };
+        setUser(mapped);
+        console.log('[admin][user] fetchUser: mapped from auth user', { isAdmin: mapped.isAdmin });
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
@@ -62,15 +62,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const refetchUser = async () => {
-    if (isAuthenticated) {
-      await fetchUser();
-    }
+    if (isAuthenticated) await fetchUser();
   };
 
   const updateUserData = async () => {
     // User updates should be handled by the auth-user-service
     // Redirect to auth service for profile updates
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE as string;
     window.location.href = `${authServiceUrl}/profile`;
   };
 
@@ -82,7 +80,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!isAuthenticated || !userEmail) {
+    if (!isAuthenticated || !authUser) {
       setUser(null);
       setLoading(false);
       setError(null);
@@ -91,11 +89,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     // Fetch user data when authenticated
-    if (isAuthenticated && userEmail && !user) {
+    if (isAuthenticated && authUser && !user) {
       console.log('[admin][user] effect: fetching user');
       fetchUser();
     }
-  }, [isAuthenticated, userEmail, authLoading]);
+  }, [isAuthenticated, authUser, authLoading]);
 
   const value: UserContextType = {
     user,
