@@ -10,7 +10,10 @@ interface AdminAccessModalProps {
   onSignOut: () => void;
 }
 
+import { useAuth } from '@/lib/hooks/use-auth';
+
 export function AdminAccessModal({ isOpen, onSignOut }: AdminAccessModalProps) {
+  const { logout } = useAuth();
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-[425px] [&>button]:hidden">
@@ -31,7 +34,7 @@ export function AdminAccessModal({ isOpen, onSignOut }: AdminAccessModalProps) {
         
         <div className="flex justify-center mt-6">
           <Button
-            onClick={onSignOut}
+            onClick={async () => { await logout(); onSignOut(); }}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2"
           >
             <LogOut className="w-4 h-4" />

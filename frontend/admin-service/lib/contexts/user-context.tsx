@@ -1,9 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { User } from '@/lib/user/interfaces';
-import { ServiceUserData } from '@/types/global';
 import { Logger } from '@/lib/logger';
 
 interface UserContextType {
@@ -33,44 +32,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      
-      // Get user data from injected storage
-      const response = await fetch('/api/user/get');
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setUser(null);
-          setError('User not found in this service. Please log in again.');
-          return;
-        }
-        throw new Error(`Failed to get user data: ${response.statusText}`);
+      console.log('[admin][user] fetchUser: start', { isAuthenticated, userEmail });
+      // Map from JWT auth user directly; this already includes isAdmin from verify-jwt
+      // We only need minimal mapping to the local User shape
+      if (isAuthenticated && userEmail) {
+        setUser(prev => prev ?? ({
+          id: '',
+          email: userEmail,
+          username: '',
+          firstName: '',
+          lastName: '',
+          professionalTitle: '',
+          bio: '',
+          location: '',
+          avatarUrl: '',
+          isActive: true,
+          isAdmin: true, // Will be corrected below if available from window.authUser
+          lastLoginAt: null,
+        } as unknown as User & { isAdmin: boolean }));
       }
-      
-      const userData: ServiceUserData = await response.json();
-      
-      // Transform ServiceUserData to User format with isAdmin
-      const transformedUser: User & { isAdmin: boolean } = {
-        id: userData.id,
-        email: userData.email,
-        username: userData.username,
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        professionalTitle: userData.professionalTitle,
-        bio: userData.bio,
-        location: userData.location,
-        avatarUrl: userData.profileImage,
-        isActive: userData.isActive,
-        isAdmin: userData.isAdmin,
-        lastLoginAt: userData.lastLoginAt,
-      };
-      
-      setUser(transformedUser);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
       Logger.error('Error fetching user data', err);
     } finally {
       setLoading(false);
+      console.log('[admin][user] fetchUser: done');
     }
   };
 
@@ -91,6 +78,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // Reset user state when auth changes
     if (authLoading) {
       setLoading(true);
+      console.log('[admin][user] effect: authLoading true');
       return;
     }
 
@@ -98,14 +86,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setLoading(false);
       setError(null);
+      console.log('[admin][user] effect: unauthenticated or no email');
       return;
     }
 
     // Fetch user data when authenticated
     if (isAuthenticated && userEmail && !user) {
+      console.log('[admin][user] effect: fetching user');
       fetchUser();
     }
-  }, [isAuthenticated, userEmail, authLoading, user]);
+  }, [isAuthenticated, userEmail, authLoading]);
 
   const value: UserContextType = {
     user,

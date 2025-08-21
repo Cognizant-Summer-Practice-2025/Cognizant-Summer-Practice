@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Button } from 'antd';
 import { EyeOutlined, BarChartOutlined, TeamOutlined, ExclamationCircleOutlined, DownloadOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useUser } from '@/lib/contexts/user-context';
-import { customSignOut } from '@/lib/auth/custom-signout';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { Logger } from '@/lib/logger';
 import { getSafeImageUrl } from '@/lib/image/utils';
 import './style.css';
@@ -22,21 +22,18 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   onTabChange 
 }) => {
   const { user } = useUser();
+  const { logout } = useAuth();
 
   const handleViewSite = () => {
-    // Redirect to home portfolio service
-    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
-    window.location.href = homeServiceUrl;
+    const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE;
+    window.location.href = homeServiceUrl as string;
   };
 
   const handleSignOut = async () => {
     try {
-      await customSignOut();
+      await logout();
     } catch (error) {
       Logger.error('Error during sign out', error);
-      // Fallback redirect if logout fails
-      const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
-      window.location.href = homeServiceUrl;
     }
   };
 

@@ -2,9 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@/lib/contexts/user-context';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { AdminAccessModal } from './admin-access-modal';
-import { customSignOut } from '@/lib/auth/custom-signout';
 import { LoadingOverlay } from '@/components/loader/loading-overlay';
 import { Logger } from '@/lib/logger';
 
@@ -22,27 +21,32 @@ export function AdminGuard({ children }: AdminGuardProps) {
     const checkAdminAccess = async () => {
       try {
         setIsChecking(true);
+        console.log('[admin][guard] check: start', { authLoading, userLoading, isAuthenticated, hasUser: !!user });
 
         // Wait for authentication to complete
         if (authLoading || userLoading) {
+          console.log('[admin][guard] waiting auth/user');
           return;
         }
 
         // If not authenticated, redirect to auth service
         if (!isAuthenticated) {
-          const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
-          window.location.href = `${authServiceUrl}/login?callbackUrl=${encodeURIComponent(window.location.href)}`;
+          console.log('[admin][guard] not authenticated, redirect to auth');
+          const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
+          window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(window.location.href)}`;
           return;
         }
 
         // If user data is loaded but user is not admin, show access modal
         if (user && !user.isAdmin) {
+          console.log('[admin][guard] user is not admin');
           setShowAccessModal(true);
           return;
         }
 
         // If no user data and authenticated, there might be an injection issue
         if (!user && isAuthenticated) {
+          console.log('[admin][guard] authenticated but no user, fallback modal in 2s');
           Logger.warn('User is authenticated but no user data found in admin service');
           // Try to refresh user data
           setTimeout(() => {
@@ -55,23 +59,23 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
       } catch (error) {
         Logger.error('Error checking admin access', error);
+        console.log('[admin][guard] error', error);
         setShowAccessModal(true);
       } finally {
         setIsChecking(false);
+        console.log('[admin][guard] check: done');
       }
     };
 
     checkAdminAccess();
   }, [isAuthenticated, user, authLoading, userLoading]);
 
+  const { logout } = useAuth();
   const handleSignOut = async () => {
     try {
-      await customSignOut();
+      await logout();
     } catch (error) {
       Logger.error('Error during sign out', error);
-      // Fallback redirect
-      const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
-      window.location.href = homeServiceUrl;
     }
   };
 
