@@ -164,8 +164,8 @@ export default function AIPage() {
 
         {/* Loading State */}
         {state.loading && (
-          <div className="py-12">
-            <div className="flex items-center gap-3 text-gray-600">
+          <div className="py-12 text-center">
+            <div className="flex items-center gap-3 text-gray-600 justify-center">
               <Loader2 className="w-6 h-6 animate-spin" />
               <span className="text-lg">AI is analyzing portfolios and selecting the best ones...</span>
             </div>
