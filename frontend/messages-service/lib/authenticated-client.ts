@@ -1,10 +1,12 @@
+import { SERVICES } from '@/lib/config';
+
 // Authenticated client for handling authenticated API calls using JWT stored in browser storage
 export class AuthenticatedClient {
   private static instance: AuthenticatedClient;
   private authServiceBaseUrl: string;
 
   private constructor() {
-    this.authServiceBaseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    this.authServiceBaseUrl = SERVICES.AUTH_USER_SERVICE;
   }
 
   public static getInstance(): AuthenticatedClient {
@@ -120,7 +122,11 @@ export class AuthenticatedClient {
         response = await requestWithBearer(newAccess && newAccess.length > 0 ? newAccess : (newJwt || ''));
       }
       if (response.status === 401) {
-        localStorage.removeItem('auth_token');
+        // Clear stored JWT to force re-auth on next attempt
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('jwt_auth_token');
+          sessionStorage.removeItem('jwt_auth_token');
+        }
         throw new Error('Authentication required');
       }
     }
