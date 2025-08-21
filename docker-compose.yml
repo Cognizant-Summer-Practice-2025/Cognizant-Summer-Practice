@@ -65,6 +65,312 @@ services:
     networks:
       - cognizant_network
 
+  # Frontend Services
+  # Backend Services
+  backend-user:
+    build:
+      context: ./backend/backend-user
+      dockerfile: Dockerfile
+    container_name: backend-user
+    ports:
+      - "5200:5200"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:5200
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRINGS_DEFAULT_CONNECTION}
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}
+      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
+      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
+      - AUTH_LINKEDIN_ID=${AUTH_LINKEDIN_ID}
+      - AUTH_LINKEDIN_SECRET=${AUTH_LINKEDIN_SECRET}
+      - AUTH_FACEBOOK_ID=${AUTH_FACEBOOK_ID}
+      - AUTH_FACEBOOK_SECRET=${AUTH_FACEBOOK_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - Logging__LogLevel__Default=${LOGGING_LOGLEVEL_DEFAULT}
+      - Logging__LogLevel__Microsoft.AspNetCore=${LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE}
+    depends_on:
+      - user-db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "docker.host:host-gateway"
+    networks:
+      - cognizant_network
+
+  backend-ai:
+    build:
+      context: ./backend/backend-AI
+      dockerfile: Dockerfile
+    container_name: backend-ai
+    ports:
+      - "5134:5134"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:5134
+      - PORTFOLIO_SERVICE_URL=${PORTFOLIO_SERVICE_URL}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - BEST_PORTFOLIO_PROMPT=${BEST_PORTFOLIO_PROMPT}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL}
+      - OPENROUTER_PROMPT=${OPENROUTER_PROMPT}
+      - RANKING_LOG_LEVEL=${RANKING_LOG_LEVEL}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - AI_LOG_LEVEL=${AI_LOG_LEVEL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "docker.host:host-gateway"
+    networks:
+      - cognizant_network
+
+  backend-portfolio:
+    build:
+      context: ./backend/backend-portfolio
+      dockerfile: Dockerfile
+    container_name: backend-portfolio
+    ports:
+      - "5201:5201"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:5201
+      - ConnectionStrings__DefaultConnection=Host=portfolio-db;Port=5432;Database=portfolio_db;Username=postgres;Password=postgres
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}
+      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
+      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
+      - AUTH_LINKEDIN_ID=${AUTH_LINKEDIN_ID}
+      - AUTH_LINKEDIN_SECRET=${AUTH_LINKEDIN_SECRET}
+      - AUTH_FACEBOOK_ID=${AUTH_FACEBOOK_ID}
+      - AUTH_FACEBOOK_SECRET=${AUTH_FACEBOOK_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - Logging__LogLevel__Default=${LOGGING_LOGLEVEL_DEFAULT}
+      - Logging__LogLevel__Microsoft.AspNetCore=${LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE}
+    depends_on:
+      - portfolio-db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "docker.host:host-gateway"
+    networks:
+      - cognizant_network
+
+  backend-messages:
+    build:
+      context: ./backend/backend-messages
+      dockerfile: Dockerfile
+    container_name: backend-messages
+    ports:
+      - "5093:5093"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:5093
+      - ConnectionStrings__DefaultConnection=Host=messages-db;Port=5432;Database=messages_db;Username=postgres;Password=postgres
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}
+      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
+      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
+      - AUTH_LINKEDIN_ID=${AUTH_LINKEDIN_ID}
+      - AUTH_LINKEDIN_SECRET=${AUTH_LINKEDIN_SECRET}
+      - AUTH_FACEBOOK_ID=${AUTH_FACEBOOK_ID}
+      - AUTH_FACEBOOK_SECRET=${AUTH_FACEBOOK_SECRET}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - Logging__LogLevel__Default=${LOGGING_LOGLEVEL_DEFAULT}
+      - Logging__LogLevel__Microsoft.AspNetCore=${LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE}
+    depends_on:
+      - messages-db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "docker.host:host-gateway"
+    networks:
+      - cognizant_network
+  auth-user-service:
+    build:
+      context: ./frontend/auth-user-service
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+        - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+        - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+        - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+        - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+        - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+        - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    container_name: auth-user-service
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - user-db
+      - backend-user
+      - backend-portfolio
+      - backend-messages
+      - backend-ai
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+      - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+      - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+      - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+      - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+      - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+      - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
+      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
+      - AUTH_GOOGLE_ID=${AUTH_GOOGLE_ID}
+      - AUTH_GOOGLE_SECRET=${AUTH_GOOGLE_SECRET}
+      - NEXT_PUBLIC_EMAILJS_SERVICE_ID=${NEXT_PUBLIC_EMAILJS_SERVICE_ID}
+      - NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=${NEXT_PUBLIC_EMAILJS_TEMPLATE_ID}
+      - NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=${NEXT_PUBLIC_EMAILJS_PUBLIC_KEY}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+    networks:
+      - cognizant_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  home-portfolio-service:
+    build:
+      context: ./frontend/home-portfolio-service
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+        - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+        - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+        - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+        - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+        - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+        - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    container_name: home-portfolio-service
+    ports:
+      - "3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - portfolio-db
+      - backend-portfolio
+      - backend-user
+      - backend-messages
+      - backend-ai
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+      - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+      - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+      - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+      - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+      - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+      - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    networks:
+      - cognizant_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  messages-service:
+    build:
+      context: ./frontend/messages-service
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+        - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+        - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+        - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+        - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+        - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+        - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    container_name: messages-service
+    ports:
+      - "3002:3002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - messages-db
+      - backend-messages
+      - backend-user
+      - backend-portfolio
+      - backend-ai
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+      - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+      - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+      - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+      - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+      - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+      - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    networks:
+      - cognizant_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  admin-service:
+    build:
+      context: ./frontend/admin-service
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+        - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+        - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+        - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+        - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+        - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+        - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    container_name: admin-service
+    ports:
+      - "3003:3003"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend-user
+      - backend-portfolio
+      - backend-messages
+      - backend-ai
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - NEXT_PUBLIC_USER_API_URL=${NEXT_PUBLIC_USER_API_URL}
+      - NEXT_PUBLIC_PORTFOLIO_API_URL=${NEXT_PUBLIC_PORTFOLIO_API_URL}
+      - NEXT_PUBLIC_MESSAGES_API_URL=${NEXT_PUBLIC_MESSAGES_API_URL}
+      - NEXT_PUBLIC_AUTH_USER_SERVICE=${NEXT_PUBLIC_AUTH_USER_SERVICE}
+      - NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE}
+      - NEXT_PUBLIC_MESSAGES_SERVICE=${NEXT_PUBLIC_MESSAGES_SERVICE}
+      - NEXT_PUBLIC_ADMIN_SERVICE=${NEXT_PUBLIC_ADMIN_SERVICE}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+      - SERVICE_AUTH_SECRET=${SERVICE_AUTH_SECRET}
+    networks:
+      - cognizant_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 
 volumes:
   user_db_data:

@@ -1,6 +1,6 @@
-import { authenticatedClient } from '@/lib/authenticated-client';
+import { getAuthenticatedClient } from '@/lib/authenticated-client';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL;
 
 export interface BookmarkToggleRequest {
   userId: string;
@@ -34,10 +34,7 @@ export const bookmarkApi = {
    */
   async toggleBookmark(request: BookmarkToggleRequest): Promise<BookmarkToggleResponse> {
     try {
-      return await authenticatedClient.post<BookmarkToggleResponse>(
-        `${API_BASE_URL}/api/bookmark/toggle`,
-        request
-      );
+      return await getAuthenticatedClient().post<BookmarkToggleResponse>(`${API_BASE_URL}/api/bookmark/toggle`, request);
     } catch (error) {
       console.error('Error toggling bookmark:', error);
       throw error;
@@ -49,7 +46,7 @@ export const bookmarkApi = {
    */
   async checkBookmark(userId: string, portfolioId: string): Promise<BookmarkCheckResponse> {
     try {
-      return await authenticatedClient.get<BookmarkCheckResponse>(
+      return await getAuthenticatedClient().get<BookmarkCheckResponse>(
         `${API_BASE_URL}/api/bookmark/check/${userId}/${portfolioId}`
       );
     } catch (error) {
@@ -63,7 +60,7 @@ export const bookmarkApi = {
    */
   async getUserBookmarks(userId: string): Promise<BookmarkResponse[]> {
     try {
-      return await authenticatedClient.get<BookmarkResponse[]>(
+      return await getAuthenticatedClient().get<BookmarkResponse[]>(
         `${API_BASE_URL}/api/bookmark/user/${userId}`
       );
     } catch (error) {

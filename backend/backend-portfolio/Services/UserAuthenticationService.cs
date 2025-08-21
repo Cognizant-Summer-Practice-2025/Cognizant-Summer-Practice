@@ -32,7 +32,9 @@ namespace backend_portfolio.Services
         {
             try
             {
-                var userServiceUrl = _configuration["UserServiceUrl"] ?? "http://localhost:5200";
+                var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
+                                     ?? _configuration["UserServiceUrl"]
+                                     ?? "http://localhost:5200";
                 _logger.LogInformation("🔐 AuthService: Validating token with user service at {UserServiceUrl}", userServiceUrl);
                 
                 // Call the user service to validate the token and get user info

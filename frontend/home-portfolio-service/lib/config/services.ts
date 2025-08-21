@@ -4,10 +4,12 @@
  */
 
 export const SERVICES = {
-  AUTH_USER_SERVICE: process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || process.env.AUTH_USER_SERVICE || 'http://localhost:3000',
-  HOME_PORTFOLIO_SERVICE: process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || process.env.HOME_PORTFOLIO_SERVICE || 'http://localhost:3001',
-  MESSAGES_SERVICE: process.env.NEXT_PUBLIC_MESSAGES_SERVICE || process.env.MESSAGES_SERVICE || 'http://localhost:3002',
-  ADMIN_SERVICE: process.env.NEXT_PUBLIC_ADMIN_SERVICE || process.env.ADMIN_SERVICE || 'http://localhost:3003',
+  // Do not throw at module load time to allow builds without envs.
+  // Consumers should validate before use.
+  AUTH_USER_SERVICE: process.env.NEXT_PUBLIC_AUTH_USER_SERVICE ?? '',
+  HOME_PORTFOLIO_SERVICE: process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE ?? '',
+  MESSAGES_SERVICE: process.env.NEXT_PUBLIC_MESSAGES_SERVICE ?? '',
+  ADMIN_SERVICE: process.env.NEXT_PUBLIC_ADMIN_SERVICE ?? '',
 } as const;
 
 /**
@@ -15,6 +17,10 @@ export const SERVICES = {
  */
 export function buildServiceUrl(service: keyof typeof SERVICES, path: string): string {
   const baseUrl = SERVICES[service];
+  if (!baseUrl) {
+    // In runtime, surface a clear error if a service URL is missing
+    throw new Error(`Service URL for ${service} is not configured`);
+  }
   // Remove leading slash from path if present to avoid double slashes
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   return `${baseUrl}/${cleanPath}`;

@@ -29,9 +29,8 @@ namespace backend_portfolio.tests.Services
             _httpClientFactory = new Mock<IHttpClientFactory>();
             _httpClientFactory.Setup(f => f.CreateClient("ExternalUserService")).Returns(() => new HttpClient(_mockHttpMessageHandler.Object));
             
-            // Mock the configuration indexer
-            _mockConfiguration.Setup(x => x["ExternalServices:UserService:BaseUrl"])
-                .Returns("http://localhost:5200");
+            // Ensure env var required by implementation is set for tests
+            Environment.SetEnvironmentVariable("USER_SERVICE_URL", "http://localhost:5200");
 
             _service = new ExternalUserService(
                 _httpClientFactory.Object,

@@ -95,7 +95,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
 
     try {
       // Get SignalR URL from environment or use default
-      const signalRUrl = process.env.NEXT_PUBLIC_MESSAGES_API_URL || 'http://localhost:5093';
+      const signalRUrl = process.env.NEXT_PUBLIC_MESSAGES_API_URL;
       
       // Create new connection
       const newConnection = new signalR.HubConnectionBuilder()

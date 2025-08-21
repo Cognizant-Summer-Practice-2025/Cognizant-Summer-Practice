@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, MessageCircle, Plus, User, LogOut, Menu, X, ChevronLeft, Bookmark, Crown } from 'lucide-react';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import { useUser } from '@/lib/contexts/user-context';
 import { redirectToService } from '@/lib/config';
@@ -81,9 +81,8 @@ export default function Header() {
   }, [isMobileMenuOpen]);
 
   const handleLogin = () => {
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
     const currentUrl = window.location.href;
-    window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
+    redirectToService('AUTH_USER_SERVICE', `login?callbackUrl=${encodeURIComponent(currentUrl)}`);
   };
 
   const handleMyPortfolioClick = () => {

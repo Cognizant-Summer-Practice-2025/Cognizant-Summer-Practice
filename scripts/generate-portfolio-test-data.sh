@@ -2,8 +2,21 @@
 
 # Portfolio Test Data Generation Script (randomized, with bearer token support)
 
-PORTFOLIO_API_BASE="http://localhost:5201/api/Portfolio"
-PORTFOLIO_TEMPLATE_API_BASE="http://localhost:5201/api/PortfolioTemplate"
+# Resolve Portfolio API base (prefer deployed backend-portfolio)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/azure/.state/azure.env" ]; then
+  # shellcheck disable=SC1090
+  . "$SCRIPT_DIR/azure/.state/azure.env"
+fi
+BASE_ROOT="${PORTFOLIO_API_BASE_URL:-${NEXT_PUBLIC_PORTFOLIO_API_URL:-}}"
+if [ -z "$BASE_ROOT" ]; then
+  FQDN="$(az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n backend-portfolio --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || true)"
+  [ -n "$FQDN" ] && BASE_ROOT="https://$FQDN"
+fi
+BASE_ROOT="${BASE_ROOT:-http://localhost:5201}"
+BASE_ROOT="${BASE_ROOT%/}"
+PORTFOLIO_API_BASE="$BASE_ROOT/api/Portfolio"
+PORTFOLIO_TEMPLATE_API_BASE="$BASE_ROOT/api/PortfolioTemplate"
 
 if [ -z "$1" ]; then
     echo "❌ Error: User ID is required as first argument"
@@ -329,8 +342,15 @@ if echo "$SAVE_RESPONSE" | grep -q '"message":\s*"Portfolio content saved succes
     echo "   🛠️ Skills: $SKILLS"
     echo "   📝 Blog Posts: $BLOGPOSTS"
     echo ""
-    echo "🌐 Portfolio URL: http://localhost:3000/portfolio/$PORTFOLIO_ID"
-    echo "🔧 Admin Panel: http://localhost:3000/admin/portfolio/$PORTFOLIO_ID"
+    FRONTEND_BASE="${NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE:-}"
+    if [ -z "$FRONTEND_BASE" ]; then
+      HFQDN="$(az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n home-portfolio-service --query properties.configuration.ingress.fqdn -o tsv 2>/dev/null || true)"
+      [ -n "$HFQDN" ] && FRONTEND_BASE="https://$HFQDN"
+    fi
+    FRONTEND_BASE="${FRONTEND_BASE:-http://localhost:3001}"
+    FRONTEND_BASE="${FRONTEND_BASE%/}"
+    echo "🌐 Portfolio URL: $FRONTEND_BASE/portfolio/$PORTFOLIO_ID"
+    echo "🔧 Admin Panel: $FRONTEND_BASE/admin/portfolio/$PORTFOLIO_ID"
 else
     echo "❌ Failed to save bulk content. Response: $SAVE_RESPONSE"
     exit 1

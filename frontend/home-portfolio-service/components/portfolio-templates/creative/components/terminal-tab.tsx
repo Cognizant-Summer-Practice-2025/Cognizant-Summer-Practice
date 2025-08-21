@@ -33,7 +33,7 @@ export function TerminalTab({ onClose }: TerminalTabProps) {
     '        modified:   portfolio.json',
     '',
     'portfolio@dev:~$ npm run dev',
-    'Server running at http://localhost:3000',
+            'Server running at https://auth-user-service.lemongrass-88207da5.northeurope.azurecontainerapps.io',
     '✨ Portfolio ready to impress!',
     '',
     'portfolio@dev:~$ echo "Ready to create amazing things!"',

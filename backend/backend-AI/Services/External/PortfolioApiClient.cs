@@ -27,8 +27,7 @@ namespace backend_AI.Services.External
         public async Task<string> GetAllPortfoliosDetailedJsonAsync(CancellationToken cancellationToken = default)
         {
             var portfolioBaseUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL")
-                                   ?? _configuration["PortfolioService:BaseUrl"]
-                                   ?? "http://localhost:5201";
+                                   ?? throw new InvalidOperationException("PORTFOLIO_SERVICE_URL environment variable is not set");
 
             var url = new Uri(new Uri(portfolioBaseUrl), "/api/portfolio/detailed-all");
             _logger.LogInformation("AI: Fetching portfolios from {Url}", url);

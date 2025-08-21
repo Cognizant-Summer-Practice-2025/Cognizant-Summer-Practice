@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useSession } from 'next-auth/react';
 import { User } from '@/lib/user/interfaces';
 import { getUserByEmail, updateUser } from '@/lib/user/api';
-import { UserInjectionService } from '@/lib/services/user-injection-service';
 
 interface UserContextType {
   user: User | null;
@@ -35,18 +34,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setError(null);
       const userData = await getUserByEmail(email);
       setUser(userData);
-      
-      // Inject user data to all other services using session accessToken if available
-      if (userData) {
-        try {
-          const token = (typeof window !== 'undefined') ? (JSON.parse(sessionStorage.getItem('next-auth.session-token') || 'null')?.accessToken || undefined) : undefined;
-          await UserInjectionService.injectUser(userData, token);
-          console.log('✅ User data injected to all services after login');
-        } catch (injectionError) {
-          console.error('❌ Failed to inject user data to other services:', injectionError);
-          // Don't throw here as the main fetch succeeded
-        }
-      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
@@ -79,16 +66,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setError(null);
       const updatedUser = await updateUser(user.id, userData);
       setUser(updatedUser);
-      
-      // Re-inject updated user data to all other services using best-effort token
-      try {
-        const token = (typeof window !== 'undefined') ? (JSON.parse(sessionStorage.getItem('next-auth.session-token') || 'null')?.accessToken || undefined) : undefined;
-        await UserInjectionService.injectUser(updatedUser, token);
-        console.log('✅ User data re-injected to all services after profile update');
-      } catch (injectionError) {
-        console.error('❌ Failed to re-inject user data to other services:', injectionError);
-        // Don't throw here as the main update succeeded
-      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update user data';
       setError(errorMessage);

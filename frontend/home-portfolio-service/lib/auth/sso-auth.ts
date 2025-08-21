@@ -89,7 +89,10 @@ export function clearLocalSession(): void {
  * Redirect to auth service for login
  */
 export function redirectToAuth(): void {
-  const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+  const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || '';
+  if (!authServiceUrl) {
+    throw new Error('Auth service URL is not configured');
+  }
   const currentUrl = window.location.href;
   window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
 }
@@ -99,7 +102,10 @@ export function redirectToAuth(): void {
  */
 export async function logoutFromAllServices(): Promise<void> {
   try {
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || '';
+    if (!authServiceUrl) {
+      throw new Error('Auth service URL is not configured');
+    }
     const currentUrl = window.location.origin;
     
     // Step 0: Clear this service's local user storage synchronously to avoid races

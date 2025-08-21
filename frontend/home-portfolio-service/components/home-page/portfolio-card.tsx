@@ -57,7 +57,10 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
     if (!user) {
       // Redirect to login when user is not authenticated
       const currentPath = window.location.pathname + window.location.search;
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || '';
+      if (!authServiceUrl) {
+        throw new Error('Auth service URL is not configured');
+      }
       window.location.href = `${authServiceUrl}/login?callbackUrl=${encodeURIComponent(currentPath)}`;
       return;
     }

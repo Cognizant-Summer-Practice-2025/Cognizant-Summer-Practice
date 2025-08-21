@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { SignoutHandler } from "@/components/signout-handler";
 
 export const metadata: Metadata = {
   title: "GoalKeeper",
@@ -22,7 +23,10 @@ export default function RootLayout({
           '--font-geist-mono': 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace'
         } as React.CSSProperties}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <SignoutHandler />
+        </Providers>
       </body>
     </html>
   );

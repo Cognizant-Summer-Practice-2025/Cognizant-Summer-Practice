@@ -307,25 +307,5 @@ namespace backend_portfolio.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
-        /// <summary>
-        /// Delete all portfolio data for a user (Admin only - called during user deletion)
-        /// </summary>
-        /// <param name="userId">The user ID whose portfolio data should be deleted</param>
-        /// <returns>Success response</returns>
-        [HttpDelete("admin/user/{userId}")]
-        public async Task<IActionResult> DeleteUserPortfolioData(Guid userId)
-        {
-            try
-            {
-                await _portfolioCommandService.DeleteAllUserPortfolioDataAsync(userId);
-                return Ok(new { message = "User portfolio data deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting portfolio data for user {UserId}", userId);
-                return StatusCode(500, new { message = "An error occurred while deleting user portfolio data" });
-            }
-        }
     }
 }

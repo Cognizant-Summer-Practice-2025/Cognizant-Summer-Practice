@@ -33,9 +33,8 @@ namespace BackendMessages.Tests.Services
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _httpClientFactoryMock.Setup(f => f.CreateClient("UserService")).Returns(_httpClient);
             
-            _configurationMock
-                .Setup(x => x["UserService:BaseUrl"])
-                .Returns("http://localhost:5200");
+            // Ensure env var required by implementation is set for tests
+            Environment.SetEnvironmentVariable("USER_SERVICE_URL", "http://localhost:5200");
 
             _service = new UserSearchService(_httpClientFactoryMock.Object, _loggerMock.Object, _configurationMock.Object);
         }

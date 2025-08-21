@@ -2,7 +2,7 @@
 
 # Mass User and Portfolio Creation Script (token-enabled, randomized user data)
 
-USER_API_BASE="http://localhost:5200/api/Users"
+USER_API_BASE="https://backend-user.kindmoss-e060904c.westeurope.azurecontainerapps.io/api/Users"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PORTFOLIO_SCRIPT_PATH="$SCRIPT_DIR/generate-portfolio-test-data.sh"
 

@@ -51,7 +51,7 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
     setError(null);
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5201';
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
       const queryParams = new URLSearchParams();
       
       queryParams.append('page', '1');
@@ -106,7 +106,7 @@ export const usePortfolioSearch = (): UsePortfolioSearchReturn => {
   const handleResultClick = useCallback((result: SearchResult) => {
     setShowResults(false);
     setSearchTerm('');
-    const homePortfolioService = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+    const homePortfolioService = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE!;
     window.location.href = `${homePortfolioService}/portfolio?user=${result.userId}`;
   }, []);
 

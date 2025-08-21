@@ -1,5 +1,8 @@
 using backend_portfolio.Config;
 
+// Load environment variables from .env file (same pattern as other backends)
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure services using extension methods following SOLID principles

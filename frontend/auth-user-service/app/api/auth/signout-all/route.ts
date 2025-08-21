@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { UserInjectionService } from '@/lib/services/user-injection-service';
 
 /**
- * Custom sign-out endpoint that removes user data from all services
- * and automatically triggers NextAuth signOut
+ * Custom sign-out endpoint that triggers NextAuth signOut
  */
 export async function POST(request: NextRequest) {
   try {
@@ -16,21 +14,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No active session found' }, { status: 401 });
     }
 
-    // Remove user data from all other services
-    await UserInjectionService.removeUser(session.user.email);
-
-    // Get the callback URL from the request or use default
-    const { searchParams } = new URL(request.url);
-    const callbackUrl = searchParams.get('callbackUrl') || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    // Get the callback URL from the request or use current origin
+    const { searchParams, origin } = new URL(request.url);
+    const callbackUrl = searchParams.get('callbackUrl') || origin;
     
-    // Get the current auth service URL to create absolute URLs
-    const authServiceUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    // Use the request origin for the auth service URL to ensure it works in production
+    const authServiceUrl = origin;
     const signoutUrl = `${authServiceUrl}/api/auth/signout?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
     // Create response with automatic redirect to NextAuth signout
     const response = NextResponse.json({ 
       success: true, 
-      message: 'User data removed from all services. Redirecting to signout...',
+      message: 'Redirecting to signout...',
       redirectUrl: signoutUrl
     });
 
@@ -44,7 +39,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in custom sign-out:', error);
     return NextResponse.json(
-      { error: 'Failed to sign out from all services' },
+      { error: 'Failed to sign out' },
       { status: 500 }
     );
   }

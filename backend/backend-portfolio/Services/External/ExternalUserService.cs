@@ -13,7 +13,8 @@ namespace backend_portfolio.Services.External
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _userServiceBaseUrl = configuration?["ExternalServices:UserService:BaseUrl"] ?? "http://localhost:5200";
+            _userServiceBaseUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
+                                   ?? throw new InvalidOperationException("USER_SERVICE_URL environment variable is not set");
         }
 
         public async Task<UserInformation?> GetUserInformationAsync(Guid userId)

@@ -4,7 +4,6 @@ import { SearchUser } from "../user";
 import { messagesApi, ApiMessage } from "./api";
 import { MessageEncryption } from "../encryption";
 import { useWebSocket } from "../contexts/websocket-context";
-import { authenticatedClient } from "../authenticated-client";
 
 // Helper function to safely decrypt messages
 const safeDecrypt = (content: string, senderId: string): string => {
@@ -54,34 +53,9 @@ const useMessages = () => {
   const { user } = useUser();
   const { onMessageReceived, onConversationUpdated, onUserPresenceUpdate, onMessageReadReceipt, onMessageDeleted, markMessageAsRead, deleteMessage: deleteMessageViaWebSocket, isConnected } = useWebSocket();
   
-  // Initialize conversations from cache if available
-  const [conversations, setConversations] = useState<Conversation[]>(() => {
-    if (typeof window !== 'undefined' && user?.id) {
-      try {
-        const cacheKey = `conversations_${user.id}`;
-        const cached = localStorage.getItem(cacheKey);
-        const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
-        
-        const CACHE_MAX_AGE = 24 * 60 * 60 * 1000; 
-        if (cached && cacheTimestamp) {
-          const cacheAge = Date.now() - parseInt(cacheTimestamp);
-          if (cacheAge > CACHE_MAX_AGE) {
-            console.log('Cache is too old, cleaning up');
-            localStorage.removeItem(cacheKey);
-            localStorage.removeItem(`${cacheKey}_timestamp`);
-            return [];
-          }
-          
-          console.log('Loading conversations from cache');
-          return JSON.parse(cached);
-        }
-      } catch (error) {
-        console.warn('Failed to load conversations from cache:', error);
-      }
-    }
-    return [];
-  });
-  
+  // Initialize conversations as empty - will load from cache in useEffect when user is available
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [hasInitializedCache, setHasInitializedCache] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -162,7 +136,6 @@ const useMessages = () => {
           const cacheAge = Date.now() - parseInt(cacheTimestamp);
           
           if (cacheAge > MESSAGE_CACHE_MAX_AGE) {
-            console.log(`Message cache for conversation ${conversationId} is too old, removing`);
             localStorage.removeItem(cacheKey);
             localStorage.removeItem(`${cacheKey}_timestamp`);
             return null;
@@ -256,7 +229,6 @@ const useMessages = () => {
       const cacheKey = `conversations_${user.id}`;
       localStorage.removeItem(cacheKey);
       localStorage.removeItem(`${cacheKey}_timestamp`);
-      console.log('Conversations cache cleared');
       
       // Reset cache state
       setCacheState({
@@ -282,7 +254,6 @@ const useMessages = () => {
         }
         
         keysToRemove.forEach(key => localStorage.removeItem(key));
-        console.log(`Cleared ${keysToRemove.length} message cache entries`);
       } catch {}
     }
   }, [user?.id]);
@@ -320,42 +291,15 @@ const useMessages = () => {
     
   }, []);
 
-  const waitForAuthentication = useCallback(async (maxMs: number = 8000): Promise<boolean> => {
-    const start = Date.now();
-    const USER_API_BASE = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-
-    const getAccessToken = async (): Promise<string | null> => {
-      try {
-        const resp = await fetch('/api/user/get');
-        if (!resp.ok) return null;
-        const data = await resp.json();
-        return data?.accessToken || null;
-      } catch {
-        return null;
-      }
-    };
-
-    while (Date.now() - start < maxMs) {
-      const token = await getAccessToken();
-      if (token) {
-        console.debug('[useMessages] waitForAuthentication: got token candidate', `${token.slice(0, 12)}...${token.slice(-6)} (len=${token.length})`);
-        // Validate the token against user service to ensure backend will accept it
-        try {
-          // Validate via authenticated client so we see its debug and consistent header formatting
-          await authenticatedClient.get<unknown>(`${USER_API_BASE}/api/oauth/me`);
-          console.debug('[useMessages] token validation via AuthClient: OK');
-          return true;
-        } catch {
-          console.debug('[useMessages] token validation via AuthClient failed');
-        }
-      }
-      await new Promise((res) => setTimeout(res, 250));
-    }
-    return false;
+  const waitForAuthentication = useCallback(async (): Promise<boolean> => {
+    // With JWT-based auth, rely on jwt_auth_token presence; backend will 401 if invalid
+    return true;
   }, []);
 
   const loadConversations = useCallback(async (showLoadingSpinner: boolean = true) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      return;
+    }
 
     if (showLoadingSpinner) {
       setLoading(true);
@@ -367,7 +311,7 @@ const useMessages = () => {
     // Ensure we have an authenticated token before calling APIs
     try {
       
-      const becameAuthed = await waitForAuthentication(8000);
+      const becameAuthed = await waitForAuthentication();
       if (!becameAuthed) {
         console.warn('[useMessages] loadConversations: still unauthenticated after wait, skipping fetch');
         return;
@@ -448,30 +392,24 @@ const useMessages = () => {
 
   // Load conversations with optimized cache-first strategy
   const loadConversationsWithCache = useCallback(async () => {
-    if (!user?.id) return;
-    
+    if (!user?.id) {
+      return;
+    }
     const cacheKey = `conversations_${user.id}`;
     const cached = localStorage.getItem(cacheKey);
     const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
     const hasCache = conversations.length > 0 || cached;
-    
     const CACHE_FRESH_TTL = 2 * 60 * 1000;
     const isCacheFresh = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp) < CACHE_FRESH_TTL);
 
     if (hasCache) {
-      
       setCacheState(prev => ({ ...prev, isFromCache: true }));
-      
       if (!isCacheFresh) {
         try {
           await loadConversations(false); // Don't show loading spinner
-        } catch (error) {
-          console.error('Background refresh failed:', error);
-        }
+        } catch {}
       }
     } else {
-      // No cache exists, load with loading spinner
-      console.log('No cache found, loading with spinner');
       setCacheState(prev => ({ ...prev, isFromCache: false }));
       await loadConversations(true); // Show loading spinner
     }
@@ -488,7 +426,7 @@ const useMessages = () => {
     try {
       // Ensure backend-validated auth before loading messages
       
-      const becameAuthed = await waitForAuthentication(8000);
+      const becameAuthed = await waitForAuthentication();
       if (!becameAuthed) {
         console.warn('[useMessages] loadMessages: still unauthenticated after wait, skipping fetch');
         return;
@@ -792,11 +730,36 @@ const useMessages = () => {
     }
   }, [user?.id, currentConversation, clearMessageCache, cacheMessages]);
 
+  // Initialize conversations from cache when user becomes available
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && !hasInitializedCache && typeof window !== 'undefined') {
+      try {
+        const cacheKey = `conversations_${user.id}`;
+        const cached = localStorage.getItem(cacheKey);
+        const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
+        const CACHE_MAX_AGE = 24 * 60 * 60 * 1000; 
+        if (cached && cacheTimestamp) {
+          const cacheAge = Date.now() - parseInt(cacheTimestamp);
+          if (cacheAge > CACHE_MAX_AGE) {
+            localStorage.removeItem(cacheKey);
+            localStorage.removeItem(`${cacheKey}_timestamp`);
+          } else {
+            const cachedConversations = JSON.parse(cached);
+            setConversations(cachedConversations);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load conversations from cache:', error);
+      }
+      setHasInitializedCache(true);
+    }
+  }, [user?.id, hasInitializedCache]);
+
+  useEffect(() => {
+    if (user?.id && hasInitializedCache) {
       loadConversationsWithCache();
     }
-  }, [user?.id, loadConversationsWithCache]);
+  }, [user?.id, hasInitializedCache, loadConversationsWithCache]);
 
   // WebSocket event handlers for real-time updates
   useEffect(() => {
@@ -903,13 +866,11 @@ const useMessages = () => {
 
     // Handle user presence updates
     const unsubscribePresence = onUserPresenceUpdate((update) => {
-      console.log('Received user presence update:', update);
       updateConversationOnlineStatus(update.userId, update.isOnline);
     });
 
     // Handle message read receipts
     const unsubscribeReadReceipt = onMessageReadReceipt((receipt) => {
-      console.log('Received message read receipt:', receipt);
       
       // Update the specific message as read
       setMessages(prevMessages => {
@@ -944,7 +905,6 @@ const useMessages = () => {
 
     // Handle message deletion
     const unsubscribeMessageDeleted = onMessageDeleted((deletedMessage) => {
-      console.log('Received message deleted event:', deletedMessage);
       setMessages(prevMessages => prevMessages.filter(msg => msg.id !== deletedMessage.messageId));
       clearMessageCache(deletedMessage.conversationId);
       setConversations(prev => prev.map(conv => 

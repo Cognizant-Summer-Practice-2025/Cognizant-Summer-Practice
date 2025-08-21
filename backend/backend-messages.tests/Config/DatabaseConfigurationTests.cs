@@ -15,7 +15,7 @@ namespace backend_messages.tests.Config
         {
             var dict = new Dictionary<string, string?>
             {
-                {"ConnectionStrings:MessagesDatabase", "Host=localhost;Username=test;Password=test;Database=test"}
+                {"ConnectionStrings:Database_Messages", "Host=localhost;Username=test;Password=test;Database=test"}
             };
             var cfg = new ConfigurationBuilder().AddInMemoryCollection(dict!).Build();
             var services = new ServiceCollection();

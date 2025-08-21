@@ -1,301 +1,126 @@
-# 🔐 Complete Centralized SSO Authentication & OAuth 2.0 Secure Endpoints
+## 🔐 JWT-based Stateless Authentication (Current)
 
-This documentation covers the comprehensive Single Sign-On (SSO) authentication system with automatic user injection, cross-service logout capabilities, and OAuth 2.0 secure endpoints implemented across all microservices.
+This is the current, production-ready authentication model. It removes all server-side user injection and relies on stateless JWTs issued by the `auth-user-service` (NextAuth) and verified by consumer services.
 
-## ✨ System Overview
+### Key points
+- ✅ Centralized login with NextAuth in `auth-user-service`
+- ✅ Stateless JWTs: no per-service server session or injected global state
+- ✅ Seamless auto-login using `GET /api/auth/get-jwt` (uses browser cookies)
+- ✅ Token verification using `POST /api/auth/verify-jwt`
+- ✅ Frontend-only session state via `JWTAuthProvider` (local/session storage)
+- ✅ Authenticated API calls with Bearer token; automatic retry on 401
+- ✅ Seamless cascade logout across all services via `auto-signout` → `cascade-signout` → `/signing-out` (shows app Loader)
 
-**What This System Provides:**
-- ✅ **Centralized Authentication** - Only `auth-user-service` handles OAuth login
-- ✅ **OAuth 2.0 Secure Endpoints** - Backend APIs protected with OAuth 2.0 Bearer tokens
-- ✅ **Automatic User Injection** - User data automatically pushed to all services on login
-- ✅ **Real-time Cross-Service Logout** - Logout from any service affects all services
-- ✅ **Persistent Sessions** - Users stay logged in across service visits
-- ✅ **Zero CORS Issues** - JWT token-based communication
-- ✅ **Fault Tolerance** - Works even if some services are down
-
-## 🏗️ Architecture
-
-### Authentication Flow Components
-
-```
-┌─────────────────┐    ┌───────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Auth Service   │    │  Other Services   │    │   All Services   │    │  Backend APIs   │
-│   (Port 3000)   │    │ (Ports 3001-3003) │    │   (In-Memory)    │    │ (Ports 5200+)   │
-├─────────────────┤    ├───────────────────┤    ├──────────────────┤    ├─────────────────┤
-│ NextAuth Setup  │───▶│ Custom AuthContext│───▶│ User Data Storage│───▶│ OAuth 2.0 Auth  │
-│ OAuth Providers │    │ JWT Verification  │    │ Cross-Tab Sync   │    │ Bearer Tokens   │
-│ User Injection  │    │ SSO Token Handling│    │ Logout Detection │    │ Secure Endpoints│
-│ Session Management│  │ Local Sessions    │    │ Real-time Updates│    │ Token Validation│
-└─────────────────┘    └───────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-## 🔄 Complete Login Flow
-
-### Step-by-Step Process
+### High-level flow
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant AdminService as Admin Service (3003)
-    participant AuthService as Auth Service (3000)
-    participant AllServices as All Services
+    participant Browser as Home/Messages Browser
+    participant Auth as Auth Service (NextAuth)
+    participant BE as Backend APIs
 
-    User->>AdminService: 1. Visit admin-service
-    AdminService->>AdminService: 2. Check local session
-    AdminService->>AdminService: 3. Check injected user data
-    AdminService->>AuthService: 4. Redirect to SSO callback
-    AuthService->>AuthService: 5. Check NextAuth session
-    AuthService->>User: 6. Redirect to OAuth login
-    User->>AuthService: 7. Complete OAuth login
-    AuthService->>AllServices: 8. Inject user data to ALL services
-    AuthService->>AllServices: 9. Create JWT token
-    AuthService->>AdminService: 10. Redirect with JWT token
-    AdminService->>AdminService: 11. Verify JWT & create local session
-    AdminService->>User: 12. User logged in successfully
+    Browser->>Browser: 1. JWTAuthProvider mounts
+    alt URL contains ssoToken
+      Browser->>Auth: 2. verify-jwt(ssoToken)
+      Auth-->>Browser: 3. user payload
+      Browser->>Browser: 4. store token + set authenticated
+    else No ssoToken
+      Browser->>Auth: 2. GET /api/auth/get-jwt (with cookies)
+      Auth-->>Browser: 3. { success, token, user }
+      Browser->>Auth: 4. POST /api/auth/verify-jwt (token)
+      Auth-->>Browser: 5. user payload
+      Browser->>Browser: 6. store token + set authenticated
+    end
+    Browser->>BE: 7. API request with Authorization: Bearer <accessToken or JWT>
+    BE-->>Browser: 8. Data or 401
+    Note over Browser: On 401, client fetches a fresh JWT and retries once
 ```
 
-### 1. Initial Visit
-```javascript
-// User visits any service (e.g., admin-service on port 3003)
-// AuthContext checks authentication state
-const checkAuthentication = async () => {
-  // 1. Check for SSO token in URL
-  // 2. Check local session storage
-  // 3. Check injected user data from auth service
-  // 4. If none found, redirect to auth service
-}
+### Auth service endpoints
+- `GET /api/auth/get-jwt`
+  - Uses NextAuth cookies (credentials: include) to issue a short-lived JWT
+  - Returns `{ success, token, user }`
+
+- `POST /api/auth/verify-jwt`
+  - Body: `{ token }`
+  - Verifies JWT signature and returns `{ success, user }`
+
+- `POST /api/auth/auto-signout?callbackUrl=<origin>`
+  - Clears NextAuth cookies
+  - If called directly from Auth (callback equals Auth origin): 302 to `/signing-out?services=...&return=<origin>`
+  - If called from a frontend: returns `{ success, cascadeUrl }` that points to `GET /api/auth/cascade-signout`
+
+- `GET /api/auth/cascade-signout?services=<csv>&return=<url>`
+  - Convenience endpoint that redirects to the client page `/signing-out` with the same parameters
+  - Use this from frontends after `auto-signout`
+
+- `GET /signing-out?services=<csv>&return=<url>`
+  - Client page that renders the app Loader (`LoadingOverlay`) and performs hidden-iframe signouts to each service by navigating to `<service>?signout=1`
+  - When finished, redirects to `return` URL with `?signout=1`
+
+### Frontend authentication (consumer services)
+- `JWTAuthProvider` (Home/Messages)
+  - Reads `ssoToken` from URL and logs in if present
+  - Otherwise attempts silent login via `GET /api/auth/get-jwt`
+  - Verifies and stores the token in localStorage/sessionStorage
+  - Exposes state via `useAuth`: `{ isAuthenticated, user, loading, login, logout, refreshAuth }`
+  - Periodically calls `refreshAuth` to keep the session valid
+
+- `UserProvider`
+  - Hydrates UI immediately from `useAuth().currentUser`
+  - Optionally refetches full profile from backend by email
+
+- Signout handling in the browser
+  - Each service includes a lightweight `SignoutHandler` that, on load, checks for `?signout=1`, clears `jwt_auth_token` from storage, and removes the query param from the URL.
+  - The Auth service layout also includes a `SignoutHandler` to ensure any residual cookies/params are tidied up on completion of cascade.
+
+### Authenticated API client
+- Reads `jwt_auth_token` from storage
+- Prefers `accessToken` from the JWT payload as Bearer; falls back to the raw JWT
+- On 401 responses, calls `GET /api/auth/get-jwt` and retries once
+- Never auto-redirects; lets UI handle unauthenticated states
+
+### Environment variables
+```
+NEXT_PUBLIC_AUTH_USER_SERVICE=http://localhost:3000
+NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE=http://localhost:3001
+NEXT_PUBLIC_MESSAGES_SERVICE=http://localhost:3002
+NEXT_PUBLIC_ADMIN_SERVICE=http://localhost:3003
+NEXT_PUBLIC_USER_API_URL=http://localhost:5200
+NEXT_PUBLIC_PORTFOLIO_API_URL=http://localhost:5201
+NEXT_PUBLIC_MESSAGES_API_URL=http://localhost:5093
 ```
 
-### 2. Auth Service Redirect
-```javascript
-// Redirect to auth service SSO callback
-const redirectToAuth = () => {
-  const currentUrl = window.location.href;
-  window.location.href = `${authServiceUrl}/api/sso/callback?callbackUrl=${currentUrl}`;
-}
-```
+Notes:
+- JWT secret consistency: all JWT issue/verify endpoints in Auth use `process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET`. Ensure the chosen secret is identical across all Auth instances to avoid signature verification failures.
+- Cascade signout requires absolute origins for services: set `NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE` and `NEXT_PUBLIC_MESSAGES_SERVICE` to the public origins of each app (local and prod).
 
-### 3. OAuth Authentication
-```javascript
-// In auth-user-service/lib/auth/auth-options.ts
-async signIn({ user, account }) {
-  // Verify OAuth provider
-  // Check if user exists
-  // On successful login:
-  const userData = await getUserByEmail(user.email);
-  await UserInjectionService.injectUser(userData); // 🔥 NEW: Immediate injection
-  return true;
-}
-```
+### What was the problem and how it was solved
 
-### 4. User Injection Process
-```javascript
-// auth-user-service/lib/services/user-injection-service.ts
-static async injectUser(user: User) {
-  const services = [
-    'ADMIN_SERVICE',
-    'HOME_PORTFOLIO_SERVICE', 
-    'MESSAGES_SERVICE'
-  ];
-  
-  // Inject user data to all services simultaneously
-  await Promise.allSettled(
-    services.map(service => 
-      fetch(`${service.url}/api/user/inject`, {
-        method: 'POST',
-        headers: { 'X-Service-Auth': SERVICE_AUTH_SECRET },
-        body: JSON.stringify(userData)
-      })
-    )
-  );
-}
-```
+- Problem
+  - Global user injection in consumer services used process-level Maps and `/api/user/get` with "first entry" fallback. This caused cross-user contamination (users appeared logged-in across different devices/browsers).
+  - Server-to-server injection couldn't set browser cookies; cross-origin cookie behavior resulted in 401s and brittle silent-SSO redirect flows that disrupted UX.
+  - Legacy polling/grace timers and redirect loops caused infinite loading and delayed rendering.
 
-### 5. JWT Token Creation & Redirect
-```javascript
-// auth-user-service/app/api/sso/callback/route.ts
-// Create JWT token and redirect back to originating service
-const token = await new SignJWT({ 
-  email: userData.email,
-  userId: userData.id,
-  timestamp: Date.now()
-}).setExpirationTime('5m').sign(secret);
+- Solution
+  - Removed all server-side injection and related endpoints in consumer services.
+  - Switched to stateless JWTs issued by `auth-user-service` and verified via `POST /api/auth/verify-jwt` using `jose`.
+  - Implemented `JWTAuthProvider` to handle SSO token login, silent auto-login via `GET /api/auth/get-jwt` (with cookies), verification, storage, and refresh.
+  - Updated `authenticatedClient` to send Bearer tokens (prefer `accessToken` from JWT payload), retry once on 401 via a fresh JWT fetch, and never auto-redirect.
+  - `UserProvider` hydrates UI immediately from the JWT user and optionally refetches profile.
+  - Seamless cascade logout: frontends call `auto-signout` to clear NextAuth cookies, then navigate to `cascade-signout`/`/signing-out` which sequentially visits each service with `?signout=1` and finally returns to the initiating origin with `?signout=1` so local tokens are cleared everywhere.
+  - Standardized JWT secrets across `get-jwt`, `verify-jwt`, and `sso/callback` to prevent signature mismatches.
+  - Removed artificial delays/grace periods; added SSR guards and appropriate CORS.
 
-return NextResponse.redirect(`${callbackUrl}?ssoToken=${token}`);
-```
+- Impact
+  - Per-device session isolation; no shared process/global state.
+  - Faster, seamless UX: instant header hydration, no forced redirects for unauthenticated users.
+  - Operational simplicity: no cross-service injection or cookie forwarding; fully token-based.
 
-### 6. Local Session Creation
-```javascript
-// other-services/lib/contexts/auth-context.tsx
-if (ssoToken) {
-  const tokenPayload = await verifySSOToken(ssoToken);
-  await createLocalSession(tokenPayload);
-  setIsAuthenticated(true);
-  
-  // Also check for injected data
-  const response = await fetch('/api/user/get');
-  if (response.ok) {
-    const userData = await response.json();
-    setUser(userData);
-  }
-}
-```
-
-## 🚪 Complete Logout Flow
-
-### Universal Logout System
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant AnyService as Any Service
-    participant AuthService as Auth Service
-    participant AllServices as All Services
-    participant LocalStorage as Browser Storage
-
-    User->>AnyService: 1. Click logout
-    AnyService->>LocalStorage: 2. Clear local session
-    AnyService->>AuthService: 3. Call signout-all API
-    AuthService->>AllServices: 4. Remove user from ALL services
-    AuthService->>AuthService: 5. NextAuth signOut()
-    LocalStorage->>AllServices: 6. Broadcast logout event
-    AllServices->>AllServices: 7. Detect & sync logout
-    AllServices->>User: 8. All services logged out
-```
-
-### 1. Logout Initiation (Any Service)
-```javascript
-// other-services/lib/contexts/auth-context.tsx
-const logout = async () => {
-  // Clear local state immediately
-  setIsAuthenticated(false);
-  setUserEmail(null);
-  setUserId(null);
-  
-  // Call comprehensive logout
-  await logoutFromAllServices();
-};
-```
-
-### 2. Cross-Service Logout Call
-```javascript
-// other-services/lib/auth/sso-auth.ts
-export async function logoutFromAllServices() {
-  try {
-    // Call auth service to remove user from all services
-    const response = await fetch(`${authServiceUrl}/api/auth/signout-all`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    
-    // Trigger cross-service logout signal
-    localStorage.removeItem('sso_session');
-    
-    // Redirect to auth service for complete logout
-    window.location.href = `${authServiceUrl}/api/auth/signout`;
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-}
-```
-
-### 3. Auth Service Comprehensive Logout
-```javascript
-// auth-user-service/app/api/auth/auto-signout/route.ts
-export async function POST(request: NextRequest) {
-  // 1. Get current session
-  const session = await getServerSession(authOptions);
-  
-  // 2. Remove user data from all services
-  await UserInjectionService.removeUser(session.user.email);
-  
-  // 3. Automatically clear NextAuth session cookies
-  const response = NextResponse.json({ success: true });
-  clearNextAuthSession(response); // No redirects, just clear cookies
-  
-  return response;
-}
-```
-
-### 4. Automatic Session Clearing
-```javascript
-// auth-user-service/lib/auth/session-clearer.ts
-export function clearNextAuthSession(response: NextResponse) {
-  // Clear all NextAuth session cookies automatically
-  response.cookies.set('next-auth.session-token', '', { maxAge: 0 });
-  response.cookies.set('next-auth.csrf-token', '', { maxAge: 0 });
-  // ... clear all session cookies
-  
-  // No redirects needed - session is cleared server-side
-}
-```
-
-### 5. User Data Removal
-```javascript
-// auth-user-service/app/api/services/user-injection/route.ts
-async function removeUserFromServices(userEmail) {
-  const services = [
-    'AUTH_USER_SERVICE',    // 🔥 NEW: Include auth service
-    'ADMIN_SERVICE',
-    'HOME_PORTFOLIO_SERVICE',
-    'MESSAGES_SERVICE'
-  ];
-  
-  // Remove user from all services
-  await Promise.allSettled(
-    services.map(service => 
-      fetch(`${service.url}/api/user/remove`, {
-        method: 'DELETE',
-        headers: { 'X-Service-Auth': SERVICE_AUTH_SECRET },
-        body: JSON.stringify({ email: userEmail })
-      })
-    )
-  );
-}
-```
-
-### 6. Cross-Tab Logout Synchronization
-```javascript
-// All services monitor localStorage changes
-useEffect(() => {
-  const handleStorageChange = (event) => {
-    if (event.key === 'sso_session' && event.newValue === null) {
-      // Another tab/service logged out, sync immediately
-      setIsAuthenticated(false);
-      setUserEmail(null);
-      setUserId(null);
-    }
-  };
-  
-  window.addEventListener('storage', handleStorageChange);
-  return () => window.removeEventListener('storage', handleStorageChange);
-}, []);
-```
-
-### 7. NextAuth Session Cleanup
-```javascript
-// auth-user-service/components/auth-signout-monitor.tsx
-// Monitors for logout signals and triggers NextAuth signOut
-useEffect(() => {
-  const checkSignoutSignal = async () => {
-    const response = await fetch('/api/auth/check-signout-signal', {
-      method: 'POST',
-      body: JSON.stringify({ email: session.user.email })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.shouldSignOut) {
-        await signOut({ callbackUrl: '/', redirect: true });
-      }
-    }
-  };
-  
-  // Check every 5 seconds
-  const interval = setInterval(checkSignoutSignal, 5000);
-  return () => clearInterval(interval);
-}, []);
-```
+### Removed legacy endpoints (no longer used)
+- other-services: `/api/user/inject`, `/api/user/inject-client`, `/api/user/get`, `/api/user/remove`
+- other-services: `/api/auth/silent-sso`, `/api/auth/local-logout`, debug token routes
+- auth-user-service: all server-to-server user injection calls
 
 ## 🏃‍♂️ Automatic User Detection
 

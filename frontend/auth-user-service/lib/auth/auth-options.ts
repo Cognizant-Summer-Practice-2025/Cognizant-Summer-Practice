@@ -3,7 +3,6 @@ import GoogleProvider from "next-auth/providers/google"
 import FacebookProvider from "next-auth/providers/facebook"
 import LinkedInProvider from "next-auth/providers/linkedin"
 import { checkUserExists, checkOAuthProvider, addOAuthProvider, getUserByEmail } from "@/lib/user"
-import { UserInjectionService } from "@/lib/services/user-injection-service"
 import type { AuthOptions } from "next-auth"
 
 declare module "next-auth" {
@@ -165,31 +164,6 @@ export const authOptions: AuthOptions = {
         const { exists: providerExists, user: providerUser } = await checkOAuthProvider(account.provider, account.providerAccountId);
         
         if (providerExists && providerUser) {
-          // OAuth provider already exists - inject user data using the token stored in our backend (DB)
-          try {
-            const userData = await getUserByEmail(user.email);
-            if (userData) {
-              let injectedToken = account.access_token || '';
-              try {
-                const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-                const providerNumber = getProviderNumber(account.provider);
-                const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${providerNumber}`;
-                const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-                if (resp.ok) {
-                  const oauthData = await resp.json();
-                  if (oauthData.exists && oauthData.provider?.accessToken) {
-                    injectedToken = oauthData.provider.accessToken;
-                  }
-                }
-              } catch (tokenFetchError) {
-                console.warn('Falling back to provider access_token for injection due to fetch error:', tokenFetchError);
-              }
-              await UserInjectionService.injectUser(userData, injectedToken);
-              console.log('User injected on sign-in (DB-backed token preferred):', user.email);
-            }
-          } catch (error) {
-            console.error('Error injecting user on sign-in:', error);
-          }
           return true;
         }
         
@@ -229,32 +203,6 @@ export const authOptions: AuthOptions = {
               refreshToken: account.refresh_token,
               tokenExpiresAt: account.expires_at ? new Date(account.expires_at * 1000).toISOString() : undefined
             });
-            
-            // Inject user data after adding OAuth provider using DB-backed access token
-            try {
-              const userData = await getUserByEmail(user.email);
-              if (userData) {
-                let injectedToken = account.access_token || '';
-                try {
-                  const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-                  const providerNumber = getProviderNumber(account.provider);
-                  const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${providerNumber}`;
-                  const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-                  if (resp.ok) {
-                    const oauthData = await resp.json();
-                    if (oauthData.exists && oauthData.provider?.accessToken) {
-                      injectedToken = oauthData.provider.accessToken;
-                    }
-                  }
-                } catch (tokenFetchError) {
-                  console.warn('Falling back to provider access_token for injection after provider add:', tokenFetchError);
-                }
-                await UserInjectionService.injectUser(userData, injectedToken);
-                console.log('User injected after adding OAuth provider (DB-backed token preferred):', user.email);
-              }
-            } catch (error) {
-              console.error('Error injecting user after adding OAuth provider:', error);
-            }
             
             return true;
           } catch {
@@ -305,8 +253,15 @@ export const authOptions: AuthOptions = {
       }
       
       // Allow redirects to external services (like home-portfolio-service)
-      // Only restrict redirects to same-origin URLs
-      if (url.startsWith(baseUrl) || url.startsWith('http://localhost:3001') || url.startsWith('http://localhost:3002') || url.startsWith('http://localhost:3003')) {
+      // Use environment variables for production URLs, fallback to localhost for development
+      const homeServiceUrl = process.env.NEXT_PUBLIC_HOME_PORTFOLIO_SERVICE || 'http://localhost:3001';
+      const messagesServiceUrl = process.env.NEXT_PUBLIC_MESSAGES_SERVICE || 'http://localhost:3002';
+      const adminServiceUrl = process.env.NEXT_PUBLIC_ADMIN_SERVICE || 'http://localhost:3003';
+      
+      if (url.startsWith(baseUrl) || 
+          url.startsWith(homeServiceUrl) || 
+          url.startsWith(messagesServiceUrl) || 
+          url.startsWith(adminServiceUrl)) {
         return url;
       }
       
@@ -326,7 +281,6 @@ export const authOptions: AuthOptions = {
           const userData = await getUserByEmail(session.user.email);
           if (userData) {
                     // Inject user data into all other services
-        await UserInjectionService.injectUser(userData, token.accessToken as string);
             // Add user data to session
             session.userId = userData.id;
           }
@@ -413,7 +367,7 @@ export const authOptions: AuthOptions = {
       if (message.session?.user?.email) {
         try {
           console.log(`NextAuth signOut event - removing user: ${message.session.user.email}`);
-          await UserInjectionService.removeUser(message.session.user.email);
+          // await UserInjectionService.removeUser(message.session.user.email); // Removed
           console.log(`User ${message.session.user.email} removed from all services during NextAuth signOut`);
         } catch (error) {
           console.error('Error removing user during NextAuth signOut:', error);

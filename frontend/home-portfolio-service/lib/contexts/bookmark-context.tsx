@@ -48,7 +48,10 @@ export function BookmarkProvider({ children }: { children: ReactNode }) {
     if (!user?.id) {
       // Preserve current page when redirecting to login
       const currentPath = window.location.pathname + window.location.search;
-      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+      const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || '';
+      if (!authServiceUrl) {
+        throw new Error('Auth service URL is not configured');
+      }
       window.location.href = `${authServiceUrl}/login?callbackUrl=${encodeURIComponent(currentPath)}`;
       return false;
     }

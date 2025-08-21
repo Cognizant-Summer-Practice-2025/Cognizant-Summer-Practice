@@ -1,9 +1,9 @@
-const API_BASE_URL = 'http://localhost:5201'; // Portfolio service URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL ?? '';
 
 /**
  * Convert a server image path to a full API URL
  * @param imagePath - Path like "server/portfolio/projects/uuid.jpg"
- * @returns Full API URL like "http://localhost:5201/api/Image/projects/uuid.jpg"
+ * @returns Full API URL like "https://backend-portfolio.lemongrass-88207da5.northeurope.azurecontainerapps.io/api/Image/projects/uuid.jpg"
  */
 export function getImageUrl(imagePath: string): string {
   if (!imagePath) return '';
@@ -25,6 +25,9 @@ export function getImageUrl(imagePath: string): string {
     const subfolder = pathParts[2];
     const filename = pathParts.slice(3).join('/'); // In case filename has slashes
     
+    if (!API_BASE_URL) {
+      throw new Error('Portfolio API URL is not configured');
+    }
     return `${API_BASE_URL}/api/Image/${subfolder}/${filename}`;
   }
   

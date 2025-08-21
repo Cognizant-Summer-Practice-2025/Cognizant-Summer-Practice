@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
 import { getUserByEmail } from '@/lib/user';
-import { UserInjectionService } from '@/lib/services/user-injection-service';
 import { SignJWT } from 'jose';
 
 /**
@@ -12,6 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const callbackUrl = searchParams.get('callbackUrl');
+    const silent = searchParams.get('silent') === 'true';
     
     if (!callbackUrl) {
       return NextResponse.redirect(new URL('/', request.url));
@@ -21,47 +21,34 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
-      // User is not authenticated, redirect to login with callback
+      // Handle silent authentication failure
+      if (silent) {
+        return NextResponse.json({
+          error: 'No active session',
+          requiresLogin: true
+        }, { status: 401 });
+      }
+      
+      // Normal flow: redirect to login with callback
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', callbackUrl);
       return NextResponse.redirect(loginUrl);
     }
 
-    // User is authenticated, get full user data and inject into services
+    // User is authenticated, get full user data
     const userData = await getUserByEmail(session.user.email);
     
     if (!userData) {
       return NextResponse.redirect(new URL('/login?error=UserNotFound', request.url));
     }
 
-    // Inject user data into all services using DB-backed token when available
-    let injectedToken = session.accessToken || '';
-    try {
-      if (userData?.id) {
-        const backendUrl = process.env.NEXT_PUBLIC_USER_API_URL || 'http://localhost:5200';
-        // We need provider number; if unknown here, fall back to token on session
-        // Attempt Google (0) and GitHub (1) in order, use the first that exists
-        const candidateProviders = [0, 1, 2, 3];
-        for (const providerNumber of candidateProviders) {
-          const url = `${backendUrl}/api/users/${userData.id}/oauth-providers/${providerNumber}`;
-          const resp = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-          if (resp.ok) {
-            const oauthData = await resp.json();
-            if (oauthData.exists && oauthData.provider?.accessToken) {
-              injectedToken = oauthData.provider.accessToken;
-              break;
-            }
-          }
-        }
-      }
-    } catch {
-      // Keep session token if DB lookup fails
+    // Create a temporary SSO token for the calling service using shared secret
+    const rawSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!rawSecret) {
+      console.error('AUTH_SECRET (or NEXTAUTH_SECRET) not configured');
+      return NextResponse.redirect(new URL('/login?error=ServerConfig', request.url));
     }
-
-    await UserInjectionService.injectUser(userData, injectedToken);
-
-    // Create a temporary SSO token for the calling service
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret');
+    const secret = new TextEncoder().encode(rawSecret);
     const token = await new SignJWT({ 
       email: userData.email,
       userId: userData.id,
