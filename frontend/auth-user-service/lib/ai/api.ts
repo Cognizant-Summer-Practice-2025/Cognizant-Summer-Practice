@@ -21,7 +21,7 @@ export interface AIGeneratedPortfolio {
 
 // Response from AI generate-best-portfolio endpoint
 export interface AIPortfolioResponse {
-  response: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any - Backend returns JsonElement[], not structured objects
+  response: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any -- Backend returns JsonElement[], not structured objects
 }
 
 // Helper function to handle API responses

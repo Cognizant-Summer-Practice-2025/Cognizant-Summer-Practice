@@ -43,7 +43,7 @@ export default function PlacesAutocomplete({
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, []);
+  }, [value]);
 
   const searchLocations = useCallback(async (query: string) => {
     setIsLoading(true);
