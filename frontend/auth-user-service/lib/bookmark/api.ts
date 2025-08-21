@@ -37,7 +37,7 @@ async function getAuthenticatedHeaders(): Promise<Record<string, string>> {
   };
 
   const session = await getSession();
-  if (session?.accessToken) {
+  if (session && 'accessToken' in session && session.accessToken) {
     headers['Authorization'] = `Bearer ${session.accessToken}`;
   }
 
