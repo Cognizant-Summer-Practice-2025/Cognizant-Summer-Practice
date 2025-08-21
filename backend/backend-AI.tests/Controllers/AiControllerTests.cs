@@ -54,22 +54,30 @@ namespace backend_AI.tests.Controllers
         [Fact]
         public async Task GenerateBestPortfolio_ShouldReturnArrayOfBasicPortfolios_WhenModelReturnsIds()
         {
-            // Arrange: basic portfolios list
-            var basic = "[ { \"id\": \"11111111-1111-1111-1111-111111111111\", \"title\": \"A\" }, { \"id\": \"22222222-2222-2222-2222-222222222222\", \"title\": \"B\" } ]";
+            // Arrange: basic portfolios list with enough entries (10+) to satisfy business logic
+            var portfolioIds = new List<string>();
+            var portfolioJson = new List<string>();
+            var rankedCandidates = new List<backend_AI.Services.Abstractions.PortfolioCandidate>();
+            
+            // Create 12 mock portfolios to exceed the minimum requirement of 10
+            for (int i = 1; i <= 12; i++)
+            {
+                var id = $"{i:D8}-1111-1111-1111-111111111111";
+                portfolioIds.Add(id);
+                portfolioJson.Add($"{{ \"id\": \"{id}\", \"title\": \"Portfolio {i}\" }}");
+                rankedCandidates.Add(new(id, "user", 1, 1, 1, 1, 1, 5));
+            }
+            
+            var basic = $"[ {string.Join(", ", portfolioJson)} ]";
             _mockPortfolioApi.Setup(p => p.GetAllPortfoliosDetailedJsonAsync(default)).ReturnsAsync(basic);
             _mockPortfolioApi.Setup(p => p.GetAllPortfoliosBasicJsonAsync(default)).ReturnsAsync(basic);
 
-            // Ranking selects top items
-            var ranked = new List<backend_AI.Services.Abstractions.PortfolioCandidate>
-            {
-                new("11111111-1111-1111-1111-111111111111","u",1,1,1,1,1,5),
-                new("22222222-2222-2222-2222-222222222222","u",1,1,1,1,1,5),
-            };
-            _mockRanking.Setup(r => r.SelectTopCandidates(It.IsAny<string>(), It.IsAny<int>())).Returns(ranked);
+            // Ranking selects top items (12 candidates, more than the minimum 10)
+            _mockRanking.Setup(r => r.SelectTopCandidates(It.IsAny<string>(), It.IsAny<int>())).Returns(rankedCandidates);
 
-            // Model returns ids
+            // Model returns first 2 ids
             _mockChat.Setup(s => s.GenerateWithPromptAsync(It.IsAny<string>(), default))
-                     .ReturnsAsync("11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222");
+                     .ReturnsAsync($"{portfolioIds[0]},{portfolioIds[1]}");
 
             // Act
             var result = await _controller.GenerateBestPortfolio(default);
@@ -81,19 +89,55 @@ namespace backend_AI.tests.Controllers
         }
 
         [Fact]
-        public async Task GenerateBestPortfolio_ShouldReturnEmptyArray_WhenModelReturnsNoValidIds()
+        public async Task GenerateBestPortfolio_ShouldReturnBadRequest_WhenInsufficientPortfolios()
         {
             var basic = "[ { \"id\": \"11111111-1111-1111-1111-111111111111\", \"title\": \"A\" } ]";
             _mockPortfolioApi.Setup(p => p.GetAllPortfoliosDetailedJsonAsync(default)).ReturnsAsync(basic);
             _mockPortfolioApi.Setup(p => p.GetAllPortfoliosBasicJsonAsync(default)).ReturnsAsync(basic);
+            // Return insufficient candidates (less than 10)
             _mockRanking.Setup(r => r.SelectTopCandidates(It.IsAny<string>(), It.IsAny<int>())).Returns(new List<backend_AI.Services.Abstractions.PortfolioCandidate>());
             _mockChat.Setup(s => s.GenerateWithPromptAsync(It.IsAny<string>(), default)).ReturnsAsync("");
 
             var result = await _controller.GenerateBestPortfolio(default);
 
-            result.Should().BeOfType<OkObjectResult>();
-            var ok = result as OkObjectResult;
-            ok!.Value.Should().NotBeNull();
+            // Should return BadRequest due to insufficient portfolio data
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequest = result as BadRequestObjectResult;
+            badRequest!.Value.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GenerateBestPortfolio_ShouldReturnBadRequest_WhenModelReturnsNoValidIds()
+        {
+            // Arrange: Create enough portfolios to pass the initial check
+            var portfolioIds = new List<string>();
+            var portfolioJson = new List<string>();
+            var rankedCandidates = new List<backend_AI.Services.Abstractions.PortfolioCandidate>();
+            
+            // Create 12 mock portfolios to exceed the minimum requirement of 10
+            for (int i = 1; i <= 12; i++)
+            {
+                var id = $"{i:D8}-1111-1111-1111-111111111111";
+                portfolioIds.Add(id);
+                portfolioJson.Add($"{{ \"id\": \"{id}\", \"title\": \"Portfolio {i}\" }}");
+                rankedCandidates.Add(new(id, "user", 1, 1, 1, 1, 1, 5));
+            }
+            
+            var basic = $"[ {string.Join(", ", portfolioJson)} ]";
+            _mockPortfolioApi.Setup(p => p.GetAllPortfoliosDetailedJsonAsync(default)).ReturnsAsync(basic);
+            _mockPortfolioApi.Setup(p => p.GetAllPortfoliosBasicJsonAsync(default)).ReturnsAsync(basic);
+            _mockRanking.Setup(r => r.SelectTopCandidates(It.IsAny<string>(), It.IsAny<int>())).Returns(rankedCandidates);
+            
+            // Model returns invalid/non-matching IDs
+            _mockChat.Setup(s => s.GenerateWithPromptAsync(It.IsAny<string>(), default))
+                     .ReturnsAsync("invalid-id-1,invalid-id-2,not-a-guid");
+
+            var result = await _controller.GenerateBestPortfolio(default);
+
+            // Should return BadRequest because no valid portfolios could be matched
+            result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequest = result as BadRequestObjectResult;
+            badRequest!.Value.Should().NotBeNull();
         }
 
         [Fact]

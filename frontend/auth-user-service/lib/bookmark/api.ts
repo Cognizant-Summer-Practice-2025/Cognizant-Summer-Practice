@@ -1,3 +1,7 @@
+import { getSession } from "next-auth/react";
+// Import to ensure NextAuth module declaration is loaded
+import "@/lib/auth/auth-options";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL || 'http://localhost:5201';
 
 export interface BookmarkToggleRequest {
@@ -26,17 +30,31 @@ export interface BookmarkCheckResponse {
   isBookmarked: boolean;
 }
 
+// Helper function to get authenticated headers
+async function getAuthenticatedHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  const session = await getSession();
+  if (session && 'accessToken' in session && session.accessToken) {
+    headers['Authorization'] = `Bearer ${session.accessToken}`;
+  }
+
+  return headers;
+}
+
 export const bookmarkApi = {
   /**
    * Toggle bookmark state (add/remove)
    */
   async toggleBookmark(request: BookmarkToggleRequest): Promise<BookmarkToggleResponse> {
     try {
+      const headers = await getAuthenticatedHeaders();
+      
       const response = await fetch(`${API_BASE_URL}/api/bookmark/toggle`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(request),
       });
 
@@ -57,11 +75,11 @@ export const bookmarkApi = {
    */
   async checkBookmark(userId: string, portfolioId: string): Promise<BookmarkCheckResponse> {
     try {
+      const headers = await getAuthenticatedHeaders();
+      
       const response = await fetch(`${API_BASE_URL}/api/bookmark/check/${userId}/${portfolioId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -81,11 +99,11 @@ export const bookmarkApi = {
    */
   async getUserBookmarks(userId: string): Promise<BookmarkResponse[]> {
     try {
+      const headers = await getAuthenticatedHeaders();
+      
       const response = await fetch(`${API_BASE_URL}/api/bookmark/user/${userId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {

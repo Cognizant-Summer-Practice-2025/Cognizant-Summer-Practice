@@ -203,7 +203,7 @@ export default function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'settings')}>
+                  <DropdownMenuItem onClick={() => redirectToService('AUTH_USER_SERVICE', 'ai')}>
                     <Crown className="mr-2 h-4 w-4" />
                     Premium
                   </DropdownMenuItem>
@@ -393,7 +393,7 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    redirectToService('AUTH_USER_SERVICE', 'settings');
+                    redirectToService('AUTH_USER_SERVICE', 'ai');
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
                 >

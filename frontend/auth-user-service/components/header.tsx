@@ -211,7 +211,7 @@ export default function Header() {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/settings')}>
+                  <DropdownMenuItem onClick={() => router.push('/ai')}>
                     <Crown className="mr-2 h-4 w-4" />
                     Premium
                   </DropdownMenuItem>
@@ -374,7 +374,7 @@ export default function Header() {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    router.push('/settings');
+                    router.push('/ai');
                   }}
                   className="w-full px-3 py-2 rounded-lg flex items-center gap-3 text-[#64748B] hover:bg-gray-50 text-left"
                 >
