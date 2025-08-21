@@ -86,11 +86,11 @@ export default function AIPage() {
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Generate Button Section - Top Left */}
-        <div className="mb-12">
+        <div className="mb-20 p-6 bg-white border border-gray-300 rounded-lg shadow-sm">
           <Button
             onClick={handleGeneratePortfolios}
             disabled={state.loading}
-            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium rounded-lg flex items-center gap-3"
+            className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white text-lg font-medium rounded-lg flex items-center gap-3 shadow-md hover:shadow-lg transition-all duration-200"
             size="lg"
           >
             {state.loading ? (
@@ -106,11 +106,7 @@ export default function AIPage() {
             )}
           </Button>
           
-          {state.hasGenerated && !state.loading && !state.error && (
-            <p className="text-sm text-green-600 mt-3 font-medium">
-              ✨ Generated {state.portfolios.length} top portfolios
-            </p>
-          )}
+
         </div>
 
         {/* Error Message */}
