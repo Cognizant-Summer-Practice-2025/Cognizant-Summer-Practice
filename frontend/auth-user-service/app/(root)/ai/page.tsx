@@ -86,7 +86,7 @@ export default function AIPage() {
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Generate Button Section - Top Left */}
-        <div className="mb-20 p-6 bg-white border border-gray-300 rounded-lg shadow-sm">
+        <div className="p-6 bg-white border border-gray-300 rounded-lg shadow-sm">
           <Button
             onClick={handleGeneratePortfolios}
             disabled={state.loading}
