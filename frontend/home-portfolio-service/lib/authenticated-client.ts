@@ -5,11 +5,10 @@ export class AuthenticatedClient {
   private authServiceBaseUrl: string;
 
   private constructor() {
-    const baseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-    if (!baseUrl) {
-      throw new Error('NEXT_PUBLIC_AUTH_USER_SERVICE environment variable is not set');
-    }
-    this.authServiceBaseUrl = baseUrl;
+    // Do not throw during build-time. Some pages may import this module while
+    // prerendering and envs may not be present. Fallback to empty string and
+    // handle gracefully at call sites.
+    this.authServiceBaseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || '';
   }
 
   public static getInstance(): AuthenticatedClient {
@@ -48,6 +47,7 @@ export class AuthenticatedClient {
   // Try to refresh JWT token from auth service using cookies
   private async refreshJwtFromAuth(): Promise<boolean> {
     try {
+      if (!this.authServiceBaseUrl) return false;
       const resp = await fetch(`${this.authServiceBaseUrl}/api/auth/get-jwt`, {
         method: 'GET',
         credentials: 'include',
@@ -75,6 +75,7 @@ export class AuthenticatedClient {
   private buildLoginUrl(): string {
     if (typeof window === 'undefined') return `${this.authServiceBaseUrl}/login`;
     const currentUrl = window.location.href;
+    if (!this.authServiceBaseUrl) return '/login';
     return `${this.authServiceBaseUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
   }
 
@@ -159,5 +160,6 @@ export class AuthenticatedClient {
     });
   }
 }
-
-export const authenticatedClient = AuthenticatedClient.getInstance(); 
+export function getAuthenticatedClient(): AuthenticatedClient {
+  return AuthenticatedClient.getInstance();
+}
