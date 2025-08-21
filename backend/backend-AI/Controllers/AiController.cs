@@ -52,7 +52,8 @@ namespace backend_AI.Controllers
                 var top = _rankingService.SelectTopCandidates(portfoliosJson, topN: 24);
                 
                 // Check if we have enough portfolios for meaningful AI generation
-                if (top.Count < 10)
+                var PORTFOLIO_COUNT = 10;
+                if (top.Count < PORTFOLIO_COUNT)
                 {
                     _logger.LogWarning("AI: Insufficient portfolio data. Found {Count} portfolios, need at least 10", top.Count);
                     return BadRequest(new { error = "Insufficient portfolio data. The AI requires at least 10 portfolios in the database to generate meaningful recommendations. Please add more portfolios and try again." });
@@ -60,7 +61,7 @@ namespace backend_AI.Controllers
                 _logger.LogInformation("AI: Ranking returned {Count} top candidates", top.Count);
                 var compact = System.Text.Json.JsonSerializer.Serialize(top.Select(t => new { id = t.Id, scores = new { t.ExperienceScore, t.SkillsScore, t.BlogScore, t.BioScore, t.ProjectQualityScore, t.TotalScore } }));
                 _logger.LogInformation("AI: Payload to model length={Len}", compact.Length + basePrompt.Length);
-                // Compose prompt with only top candidates and their scores plus a note to select only id
+                
                 var prompt = $"{basePrompt}\nTop candidates (with precomputed scores):\n{compact}";
                 var text = await _aiChatService.GenerateWithPromptAsync(prompt, cancellationToken);
                 if (string.IsNullOrWhiteSpace(text))
@@ -69,7 +70,6 @@ namespace backend_AI.Controllers
                     return Ok(new { response = text });
                 }
 
-                // Expecting 10 comma-separated UUIDs
                 var ids = text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                               .Select(s => s.Trim())
                               .Where(s => s.Length == 36)
@@ -77,11 +77,9 @@ namespace backend_AI.Controllers
                               .ToList();
                 _logger.LogInformation("AI Controller: received {Count} ids from model", ids.Count);
 
-                // For final items, fetch only the basic portfolio table (not comprehensive details)
                 var allBasic = await _portfolioApiClient.GetAllPortfoliosBasicJsonAsync(cancellationToken);
                 if (string.IsNullOrWhiteSpace(allBasic))
                 {
-                    // Fallback to previously fetched JSON if basic endpoint is unavailable in test or env
                     allBasic = portfoliosJson;
                 }
                 using var basicDoc = System.Text.Json.JsonDocument.Parse(allBasic);
