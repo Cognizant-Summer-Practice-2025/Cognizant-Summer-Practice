@@ -2,9 +2,7 @@
 
 import React from 'react';
 import { Card, Avatar, Tag, Button } from 'antd';
-import { EyeOutlined, LikeOutlined, MessageOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
-import { useBookmarks } from '@/lib/contexts/bookmark-context';
-import { useUser } from '@/lib/contexts/user-context';
+import { EyeOutlined, LikeOutlined, MessageOutlined } from '@ant-design/icons';
 import { usePortfolioNavigation } from '@/lib/contexts/use-portfolio-navigation';
 import './style.css';
 
@@ -43,27 +41,13 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
   date,
   avatar,
 }) => {
-  const { user } = useUser();
-  const { isBookmarked, toggleBookmark, loading } = useBookmarks();
   const { navigateToPortfolio } = usePortfolioNavigation();
 
   const handleViewPortfolio = () => {
     navigateToPortfolio(id);
   };
 
-  const handleBookmarkClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    
-    if (!user) {
-      // Note: router is not imported, this should be handled differently
-      // For now, we'll just return without action
-      return;
-    }
 
-    await toggleBookmark(id, `${name}'s Portfolio`);
-  };
-
-  const bookmarked = isBookmarked(id);
   
   // Skills display logic
   const maxSkillsToShow = 3;
@@ -89,47 +73,6 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
             <p className="portfolio-user-role">{role}</p>
             <p className="portfolio-user-location">{location}</p>
           </div>
-        </div>
-        <div className="portfolio-favorite">
-          <button
-            onClick={handleBookmarkClick}
-            disabled={loading}
-            className="bookmark-button"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              padding: '4px',
-              borderRadius: '4px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.currentTarget.style.backgroundColor = '#f0f0f0';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            {bookmarked ? (
-              <StarFilled 
-                style={{ 
-                  color: '#1890ff', 
-                  fontSize: '20px',
-                  opacity: loading ? 0.6 : 1 
-                }} 
-              />
-            ) : (
-              <StarOutlined 
-                style={{ 
-                  color: '#8c8c8c', 
-                  fontSize: '20px',
-                  opacity: loading ? 0.6 : 1 
-                }} 
-              />
-            )}
-          </button>
         </div>
       </div>
 
