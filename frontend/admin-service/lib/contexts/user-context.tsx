@@ -1,9 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { User } from '@/lib/user/interfaces';
-import { ServiceUserData } from '@/types/global';
 import { Logger } from '@/lib/logger';
 
 interface UserContextType {
@@ -24,7 +23,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, userEmail, loading: authLoading } = useAuth();
+  const { isAuthenticated, user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<(User & { isAdmin: boolean }) | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,57 +32,43 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      
-      // Get user data from injected storage
-      const response = await fetch('/api/user/get');
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          setUser(null);
-          setError('User not found in this service. Please log in again.');
-          return;
-        }
-        throw new Error(`Failed to get user data: ${response.statusText}`);
+      console.log('[admin][user] fetchUser: start', { isAuthenticated, hasAuthUser: !!authUser });
+      if (isAuthenticated && authUser) {
+        const mapped: User & { isAdmin: boolean } = {
+          id: authUser.id || '',
+          email: authUser.email,
+          username: authUser.username || '',
+          firstName: authUser.firstName || '',
+          lastName: authUser.lastName || '',
+          professionalTitle: '',
+          bio: '',
+          location: '',
+          avatarUrl: authUser.avatarUrl || '',
+          isActive: true,
+          isAdmin: !!authUser.isAdmin,
+          lastLoginAt: null,
+        } as unknown as User & { isAdmin: boolean };
+        setUser(mapped);
+        console.log('[admin][user] fetchUser: mapped from auth user', { isAdmin: mapped.isAdmin });
       }
-      
-      const userData: ServiceUserData = await response.json();
-      
-      // Transform ServiceUserData to User format with isAdmin
-      const transformedUser: User & { isAdmin: boolean } = {
-        id: userData.id,
-        email: userData.email,
-        username: userData.username,
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        professionalTitle: userData.professionalTitle,
-        bio: userData.bio,
-        location: userData.location,
-        avatarUrl: userData.profileImage,
-        isActive: userData.isActive,
-        isAdmin: userData.isAdmin,
-        lastLoginAt: userData.lastLoginAt,
-      };
-      
-      setUser(transformedUser);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch user data';
       setError(errorMessage);
       Logger.error('Error fetching user data', err);
     } finally {
       setLoading(false);
+      console.log('[admin][user] fetchUser: done');
     }
   };
 
   const refetchUser = async () => {
-    if (isAuthenticated) {
-      await fetchUser();
-    }
+    if (isAuthenticated) await fetchUser();
   };
 
   const updateUserData = async () => {
     // User updates should be handled by the auth-user-service
     // Redirect to auth service for profile updates
-    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    const authServiceUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE as string;
     window.location.href = `${authServiceUrl}/profile`;
   };
 
@@ -91,21 +76,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // Reset user state when auth changes
     if (authLoading) {
       setLoading(true);
+      console.log('[admin][user] effect: authLoading true');
       return;
     }
 
-    if (!isAuthenticated || !userEmail) {
+    if (!isAuthenticated || !authUser) {
       setUser(null);
       setLoading(false);
       setError(null);
+      console.log('[admin][user] effect: unauthenticated or no email');
       return;
     }
 
     // Fetch user data when authenticated
-    if (isAuthenticated && userEmail && !user) {
+    if (isAuthenticated && authUser && !user) {
+      console.log('[admin][user] effect: fetching user');
       fetchUser();
     }
-  }, [isAuthenticated, userEmail, authLoading, user]);
+  }, [isAuthenticated, authUser, authLoading]);
 
   const value: UserContextType = {
     user,

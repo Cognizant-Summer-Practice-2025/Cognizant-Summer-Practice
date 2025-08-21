@@ -12,6 +12,7 @@ interface LoadingOverlayProps {
   onClose?: () => void;
   className?: string;
   textColor?: string;
+  backgroundColor?: string;
 }
 
 export function LoadingOverlay({ 
@@ -22,7 +23,8 @@ export function LoadingOverlay({
   preventBodyScroll = true,
   onClose,
   className = "",
-  textColor = "white"
+  textColor = "white",
+  backgroundColor = "white",
 }: LoadingOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
@@ -83,7 +85,7 @@ export function LoadingOverlay({
           : 'animate-in fade-in zoom-in-95 slide-in-from-top-2'
       } ${className}`}>
         {/* 3D Loading Animation */}
-        <Loading backgroundColor="white" />
+        <Loading backgroundColor={backgroundColor} />
         
         {/* Optional Text Content */}
         {(title || message) && (

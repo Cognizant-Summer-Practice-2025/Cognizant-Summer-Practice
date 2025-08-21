@@ -1,4 +1,4 @@
-import type { ServiceUserData } from '@/types/global';
+import { SERVICES } from '@/lib/config/services';
 import { Logger } from '@/lib/logger';
 
 // Authenticated client for handling authenticated API calls
@@ -7,7 +7,7 @@ export class AuthenticatedClient {
   private authServiceBaseUrl: string;
 
   private constructor() {
-    this.authServiceBaseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE || 'http://localhost:3000';
+    this.authServiceBaseUrl = SERVICES.AUTH_USER_SERVICE;
   }
 
   public static getInstance(): AuthenticatedClient {
@@ -17,44 +17,47 @@ export class AuthenticatedClient {
     return AuthenticatedClient.instance;
   }
 
-  /**
-   * Get the current user's authentication token from injected user data
-   */
-  private async getAuthToken(): Promise<string | null> {
+  private getStoredJwt(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('jwt_auth_token') || sessionStorage.getItem('jwt_auth_token') || null;
+  }
+
+  private getJwtPayload(token: string): Record<string, unknown> | null {
     try {
-      // Reference to the same storage used in inject/remove
-      if (typeof global !== 'undefined' && global.adminServiceUserStorage) {
-        const userStorage = global.adminServiceUserStorage;
-        if (userStorage.size > 0) {
-          const userData: ServiceUserData = Array.from(userStorage.values())[0];
-          return userData.accessToken || null;
-        }
-      }
+      const parts = token.split('.');
+      if (parts.length < 2) return null;
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const json = typeof window !== 'undefined'
+        ? decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+        : Buffer.from(base64, 'base64').toString('utf8');
+      return JSON.parse(json);
+    } catch { return null; }
+  }
 
-      // If no token found, try to get from local API (for client-side)
-      try {
-        const response = await fetch('/api/user/get');
-        if (response.ok) {
-          const userData = await response.json();
-          return userData.accessToken || null;
-        }
-      } catch {
-        // Ignore API errors, just return null
+  private async refreshJwtFromAuth(): Promise<boolean> {
+    try {
+      const resp = await fetch(`${this.authServiceBaseUrl}/api/auth/get-jwt`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!resp.ok) return false;
+      const data = await resp.json();
+      if (data?.success && data?.token) {
+        if (typeof window !== 'undefined') localStorage.setItem('jwt_auth_token', data.token);
+        return true;
       }
-
-      return null;
-    } catch (error) {
-      Logger.error('Error getting auth token', error);
-      return null;
-    }
+      return false;
+    } catch { return false; }
   }
 
   /**
    * Check if user is authenticated
    */
   public async isAuthenticated(): Promise<boolean> {
-    const token = await this.getAuthToken();
-    return !!token;
+    const jwt = this.getStoredJwt();
+    return !!jwt;
   }
 
   /**
@@ -71,26 +74,29 @@ export class AuthenticatedClient {
     url: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = await this.getAuthToken();
-    
-    if (!token) {
-      this.redirectToLogin();
-      throw new Error('Authentication required');
-    }
+    const jwt = this.getStoredJwt();
+    if (!jwt) { this.redirectToLogin(); throw new Error('Authentication required'); }
+    const payload = this.getJwtPayload(jwt) as { accessToken?: string } | null;
+    const access = payload?.accessToken;
 
-    const response = await fetch(url, {
+    const requestWithBearer = async (bearer: string): Promise<Response> => fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers,
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${bearer}`, ...options.headers },
     });
 
+    let response = await requestWithBearer(access && access.length > 0 ? access : jwt);
+    if (response.status === 401 && access && access.length > 0) {
+      response = await requestWithBearer(jwt);
+    }
     if (response.status === 401) {
-      // Token is invalid, redirect to login
-      this.redirectToLogin();
-      throw new Error('Authentication required');
+      const refreshed = await this.refreshJwtFromAuth();
+      if (refreshed) {
+        const newJwt = this.getStoredJwt();
+        const newPayload = newJwt ? (this.getJwtPayload(newJwt) as { accessToken?: string } | null) : null;
+        const newAccess = newPayload?.accessToken;
+        response = await requestWithBearer(newAccess && newAccess.length > 0 ? newAccess : (newJwt || ''));
+      }
+      if (response.status === 401) { if (typeof window !== 'undefined') { localStorage.removeItem('jwt_auth_token'); sessionStorage.removeItem('jwt_auth_token'); } this.redirectToLogin(); throw new Error('Authentication required'); }
     }
 
     if (!response.ok) {
