@@ -6,8 +6,10 @@ export class AuthenticatedClient {
 
   private constructor() {
     const baseUrl = process.env.NEXT_PUBLIC_AUTH_USER_SERVICE;
-    // Do not throw at construction time to allow builds without envs.
-    this.authServiceBaseUrl = baseUrl ?? '';
+    if (!baseUrl) {
+      throw new Error('NEXT_PUBLIC_AUTH_USER_SERVICE environment variable is not set');
+    }
+    this.authServiceBaseUrl = baseUrl;
   }
 
   public static getInstance(): AuthenticatedClient {
@@ -46,9 +48,6 @@ export class AuthenticatedClient {
   // Try to refresh JWT token from auth service using cookies
   private async refreshJwtFromAuth(): Promise<boolean> {
     try {
-      if (!this.authServiceBaseUrl) {
-        throw new Error('Auth service URL is not configured');
-      }
       const resp = await fetch(`${this.authServiceBaseUrl}/api/auth/get-jwt`, {
         method: 'GET',
         credentials: 'include',
@@ -74,9 +73,6 @@ export class AuthenticatedClient {
 
   // Do not auto-redirect to login here to avoid loops. Let callers decide.
   private buildLoginUrl(): string {
-    if (!this.authServiceBaseUrl) {
-      throw new Error('Auth service URL is not configured');
-    }
     if (typeof window === 'undefined') return `${this.authServiceBaseUrl}/login`;
     const currentUrl = window.location.href;
     return `${this.authServiceBaseUrl}/api/sso/callback?callbackUrl=${encodeURIComponent(currentUrl)}`;
@@ -164,6 +160,4 @@ export class AuthenticatedClient {
   }
 }
 
-export function getAuthenticatedClient(): AuthenticatedClient {
-  return AuthenticatedClient.getInstance();
-}
+export const authenticatedClient = AuthenticatedClient.getInstance(); 
