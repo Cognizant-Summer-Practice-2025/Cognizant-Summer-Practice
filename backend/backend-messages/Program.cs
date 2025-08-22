@@ -14,7 +14,8 @@ builder.Services
     .AddCorsConfiguration(builder.Configuration)
     .AddDatabaseServices(builder.Configuration)
     .AddHttpClientConfiguration(builder.Configuration)
-    .AddApplicationServices();
+    .AddApplicationServices()
+    .AddSchedulerServices(builder.Configuration);
 
 var app = builder.Build();
 
