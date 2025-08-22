@@ -1,4 +1,6 @@
 using backend_AI.Services.Abstractions;
+using backend_AI.DTO.Ai;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend_AI.Controllers
@@ -11,13 +13,15 @@ namespace backend_AI.Controllers
         private readonly Services.External.IPortfolioApiClient _portfolioApiClient;
         private readonly Services.Abstractions.IPortfolioRankingService _rankingService;
         private readonly ILogger<AiController> _logger;
+        private readonly ITechNewsSummaryStore _techNewsStore;
 
-        public AiController(IAiChatService aiChatService, Services.External.IPortfolioApiClient portfolioApiClient, Services.Abstractions.IPortfolioRankingService rankingService, ILogger<AiController> logger)
+        public AiController(IAiChatService aiChatService, Services.External.IPortfolioApiClient portfolioApiClient, Services.Abstractions.IPortfolioRankingService rankingService, ILogger<AiController> logger, ITechNewsSummaryStore techNewsStore)
         {
             _aiChatService = aiChatService ?? throw new ArgumentNullException(nameof(aiChatService));
             _portfolioApiClient = portfolioApiClient ?? throw new ArgumentNullException(nameof(portfolioApiClient));
             _rankingService = rankingService ?? throw new ArgumentNullException(nameof(rankingService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _techNewsStore = techNewsStore ?? throw new ArgumentNullException(nameof(techNewsStore));
         }
 
         [HttpGet("generate")]
@@ -131,6 +135,78 @@ namespace backend_AI.Controllers
                 _logger.LogError(ex, "AI: Error generating best portfolio");
                 return StatusCode(502, new { error = ex.Message });
             }
+        }
+
+        [HttpPost("tech-news")]
+        [AllowAnonymous]
+        public IActionResult UpsertTechNews([FromBody] TechNewsSummaryRequest request)
+        {
+            _logger.LogInformation("TechNews POST: Received request");
+            var configuredSecret = Environment.GetEnvironmentVariable("AIRFLOW_SECRET");
+            if (string.IsNullOrWhiteSpace(configuredSecret))
+            {
+                _logger.LogWarning("TechNews POST: AIRFLOW_SECRET is not configured");
+                return StatusCode(503, new { error = "Service not configured" });
+            }
+
+            // Accept either Authorization: Bearer <secret> or X-Airflow-Secret: <secret>
+            string? providedSecret = null;
+            if (Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                var header = authHeader.ToString();
+                const string bearerPrefix = "Bearer ";
+                if (header.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    providedSecret = header.Substring(bearerPrefix.Length).Trim();
+                }
+            }
+            if (string.IsNullOrEmpty(providedSecret) && Request.Headers.TryGetValue("X-Airflow-Secret", out var xHeader))
+            {
+                providedSecret = xHeader.ToString().Trim();
+            }
+
+            if (!string.Equals(providedSecret, configuredSecret, StringComparison.Ordinal))
+            {
+                _logger.LogWarning("TechNews POST: Secret auth failed (provided: {ProvidedLength} chars)", providedSecret?.Length ?? 0);
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+            if (request is null)
+            {
+                _logger.LogWarning("TechNews POST: Missing body");
+                return BadRequest(new { error = "Request body is required" });
+            }
+            if (string.IsNullOrWhiteSpace(request.Summary))
+            {
+                _logger.LogWarning("TechNews POST: Missing summary");
+                return BadRequest(new { error = "summary is required" });
+            }
+
+            var preview = request.Summary.Length > 120 ? request.Summary.Substring(0, 120) + "..." : request.Summary;
+            _logger.LogInformation("TechNews POST: Upserting summaryLength={Length}, preview=\n{Preview}", request.Summary.Length, preview);
+            _techNewsStore.SetSummary(request.Summary);
+            _logger.LogInformation("Tech news summary updated");
+            return Ok(new { status = "ok" });
+        }
+
+        [HttpGet("tech-news")]
+        [AllowAnonymous]
+        public IActionResult GetLatestTechNews()
+        {
+            _logger.LogInformation("TechNews GET: Fetching latest summary");
+            var summary = _techNewsStore.Summary;
+            var length = string.IsNullOrEmpty(summary) ? 0 : summary.Length;
+            _logger.LogInformation("TechNews GET: summaryLength={Length}", length);
+
+            if (string.IsNullOrWhiteSpace(summary))
+            {
+                _logger.LogInformation("TechNews GET: No summary available, returning default message");
+                return Ok(new TechNewsSummaryResponse
+                {
+                    Summary = "No tech news for now"
+                });
+            }
+
+            return Ok(new TechNewsSummaryResponse { Summary = summary });
         }
     }
 }

@@ -24,6 +24,10 @@ export interface AIPortfolioResponse {
   response: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any -- Backend returns JsonElement[], not structured objects
 }
 
+export interface TechNewsSummaryResponse {
+  summary?: string;
+}
+
 // Helper function to handle API responses
 async function handleApiResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -146,3 +150,21 @@ export async function convertAIPortfoliosToCards(aiPortfolios: any[]): Promise<i
   
   return portfolioCards;
 } 
+
+export async function getLatestTechNews(): Promise<TechNewsSummaryResponse | null> {
+  const session = await getSession();
+  const headers: Record<string, string> = {};
+  if (session?.accessToken) {
+    headers['Authorization'] = `Bearer ${session.accessToken}`;
+  }
+
+  const response = await fetch(`${AI_API_BASE_URL}/api/ai/tech-news`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (response.status === 204) {
+    return null;
+  }
+  return handleApiResponse<TechNewsSummaryResponse>(response);
+}

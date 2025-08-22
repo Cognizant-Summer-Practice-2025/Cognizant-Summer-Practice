@@ -32,6 +32,7 @@ public static class ServiceRegistrationConfiguration
     {
         services.AddScoped<IAiChatService, AiChatService>();
         services.AddScoped<IPortfolioRankingService, PortfolioRankingService>();
+        services.AddSingleton<ITechNewsSummaryStore, TechNewsSummaryStore>();
 
         return services;
     }
