@@ -28,8 +28,7 @@ describe('UserInjectionService', () => {
       isActive: true,
       isAdmin: false,
       lastLoginAt: '2023-01-01T00:00:00Z',
-      createdAt: '2023-01-01',
-      updatedAt: '2023-01-01'
+
     }
 
     it('should inject user data successfully', async () => {
@@ -105,7 +104,8 @@ describe('UserInjectionService', () => {
       
       // Check that the request body contains the expected user data
       const actualCall = mockFetch.mock.calls[0]
-      const requestBody = JSON.parse(actualCall[1].body)
+      const body = actualCall[1]?.body
+      const requestBody = typeof body === 'string' ? JSON.parse(body) : {}
       expect(requestBody.userData.accessToken).toBeUndefined()
     })
 

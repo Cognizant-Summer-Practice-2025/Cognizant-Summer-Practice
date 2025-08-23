@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Newspaper } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 interface TechNewsSummaryProps {
   summary: string;
@@ -16,7 +15,6 @@ export function TechNewsSummary({ summary }: TechNewsSummaryProps) {
 
     // Split by <category> tags and collect text blocks
     const catRegex = /<category>(.*?)<\/category>/gi;
-    let lastIndex = 0;
     let match: RegExpExecArray | null;
     const parts: Array<{ name: string; start: number }> = [];
     while ((match = catRegex.exec(summary)) !== null) {

@@ -32,7 +32,6 @@ public static class ServiceRegistrationConfiguration
     {
         services.AddScoped<IAiChatService, AiChatService>();
         services.AddScoped<IPortfolioRankingService, PortfolioRankingService>();
-        services.AddSingleton<ITechNewsSummaryStore, TechNewsSummaryStore>();
 
         return services;
     }
@@ -45,6 +44,7 @@ public static class ServiceRegistrationConfiguration
     private static IServiceCollection AddExternalServices(this IServiceCollection services)
     {
         services.AddScoped<IPortfolioApiClient, PortfolioApiClient>();
+        services.AddScoped<ITechNewsPortfolioClient, TechNewsPortfolioClient>();
 
         return services;
     }

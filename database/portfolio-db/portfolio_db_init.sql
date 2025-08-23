@@ -98,6 +98,15 @@ CREATE TABLE bookmarks (
     UNIQUE(user_id, portfolio_id)
 );
 
+-- Tech News Summaries table
+CREATE TABLE tech_news_summaries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    summary TEXT NOT NULL,
+    workflow_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Create indexes for performance
 CREATE INDEX idx_portfolios_user_id ON portfolios(user_id);
 CREATE INDEX idx_portfolios_template_id ON portfolios(template_id);
@@ -112,6 +121,7 @@ CREATE INDEX idx_blog_posts_portfolio_id ON blog_posts(portfolio_id);
 CREATE INDEX idx_blog_posts_is_published ON blog_posts(is_published);
 CREATE INDEX idx_bookmarks_user_id ON bookmarks(user_id);
 CREATE INDEX idx_bookmarks_portfolio_id ON bookmarks(portfolio_id);
+CREATE INDEX idx_tech_news_summaries_created_at ON tech_news_summaries(created_at);
 
 -- Insert default portfolio templates
 INSERT INTO portfolio_templates (name, description, preview_image_url) VALUES

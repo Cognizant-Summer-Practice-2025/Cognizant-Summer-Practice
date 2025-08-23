@@ -29,7 +29,8 @@ namespace backend_portfolio.Services
                 "/api/portfoliotemplate",
                 "/api/project",
                 "/api/bookmark",
-                "/api/image"
+                "/api/image",
+                "/api/technews"
             };
         }
 
@@ -82,6 +83,12 @@ namespace backend_portfolio.Services
             }
 
             if (path.StartsWith("/api/portfoliotemplate") && string.Equals(method, "POST", StringComparison.OrdinalIgnoreCase) && path.Contains("/seed"))
+            {
+                return true;
+            }
+
+            // Allow tech news POST endpoint for AirFlow automation
+            if (path.StartsWith("/api/technews") && string.Equals(method, "POST", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

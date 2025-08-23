@@ -44,7 +44,8 @@ describe('ApiClient', () => {
     it('should make a GET request with session access token', async () => {
       const mockSession = {
         accessToken: 'mock-access-token',
-        user: { email: 'test@example.com' }
+        user: { email: 'test@example.com' },
+        expires: '2024-12-31T23:59:59.999Z'
       }
 
       mockGetSession.mockResolvedValue(mockSession)
@@ -180,7 +181,8 @@ describe('ApiClient', () => {
     it('should merge authorization header with custom headers', async () => {
       const mockSession = {
         accessToken: 'mock-access-token',
-        user: { email: 'test@example.com' }
+        user: { email: 'test@example.com' },
+        expires: '2024-12-31T23:59:59.999Z'
       }
 
       mockGetSession.mockResolvedValue(mockSession)

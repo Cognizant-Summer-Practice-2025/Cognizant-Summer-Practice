@@ -1,14 +1,11 @@
+using System;
+
 namespace backend_AI.DTO.Ai
 {
-    public class TechNewsSummaryRequest
+    public class TechNewsSummaryDto
     {
         public string Summary { get; set; } = string.Empty;
-        public bool? WorkflowCompleted { get; set; }
-    }
-
-    public class TechNewsSummaryResponse
-    {
-        public string? Summary { get; set; }
+        public bool WorkflowCompleted { get; set; }
     }
 }
 

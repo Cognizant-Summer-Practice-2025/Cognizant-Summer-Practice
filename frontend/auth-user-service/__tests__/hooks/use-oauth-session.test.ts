@@ -23,6 +23,7 @@ describe('useOAuthSession', () => {
     mockUseSession.mockReturnValue({
       data: null,
       status: 'unauthenticated',
+      update: jest.fn(),
     })
 
     const { result } = renderHook(() => useOAuthSession())
@@ -37,6 +38,7 @@ describe('useOAuthSession', () => {
     mockUseSession.mockReturnValue({
       data: null,
       status: 'loading',
+      update: jest.fn(),
     })
 
     const { result } = renderHook(() => useOAuthSession())
@@ -48,7 +50,8 @@ describe('useOAuthSession', () => {
   it('should validate token and set user when access token is available', async () => {
     const mockSession = {
       accessToken: 'mock-access-token',
-      user: { email: 'test@example.com' }
+      user: { email: 'test@example.com' },
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     const mockUserData = {
@@ -94,7 +97,7 @@ describe('useOAuthSession', () => {
       avatarUrl: 'https://example.com/avatar.jpg',
       isActive: true,
       isAdmin: false,
-      lastLoginAt: '2023-01-01T00:00:00Z'
+      lastLoginAt: '2023-01-01T23:59:59.999Z'
     })
     expect(result.current.accessToken).toBe('mock-access-token')
   })
@@ -102,12 +105,14 @@ describe('useOAuthSession', () => {
   it('should handle failed token validation', async () => {
     const mockSession = {
       accessToken: 'invalid-token',
-      user: { email: 'test@example.com' }
+      user: { email: 'test@example.com' },
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     mockUseSession.mockReturnValue({
       data: mockSession,
       status: 'authenticated',
+      update: jest.fn(),
     })
 
     mockFetch.mockResolvedValueOnce({
@@ -127,12 +132,14 @@ describe('useOAuthSession', () => {
   it('should handle network errors during token validation', async () => {
     const mockSession = {
       accessToken: 'mock-access-token',
-      user: { email: 'test@example.com' }
+      user: { email: 'test@example.com' },
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     mockUseSession.mockReturnValue({
       data: mockSession,
       status: 'authenticated',
+      update: jest.fn(),
     })
 
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
@@ -153,7 +160,8 @@ describe('useOAuthSession', () => {
   it('should manually validate token when validateToken is called', async () => {
     const mockSession = {
       accessToken: 'mock-access-token',
-      user: { email: 'test@example.com' }
+      user: { email: 'test@example.com' },
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     const mockUserData = {
@@ -194,6 +202,7 @@ describe('useOAuthSession', () => {
     mockUseSession.mockReturnValue({
       data: null,
       status: 'unauthenticated',
+      update: jest.fn(),
     })
 
     const { result } = renderHook(() => useOAuthSession())
@@ -207,12 +216,14 @@ describe('useOAuthSession', () => {
   it('should show loading state during validation', async () => {
     const mockSession = {
       accessToken: 'mock-access-token',
-      user: { email: 'test@example.com' }
+      user: { email: 'test@example.com' },
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     mockUseSession.mockReturnValue({
       data: mockSession,
       status: 'authenticated',
+      update: jest.fn(),
     })
 
     mockFetch.mockImplementation(() => new Promise((resolve) => {
@@ -235,12 +246,14 @@ describe('useOAuthSession', () => {
   it('should reset user when access token is removed', async () => {
     const mockSession = {
       accessToken: 'mock-access-token',
-      user: { email: 'test@example.com' }
+      user: { email: 'test@example.com' },
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     mockUseSession.mockReturnValue({
       data: mockSession,
       status: 'authenticated',
+      update: jest.fn(),
     })
 
     mockFetch.mockResolvedValue({
@@ -264,6 +277,7 @@ describe('useOAuthSession', () => {
     mockUseSession.mockReturnValue({
       data: null,
       status: 'unauthenticated',
+      update: jest.fn(),
     })
 
     rerender()

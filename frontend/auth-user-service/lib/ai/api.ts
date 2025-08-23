@@ -25,7 +25,7 @@ export interface AIPortfolioResponse {
 }
 
 export interface TechNewsSummaryResponse {
-  summary?: string;
+  Summary: string;
 }
 
 // Helper function to handle API responses
@@ -151,7 +151,7 @@ export async function convertAIPortfoliosToCards(aiPortfolios: any[]): Promise<i
   return portfolioCards;
 } 
 
-export async function getLatestTechNews(): Promise<TechNewsSummaryResponse | null> {
+export async function getLatestTechNews(): Promise<{ Summary: string }> {
   const session = await getSession();
   const headers: Record<string, string> = {};
   if (session?.accessToken) {
@@ -163,8 +163,5 @@ export async function getLatestTechNews(): Promise<TechNewsSummaryResponse | nul
     headers,
   });
 
-  if (response.status === 204) {
-    return null;
-  }
-  return handleApiResponse<TechNewsSummaryResponse>(response);
+  return handleApiResponse<{ Summary: string }>(response);
 }
