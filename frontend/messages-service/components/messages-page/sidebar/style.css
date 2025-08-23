@@ -1,5 +1,7 @@
 .messages-sidebar {
   width: 350px;
+  height: 100%;
+  min-height: 100%;
   background: white;
   border-right: 1px solid #E2E8F0;
   display: flex;
