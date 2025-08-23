@@ -26,9 +26,12 @@ namespace BackendMessages.Services
 
         public async Task<List<UnreadMessagesSummary>> GetUsersWithUnreadMessagesAsync()
         {
+            _logger.LogInformation("Starting to retrieve users with unread messages...");
+            
             try
             {
                 // Get all users who have unread messages
+                _logger.LogDebug("Querying database for unread messages...");
                 var usersWithUnreadMessages = await _context.Messages
                     .Where(m => !m.IsRead && m.DeletedAt == null)
                     .GroupBy(m => m.ReceiverId)
@@ -40,19 +43,27 @@ namespace BackendMessages.Services
                     })
                     .ToListAsync();
 
+                _logger.LogInformation("Found {UserGroupCount} users with unread messages in database", usersWithUnreadMessages.Count);
+
                 var summaries = new List<UnreadMessagesSummary>();
 
                 foreach (var userGroup in usersWithUnreadMessages)
                 {
                     try
                     {
-                        // Get user information
+                        _logger.LogDebug("Processing unread messages for user {UserId} - {UnreadCount} messages from {SenderCount} senders", 
+                            userGroup.UserId, userGroup.UnreadCount, userGroup.SenderIds.Count);
+
+                        // Get user details
                         var user = await _userSearchService.GetUserByIdAsync(userGroup.UserId);
                         if (user == null)
                         {
-                            _logger.LogWarning("User {UserId} not found when preparing notification", userGroup.UserId);
+                            _logger.LogWarning("User {UserId} not found in user service, skipping notification", userGroup.UserId);
                             continue;
                         }
+
+                        _logger.LogDebug("Retrieved user details for {UserId}: {UserName} ({UserEmail})", 
+                            userGroup.UserId, user.FullName, user.Email);
 
                         // Get sender names
                         var senderNames = new List<string>();
@@ -61,22 +72,25 @@ namespace BackendMessages.Services
                             var sender = await _userSearchService.GetUserByIdAsync(senderId);
                             if (sender != null)
                             {
-                                senderNames.Add(sender.FullName ?? sender.Username);
+                                senderNames.Add(sender.FullName);
+                                _logger.LogDebug("Added sender {SenderId}: {SenderName}", senderId, sender.FullName);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Sender {SenderId} not found in user service", senderId);
                             }
                         }
-
-                        // For now, we'll use username as email since we don't have email field in SearchUser
-                        // In a real implementation, you'd need to get the email from the user service
-                        var userEmail = $"{user.Username}@company.com"; // This should be replaced with actual email
 
                         summaries.Add(new UnreadMessagesSummary
                         {
                             UserId = userGroup.UserId,
-                            UserEmail = userEmail,
-                            UserName = user.FullName ?? user.Username,
+                            UserName = user.FullName,
+                            UserEmail = user.Email,
                             UnreadCount = userGroup.UnreadCount,
                             SenderNames = senderNames
                         });
+                        
+                        _logger.LogDebug("Successfully processed user {UserId} for notification", userGroup.UserId);
                     }
                     catch (Exception ex)
                     {
@@ -84,6 +98,7 @@ namespace BackendMessages.Services
                     }
                 }
 
+                _logger.LogInformation("Successfully processed {SummaryCount} user summaries for notifications", summaries.Count);
                 return summaries;
             }
             catch (Exception ex)
@@ -95,25 +110,32 @@ namespace BackendMessages.Services
 
         public async Task SendDailyUnreadMessagesNotificationsAsync()
         {
+            _logger.LogInformation("=== DAILY NOTIFICATION SERVICE START ===");
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            
             try
             {
-                _logger.LogInformation("Starting daily unread messages notification job");
+                _logger.LogInformation("Starting daily unread messages notification process at {StartTime} UTC", DateTime.UtcNow);
 
                 var usersWithUnreadMessages = await GetUsersWithUnreadMessagesAsync();
                 
                 if (usersWithUnreadMessages.Count == 0)
                 {
-                    _logger.LogInformation("No users with unread messages found");
+                    _logger.LogInformation("No users with unread messages found - no notifications to send");
+                    _logger.LogInformation("=== DAILY NOTIFICATION SERVICE END (No Work) ===");
                     return;
                 }
 
-                _logger.LogInformation("Found {UserCount} users with unread messages", usersWithUnreadMessages.Count);
+                _logger.LogInformation("Found {UserCount} users with unread messages - proceeding with email notifications", usersWithUnreadMessages.Count);
 
                 var successCount = 0;
                 var failureCount = 0;
 
                 foreach (var userSummary in usersWithUnreadMessages)
                 {
+                    _logger.LogInformation("Sending notification to user {UserId} ({UserEmail}) for {UnreadCount} unread messages", 
+                        userSummary.UserId, userSummary.UserEmail, userSummary.UnreadCount);
+                    
                     try
                     {
                         var success = await _emailService.SendUnreadMessagesNotificationAsync(
@@ -125,25 +147,31 @@ namespace BackendMessages.Services
                         if (success)
                         {
                             successCount++;
+                            _logger.LogInformation("Successfully sent notification to {UserEmail}", userSummary.UserEmail);
                         }
                         else
                         {
                             failureCount++;
+                            _logger.LogWarning("Failed to send notification to {UserEmail} - email service returned false", userSummary.UserEmail);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to send notification to user {UserId}", userSummary.UserId);
+                        _logger.LogError(ex, "Failed to send notification to user {UserId} ({UserEmail})", userSummary.UserId, userSummary.UserEmail);
                         failureCount++;
                     }
                 }
 
-                _logger.LogInformation("Daily notification job completed. Success: {SuccessCount}, Failures: {FailureCount}", 
-                    successCount, failureCount);
+                stopwatch.Stop();
+                _logger.LogInformation("Daily notification job completed in {ElapsedMilliseconds}ms. Success: {SuccessCount}, Failures: {FailureCount}", 
+                    stopwatch.ElapsedMilliseconds, successCount, failureCount);
+                _logger.LogInformation("=== DAILY NOTIFICATION SERVICE END ===");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in daily unread messages notification job");
+                stopwatch.Stop();
+                _logger.LogError(ex, "Critical error in daily unread messages notification job after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
+                _logger.LogError("=== DAILY NOTIFICATION SERVICE FAILED ===");
             }
         }
     }

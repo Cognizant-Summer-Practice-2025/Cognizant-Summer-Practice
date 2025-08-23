@@ -17,17 +17,32 @@ namespace BackendMessages.Services.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
+            var jobKey = context.JobDetail.Key;
+            var triggerKey = context.Trigger.Key;
+            
+            _logger.LogInformation("=== SCHEDULER JOB EXECUTION START ===");
+            _logger.LogInformation("Job: {JobKey}, Trigger: {TriggerKey}", jobKey, triggerKey);
+            _logger.LogInformation("Job execution started at: {StartTime} UTC", DateTime.UtcNow);
+            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            
             try
             {
-                _logger.LogInformation("Starting daily unread messages notification job at {Time}", DateTime.UtcNow);
+                _logger.LogInformation("Calling notification service to process daily unread messages...");
                 
                 await _notificationService.SendDailyUnreadMessagesNotificationsAsync();
                 
-                _logger.LogInformation("Completed daily unread messages notification job at {Time}", DateTime.UtcNow);
+                stopwatch.Stop();
+                _logger.LogInformation("Daily unread messages notification job completed successfully");
+                _logger.LogInformation("Job execution time: {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
+                _logger.LogInformation("=== SCHEDULER JOB EXECUTION END ===");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing daily unread messages notification job");
+                stopwatch.Stop();
+                _logger.LogError(ex, "=== SCHEDULER JOB EXECUTION FAILED ===");
+                _logger.LogError("Job failed after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
+                _logger.LogError("Job: {JobKey}, Error: {ErrorMessage}", jobKey, ex.Message);
                 throw; 
             }
         }

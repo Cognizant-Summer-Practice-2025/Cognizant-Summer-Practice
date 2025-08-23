@@ -6,6 +6,7 @@ using BackendMessages.Models;
 using BackendMessages.Hubs;
 using BackendMessages.Repositories;
 using BackendMessages.DTO.Message.Response;
+using BackendMessages.Services.Abstractions;
 using System.Security.Claims;
 
 namespace BackendMessages.Controllers
@@ -18,13 +19,26 @@ namespace BackendMessages.Controllers
         private readonly ILogger<MessagesController> _logger;
         private readonly IHubContext<MessageHub> _hubContext;
         private readonly IMessageReportRepository _messageReportRepository;
+        private readonly IEmailService _emailService;
+        private readonly IUserSearchService _userSearchService;
+        private readonly IConfiguration _configuration;
 
-        public MessagesController(MessagesDbContext context, ILogger<MessagesController> logger, IHubContext<MessageHub> hubContext, IMessageReportRepository messageReportRepository)
+        public MessagesController(
+            MessagesDbContext context, 
+            ILogger<MessagesController> logger, 
+            IHubContext<MessageHub> hubContext, 
+            IMessageReportRepository messageReportRepository,
+            IEmailService emailService,
+            IUserSearchService userSearchService,
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _hubContext = hubContext;
             _messageReportRepository = messageReportRepository;
+            _emailService = emailService;
+            _userSearchService = userSearchService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -159,6 +173,41 @@ namespace BackendMessages.Controllers
                 {
                     _logger.LogError(hubEx, "Failed to broadcast message {MessageId} via SignalR", message.Id);
                     // Don't fail the request if SignalR fails
+                }
+
+                // Send email notification to receiver (fire and forget)
+                var enableRealTimeNotifications = bool.Parse(_configuration["Email:EnableRealTimeNotifications"] ?? "true");
+                if (enableRealTimeNotifications)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var recipient = await _userSearchService.GetUserByIdAsync(receiverId);
+                            var sender = await _userSearchService.GetUserByIdAsync(request.SenderId);
+                            
+                            if (recipient != null && sender != null && !string.IsNullOrEmpty(recipient.Email))
+                            {
+                                await _emailService.SendMessageReceivedNotificationAsync(message, recipient, sender);
+                                _logger.LogInformation("Email notification sent for message {MessageId} to {RecipientEmail}", 
+                                    message.Id, recipient.Email);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Could not send email notification for message {MessageId}. Recipient: {RecipientFound}, Sender: {SenderFound}, Email: {HasEmail}", 
+                                    message.Id, recipient != null, sender != null, recipient?.Email != null);
+                            }
+                        }
+                        catch (Exception emailEx)
+                        {
+                            _logger.LogError(emailEx, "Failed to send email notification for message {MessageId}", message.Id);
+                            // Don't fail the request if email fails
+                        }
+                    });
+                }
+                else
+                {
+                    _logger.LogDebug("Real-time email notifications are disabled for message {MessageId}", message.Id);
                 }
 
                 return Ok(messageResponse);

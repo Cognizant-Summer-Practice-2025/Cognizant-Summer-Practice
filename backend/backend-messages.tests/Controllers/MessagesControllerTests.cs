@@ -7,6 +7,7 @@ using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Hubs;
 using BackendMessages.Repositories;
+using BackendMessages.Services.Abstractions;
 using BackendMessages.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 using System.Threading;
@@ -28,6 +30,9 @@ namespace BackendMessages.Tests.Controllers
         private readonly Mock<IClientProxy> _clientProxyMock;
         private readonly Mock<IGroupManager> _groupManagerMock;
         private readonly Mock<IMessageReportRepository> _messageReportRepositoryMock;
+        private readonly Mock<IEmailService> _emailServiceMock;
+        private readonly Mock<IUserSearchService> _userSearchServiceMock;
+        private readonly Mock<IConfiguration> _configurationMock;
         private readonly MessagesController _controller;
         private readonly Guid _testUserId = Guid.NewGuid();
         private readonly Guid _testConversationId = Guid.NewGuid();
@@ -46,6 +51,9 @@ namespace BackendMessages.Tests.Controllers
             _clientProxyMock = new Mock<IClientProxy>();
             _groupManagerMock = new Mock<IGroupManager>();
             _messageReportRepositoryMock = new Mock<IMessageReportRepository>();
+            _emailServiceMock = new Mock<IEmailService>();
+            _userSearchServiceMock = new Mock<IUserSearchService>();
+            _configurationMock = new Mock<IConfiguration>();
 
             // Setup hub context
             var hubClientsMock = new Mock<IHubClients>();
@@ -55,8 +63,18 @@ namespace BackendMessages.Tests.Controllers
             _clientProxyMock.Setup(x => x.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
+            // Setup configuration mock
+            _configurationMock.Setup(x => x["Email:EnableRealTimeNotifications"]).Returns("true");
+
             // Create controller
-            _controller = new MessagesController(_context, _loggerMock.Object, _hubContextMock.Object, _messageReportRepositoryMock.Object);
+            _controller = new MessagesController(
+                _context, 
+                _loggerMock.Object, 
+                _hubContextMock.Object, 
+                _messageReportRepositoryMock.Object,
+                _emailServiceMock.Object,
+                _userSearchServiceMock.Object,
+                _configurationMock.Object);
 
             // Setup test data
             SetupTestData();
