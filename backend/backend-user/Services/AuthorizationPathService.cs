@@ -27,6 +27,7 @@ namespace backend_user.Services
                 "/api/users/check-email",
                 "/api/oauth/",
                 "/api/oauth2/",
+                "/api/premiumsubscription/webhook", // Stripe webhook endpoint - no auth required
                 "/openapi",
                 "/swagger",
                 "/health",

@@ -7,6 +7,7 @@ import PortfolioCard from '@/components/home-page/portfolio-card';
 import { generateBestPortfolios, convertAIPortfoliosToCards, getLatestTechNews } from '@/lib/ai/api';
 import { PortfolioCardDto } from '@/lib/portfolio/api';
 import { TechNewsSummary } from '@/components/ai/TechNewsSummary';
+import PremiumGuard from '@/components/premium/PremiumGuard';
 import '@/components/home-page/style.css'; // Import home page styles for consistent portfolio card styling
 
 interface AIPageState {
@@ -18,7 +19,7 @@ interface AIPageState {
   techLoading?: boolean;
 }
 
-export default function AIPage() {
+function AIPageContent() {
   const [state, setState] = useState<AIPageState>({
     portfolios: [],
     loading: false,
@@ -290,5 +291,13 @@ export default function AIPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AIPage() {
+  return (
+    <PremiumGuard>
+      <AIPageContent />
+    </PremiumGuard>
   );
 } 
