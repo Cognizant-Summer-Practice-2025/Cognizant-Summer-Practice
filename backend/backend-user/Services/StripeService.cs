@@ -17,8 +17,8 @@ namespace backend_user.Services
             IPremiumSubscriptionRepository premiumSubscriptionRepository,
             ILogger<StripeService> logger)
         {
-            _premiumSubscriptionRepository = premiumSubscriptionRepository;
-            _logger = logger;
+            _premiumSubscriptionRepository = premiumSubscriptionRepository ?? throw new ArgumentNullException(nameof(premiumSubscriptionRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY") ?? throw new InvalidOperationException("STRIPE_SECRET_KEY environment variable not configured");
             _stripeWebhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET") ?? throw new InvalidOperationException("STRIPE_WEBHOOK_SECRET environment variable not configured");
             _priceId = Environment.GetEnvironmentVariable("STRIPE_PRICE_ID") ?? throw new InvalidOperationException("STRIPE_PRICE_ID environment variable not configured");

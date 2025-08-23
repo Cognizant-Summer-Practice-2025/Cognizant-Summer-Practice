@@ -6,6 +6,9 @@ namespace backend_user.DTO.PremiumSubscription
     {
         public static PremiumSubscriptionDto ToDto(this Models.PremiumSubscription model)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             return new PremiumSubscriptionDto
             {
                 Id = model.Id,
@@ -23,6 +26,9 @@ namespace backend_user.DTO.PremiumSubscription
 
         public static Models.PremiumSubscription ToModel(this CreatePremiumSubscriptionDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
             return new Models.PremiumSubscription
             {
                 UserId = dto.UserId,
@@ -37,6 +43,12 @@ namespace backend_user.DTO.PremiumSubscription
 
         public static void UpdateModel(this Models.PremiumSubscription model, UpdatePremiumSubscriptionDto dto)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+            
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
             if (!string.IsNullOrEmpty(dto.StripeSubscriptionId))
                 model.StripeSubscriptionId = dto.StripeSubscriptionId;
             

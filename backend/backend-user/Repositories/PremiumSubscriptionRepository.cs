@@ -11,7 +11,7 @@ namespace backend_user.Repositories
 
         public PremiumSubscriptionRepository(UserDbContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<PremiumSubscription?> GetByUserIdAsync(Guid userId)
