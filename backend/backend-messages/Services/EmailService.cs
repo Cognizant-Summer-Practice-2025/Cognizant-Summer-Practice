@@ -46,47 +46,61 @@ namespace BackendMessages.Services
                     : message.Content;
                 
                 bodyBuilder.HtmlBody = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
-                        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;'>
-                            <h2 style='color: #333; margin: 0 0 10px 0;'>New Message Received</h2>
-                            <p style='color: #666; margin: 0;'>You have received a new message from <strong>{sender.FullName}</strong></p>
-                        </div>
-                        
-                        <div style='background-color: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 20px;'>
-                            <div style='margin-bottom: 15px;'>
-                                <strong style='color: #333;'>From:</strong> {sender.FullName}
-                                {(!string.IsNullOrEmpty(sender.ProfessionalTitle) ? $" ({sender.ProfessionalTitle})" : "")}
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset='utf-8'>
+                        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    </head>
+                    <body style='margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;'>
+                        <div style='max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;'>
+                            <!-- Header -->
+                            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;'>
+                                <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;'>📧 New Message</h1>
                             </div>
-                            <div style='margin-bottom: 15px;'>
-                                <strong style='color: #333;'>Message:</strong>
+                            
+                            <!-- Content -->
+                            <div style='padding: 40px 30px;'>
+                                <div style='background-color: #f8f9ff; border-radius: 8px; padding: 25px; margin-bottom: 20px; border-left: 4px solid #667eea;'>
+                                    <div style='display: flex; align-items: center; margin-bottom: 15px;'>
+                                        <div style='width: 40px; height: 40px; background-color: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;'>
+                                            <span style='color: white; font-weight: bold; font-size: 16px;'>👤</span>
+                                        </div>
+                                        <div>
+                                            <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>FROM</p>
+                                            <p style='margin: 5px 0 0 0; color: #333; font-size: 18px; font-weight: 600;'>{sender.FullName}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style='background-color: #fff5f5; border-radius: 8px; padding: 25px; border-left: 4px solid #ff6b6b;'>
+                                    <div style='display: flex; align-items: center;'>
+                                        <div style='width: 40px; height: 40px; background-color: #ff6b6b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;'>
+                                            <span style='color: white; font-weight: bold; font-size: 16px;'>💬</span>
+                                        </div>
+                                        <div>
+                                            <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>MESSAGES</p>
+                                            <p style='margin: 5px 0 0 0; color: #333; font-size: 24px; font-weight: 700;'>1</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div style='background-color: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #007bff;'>
-                                <p style='margin: 0; color: #333; line-height: 1.5;'>{messagePreview}</p>
+                            
+                            <!-- Footer -->
+                            <div style='background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;'>
+                                <p style='margin: 0; color: #6c757d; font-size: 12px;'>Message notification • {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC</p>
                             </div>
                         </div>
-                        
-                        <div style='text-align: center; margin-bottom: 20px;'>
-                            <a href='#' style='background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;'>
-                                View Message
-                            </a>
-                        </div>
-                        
-                        <div style='border-top: 1px solid #e9ecef; padding-top: 20px; text-align: center; color: #666; font-size: 14px;'>
-                            <p>This is an automated notification. You're receiving this because you have new messages in your account.</p>
-                            <p>Message sent at: {message.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC</p>
-                        </div>
-                    </div>";
+                    </body>
+                    </html>";
 
                 bodyBuilder.TextBody = $@"
-New Message Received
+📧 NEW MESSAGE NOTIFICATION
 
-From: {sender.FullName}{(!string.IsNullOrEmpty(sender.ProfessionalTitle) ? $" ({sender.ProfessionalTitle})" : "")}
+👤 FROM: {sender.FullName}
+💬 MESSAGES: 1
 
-Message: {messagePreview}
-
-Message sent at: {message.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC
-
-This is an automated notification. You're receiving this because you have new messages in your account.";
+Sent: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
                 
                 mimeMessage.Body = bodyBuilder.ToMessageBody();
                 
@@ -183,34 +197,61 @@ This is an automated notification. You're receiving this because you have new me
                 _logger.LogDebug("Senders in notification: {SenderNames}", senderNamesText);
                 
                 bodyBuilder.HtmlBody = $@"
+                    <!DOCTYPE html>
                     <html>
-                    <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-                        <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                            <h2 style='color: #2c3e50;'>Hello {recipientName}!</h2>
-                            <p>You have <strong>{unreadCount}</strong> unread message{(unreadCount > 1 ? "s" : "")} waiting for you.</p>
-                            <p>Messages from: <strong>{senderNamesText}</strong></p>
-                            <p>Don't miss out on important conversations. Log in to your account to read your messages.</p>
-                            <div style='margin: 30px 0; text-align: center;'>
-                                <a href='#' style='background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>
-                                    Read Messages
-                                </a>
+                    <head>
+                        <meta charset='utf-8'>
+                        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                    </head>
+                    <body style='margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;'>
+                        <div style='max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;'>
+                            <!-- Header -->
+                            <div style='background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); padding: 30px; text-align: center;'>
+                                <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;'>📬 Unread Messages</h1>
                             </div>
-                            <p style='color: #7f8c8d; font-size: 12px; margin-top: 30px;'>
-                                This is an automated notification. You're receiving this because you have unread messages in your account.
-                            </p>
+                            
+                            <!-- Content -->
+                            <div style='padding: 40px 30px;'>
+                                <div style='background-color: #f8f9ff; border-radius: 8px; padding: 25px; margin-bottom: 20px; border-left: 4px solid #667eea;'>
+                                    <div style='display: flex; align-items: center; margin-bottom: 15px;'>
+                                        <div style='width: 40px; height: 40px; background-color: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;'>
+                                            <span style='color: white; font-weight: bold; font-size: 16px;'>👥</span>
+                                        </div>
+                                        <div style='flex: 1;'>
+                                            <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>FROM</p>
+                                            <p style='margin: 5px 0 0 0; color: #333; font-size: 16px; font-weight: 600; word-wrap: break-word;'>{senderNamesText}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style='background-color: #fff5f5; border-radius: 8px; padding: 25px; border-left: 4px solid #ff6b6b;'>
+                                    <div style='display: flex; align-items: center;'>
+                                        <div style='width: 40px; height: 40px; background-color: #ff6b6b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;'>
+                                            <span style='color: white; font-weight: bold; font-size: 16px;'>💬</span>
+                                        </div>
+                                        <div>
+                                            <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>UNREAD MESSAGES</p>
+                                            <p style='margin: 5px 0 0 0; color: #333; font-size: 24px; font-weight: 700;'>{unreadCount}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer -->
+                            <div style='background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;'>
+                                <p style='margin: 0; color: #6c757d; font-size: 12px;'>Daily digest • {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC</p>
+                            </div>
                         </div>
                     </body>
                     </html>";
                 
                 bodyBuilder.TextBody = $@"
-Hello {recipientName}!
+📬 UNREAD MESSAGES DIGEST
 
-You have {unreadCount} unread message{(unreadCount > 1 ? "s" : "")} waiting for you.
-Messages from: {senderNamesText}
+👥 FROM: {senderNamesText}
+💬 UNREAD MESSAGES: {unreadCount}
 
-Don't miss out on important conversations. Log in to your account to read your messages.
-
-This is an automated notification. You're receiving this because you have unread messages in your account.";
+Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
                 
                 message.Body = bodyBuilder.ToMessageBody();
                 _logger.LogDebug("Email message body constructed successfully");
