@@ -107,10 +107,7 @@ namespace backend_user.tests.Controllers
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value as dynamic;
-            response.Should().NotBeNull();
-            bool isPremium = response!.IsPremium;
-            isPremium.Should().BeTrue();
+            okResult.Value.Should().BeEquivalentTo(new { IsPremium = true });
             _mockRepository.Verify(x => x.IsActiveAsync(userId), Times.Once);
         }
 
@@ -128,10 +125,7 @@ namespace backend_user.tests.Controllers
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value as dynamic;
-            response.Should().NotBeNull();
-            bool isPremium = response!.IsPremium;
-            isPremium.Should().BeFalse();
+            okResult.Value.Should().BeEquivalentTo(new { IsPremium = false });
             _mockRepository.Verify(x => x.IsActiveAsync(userId), Times.Once);
         }
 
@@ -184,10 +178,7 @@ namespace backend_user.tests.Controllers
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value as dynamic;
-            response.Should().NotBeNull();
-            string checkoutUrl = response!.CheckoutUrl;
-            checkoutUrl.Should().Be(expectedUrl);
+            okResult.Value.Should().BeEquivalentTo(new { CheckoutUrl = expectedUrl });
             _mockStripeService.Verify(x => x.CreateCheckoutSessionAsync(userId, request.SuccessUrl, request.CancelUrl), Times.Once);
         }
 
@@ -241,10 +232,7 @@ namespace backend_user.tests.Controllers
 
             // Assert
             var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-            var response = badRequestResult.Value as dynamic;
-            response.Should().NotBeNull();
-            string error = response!.Error;
-            error.Should().Be("Stripe error");
+            badRequestResult.Value.Should().BeEquivalentTo(new { Error = "Stripe error" });
         }
 
         #endregion
@@ -289,7 +277,7 @@ namespace backend_user.tests.Controllers
             var result = await _controller.HandleWebhook();
 
             // Assert
-            result.Should().BeOfType<BadRequestResult>();
+            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
@@ -307,7 +295,7 @@ namespace backend_user.tests.Controllers
             var result = await _controller.HandleWebhook();
 
             // Assert
-            result.Should().BeOfType<BadRequestResult>();
+            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
@@ -330,7 +318,7 @@ namespace backend_user.tests.Controllers
             var result = await _controller.HandleWebhook();
 
             // Assert
-            result.Should().BeOfType<BadRequestResult>();
+            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         [Fact]
@@ -386,10 +374,7 @@ namespace backend_user.tests.Controllers
 
             // Assert
             var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value as dynamic;
-            response.Should().NotBeNull();
-            string message = response!.Message;
-            message.Should().Be("Subscription cancelled successfully");
+            okResult.Value.Should().BeEquivalentTo(new { Message = "Subscription cancelled successfully" });
             _mockRepository.Verify(x => x.GetByUserIdAsync(userId), Times.Once);
             _mockStripeService.Verify(x => x.CancelSubscriptionAsync(subscription.StripeSubscriptionId), Times.Once);
         }
@@ -485,10 +470,7 @@ namespace backend_user.tests.Controllers
 
             // Assert
             var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-            var response = badRequestResult.Value as dynamic;
-            response.Should().NotBeNull();
-            string error = response!.Error;
-            error.Should().Be("Failed to cancel subscription");
+            badRequestResult.Value.Should().BeEquivalentTo(new { Error = "Failed to cancel subscription" });
         }
 
         #endregion

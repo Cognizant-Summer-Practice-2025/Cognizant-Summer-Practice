@@ -4,10 +4,10 @@ namespace backend_user.DTO.PremiumSubscription
 {
     public static class PremiumSubscriptionMapper
     {
-        public static PremiumSubscriptionDto ToDto(this Models.PremiumSubscription model)
+        public static PremiumSubscriptionDto? ToDto(this Models.PremiumSubscription? model)
         {
             if (model == null)
-                throw new ArgumentNullException(nameof(model));
+                return null;
 
             return new PremiumSubscriptionDto
             {
@@ -24,35 +24,39 @@ namespace backend_user.DTO.PremiumSubscription
             };
         }
 
-        public static Models.PremiumSubscription ToModel(this CreatePremiumSubscriptionDto dto)
+        public static Models.PremiumSubscription? ToModel(this CreatePremiumSubscriptionDto? dto)
         {
             if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
+                return null;
 
             return new Models.PremiumSubscription
             {
+                Id = Guid.Empty, // Explicitly set to empty for new models
                 UserId = dto.UserId,
                 StripeSubscriptionId = dto.StripeSubscriptionId,
                 StripeCustomerId = dto.StripeCustomerId,
                 Status = dto.Status,
                 CurrentPeriodStart = dto.CurrentPeriodStart,
                 CurrentPeriodEnd = dto.CurrentPeriodEnd,
-                CancelAtPeriodEnd = dto.CancelAtPeriodEnd
+                CancelAtPeriodEnd = dto.CancelAtPeriodEnd,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 
-        public static void UpdateModel(this Models.PremiumSubscription model, UpdatePremiumSubscriptionDto dto)
+        public static void UpdateModel(this Models.PremiumSubscription model, UpdatePremiumSubscriptionDto? dto)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
             
             if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
+                return; // Don't update if DTO is null
 
-            if (!string.IsNullOrEmpty(dto.StripeSubscriptionId))
+            // Only update if the property is explicitly set (not null)
+            if (dto.StripeSubscriptionId != null)
                 model.StripeSubscriptionId = dto.StripeSubscriptionId;
             
-            if (!string.IsNullOrEmpty(dto.StripeCustomerId))
+            if (dto.StripeCustomerId != null)
                 model.StripeCustomerId = dto.StripeCustomerId;
             
             if (!string.IsNullOrEmpty(dto.Status))

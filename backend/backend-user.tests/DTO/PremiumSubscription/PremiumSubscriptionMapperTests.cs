@@ -320,8 +320,9 @@ namespace backend_user.tests.DTO.PremiumSubscription
 
             // Assert
             model.Status.Should().Be("canceled");
-            model.StripeSubscriptionId.Should().BeNull();
-            model.StripeCustomerId.Should().BeNull();
+            // Null values in DTO should not change the model properties (partial update behavior)
+            model.StripeSubscriptionId.Should().Be("sub_old123");
+            model.StripeCustomerId.Should().Be("cus_old123");
         }
 
         [Fact]

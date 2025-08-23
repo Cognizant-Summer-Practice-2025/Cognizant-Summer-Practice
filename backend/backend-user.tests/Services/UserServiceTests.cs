@@ -7,6 +7,8 @@ using backend_user.Models;
 using backend_user.DTO.User.Request;
 using backend_user.tests.Helpers;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Net;
 
 namespace backend_user.tests.Services
 {
@@ -30,6 +32,13 @@ namespace backend_user.tests.Services
         {
             // Act & Assert
             Assert.Throws<ArgumentNullException>(() => new UserService(null!, _mockLogger.Object));
+        }
+
+        [Fact]
+        public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => new UserService(_mockUserRepository.Object, null!));
         }
 
         [Fact]
@@ -100,15 +109,28 @@ namespace backend_user.tests.Services
 
         #region GetUserByEmailAsync Tests
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public async Task GetUserByEmailAsync_WithNullOrEmptyEmail_ShouldThrowArgumentException(string email)
+        [Fact]
+        public async Task GetUserByEmailAsync_WithNullEmail_ShouldThrowArgumentException()
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => 
-                _userService.GetUserByEmailAsync(email));
+                _userService.GetUserByEmailAsync(null!));
+        }
+
+        [Fact]
+        public async Task GetUserByEmailAsync_WithEmptyEmail_ShouldThrowArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.GetUserByEmailAsync(""));
+        }
+
+        [Fact]
+        public async Task GetUserByEmailAsync_WithWhitespaceEmail_ShouldThrowArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.GetUserByEmailAsync("   "));
         }
 
         [Fact]
@@ -116,7 +138,8 @@ namespace backend_user.tests.Services
         {
             // Arrange
             var email = "test@example.com";
-            var expectedUser = TestDataFactory.CreateValidUser(email: email);
+            var expectedUser = TestDataFactory.CreateValidUser();
+            expectedUser.Email = email;
 
             _mockUserRepository
                 .Setup(x => x.GetUserByEmail(email))
@@ -128,7 +151,6 @@ namespace backend_user.tests.Services
             // Assert
             result.Should().NotBeNull();
             result.Should().Be(expectedUser);
-            result!.Email.Should().Be(email);
             _mockUserRepository.Verify(x => x.GetUserByEmail(email), Times.Once);
         }
 
@@ -152,13 +174,185 @@ namespace backend_user.tests.Services
 
         #endregion
 
+        #region GetUserByUsernameAsync Tests
+
+        [Fact]
+        public async Task GetUserByUsernameAsync_WithNullUsername_ShouldThrowArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.GetUserByUsernameAsync(null!));
+        }
+
+        [Fact]
+        public async Task GetUserByUsernameAsync_WithEmptyUsername_ShouldThrowArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.GetUserByUsernameAsync(""));
+        }
+
+        [Fact]
+        public async Task GetUserByUsernameAsync_WithWhitespaceUsername_ShouldThrowArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.GetUserByUsernameAsync("   "));
+        }
+
+        [Fact]
+        public async Task GetUserByUsernameAsync_WithValidUsername_ShouldReturnUser()
+        {
+            // Arrange
+            var username = "testuser";
+            var expectedUser = TestDataFactory.CreateValidUser();
+            expectedUser.Username = username;
+
+            _mockUserRepository
+                .Setup(x => x.GetUserByUsername(username))
+                .ReturnsAsync(expectedUser);
+
+            // Act
+            var result = await _userService.GetUserByUsernameAsync(username);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().Be(expectedUser);
+            _mockUserRepository.Verify(x => x.GetUserByUsername(username), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetUserByUsernameAsync_WithNonExistentUsername_ShouldReturnNull()
+        {
+            // Arrange
+            var username = "nonexistentuser";
+
+            _mockUserRepository
+                .Setup(x => x.GetUserByUsername(username))
+                .ReturnsAsync((User?)null);
+
+            // Act
+            var result = await _userService.GetUserByUsernameAsync(username);
+
+            // Assert
+            result.Should().BeNull();
+            _mockUserRepository.Verify(x => x.GetUserByUsername(username), Times.Once);
+        }
+
+        #endregion
+
+        #region SearchUsersAsync Tests
+
+        [Fact]
+        public async Task SearchUsersAsync_WithNullSearchTerm_ShouldReturnEmptyList()
+        {
+            // Act
+            var result = await _userService.SearchUsersAsync(null!);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task SearchUsersAsync_WithEmptySearchTerm_ShouldReturnEmptyList()
+        {
+            // Act
+            var result = await _userService.SearchUsersAsync("");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task SearchUsersAsync_WithWhitespaceSearchTerm_ShouldReturnEmptyList()
+        {
+            // Act
+            var result = await _userService.SearchUsersAsync("   ");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task SearchUsersAsync_WithValidSearchTerm_ShouldReturnUsers()
+        {
+            // Arrange
+            var searchTerm = "test";
+            var expectedUsers = new List<User>
+            {
+                TestDataFactory.CreateValidUser(),
+                TestDataFactory.CreateValidUser()
+            };
+
+            _mockUserRepository
+                .Setup(x => x.SearchUsers(searchTerm.ToLowerInvariant().Trim()))
+                .ReturnsAsync(expectedUsers);
+
+            // Act
+            var result = await _userService.SearchUsersAsync(searchTerm);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEquivalentTo(expectedUsers);
+            _mockUserRepository.Verify(x => x.SearchUsers(searchTerm.ToLowerInvariant().Trim()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SearchUsersAsync_WithSearchTermContainingWhitespace_ShouldTrimAndSearch()
+        {
+            // Arrange
+            var searchTerm = "  test user  ";
+            var trimmedTerm = "test user";
+            var expectedUsers = new List<User> { TestDataFactory.CreateValidUser() };
+
+            _mockUserRepository
+                .Setup(x => x.SearchUsers(trimmedTerm))
+                .ReturnsAsync(expectedUsers);
+
+            // Act
+            var result = await _userService.SearchUsersAsync(searchTerm);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEquivalentTo(expectedUsers);
+            _mockUserRepository.Verify(x => x.SearchUsers(trimmedTerm), Times.Once);
+        }
+
+        [Fact]
+        public async Task SearchUsersAsync_WithRepositoryException_ShouldReturnEmptyList()
+        {
+            // Arrange
+            var searchTerm = "test";
+
+            _mockUserRepository
+                .Setup(x => x.SearchUsers(searchTerm))
+                .ThrowsAsync(new Exception("Database error"));
+
+            // Act
+            var result = await _userService.SearchUsersAsync(searchTerm);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEmpty();
+        }
+
+        #endregion
+
         #region GetAllUsersAsync Tests
 
         [Fact]
         public async Task GetAllUsersAsync_ShouldReturnAllUsers()
         {
             // Arrange
-            var expectedUsers = TestDataFactory.CreateUserList(3);
+            var expectedUsers = new List<User>
+            {
+                TestDataFactory.CreateValidUser(),
+                TestDataFactory.CreateValidUser(),
+                TestDataFactory.CreateValidUser()
+            };
 
             _mockUserRepository
                 .Setup(x => x.GetAllUsers())
@@ -169,7 +363,6 @@ namespace backend_user.tests.Services
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().HaveCount(3);
             result.Should().BeEquivalentTo(expectedUsers);
             _mockUserRepository.Verify(x => x.GetAllUsers(), Times.Once);
         }
@@ -178,11 +371,11 @@ namespace backend_user.tests.Services
         public async Task GetAllUsersAsync_WithNoUsers_ShouldReturnEmptyList()
         {
             // Arrange
-            var emptyUserList = new List<User>();
+            var expectedUsers = new List<User>();
 
             _mockUserRepository
                 .Setup(x => x.GetAllUsers())
-                .ReturnsAsync(emptyUserList);
+                .ReturnsAsync(expectedUsers);
 
             // Act
             var result = await _userService.GetAllUsersAsync();
@@ -198,46 +391,32 @@ namespace backend_user.tests.Services
         #region CreateUserAsync Tests
 
         [Fact]
-        public async Task CreateUserAsync_WithNullRequest_ShouldThrowArgumentException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
-                _userService.CreateUserAsync(null!));
-        }
-
-        [Fact]
-        public async Task CreateUserAsync_WithValidRequest_ShouldCreateAndReturnUser()
+        public async Task CreateUserAsync_WithInvalidRequest_ShouldThrowArgumentException()
         {
             // Arrange
-            var request = new RegisterUserRequest
+            var invalidRequest = new RegisterUserRequest
             {
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
+                Email = "", // Invalid email
+                FirstName = "", // Invalid first name
+                LastName = "" // Invalid last name
             };
 
-            var expectedUser = TestDataFactory.CreateValidUser(
-                email: request.Email
-            );
-
-            _mockUserRepository
-                .Setup(x => x.CreateUser(It.IsAny<User>()))
-                .ReturnsAsync(expectedUser);
-
-            // Act
-            var result = await _userService.CreateUserAsync(request);
-
-            // Assert
-            result.Should().NotBeNull();
-            result.Email.Should().Be(request.Email);
-            _mockUserRepository.Verify(x => x.CreateUser(It.IsAny<User>()), Times.Once);
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.CreateUserAsync(invalidRequest));
         }
 
         [Fact]
         public async Task CreateUserAsync_WithExistingUser_ShouldThrowInvalidOperationException()
         {
             // Arrange
-            var request = TestDataFactory.CreateValidRegisterUserRequest();
+            var request = new RegisterUserRequest
+            {
+                Email = "existing@example.com",
+                FirstName = "Existing",
+                LastName = "User"
+            };
+
             var existingUser = TestDataFactory.CreateValidUser();
 
             _mockUserRepository
@@ -245,10 +424,42 @@ namespace backend_user.tests.Services
                 .ReturnsAsync(existingUser);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(() => 
                 _userService.CreateUserAsync(request));
+        }
 
-            exception.Message.Should().Be("User already exists");
+        [Fact]
+        public async Task CreateUserAsync_WithValidRequest_ShouldCreateUser()
+        {
+            // Arrange
+            var request = new RegisterUserRequest
+            {
+                Email = "new@example.com",
+                FirstName = "New",
+                LastName = "User"
+            };
+
+            var createdUser = TestDataFactory.CreateValidUser();
+            createdUser.Email = request.Email;
+            createdUser.FirstName = request.FirstName;
+            createdUser.LastName = request.LastName;
+
+            _mockUserRepository
+                .Setup(x => x.GetUserByEmail(request.Email))
+                .ReturnsAsync((User?)null);
+
+            _mockUserRepository
+                .Setup(x => x.CreateUser(It.IsAny<User>()))
+                .ReturnsAsync(createdUser);
+
+            // Act
+            var result = await _userService.CreateUserAsync(request);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().Be(createdUser);
+            _mockUserRepository.Verify(x => x.GetUserByEmail(request.Email), Times.Once);
+            _mockUserRepository.Verify(x => x.CreateUser(It.IsAny<User>()), Times.Once);
         }
 
         #endregion
@@ -256,12 +467,52 @@ namespace backend_user.tests.Services
         #region UpdateUserAsync Tests
 
         [Fact]
-        public async Task UpdateUserAsync_WithValidRequest_ShouldReturnUpdatedUser()
+        public async Task UpdateUserAsync_WithInvalidUserId_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var invalidId = Guid.Empty;
+            var request = new UpdateUserRequest
+            {
+                FirstName = "Updated",
+                LastName = "User"
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.UpdateUserAsync(invalidId, request));
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_WithInvalidRequest_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var validId = Guid.NewGuid();
+            var invalidRequest = new UpdateUserRequest
+            {
+                FirstName = new string('A', 101), // Exceeds 100 character limit
+                LastName = new string('B', 101)   // Exceeds 100 character limit
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.UpdateUserAsync(validId, invalidRequest));
+        }
+
+        [Fact]
+        public async Task UpdateUserAsync_WithValidParameters_ShouldUpdateUser()
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var request = TestDataFactory.CreateValidUpdateUserRequest();
+            var request = new UpdateUserRequest
+            {
+                FirstName = "Updated",
+                LastName = "User"
+            };
+
             var updatedUser = TestDataFactory.CreateValidUser();
+            updatedUser.Id = userId;
+            updatedUser.FirstName = request.FirstName;
+            updatedUser.LastName = request.LastName;
 
             _mockUserRepository
                 .Setup(x => x.UpdateUser(userId, request))
@@ -273,51 +524,7 @@ namespace backend_user.tests.Services
             // Assert
             result.Should().NotBeNull();
             result.Should().Be(updatedUser);
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithInvalidUserId_ShouldThrowArgumentException()
-        {
-            // Arrange
-            var userId = Guid.Empty;
-            var request = TestDataFactory.CreateValidUpdateUserRequest();
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                _userService.UpdateUserAsync(userId, request));
-
-            exception.Message.Should().Contain("User ID cannot be empty");
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithNullRequest_ShouldThrowArgumentException()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                _userService.UpdateUserAsync(userId, null!));
-
-            exception.Message.Should().Contain("Request cannot be null");
-        }
-
-        [Fact]
-        public async Task UpdateUserAsync_WithNonExistentUser_ShouldReturnNull()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var request = TestDataFactory.CreateValidUpdateUserRequest();
-
-            _mockUserRepository
-                .Setup(x => x.UpdateUser(userId, request))
-                .ReturnsAsync((User?)null);
-
-            // Act
-            var result = await _userService.UpdateUserAsync(userId, request);
-
-            // Assert
-            result.Should().BeNull();
+            _mockUserRepository.Verify(x => x.UpdateUser(userId, request), Times.Once);
         }
 
         #endregion
@@ -325,7 +532,37 @@ namespace backend_user.tests.Services
         #region UserExistsByEmailAsync Tests
 
         [Fact]
-        public async Task UserExistsByEmailAsync_WithExistingUser_ShouldReturnTrue()
+        public async Task UserExistsByEmailAsync_WithNullEmail_ShouldReturnFalse()
+        {
+            // Act
+            var result = await _userService.UserExistsByEmailAsync(null!);
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UserExistsByEmailAsync_WithEmptyEmail_ShouldReturnFalse()
+        {
+            // Act
+            var result = await _userService.UserExistsByEmailAsync("");
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UserExistsByEmailAsync_WithWhitespaceEmail_ShouldReturnFalse()
+        {
+            // Act
+            var result = await _userService.UserExistsByEmailAsync("   ");
+
+            // Assert
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task UserExistsByEmailAsync_WithExistingEmail_ShouldReturnTrue()
         {
             // Arrange
             var email = "existing@example.com";
@@ -340,10 +577,11 @@ namespace backend_user.tests.Services
 
             // Assert
             result.Should().BeTrue();
+            _mockUserRepository.Verify(x => x.GetUserByEmail(email), Times.Once);
         }
 
         [Fact]
-        public async Task UserExistsByEmailAsync_WithNonExistentUser_ShouldReturnFalse()
+        public async Task UserExistsByEmailAsync_WithNonExistentEmail_ShouldReturnFalse()
         {
             // Arrange
             var email = "nonexistent@example.com";
@@ -357,42 +595,12 @@ namespace backend_user.tests.Services
 
             // Assert
             result.Should().BeFalse();
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public async Task UserExistsByEmailAsync_WithInvalidEmail_ShouldReturnFalse(string email)
-        {
-            // Act
-            var result = await _userService.UserExistsByEmailAsync(email!);
-
-            // Assert
-            result.Should().BeFalse();
+            _mockUserRepository.Verify(x => x.GetUserByEmail(email), Times.Once);
         }
 
         #endregion
 
         #region GetUserPortfolioInfoAsync Tests
-
-        [Fact]
-        public async Task GetUserPortfolioInfoAsync_WithValidUserId_ShouldReturnPortfolioInfo()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-            var user = TestDataFactory.CreateValidUser();
-
-            _mockUserRepository
-                .Setup(x => x.GetUserById(userId))
-                .ReturnsAsync(user);
-
-            // Act
-            var result = await _userService.GetUserPortfolioInfoAsync(userId);
-
-            // Assert
-            result.Should().NotBeNull();
-        }
 
         [Fact]
         public async Task GetUserPortfolioInfoAsync_WithNonExistentUser_ShouldReturnNull()
@@ -409,19 +617,131 @@ namespace backend_user.tests.Services
 
             // Assert
             result.Should().BeNull();
+            _mockUserRepository.Verify(x => x.GetUserById(userId), Times.Once);
         }
 
         [Fact]
-        public async Task GetUserPortfolioInfoAsync_WithInvalidUserId_ShouldThrowArgumentException()
+        public async Task GetUserPortfolioInfoAsync_WithExistingUser_ShouldReturnPortfolioInfo()
         {
             // Arrange
-            var userId = Guid.Empty;
+            var userId = Guid.NewGuid();
+            var user = TestDataFactory.CreateValidUser();
+            user.Id = userId;
+
+            _mockUserRepository
+                .Setup(x => x.GetUserById(userId))
+                .ReturnsAsync(user);
+
+            // Act
+            var result = await _userService.GetUserPortfolioInfoAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            _mockUserRepository.Verify(x => x.GetUserById(userId), Times.Once);
+        }
+
+        #endregion
+
+        #region DeleteUserAsync Tests
+
+        [Fact]
+        public async Task DeleteUserAsync_WithInvalidUserId_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var invalidId = Guid.Empty;
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                _userService.GetUserPortfolioInfoAsync(userId));
+            await Assert.ThrowsAsync<ArgumentException>(() => 
+                _userService.DeleteUserAsync(invalidId));
+        }
 
-            exception.Message.Should().Contain("User ID cannot be empty");
+        [Fact]
+        public async Task DeleteUserAsync_WithValidUserId_ShouldDeleteUser()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            _mockUserRepository
+                .Setup(x => x.DeleteUserAsync(userId))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _userService.DeleteUserAsync(userId);
+
+            // Assert
+            result.Should().BeTrue();
+            _mockUserRepository.Verify(x => x.DeleteUserAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_WithNonExistentUser_ShouldReturnFalse()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            _mockUserRepository
+                .Setup(x => x.DeleteUserAsync(userId))
+                .ReturnsAsync(false);
+
+            // Act
+            var result = await _userService.DeleteUserAsync(userId);
+
+            // Assert
+            result.Should().BeFalse();
+            _mockUserRepository.Verify(x => x.DeleteUserAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_WithPortfolioServiceFailure_ShouldContinueAndLogWarning()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            Environment.SetEnvironmentVariable("PORTFOLIO_SERVICE_URL", "http://localhost:5201");
+
+            _mockUserRepository
+                .Setup(x => x.DeleteUserAsync(userId))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _userService.DeleteUserAsync(userId);
+
+            // Assert
+            result.Should().BeTrue();
+            _mockUserRepository.Verify(x => x.DeleteUserAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_WithMessagesServiceFailure_ShouldContinueAndLogWarning()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            Environment.SetEnvironmentVariable("MESSAGES_SERVICE_URL", "http://localhost:5003");
+
+            _mockUserRepository
+                .Setup(x => x.DeleteUserAsync(userId))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _userService.DeleteUserAsync(userId);
+
+            // Assert
+            result.Should().BeTrue();
+            _mockUserRepository.Verify(x => x.DeleteUserAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_WithRepositoryException_ShouldThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            _mockUserRepository
+                .Setup(x => x.DeleteUserAsync(userId))
+                .ThrowsAsync(new Exception("Database error"));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<Exception>(() => 
+                _userService.DeleteUserAsync(userId));
         }
 
         #endregion

@@ -22,9 +22,9 @@ namespace backend_user.Controllers
             IPremiumSubscriptionRepository premiumSubscriptionRepository,
             ILogger<PremiumSubscriptionController> logger)
         {
-            _stripeService = stripeService;
-            _premiumSubscriptionRepository = premiumSubscriptionRepository;
-            _logger = logger;
+            _stripeService = stripeService ?? throw new ArgumentNullException(nameof(stripeService));
+            _premiumSubscriptionRepository = premiumSubscriptionRepository ?? throw new ArgumentNullException(nameof(premiumSubscriptionRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet("status")]

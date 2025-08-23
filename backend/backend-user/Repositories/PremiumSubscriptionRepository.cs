@@ -28,6 +28,9 @@ namespace backend_user.Repositories
 
         public async Task<PremiumSubscription> CreateAsync(CreatePremiumSubscriptionDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+                
             var subscription = dto.ToModel();
             _context.PremiumSubscriptions.Add(subscription);
             await _context.SaveChangesAsync();
@@ -36,6 +39,9 @@ namespace backend_user.Repositories
 
         public async Task<PremiumSubscription> UpdateAsync(Guid id, UpdatePremiumSubscriptionDto dto)
         {
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+                
             var subscription = await _context.PremiumSubscriptions.FindAsync(id);
             if (subscription == null)
                 throw new ArgumentException("Premium subscription not found");
