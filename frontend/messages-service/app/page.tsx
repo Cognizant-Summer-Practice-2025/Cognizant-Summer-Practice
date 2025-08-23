@@ -8,21 +8,15 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { SearchUser } from "@/lib/user";
 import useMessages from "@/lib/messages";
 import { AlertProvider } from "@/components/ui/alert-dialog";
+import { 
+  Contact, 
+  loadEnhancedContactsFromStorage
+} from "@/lib/utils/contact-utils";
+import { formatMessageTimestamp, getValidTimestamp, formatTimestamp } from "@/lib/utils/message-utils";
 import "./style.css";
 import Loading from "@/components/loader/loading";
 
-interface Contact {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  timestamp: string;
-  isActive?: boolean;
-  isOnline?: boolean;
-  unreadCount?: number;
-  userId?: string;
-  professionalTitle?: string;
-}
+
 
 interface Message {
   id: string;
@@ -71,23 +65,14 @@ const MessagesPage = () => {
   const [mobileView, setMobileView] = useState<MobileView>('sidebar');
   const [isMobile, setIsMobile] = useState(false);
   
-  const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('enhancedContacts');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          return new Map(Object.entries(parsed));
-        }
-      } catch {}
-    }
-    return new Map();
-  });
+  const [enhancedContacts] = useState<Map<string, Partial<Contact>>>(() => 
+    loadEnhancedContactsFromStorage()
+  );
 
   useEffect(() => {
     const checkIsMobile = () => {
       const width = window.innerWidth;
-      setIsMobile(width < 480); 
+      setIsMobile(width <= 768);
     };
 
     checkIsMobile();
@@ -98,75 +83,13 @@ const MessagesPage = () => {
   useEffect(() => {
     if (!isMobile) {
       setMobileView('sidebar');
-    }
-  }, [isMobile]);
-
-  const getValidTimestamp = useCallback((...timestamps: (string | undefined)[]): string => {
-    for (const timestamp of timestamps) {
-      if (timestamp && timestamp.trim() !== '') {
-        const testDate = new Date(timestamp);
-        if (!isNaN(testDate.getTime())) {
-          return timestamp;
-        }
-      }
-    }
-    return new Date().toISOString();
-  }, []);
-
-  const formatTimestamp = useCallback((dateString: string): string => {
-    if (!dateString || dateString.trim() === '') {
-      return 'Now';
-    }
-    
-    const date = new Date(dateString);
-    
-    if (isNaN(date.getTime())) {
-      return 'Now';
-    }
-    
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      return `${diffInMinutes}m`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h`;
     } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d`;
+      // On mobile, show sidebar if no contact is selected, otherwise show chat
+      setMobileView(selectedContact ? 'chat' : 'sidebar');
     }
-  }, []);
+  }, [isMobile, selectedContact]);
 
-  const formatMessageTimestamp = useCallback((dateString: string): string => {
-    if (!dateString || dateString.trim() === '') {
-      dateString = new Date().toISOString();
-    }
-    
-    const utcDate = new Date(dateString + (dateString.endsWith('Z') ? '' : 'Z'));
-    
-    if (isNaN(utcDate.getTime())) {
-      return formatMessageTimestamp(new Date().toISOString());
-    }
-    
-    const now = new Date();
-    
-    const diffInHours = (now.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 12) {
-      return utcDate.toLocaleTimeString(undefined, { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true
-      });
-    } else {
-      return utcDate.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: utcDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-      });
-    }
-  }, []);
+
 
   const currentMessages: Message[] = messages.map(msg => {
     let status: "read" | "delivered" | "sent" = "sent";
@@ -195,39 +118,29 @@ const MessagesPage = () => {
       conv.createdAt
     );
     
-    const result = {
+    return {
       id: conv.id,
       name: enhanced?.name || conv.otherUserName,
       avatar: enhanced?.avatar || conv.otherUserAvatar || "https://placehold.co/40x40",
       lastMessage: conv.lastMessage?.content || "No messages yet", 
-      timestamp: formatMessageTimestamp(timestamp),
+      timestamp: formatTimestamp(timestamp),
       isActive: currentConversation?.id === conv.id,
-      isOnline: conv.isOnline ?? false, // Prioritize conversation's online status
+      isOnline: conv.isOnline ?? false,
       unreadCount: conv.unreadCount,
       userId: enhanced?.userId || conv.otherUserId,
       professionalTitle: enhanced?.professionalTitle || conv.otherUserProfessionalTitle
     };
-  
-    if (conv.otherUserId === '6677b218-6e92-47b3-9e9f-61bea9f15f8d') {
-      console.log(`getEnhancedContact for user ${conv.otherUserId}:`, {
-        convOnline: conv.isOnline,
-        enhancedOnline: enhanced?.isOnline,
-        resultOnline: result.isOnline
-      });
-    }
-    
-    return result;
-  }, [enhancedContacts, currentConversation?.id, formatMessageTimestamp, getValidTimestamp]);
+  }, [enhancedContacts, currentConversation?.id]);
 
   const contacts: Contact[] = conversations.map(getEnhancedContact);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && enhancedContacts.size > 0) {
+    if (enhancedContacts.size > 0) {
       try {
         const contactsObject = Object.fromEntries(enhancedContacts);
         localStorage.setItem('enhancedContacts', JSON.stringify(contactsObject));
-      } catch (error) {
-        console.warn('Failed to save enhanced contacts to localStorage:', error);
+      } catch {
+        // Failed to save enhanced contacts to localStorage - continue silently
       }
     }
   }, [enhancedContacts]);
@@ -269,7 +182,7 @@ const MessagesPage = () => {
         }
       }
     }
-  }, [conversations, selectedContact?.id, selectedContact?.isOnline, selectedContact?.lastMessage, selectedContact?.timestamp, getEnhancedContact]);
+  }, [conversations, selectedContact, getEnhancedContact]);
 
   const handleSelectContact = async (contact: Contact) => {
     const conversation = conversations.find(conv => conv.id === contact.id);
@@ -314,8 +227,8 @@ const MessagesPage = () => {
           setMobileView('chat');
         }
       }
-    } catch (error) {
-      console.error('Failed to create conversation:', error);
+    } catch {
+      // Failed to create conversation - error handling done by useMessages hook
     }
   };
 
@@ -355,8 +268,8 @@ const MessagesPage = () => {
     
     try {
       await sendMessage(content);
-    } catch (error) {
-      console.error('Failed to send message:', error);
+    } catch {
+      // Failed to send message - error handling done by useMessages hook
     }
   };
 
@@ -366,8 +279,8 @@ const MessagesPage = () => {
       if (selectedContact?.id === conversationId) {
         setSelectedContact(null);
       }
-    } catch (error) {
-      console.error('Failed to delete conversation:', error);
+    } catch {
+      // Failed to delete conversation - error handling done by useMessages hook
     }
   };
   // Show loading only for essential auth/user loading
@@ -499,7 +412,6 @@ const MessagesPage = () => {
       {/* Chat - visible on desktop or when mobile view is 'chat' */}
       <div
         className={`messages-chat ${(!isMobile || mobileView === 'chat') ? 'visible' : 'hidden'}`}
-        style={{ flex: 1, display: "flex", flexDirection: "column", padding: "4rem 0 0 0" }}
         role="main"
         aria-label={selectedContact ? `Chat with ${selectedContact.name}` : "Chat area"}
         aria-hidden={isMobile && mobileView !== 'chat'}
@@ -532,7 +444,10 @@ const MessagesPage = () => {
           )
         ) : (
           <div style={{ padding: 32, color: "#888", textAlign: "center" }}>
-            {contacts.length === 0 ? "No conversations yet" : "Select a contact to start chatting"}
+            {contacts.length === 0 
+              ? (isMobile ? "No conversations yet. Tap the + button to start a new conversation." : "No conversations yet") 
+              : (isMobile ? "Go back to see your conversations" : "Select a contact to start chatting")
+            }
           </div>
         )}
       </div>

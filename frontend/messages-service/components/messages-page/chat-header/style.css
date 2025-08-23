@@ -6,6 +6,7 @@
   border-bottom: 1px solid #e5e7eb;
   background: white;
   min-height: 4rem;
+  flex-shrink: 0;
 }
 
 .chat-header-left {
@@ -93,8 +94,8 @@
   gap: 0.75rem;
 }
 
-/* Mobile breakpoint - 480px */
-@media (max-width: 479px) {
+
+@media (max-width: 768px) {
   .chat-header {
     padding: 1rem;
     min-height: 3.75rem;
@@ -118,7 +119,7 @@
   }
   
   .view-portfolio-btn span {
-    display: none; /* Hide text on tablet and below */
+    display: none;
   }
   
   .view-portfolio-btn {
@@ -141,14 +142,14 @@
   }
 }
 
-/* Responsive design */
+
 @media (max-width: 768px) {
   .chat-header {
     padding: 1rem;
   }
   
   .view-portfolio-btn span {
-    display: none; /* Hide text on mobile, show only icon */
+    display: none;
   }
   
   .contact-name {
@@ -162,7 +163,6 @@
 
 @media (max-width: 480px) {
   .chat-header {
-    /* Better touch targets for mobile */
     min-height: 60px;
     padding: 0.75rem 1rem;
   }
@@ -172,7 +172,7 @@
   }
   
   .chat-header-right {
-    gap: 0.75rem; /* Increased for better touch targets */
+    gap: 0.75rem;
   }
   
   .contact-avatar {
@@ -189,7 +189,7 @@
     font-size: 0.75rem;
   }
   
-  /* Better touch targets for buttons */
+
   .back-button,
   .more-options-btn,
   .view-portfolio-btn {

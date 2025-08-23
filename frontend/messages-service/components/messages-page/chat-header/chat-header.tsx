@@ -42,22 +42,18 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
   const { user } = useUser();
 
   const handleReportUser = () => {
-    console.log('Report user:', selectedContact.name);
     setIsReportModalOpen(true);
   };
 
   const handleReportSubmit = async (reason: string) => {
     if (!user?.id || !selectedContact.userId) {
-      console.error('Missing user ID or contact user ID for report');
       return;
     }
 
     setIsReporting(true);
     try {
       await reportUser(selectedContact.userId, user.id, reason);
-      console.log('User reported successfully');
     } catch (error) {
-      console.error('Failed to report user:', error);
       throw error;
     } finally {
       setIsReporting(false);
@@ -73,8 +69,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
           // Find the first published portfolio and get its ID
           const publishedPortfolio = portfolios.find(portfolio => portfolio.isPublished);
           setPortfolioId(publishedPortfolio ? publishedPortfolio.id : null);
-        } catch (error) {
-          console.error('Error checking user portfolio:', error);
+        } catch {
           setPortfolioId(null);
         }
       } else {
@@ -86,14 +81,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
   }, [selectedContact.userId]);
 
   const handleViewProfile = () => {
-    console.log('View Portfolio clicked for:', selectedContact.name);
-    console.log('Selected contact data:', selectedContact);
-    
     if (portfolioId) {
-      console.log('Navigating to portfolio with portfolioId:', portfolioId);
       redirectToService('HOME_PORTFOLIO_SERVICE', `portfolio?portfolio=${portfolioId}`);
-    } else {
-      console.log('No portfolio ID available for:', selectedContact.name);
     }
   };
 
