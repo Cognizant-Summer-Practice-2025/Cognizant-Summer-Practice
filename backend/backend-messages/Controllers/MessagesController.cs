@@ -186,22 +186,6 @@ namespace BackendMessages.Controllers
                             var recipient = await _userSearchService.GetUserByIdAsync(receiverId);
                             var sender = await _userSearchService.GetUserByIdAsync(request.SenderId);
                             
-                            // Debug logging for user retrieval
-                            _logger.LogInformation("🔍 DEBUG: Retrieved users - Recipient: {RecipientFound} (ID: {RecipientId}), Sender: {SenderFound} (ID: {SenderId})", 
-                                recipient != null, receiverId, sender != null, request.SenderId);
-                            
-                            if (recipient != null)
-                            {
-                                _logger.LogInformation("🔍 DEBUG: Recipient details - FullName: '{RecipientFullName}', Email: '{RecipientEmail}'", 
-                                    recipient.FullName ?? "NULL", recipient.Email ?? "NULL");
-                            }
-                            
-                            if (sender != null)
-                            {
-                                _logger.LogInformation("🔍 DEBUG: Sender details - Username: '{SenderUsername}', FullName: '{SenderFullName}'", 
-                                    sender.Username ?? "NULL", sender.FullName ?? "NULL");
-                            }
-                            
                             if (recipient != null && sender != null && !string.IsNullOrEmpty(recipient.Email))
                             {
                                 await _emailService.SendMessageReceivedNotificationAsync(message, recipient, sender);
