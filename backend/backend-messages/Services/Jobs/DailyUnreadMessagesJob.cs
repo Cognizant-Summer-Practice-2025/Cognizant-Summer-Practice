@@ -20,29 +20,29 @@ namespace BackendMessages.Services.Jobs
             var jobKey = context.JobDetail.Key;
             var triggerKey = context.Trigger.Key;
             
-            _logger.LogInformation("=== SCHEDULER JOB EXECUTION START ===");
+            _logger.LogInformation("=== TWICE DAILY UNREAD MESSAGES NOTIFICATION START ===");
             _logger.LogInformation("Job: {JobKey}, Trigger: {TriggerKey}", jobKey, triggerKey);
-            _logger.LogInformation("Job execution started at: {StartTime} UTC", DateTime.UtcNow);
+            _logger.LogInformation("Processing twice daily unread messages notification at: {StartTime} UTC", DateTime.UtcNow);
             
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             
             try
             {
-                _logger.LogInformation("Calling notification service to process daily unread messages...");
+                _logger.LogInformation("Calling notification service to process twice daily unread messages...");
                 
                 await _notificationService.SendDailyUnreadMessagesNotificationsAsync();
                 
                 stopwatch.Stop();
-                _logger.LogInformation("Daily unread messages notification job completed successfully");
+                _logger.LogInformation("Twice daily unread messages notification completed successfully");
                 _logger.LogInformation("Job execution time: {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
-                _logger.LogInformation("=== SCHEDULER JOB EXECUTION END ===");
+                _logger.LogInformation("=== TWICE DAILY UNREAD MESSAGES NOTIFICATION END ===");
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                _logger.LogError(ex, "=== SCHEDULER JOB EXECUTION FAILED ===");
-                _logger.LogError("Job failed after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
+                _logger.LogError(ex, "Error during twice daily unread messages notification after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
                 _logger.LogError("Job: {JobKey}, Error: {ErrorMessage}", jobKey, ex.Message);
+                _logger.LogError("=== TWICE DAILY UNREAD MESSAGES NOTIFICATION FAILED ===");
                 throw; 
             }
         }

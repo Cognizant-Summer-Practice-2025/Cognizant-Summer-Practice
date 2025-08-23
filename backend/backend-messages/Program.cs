@@ -29,8 +29,7 @@ logger.LogInformation("Application starting up at {StartupTime} UTC", DateTime.U
 
 // Log scheduler configuration
 var configuration = app.Services.GetRequiredService<IConfiguration>();
-var notificationTime = configuration["Scheduler:DailyNotificationTime"] ?? "18:00";
-logger.LogInformation("Scheduler configured for daily notifications at {NotificationTime}", notificationTime);
+logger.LogInformation("Scheduler configured to send unread messages notifications twice daily at 12:00 AM and 12:00 PM UTC");
 
 // Configure middleware pipeline
 app.UseApplicationMiddleware();

@@ -108,21 +108,21 @@ namespace BackendMessages.Services
             }
         }
 
-        public async Task SendDailyUnreadMessagesNotificationsAsync()
+                public async Task SendDailyUnreadMessagesNotificationsAsync()
         {
-            _logger.LogInformation("=== DAILY NOTIFICATION SERVICE START ===");
+            _logger.LogInformation("=== UNREAD MESSAGES NOTIFICATION SERVICE START ===");
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             
             try
             {
-                _logger.LogInformation("Starting daily unread messages notification process at {StartTime} UTC", DateTime.UtcNow);
+                _logger.LogInformation("Starting unread messages notification process at {StartTime} UTC", DateTime.UtcNow);
 
                 var usersWithUnreadMessages = await GetUsersWithUnreadMessagesAsync();
                 
                 if (usersWithUnreadMessages.Count == 0)
                 {
                     _logger.LogInformation("No users with unread messages found - no notifications to send");
-                    _logger.LogInformation("=== DAILY NOTIFICATION SERVICE END (No Work) ===");
+                    _logger.LogInformation("=== UNREAD MESSAGES NOTIFICATION SERVICE END (No Work) ===");
                     return;
                 }
 
@@ -163,15 +163,15 @@ namespace BackendMessages.Services
                 }
 
                 stopwatch.Stop();
-                _logger.LogInformation("Daily notification job completed in {ElapsedMilliseconds}ms. Success: {SuccessCount}, Failures: {FailureCount}", 
+                _logger.LogInformation("Unread messages notification job completed in {ElapsedMilliseconds}ms. Success: {SuccessCount}, Failures: {FailureCount}", 
                     stopwatch.ElapsedMilliseconds, successCount, failureCount);
-                _logger.LogInformation("=== DAILY NOTIFICATION SERVICE END ===");
+                _logger.LogInformation("=== UNREAD MESSAGES NOTIFICATION SERVICE END ===");
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                _logger.LogError(ex, "Critical error in daily unread messages notification job after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
-                _logger.LogError("=== DAILY NOTIFICATION SERVICE FAILED ===");
+                _logger.LogError(ex, "Critical error in unread messages notification job after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
+                _logger.LogError("=== UNREAD MESSAGES NOTIFICATION SERVICE FAILED ===");
             }
         }
     }

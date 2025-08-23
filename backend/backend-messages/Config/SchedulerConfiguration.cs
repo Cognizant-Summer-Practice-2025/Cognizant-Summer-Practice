@@ -32,29 +32,24 @@ public static class SchedulerConfiguration
         {
             logger?.LogInformation("Setting up Quartz scheduler configuration");
             
-            // Create a job key for our daily notification job
-            var jobKey = new JobKey("DailyUnreadMessagesJob");
+            // Create a job key for our twice daily notification job
+            var jobKey = new JobKey("TwiceDailyUnreadMessagesJob");
             
             // Configure the job
             q.AddJob<DailyUnreadMessagesJob>(opts => opts.WithIdentity(jobKey));
             logger?.LogInformation("Registered job: {JobKey}", jobKey);
 
-            // Get the notification time from configuration (default to 18:00)
-            var notificationTime = configuration["Scheduler:DailyNotificationTime"] ?? "18:00";
-            var timeParts = notificationTime.Split(':');
-            var hour = int.Parse(timeParts[0]);
-            var minute = timeParts.Length > 1 ? int.Parse(timeParts[1]) : 0;
+            // Configure to run twice daily at 12:00 AM and 12:00 PM
+            var cronExpression = "0 0 0,12 * * ?"; // At 00:00 and 12:00 every day
+            logger?.LogInformation("Configuring unread messages job to run twice daily at 12:00 AM and 12:00 PM (cron: {CronExpression})", 
+                cronExpression);
 
-            var cronExpression = $"0 {minute} {hour} * * ?";
-            logger?.LogInformation("Configuring daily notification job to run at {NotificationTime} (cron: {CronExpression})", 
-                notificationTime, cronExpression);
-
-            // Configure the trigger to run daily at the specified time
+            // Configure the trigger to run twice daily
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
-                .WithIdentity("DailyUnreadMessagesJob-trigger")
-                .WithCronSchedule(cronExpression) // Cron expression for daily at specified time
-                .WithDescription("Trigger for daily unread messages notification job"));
+                .WithIdentity("TwiceDailyUnreadMessagesJob-trigger")
+                .WithCronSchedule(cronExpression) // Cron expression for twice daily
+                .WithDescription("Trigger for twice daily unread messages notification job"));
                 
             logger?.LogInformation("Configured trigger for job: {JobKey}", jobKey);
         });
