@@ -1,12 +1,13 @@
 .messages-page {
   display: flex;
   width: 100%;
-  position: relative;
+  position: fixed;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
   container-type: inline-size;
   will-change: transform;
-  padding-top: 4rem;
-  height: calc(100vh - 4rem);
-  min-height: calc(100vh - 4rem);
 }
 
 .messages-sidebar-container {
@@ -82,21 +83,22 @@
 
 @media (max-width: 768px) {
   .messages-page {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
     overflow: hidden;
-    height: 100dvh;
-    max-height: 100dvh;
-    min-height: 100dvh;
     -webkit-overflow-scrolling: touch;
-    padding-top: 0;
   }
   
   .messages-sidebar-container,
   .messages-chat {
     position: absolute;
-    top: 4rem;
+    top: 0;
     left: 0;
     width: 100%;
-    height: calc(100dvh - 4rem);
+    height: 100%;
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -145,14 +147,16 @@
 
 @media (max-width: 768px) and (orientation: landscape) {
   .messages-page {
-    height: 100dvh;
-    max-height: 100dvh;
-    min-height: 100dvh;
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
   
   .messages-sidebar-container,
   .messages-chat {
-    height: calc(100dvh - 4rem);
+    height: 100%;
   }
 }
 

@@ -143,23 +143,7 @@
 }
 
 
-@media (max-width: 768px) {
-  .chat-header {
-    padding: 1rem;
-  }
-  
-  .view-portfolio-btn span {
-    display: none;
-  }
-  
-  .contact-name {
-    font-size: 0.875rem;
-  }
-  
-  .contact-status {
-    font-size: 0.75rem;
-  }
-}
+
 
 @media (max-width: 480px) {
   .chat-header {
@@ -188,7 +172,6 @@
   .contact-status {
     font-size: 0.75rem;
   }
-  
 
   .back-button,
   .more-options-btn,
@@ -205,6 +188,8 @@
     outline-offset: 2px;
   }
 }
+
+
 
 /* Custom styles for shadcn components */
 .view-portfolio-btn, .more-options-btn {
