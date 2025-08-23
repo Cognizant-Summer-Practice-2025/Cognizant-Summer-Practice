@@ -15,7 +15,11 @@ namespace BackendMessages.Services
             _httpClientFactory = httpClientFactory;
             _logger = logger;
             _userServiceBaseUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
-                                   ?? throw new InvalidOperationException("USER_SERVICE_URL environment variable is not set");
+                                   ?? configuration["UserServiceUrl"]
+                                   ?? configuration["UserService:BaseUrl"]
+                                   ?? "http://localhost:5200";
+            
+            _logger.LogInformation("🔍 UserSearchService: Using user service URL: {UserServiceUrl}", _userServiceBaseUrl);
         }
 
         public async Task<List<SearchUser>> SearchUsersAsync(string searchTerm)
@@ -77,31 +81,49 @@ namespace BackendMessages.Services
         {
             try
             {
+                var requestUrl = $"{_userServiceBaseUrl}/api/users/{userId}";
+                _logger.LogInformation("🔍 UserSearchService: Requesting user {UserId} from {RequestUrl}", userId, requestUrl);
+                
                 using var httpClient = _httpClientFactory.CreateClient("UserService");
-                var response = await httpClient.GetAsync($"{_userServiceBaseUrl}/api/users/{userId}");
+                var response = await httpClient.GetAsync(requestUrl);
+                
+                _logger.LogInformation("🔍 UserSearchService: Response status for user {UserId}: {StatusCode}", userId, response.StatusCode);
                 
                 if (!response.IsSuccessStatusCode)
                 {
                     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
+                        _logger.LogWarning("🔍 UserSearchService: User {UserId} not found (404)", userId);
                         return null;
                     }
                     
-                    _logger.LogWarning("Failed to get user {UserId}. Status: {StatusCode}", userId, response.StatusCode);
+                    _logger.LogWarning("🔍 UserSearchService: Failed to get user {UserId}. Status: {StatusCode}", userId, response.StatusCode);
                     return null;
                 }
 
                 var jsonContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("🔍 UserSearchService: Raw JSON response for user {UserId}: {JsonContent}", userId, jsonContent);
+                
                 var user = JsonSerializer.Deserialize<SearchUser>(jsonContent, new JsonSerializerOptions 
                 { 
                     PropertyNameCaseInsensitive = true 
                 });
 
+                if (user != null)
+                {
+                    _logger.LogInformation("🔍 UserSearchService: Successfully deserialized user {UserId} - FullName: '{FullName}', Username: '{Username}', Email: '{Email}'", 
+                        userId, user.FullName ?? "NULL", user.Username ?? "NULL", user.Email ?? "NULL");
+                }
+                else
+                {
+                    _logger.LogWarning("🔍 UserSearchService: Failed to deserialize user {UserId} from JSON", userId);
+                }
+
                 return user;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user by id: {UserId}", userId);
+                _logger.LogError(ex, "🔍 UserSearchService: Error getting user by id: {UserId}", userId);
                 return null;
             }
         }

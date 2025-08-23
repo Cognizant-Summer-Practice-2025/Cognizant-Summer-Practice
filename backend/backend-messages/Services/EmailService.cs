@@ -22,6 +22,10 @@ namespace BackendMessages.Services
             _logger.LogInformation("Starting real-time email notification for message {MessageId} to {RecipientEmail}", 
                 message.Id, recipient.Email);
             
+            // Debug logging for sender information
+            _logger.LogInformation("🔍 DEBUG: Sender information - ID: {SenderId}, Username: '{SenderUsername}', FullName: '{SenderFullName}', FirstName: '{SenderFirstName}', LastName: '{SenderLastName}'", 
+                sender?.Id, sender?.Username ?? "NULL", sender?.FullName ?? "NULL", sender?.FirstName ?? "NULL", sender?.LastName ?? "NULL");
+            
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             
             try
@@ -37,7 +41,7 @@ namespace BackendMessages.Services
                 mimeMessage.To.Add(new MailboxAddress(recipient.FullName, recipient.Email));
                 
                 // Subject
-                mimeMessage.Subject = $"New message from {sender.FullName}";
+                mimeMessage.Subject = $"New message from {sender.Username}";
                 
                 // Body
                 var bodyBuilder = new BodyBuilder();
@@ -68,7 +72,7 @@ namespace BackendMessages.Services
                                         </div>
                                         <div>
                                             <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>FROM</p>
-                                            <p style='margin: 5px 0 0 0; color: #333; font-size: 18px; font-weight: 600;'>{sender.FullName}</p>
+                                            <p style='margin: 5px 0 0 0; color: #333; font-size: 18px; font-weight: 600;'>{sender.Username}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -97,7 +101,7 @@ namespace BackendMessages.Services
                 bodyBuilder.TextBody = $@"
 📧 NEW MESSAGE NOTIFICATION
 
-👤 FROM: {sender.FullName}
+👤 FROM: {sender.Username}
 💬 MESSAGES: 1
 
 Sent: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
@@ -153,7 +157,7 @@ Sent: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
                 _logger.LogInformation("📧 REAL-TIME EMAIL SENT SUCCESSFULLY 📧");
                 _logger.LogInformation("Recipient: {RecipientEmail}", recipient.Email);
                 _logger.LogInformation("Message ID: {MessageId}", message.Id);
-                _logger.LogInformation("Sender: {SenderName}", sender.FullName);
+                _logger.LogInformation("Sender: {SenderName}", sender.Username);
                 _logger.LogInformation("Total process time: {TotalElapsedMs}ms", stopwatch.ElapsedMilliseconds);
                 
                 return true;

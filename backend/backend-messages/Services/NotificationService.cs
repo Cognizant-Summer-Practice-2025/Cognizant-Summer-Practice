@@ -72,8 +72,8 @@ namespace BackendMessages.Services
                             var sender = await _userSearchService.GetUserByIdAsync(senderId);
                             if (sender != null)
                             {
-                                senderNames.Add(sender.FullName);
-                                _logger.LogDebug("Added sender {SenderId}: {SenderName}", senderId, sender.FullName);
+                                senderNames.Add(sender.Username);
+                                _logger.LogDebug("Added sender {SenderId}: {SenderName}", senderId, sender.Username);
                             }
                             else
                             {
