@@ -6,5 +6,6 @@ namespace BackendMessages.Services.Abstractions
     {
         Task<bool> SendUnreadMessagesNotificationAsync(string recipientEmail, string recipientName, int unreadCount, List<string> senderNames);
         Task<bool> SendMessageReceivedNotificationAsync(Message message, SearchUser recipient, SearchUser sender);
+        Task<bool> SendContactRequestNotificationAsync(SearchUser recipient, SearchUser sender);
     }
 } 

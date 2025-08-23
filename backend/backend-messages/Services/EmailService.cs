@@ -33,7 +33,7 @@ namespace BackendMessages.Services
 
             _logger.LogInformation("Sending email notification for message {MessageId} to {RecipientEmail}", 
                 message.Id, recipient.Email);
-
+            
             var emailContent = CreateMessageNotificationContent(sender, recipient);
             return await SendEmailAsync(recipient.Email, recipient.FullName ?? recipient.Username, 
                 $"New message from {sender.Username}", emailContent);
@@ -61,6 +61,29 @@ namespace BackendMessages.Services
             var subject = $"You have {unreadCount} unread message{(unreadCount > 1 ? "s" : "")}";
             
             return await SendEmailAsync(recipientEmail, recipientName, subject, emailContent);
+        }
+
+        public async Task<bool> SendContactRequestNotificationAsync(SearchUser recipient, SearchUser sender)
+        {
+            if (recipient == null || sender == null)
+            {
+                _logger.LogWarning("Cannot send contact request notification: null parameters provided");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(recipient.Email))
+            {
+                _logger.LogWarning("Cannot send contact request notification: recipient email is empty");
+                return false;
+            }
+
+            _logger.LogInformation("Sending contact request notification from {SenderUsername} to {RecipientEmail}", 
+                sender.Username, recipient.Email);
+
+            var emailContent = CreateContactRequestContent(sender, recipient);
+            var subject = $"{sender.Username} wants to contact you";
+            
+            return await SendEmailAsync(recipient.Email, recipient.FullName ?? recipient.Username, subject, emailContent);
         }
 
         private EmailContent CreateMessageNotificationContent(SearchUser sender, SearchUser recipient)
@@ -100,7 +123,7 @@ namespace BackendMessages.Services
                                         <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>MESSAGES</p>
                                         <p style='margin: 5px 0 0 0; color: #333; font-size: 24px; font-weight: 700;'>1</p>
                                     </div>
-                                </div>
+                            </div>
                             </div>
                         </div>
                         
@@ -116,6 +139,70 @@ namespace BackendMessages.Services
 
 👤 FROM: {sender.Username}
 💬 MESSAGES: 1
+
+Sent: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
+
+            return new EmailContent(htmlBody, textBody);
+        }
+
+        private EmailContent CreateContactRequestContent(SearchUser sender, SearchUser recipient)
+        {
+            var htmlBody = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                </head>
+                <body style='margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;'>
+                    <div style='max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;'>
+                        <div style='background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); padding: 30px; text-align: center;'>
+                            <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;'>💬 Contact Request</h1>
+                        </div>
+                        
+                        <div style='padding: 40px 30px;'>
+                            <div style='text-align: center; margin-bottom: 30px;'>
+                                <h2 style='color: #333; margin: 0 0 10px 0; font-size: 24px;'>{sender.Username} wants to contact you</h2>
+                                <p style='color: #666; margin: 0; font-size: 16px;'>Someone new would like to start a conversation with you.</p>
+                            </div>
+                            
+                            <div style='background-color: #f8f9ff; border-radius: 8px; padding: 25px; margin-bottom: 20px; border-left: 4px solid #4CAF50;'>
+                                <div style='display: flex; align-items: center; margin-bottom: 15px;'>
+                                    <div style='width: 50px; height: 50px; background-color: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px;'>
+                                        <span style='color: white; font-weight: bold; font-size: 20px;'>👤</span>
+                                    </div>
+                                    <div>
+                                        <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>FROM</p>
+                                        <p style='margin: 5px 0 0 0; color: #333; font-size: 20px; font-weight: 600;'>{sender.Username}</p>
+                                        {(!string.IsNullOrEmpty(sender.FullName) && sender.FullName != sender.Username ? $"<p style='margin: 2px 0 0 0; color: #666; font-size: 14px;'>{sender.FullName}</p>" : "")}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <p style='color: #666; font-size: 16px; line-height: 1.5;'>
+                                    This person has started a new conversation with you. 
+                                    Log in to your account to view their message and respond.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style='background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;'>
+                            <p style='margin: 0; color: #6c757d; font-size: 12px;'>Contact request • {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+            var textBody = $@"
+💬 CONTACT REQUEST
+
+{sender.Username} wants to contact you
+
+FROM: {sender.Username}{(!string.IsNullOrEmpty(sender.FullName) && sender.FullName != sender.Username ? $" ({sender.FullName})" : "")}
+
+This person has started a new conversation with you. 
+Log in to your account to view their message and respond.
 
 Sent: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
 
@@ -196,11 +283,11 @@ Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
                 await ConfigureSmtpClient(client, smtpConfig);
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
-
+                
                 stopwatch.Stop();
                 _logger.LogInformation("Email sent successfully to {RecipientEmail} in {ElapsedMs}ms", 
                     recipientEmail, stopwatch.ElapsedMilliseconds);
-
+                
                 return true;
             }
             catch (Exception ex)
@@ -214,20 +301,20 @@ Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
 
         private MimeMessage CreateMimeMessage(string recipientEmail, string recipientName, string subject, EmailContent content)
         {
-            var message = new MimeMessage();
-
-            // From address
-            var fromEmail = _configuration["Email:FromAddress"] ?? "noreply@messages.com";
-            var fromName = _configuration["Email:FromName"] ?? "Messages Service";
-            message.From.Add(new MailboxAddress(fromName, fromEmail));
-
-            // To address
-            message.To.Add(new MailboxAddress(recipientName, recipientEmail));
-
-            // Subject
+                var message = new MimeMessage();
+                
+                // From address
+                var fromEmail = _configuration["Email:FromAddress"] ?? "noreply@messages.com";
+                var fromName = _configuration["Email:FromName"] ?? "Messages Service";
+                message.From.Add(new MailboxAddress(fromName, fromEmail));
+                
+                // To address
+                message.To.Add(new MailboxAddress(recipientName, recipientEmail));
+                
+                // Subject
             message.Subject = subject;
-
-            // Body
+                
+                // Body
             var bodyBuilder = new BodyBuilder
             {
                 HtmlBody = content.HtmlBody,
@@ -252,32 +339,32 @@ Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC";
 
         private async Task ConfigureSmtpClient(SmtpClient client, SmtpConfiguration config)
         {
-            client.Timeout = 60000; // 60 seconds timeout
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true; // Accept all certificates for development
-
+                client.Timeout = 60000; // 60 seconds timeout
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true; // Accept all certificates for development
+                
             _logger.LogInformation("Connecting to SMTP server {SmtpHost}:{SmtpPort} (SSL: {UseSSL})", 
                 config.Host, config.Port, config.UseSSL);
-
-            // Gmail-specific connection handling
+                
+                // Gmail-specific connection handling
             if (config.Host.Contains("gmail.com"))
-            {
+                {
                 await client.ConnectAsync(config.Host, config.Port, SecureSocketOptions.StartTls);
-            }
-            else
-            {
+                }
+                else
+                {
                 await client.ConnectAsync(config.Host, config.Port, 
                     config.UseSSL ? SecureSocketOptions.StartTls : SecureSocketOptions.None);
-            }
-
+                }
+                
             if (!string.IsNullOrEmpty(config.Username) && !string.IsNullOrEmpty(config.Password))
-            {
+                {
                 await client.AuthenticateAsync(config.Username, config.Password);
-                _logger.LogDebug("Successfully authenticated with SMTP server");
-            }
-            else
-            {
-                _logger.LogDebug("No SMTP authentication credentials provided - using anonymous connection");
-            }
+                    _logger.LogDebug("Successfully authenticated with SMTP server");
+                }
+                else
+                {
+                    _logger.LogDebug("No SMTP authentication credentials provided - using anonymous connection");
+                }
         }
 
         private record EmailContent(string HtmlBody, string TextBody);

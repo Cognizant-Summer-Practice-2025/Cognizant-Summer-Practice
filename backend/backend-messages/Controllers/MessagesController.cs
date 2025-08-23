@@ -22,6 +22,7 @@ namespace BackendMessages.Controllers
         private readonly IEmailService _emailService;
         private readonly IUserSearchService _userSearchService;
         private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
 
         public MessagesController(
             MessagesDbContext context, 
@@ -30,7 +31,8 @@ namespace BackendMessages.Controllers
             IMessageReportRepository messageReportRepository,
             IEmailService emailService,
             IUserSearchService userSearchService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IServiceProvider serviceProvider)
         {
             _context = context;
             _logger = logger;
@@ -39,6 +41,7 @@ namespace BackendMessages.Controllers
             _emailService = emailService;
             _userSearchService = userSearchService;
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -175,32 +178,70 @@ namespace BackendMessages.Controllers
                     // Don't fail the request if SignalR fails
                 }
 
-                // Send email notification to receiver (fire and forget)
-                var enableRealTimeNotifications = bool.Parse(_configuration["Email:EnableRealTimeNotifications"] ?? "true");
-                if (enableRealTimeNotifications)
+                // Send "wants to contact you" email notification only for first message from conversation initiator
+                var enableContactNotifications = bool.Parse(_configuration["Email:EnableContactNotifications"] ?? "true");
+                if (enableContactNotifications)
                 {
+                    // Capture values for the background task
+                    var conversationId = conversation.Id;
+                    var conversationInitiatorId = conversation.InitiatorId;
+                    var senderId = request.SenderId;
+                    
                     _ = Task.Run(async () =>
                     {
                         try
                         {
-                            var recipient = await _userSearchService.GetUserByIdAsync(receiverId);
-                            var sender = await _userSearchService.GetUserByIdAsync(request.SenderId);
+                            // Create a new service container for the background task
+                            using var serviceContainer = _serviceProvider.CreateScope();
+                            var services = serviceContainer.ServiceProvider;
                             
-                            if (recipient != null && sender != null && !string.IsNullOrEmpty(recipient.Email))
+                            var context = services.GetRequiredService<MessagesDbContext>();
+                            var userSearchService = services.GetRequiredService<IUserSearchService>();
+                            var emailService = services.GetRequiredService<IEmailService>();
+                            var logger = services.GetRequiredService<ILogger<MessagesController>>();
+                            
+                            // Check if this is the first message from the conversation initiator
+                            var isFirstMessageFromInitiator = conversationInitiatorId == senderId;
+                            
+                            if (isFirstMessageFromInitiator)
                             {
-                                await _emailService.SendMessageReceivedNotificationAsync(message, recipient, sender);
-                                _logger.LogInformation("Email notification sent for message {MessageId} to {RecipientEmail}", 
-                                    message.Id, recipient.Email);
+                                // Check if this is actually the first message in the conversation
+                                var messageCount = await context.Messages
+                                    .Where(m => m.ConversationId == conversationId && m.DeletedAt == null)
+                                    .CountAsync();
+                                
+                                if (messageCount == 1) // This is the first message
+                                {
+                                    var recipient = await userSearchService.GetUserByIdAsync(receiverId);
+                                    var sender = await userSearchService.GetUserByIdAsync(senderId);
+                                    
+                                    if (recipient != null && sender != null && !string.IsNullOrEmpty(recipient.Email))
+                                    {
+                                        await emailService.SendContactRequestNotificationAsync(recipient, sender);
+                                        logger.LogInformation("Contact request email notification sent for conversation {ConversationId} from {SenderUsername} to {RecipientEmail}", 
+                                            conversationId, sender.Username, recipient.Email);
+                                    }
+                                    else
+                                    {
+                                        logger.LogWarning("Could not send contact request notification for conversation {ConversationId}. Recipient: {RecipientFound}, Sender: {SenderFound}, Email: {HasEmail}", 
+                                            conversationId, recipient != null, sender != null, recipient?.Email != null);
+                                    }
+                                }
+                                else
+                                {
+                                    logger.LogDebug("Skipping contact request notification - not the first message in conversation {ConversationId}", conversationId);
+                                }
                             }
                             else
                             {
-                                _logger.LogWarning("Could not send email notification for message {MessageId}. Recipient: {RecipientFound}, Sender: {SenderFound}, Email: {HasEmail}", 
-                                    message.Id, recipient != null, sender != null, recipient?.Email != null);
+                                logger.LogDebug("Skipping contact request notification - sender is not the conversation initiator for conversation {ConversationId}", conversationId);
                             }
                         }
                         catch (Exception emailEx)
                         {
-                            _logger.LogError(emailEx, "Failed to send email notification for message {MessageId}", message.Id);
+                            using var errorServiceContainer = _serviceProvider.CreateScope();
+                            var logger = errorServiceContainer.ServiceProvider.GetRequiredService<ILogger<MessagesController>>();
+                            logger.LogError(emailEx, "Failed to send contact request notification for conversation {ConversationId}", conversationId);
                             // Don't fail the request if email fails
                         }
                     });
