@@ -85,7 +85,7 @@ export interface Skill {
   name: string;
   categoryType?: string; // 'hard_skills' or 'soft_skills'
   subcategory?: string; // 'frontend', 'backend', 'communication', etc.
-  category?: string; // Full category path for display (deprecated but kept for backward compatibility)
+  category?: string;
   proficiencyLevel?: number; // 1-100
   displayOrder?: number;
   createdAt: string;
