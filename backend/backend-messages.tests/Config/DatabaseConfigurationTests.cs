@@ -2,19 +2,17 @@ using BackendMessages.Config;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
+using System.Collections.Generic;
 using Xunit;
 
 namespace BackendMessages.Tests.Config
 {
     public class DatabaseConfigurationTests
     {
-        private readonly Mock<IConfiguration> _configurationMock;
         private readonly IServiceCollection _services;
 
         public DatabaseConfigurationTests()
         {
-            _configurationMock = new Mock<IConfiguration>();
             _services = new ServiceCollection();
         }
 
@@ -22,11 +20,15 @@ namespace BackendMessages.Tests.Config
         public void AddDatabaseServices_WithValidConfiguration_ShouldAddDbContext()
         {
             // Arrange
-            _configurationMock.Setup(x => x.GetConnectionString("DefaultConnection"))
-                .Returns("Host=localhost;Database=testdb;Username=test;Password=test");
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = "Host=localhost;Database=testdb;Username=test;Password=test"
+                })
+                .Build();
 
             // Act
-            var result = _services.AddDatabaseServices(_configurationMock.Object);
+            var result = _services.AddDatabaseServices(configuration);
 
             // Assert
             result.Should().NotBeNull();
@@ -37,36 +39,42 @@ namespace BackendMessages.Tests.Config
         public void AddDatabaseServices_WithNullConfiguration_ShouldThrowException()
         {
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => 
+            Assert.Throws<InvalidOperationException>(() => 
                 _services.AddDatabaseServices(null!));
         }
 
         [Fact]
-        public void AddDatabaseServices_WithEmptyConnectionString_ShouldStillAddServices()
+        public void AddDatabaseServices_WithEmptyConnectionString_ShouldAddServices()
         {
             // Arrange
-            _configurationMock.Setup(x => x.GetConnectionString("DefaultConnection"))
-                .Returns("");
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = ""
+                })
+                .Build();
 
             // Act
-            var result = _services.AddDatabaseServices(_configurationMock.Object);
+            var result = _services.AddDatabaseServices(configuration);
 
             // Assert
             result.Should().NotBeNull();
         }
 
         [Fact]
-        public void AddDatabaseServices_WithNullConnectionString_ShouldStillAddServices()
+        public void AddDatabaseServices_WithNullConnectionString_ShouldThrowException()
         {
             // Arrange
-            _configurationMock.Setup(x => x.GetConnectionString("DefaultConnection"))
-                .Returns((string?)null);
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = null
+                })
+                .Build();
 
-            // Act
-            var result = _services.AddDatabaseServices(_configurationMock.Object);
-
-            // Assert
-            result.Should().NotBeNull();
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => 
+                _services.AddDatabaseServices(configuration));
         }
 
         [Theory]
@@ -76,11 +84,15 @@ namespace BackendMessages.Tests.Config
         public void AddDatabaseServices_WithVariousConnectionStrings_ShouldAddServices(string connectionString)
         {
             // Arrange
-            _configurationMock.Setup(x => x.GetConnectionString("DefaultConnection"))
-                .Returns(connectionString);
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = connectionString
+                })
+                .Build();
 
             // Act
-            var result = _services.AddDatabaseServices(_configurationMock.Object);
+            var result = _services.AddDatabaseServices(configuration);
 
             // Assert
             result.Should().NotBeNull();
@@ -91,11 +103,15 @@ namespace BackendMessages.Tests.Config
         public void AddDatabaseServices_ShouldReturnSameServiceCollection()
         {
             // Arrange
-            _configurationMock.Setup(x => x.GetConnectionString("DefaultConnection"))
-                .Returns("Host=localhost;Database=testdb");
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = "Host=localhost;Database=testdb"
+                })
+                .Build();
 
             // Act
-            var result = _services.AddDatabaseServices(_configurationMock.Object);
+            var result = _services.AddDatabaseServices(configuration);
 
             // Assert
             result.Should().BeSameAs(_services);
