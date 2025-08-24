@@ -1,3 +1,275 @@
+/* ===== MESSAGE INPUT STYLES ===== */
+
+.message-input-container {
+  /* Reduced padding for smaller input bar */
+  padding: clamp(0.5rem, 1.5vw, 1rem);
+  border-top: 1px solid #E2E8F0;
+  background: white;
+  margin-top: auto;
+  /* Performance optimization */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.message-input-wrapper {
+  display: flex;
+  align-items: center;
+  /* Reduced spacing between input and button */
+  gap: clamp(0.375rem, 1vw, 0.5rem);
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+  /* Ensure proper alignment */
+  justify-content: space-between;
+}
+
+.message-input {
+  flex: 1;
+  /* Reduced padding for smaller input */
+  padding: clamp(0.5rem, 1vw, 0.75rem);
+  border: 1px solid #E2E8F0;
+  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
+  /* Smaller fluid typography */
+  font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+  font-family: 'Inter', sans-serif;
+  /* Prevent overflow */
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  /* Smaller touch targets */
+  min-height: 36px;
+  /* Accessibility */
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.message-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.message-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.send-button {
+  /* Smaller touch targets */
+  flex-shrink: 0;
+  min-width: 36px;
+  min-height: 36px;
+  height: clamp(36px, 6vw, 40px);
+  width: clamp(36px, 6vw, 40px);
+  border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
+  background: #2563EB;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* Improved transitions */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  /* Accessibility */
+  outline: none;
+  /* Touch optimization */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.send-button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.send-button:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+.send-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.send-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.send-button svg {
+  width: clamp(14px, 2.5vw, 16px);
+  height: clamp(14px, 2.5vw, 16px);
+}
+
+/* ===== RESPONSIVE BREAKPOINTS FOR MESSAGE INPUT ===== */
+
+/* Mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .message-input-container {
+    padding: clamp(0.5rem, 2.5vw, 0.75rem);
+    /* Safe area support for mobile keyboards */
+    padding-bottom: max(clamp(0.5rem, 2.5vw, 0.75rem), env(safe-area-inset-bottom));
+  }
+  
+  .message-input-wrapper {
+    gap: clamp(0.375rem, 1.5vw, 0.5rem);
+  }
+  
+  .message-input {
+    padding: clamp(0.5rem, 2.5vw, 0.75rem);
+    font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
+    /* Smaller touch target */
+    min-height: 40px;
+  }
+  
+  .send-button {
+    min-width: 40px;
+    min-height: 40px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Large Mobile (481px - 576px) */
+@media (min-width: 481px) and (max-width: 576px) {
+  .message-input-container {
+    padding: clamp(0.625rem, 2.5vw, 0.875rem);
+    padding-bottom: max(clamp(0.625rem, 2.5vw, 0.875rem), env(safe-area-inset-bottom));
+  }
+  
+  .message-input {
+    padding: clamp(0.5rem, 2.5vw, 0.75rem);
+    font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
+    min-height: 38px;
+  }
+  
+  .send-button {
+    min-width: 38px;
+    min-height: 38px;
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* Small Tablet (577px - 745px) */
+@media (min-width: 577px) and (max-width: 745px) {
+  .message-input-container {
+    padding: clamp(0.75rem, 2.5vw, 1rem);
+  }
+  
+  .message-input {
+    padding: clamp(0.5rem, 2vw, 0.75rem);
+    font-size: clamp(0.8125rem, 2vw, 0.9375rem);
+  }
+}
+
+/* Medium Tablet and above */
+@media (min-width: 746px) {
+  .message-input-container {
+    padding: clamp(0.75rem, 2vw, 1.125rem);
+  }
+  
+  .message-input {
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+    font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+  }
+}
+
+/* Large Desktop (1200px+) */
+@media (min-width: 1200px) {
+  .message-input-container {
+    padding: clamp(0.875rem, 2vw, 1.25rem);
+  }
+  
+  .message-input {
+    padding: clamp(0.625rem, 1.5vw, 0.875rem);
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+  }
+  
+  .send-button {
+    min-width: 40px;
+    min-height: 40px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ===== ACCESSIBILITY & PERFORMANCE FOR INPUT ===== */
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .send-button,
+  .message-input {
+    transition: none;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .message-input {
+    border-width: 2px;
+    border-color: #000;
+  }
+  
+  .message-input:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+  }
+  
+  .send-button {
+    border: 2px solid #000;
+  }
+  
+  .message-input-container {
+    border-top-width: 2px;
+    border-top-color: #000;
+  }
+}
+
+/* Dark mode support for input */
+.dark .message-input-container {
+  background: #1a1a1a;
+  border-top-color: #333;
+}
+
+.dark .message-input {
+  background: #333;
+  border-color: #555;
+  color: #ffffff;
+}
+
+.dark .message-input::placeholder {
+  color: #888;
+}
+
+.dark .message-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.dark .send-button {
+  background: #2563EB;
+}
+
+.dark .send-button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.dark .send-button:disabled {
+  background: #555;
+}
+
+/* ===== CHAT CONTAINER - RESPONSIVE DESIGN BEST PRACTICES 2024 ===== */
+
 .chat-container {
   display: flex;
   flex-direction: column;
@@ -9,18 +281,51 @@
   position: relative;
   overflow: hidden;
   container-type: inline-size;
+  /* Performance optimization */
+  transform: translate3d(0, 0, 0);
+  will-change: scroll-position;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
+/* ===== RESPONSIVE BREAKPOINTS FOR CHAT ===== */
 
-@media (max-width: 768px) {
+/* Mobile (320px - 480px) */
+@media (max-width: 480px) {
   .chat-container {
     height: 100%;
     max-height: 100%;
     min-height: 100%;
+    /* Touch optimization */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 }
 
-@media (max-width: 480px) {
+/* Large Mobile (481px - 576px) */
+@media (min-width: 481px) and (max-width: 576px) {
+  .chat-container {
+    height: 100%;
+    max-height: 100%;
+    min-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Small Tablet (577px - 745px) */
+@media (min-width: 577px) and (max-width: 745px) {
+  .chat-container {
+    height: 100%;
+    max-height: 100%;
+    min-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Medium Tablet and above */
+@media (min-width: 746px) {
   .chat-container {
     height: 100%;
     max-height: 100%;
@@ -30,19 +335,24 @@
 
 .messages-area {
   flex: 1;
-  padding: clamp(0.75rem, 2vw, 1.5rem);
+  /* Improved fluid spacing */
+  padding: clamp(0.75rem, 2vw + 0.5rem, 2rem);
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  /* Enhanced spacing */
+  gap: clamp(0.75rem, 1.5vw + 0.25rem, 2rem);
   min-height: 0;
   max-height: 100%;
   width: 100%;
   /* Ensure messages never overflow horizontally */
   box-sizing: border-box;
-  /* Stabilize layout during scroll */
+  /* Performance optimization */
   backface-visibility: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
 }
 
 /* Simple messages area - natural CSS layout */
@@ -55,591 +365,400 @@
 .message-wrapper {
   display: flex;
   align-items: flex-start;
-  gap: clamp(0.375rem, 1vw, 0.75rem);
+  /* Enhanced spacing */
+  gap: clamp(0.5rem, 1vw + 0.25rem, 1rem);
   max-width: 100%;
   flex-shrink: 0;
   /* Support natural sizing */
   height: auto;
   min-height: fit-content;
+  /* Performance optimization */
+  will-change: transform;
 }
 
 .message-wrapper.user-message {
   justify-content: flex-end;
   margin-left: auto;
-  max-width: min(80%, 45rem);
+  /* Improved responsive sizing */
+  max-width: min(85%, clamp(20rem, 50vw, 45rem));
   box-sizing: border-box;
 }
 
 .message-wrapper.other-message {
   justify-content: flex-start;
   margin-right: auto;
-  max-width: min(80%, 45rem);
+  /* Improved responsive sizing */
+  max-width: min(85%, clamp(20rem, 50vw, 45rem));
   box-sizing: border-box;
 }
 
 .message-avatar {
   flex-shrink: 0;
   border-radius: 50%;
-  width: clamp(1.75rem, 3vw, 2.5rem);
-  height: clamp(1.75rem, 3vw, 2.5rem);
+  /* Enhanced sizing for better touch targets */
+  width: clamp(2rem, 3vw + 0.5rem, 3rem);
+  height: clamp(2rem, 3vw + 0.5rem, 3rem);
+  /* Performance optimization */
+  will-change: transform;
+  transition: transform 0.2s ease;
+}
+
+.message-avatar:hover {
+  transform: scale(1.05);
 }
 
 .message-bubble {
-  padding: clamp(0.625rem, 1.5vw, 1rem);
-  border-radius: clamp(0.5rem, 1vw, 0.75rem);
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(0.25rem, 0.5vw, 0.5rem);
-  min-width: 0;
-  max-width: 100%;
-  /* Use CSS intrinsic sizing for natural bubble size */
-  width: fit-content;
-  height: auto;
-  min-height: fit-content;
-  /* Better text handling */
-  word-wrap: break-word;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-  /* Ensure content drives the size and stays within bounds */
-  box-sizing: border-box;
-  overflow: hidden;
-  /* Prevent any overflow outside container */
-  contain: layout style;
-  /* Stabilize during scroll */
-  position: relative;
-}
-
-.other-bubble {
-  background: white;
-  border-color: #e5e7eb;
-}
-
-.user-bubble {
-  background: #3b82f6;
-  border-color: #e5e7eb;
-}
-
-.message-text {
-  font-size: clamp(0.8125rem, 1.8vw, 1rem);
+  /* Enhanced padding for better readability */
+  padding: clamp(0.75rem, 1.5vw + 0.25rem, 1.25rem);
+  border-radius: clamp(0.75rem, 1vw + 0.25rem, 1.125rem);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  /* Improved typography */
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.875rem, 1.5vw + 0.25rem, 1rem);
   line-height: 1.5;
-  font-family: 'Inter', sans-serif;
-  /* Natural text sizing */
-  height: auto;
-  width: auto;
-  /* Better text wrapping for natural sizing */
-  white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  /* Stabilize text rendering */
-  text-rendering: optimizeLegibility;
+  /* Performance optimization */
+  will-change: transform;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.other-bubble .message-text {
-  color: #1f2937;
-}
-
-.user-bubble .message-text {
-  color: white;
-}
-
-.message-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  opacity: 0.7;
-  margin-top: auto;
-}
-
-.message-timestamp {
-  font-size: clamp(0.6875rem, 1.3vw, 0.875rem);
-  line-height: 1.33;
-  font-family: 'Inter', sans-serif;
-}
-
-.other-bubble .message-timestamp {
-  color: #1f2937;
-}
-
-.user-bubble .message-timestamp {
-  color: white;
-}
-
-.message-status {
-  font-size: clamp(0.6875rem, 1.3vw, 0.875rem);
-  font-weight: bold;
-  font-family: 'Inter', sans-serif;
-  transition: color 0.3s ease;
-}
-
-.message-input-container {
-  padding: clamp(0.75rem, 2vw, 1.5rem);
-  border-top: 1px solid #e5e7eb;
-  background: white;
-  margin-top: auto;
-}
-
-.message-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.5rem, 1.2vw, 0.75rem);
-  max-width: 100%;
-  min-width: 0;
-  width: 100%;
-}
-
-.message-input {
-  flex: 1;
-  padding: clamp(0.625rem, 1.5vw, 1rem);
-  border: 1px solid #e5e7eb;
-  border-radius: clamp(0.5rem, 1vw, 0.75rem);
-  font-size: clamp(0.8125rem, 1.8vw, 1rem);
-  font-family: 'Arial', sans-serif;
-  min-width: 0; /* Prevents overflow */
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.message-input::placeholder {
-  color: #9ca3af;
-}
-
-.send-button {
-  flex-shrink: 0;
-  min-width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: #3b82f6;
-  border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.send-button:hover:not(:disabled) {
-  background: #2563eb;
+.message-bubble:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.send-button:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+.message-bubble.user-message {
+  background: #2563eb;
+  color: white;
+  border-color: #1d4ed8;
 }
 
-.send-button:disabled {
-  background: #94a3b8;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+.message-bubble.other-message {
+  background: #f8fafc;
+  color: #1e293b;
+  border-color: #e2e8f0;
 }
 
-.send-button svg {
-  width: 18px;
-  height: 18px;
+/* ===== ENHANCED RESPONSIVE BREAKPOINTS ===== */
+
+/* Mobile (320px - 480px) */
+@media (max-width: 480px) {
+  .messages-area {
+    padding: clamp(0.75rem, 3vw, 1rem);
+    gap: clamp(0.75rem, 2vw, 1rem);
+  }
+  
+  .message-wrapper {
+    gap: clamp(0.5rem, 2vw, 0.75rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 90%;
+  }
+  
+  .message-avatar {
+    width: clamp(1.75rem, 4vw, 2.25rem);
+    height: clamp(1.75rem, 4vw, 2.25rem);
+  }
+  
+  .message-bubble {
+    padding: clamp(0.75rem, 3vw, 1rem);
+    font-size: clamp(0.875rem, 3vw, 1rem);
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+  }
 }
 
-/* Custom scrollbar - using relative units */
+/* Large Mobile (481px - 576px) */
+@media (min-width: 481px) and (max-width: 576px) {
+  .messages-area {
+    padding: clamp(1rem, 3vw, 1.25rem);
+    gap: clamp(1rem, 2vw, 1.25rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 88%;
+  }
+  
+  .message-bubble {
+    padding: clamp(0.875rem, 3vw, 1.125rem);
+    font-size: clamp(0.9375rem, 3vw, 1.0625rem);
+  }
+}
+
+/* Small Tablet (577px - 745px) */
+@media (min-width: 577px) and (max-width: 745px) {
+  .messages-area {
+    padding: clamp(1.125rem, 3vw, 1.5rem);
+    gap: clamp(1.125rem, 2vw, 1.5rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 85%;
+  }
+  
+  .message-bubble {
+    padding: clamp(1rem, 3vw, 1.25rem);
+    font-size: clamp(1rem, 3vw, 1.125rem);
+  }
+}
+
+/* Medium Tablet (746px - 768px) */
+@media (min-width: 746px) and (max-width: 768px) {
+  .messages-area {
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    gap: clamp(1.25rem, 2vw, 1.75rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 80%;
+  }
+}
+
+/* Large Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .messages-area {
+    padding: clamp(1.5rem, 3vw, 2rem);
+    gap: clamp(1.5rem, 2vw, 2rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 75%;
+  }
+}
+
+/* Small Desktop (1025px - 1199px) */
+@media (min-width: 1025px) and (max-width: 1199px) {
+  .messages-area {
+    padding: clamp(1.75rem, 3vw, 2.25rem);
+    gap: clamp(1.75rem, 2vw, 2.25rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 70%;
+  }
+}
+
+/* Large Desktop (1200px - 1440px) */
+@media (min-width: 1200px) and (max-width: 1440px) {
+  .messages-area {
+    padding: clamp(2rem, 3vw, 2.5rem);
+    gap: clamp(2rem, 2vw, 2.5rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 65%;
+  }
+}
+
+/* Extra Large Desktop (1441px+) */
+@media (min-width: 1441px) {
+  .messages-area {
+    padding: clamp(2.25rem, 3vw, 3rem);
+    gap: clamp(2.25rem, 2vw, 3rem);
+  }
+  
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 60%;
+  }
+  
+  .message-bubble {
+    padding: clamp(1.25rem, 2vw, 1.5rem);
+    font-size: clamp(1.125rem, 2vw, 1.25rem);
+  }
+}
+
+/* ===== CONTAINER QUERIES FOR COMPONENT-LEVEL RESPONSIVENESS ===== */
+
+@container (max-width: 400px) {
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 95%;
+  }
+  
+  .message-bubble {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+@container (min-width: 401px) and (max-width: 600px) {
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 85%;
+  }
+  
+  .message-bubble {
+    padding: 1rem;
+    font-size: 0.9375rem;
+  }
+}
+
+@container (min-width: 601px) and (max-width: 800px) {
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 75%;
+  }
+  
+  .message-bubble {
+    padding: 1.125rem;
+    font-size: 1rem;
+  }
+}
+
+@container (min-width: 801px) {
+  .message-wrapper.user-message,
+  .message-wrapper.other-message {
+    max-width: 65%;
+  }
+  
+  .message-bubble {
+    padding: 1.25rem;
+    font-size: 1.0625rem;
+  }
+}
+
+/* ===== ACCESSIBILITY & PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .message-bubble,
+  .message-avatar,
+  .message-wrapper {
+    transition: none;
+  }
+  
+  .messages-area {
+    scroll-behavior: auto;
+  }
+  
+  .chat-container {
+    will-change: auto;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .message-bubble {
+    border-width: 2px;
+  }
+  
+  .message-bubble.user-message {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+  }
+  
+  .message-bubble.other-message {
+    background: #fff;
+    color: #000;
+    border-color: #000;
+  }
+}
+
+/* Dark mode support - only when explicitly enabled with .dark class */
+.dark .chat-container {
+  background: #1a1a1a;
+}
+
+.dark .messages-area {
+  background: #1a1a1a;
+}
+
+.dark .message-bubble.other-message {
+  background: #333;
+  color: #ffffff;
+  border-color: #555;
+}
+
+.dark .message-bubble.user-message {
+  background: #2563EB;
+  color: white;
+  border-color: #1d4ed8;
+}
+
+/* Focus management for accessibility */
+.chat-container:focus-within {
+  outline: none;
+}
+
+/* Touch action optimization */
+.messages-area {
+  touch-action: pan-y;
+}
+
+.message-bubble {
+  touch-action: manipulation;
+}
+
+/* Prevent text selection during scrolling */
+.messages-area.scrolling {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enhanced scrollbar styling */
 .messages-area::-webkit-scrollbar {
-  width: clamp(0.25rem, 0.5vw, 0.5rem);
+  width: clamp(6px, 0.75vw, 8px);
 }
 
 .messages-area::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 4px;
 }
 
 .messages-area::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: clamp(0.125rem, 0.25vw, 0.25rem);
+  border-radius: clamp(3px, 0.5vw, 4px);
+  transition: background-color 0.2s ease;
 }
 
 .messages-area::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Mobile breakpoint - 480px */
-@media (max-width: 479px) {
-  .messages-area {
-    padding: 1rem;
-    gap: 1rem;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 85%;
-    gap: 0.625rem;
-    box-sizing: border-box;
-  }
-  
-  .message-avatar {
-    width: 1.875rem;
-    height: 1.875rem;
-  }
-  
-  .message-bubble {
-    padding: 0.75rem;
-    gap: 0.375rem;
-  }
-  
-  .message-text {
-    font-size: 0.875rem;
-  }
-  
-  .message-timestamp,
-  .message-status {
-    font-size: 0.75rem;
-  }
-  
-  .message-input-container {
-    padding: 1rem;
-  }
-  
-  .message-input-wrapper {
-    gap: 0.625rem;
-  }
-  
-  .message-input {
-    padding: 0.75rem;
-    font-size: 0.875rem;
-  }
-  
-  .send-button {
-    min-width: 2.75rem;
-    padding: 0.75rem;
-  }
+/* Screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* Large Desktop (1200px+) */
-@media (min-width: 1200px) {
-  .messages-area {
-    padding: 1.5rem;
-    gap: 1.5rem;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 70%;
-    box-sizing: border-box;
-  }
-  
-  .message-avatar {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
-  
-  .message-bubble {
-    padding: 1rem;
-  }
-  
-  .message-text {
-    font-size: 1rem;
-  }
-  
-  .message-input-container {
-    padding: 1.5rem;
-  }
-  
-  .message-input {
-    padding: 1rem;
-    font-size: 1rem;
-  }
-  
-  .send-button {
-    min-width: 3rem;
-  }
+/* Performance optimization for large message lists */
+.message-wrapper {
+  contain: layout style;
 }
 
-/* Desktop (1025px-1199px) */
-@media (min-width: 1025px) and (max-width: 1199px) {
-  .messages-area {
-    padding: 1.25rem;
-    gap: 1.25rem;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 75%;
-    box-sizing: border-box;
-  }
-  
-  .message-avatar {
-    width: 2.25rem;
-    height: 2.25rem;
-  }
-  
-  .message-bubble {
-    padding: 0.875rem;
-  }
-  
-  .message-text {
-    font-size: 0.9375rem;
-  }
-  
-  .message-input-container {
-    padding: 1.25rem;
-  }
-  
-  .message-input {
-    padding: 0.875rem;
-    font-size: 0.9375rem;
-  }
+/* Optimize rendering for message bubbles */
+.message-bubble {
+  contain: layout style paint;
 }
 
-/* Tablet/Medium Desktop (480px-1024px) */
-@media (min-width: 480px) and (max-width: 1024px) {
-  .messages-area {
-    padding: 1rem;
-    gap: 1rem;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 80%;
-    gap: 0.625rem;
-    box-sizing: border-box;
-  }
-  
-  .message-avatar {
-    width: 2rem;
-    height: 2rem;
-  }
-  
-  .message-bubble {
-    padding: 0.75rem;
-    gap: 0.375rem;
-  }
-  
-  .message-text {
-    font-size: 0.875rem;
-  }
-  
-  .message-timestamp,
-  .message-status {
-    font-size: 0.75rem;
-  }
-  
-  .message-input-container {
-    padding: 1rem;
-  }
-  
-  .message-input-wrapper {
-    gap: 0.625rem;
-  }
-  
-  .message-input {
-    padding: 0.75rem;
-    font-size: 0.875rem;
-  }
-  
-  .send-button {
-    min-width: 2.75rem;
-    padding: 0.75rem;
-  }
+/* Intersection observer optimization */
+.message-wrapper[data-visible="false"] {
+  visibility: hidden;
 }
 
-/* Large Mobile/Small Tablet (481px-768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .messages-area {
-    padding: clamp(0.75rem, 2.5vw, 1.25rem);
-    gap: clamp(0.75rem, 1.5vw, 1.25rem);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 85%;
-  }
-  
-  .message-bubble {
-    min-width: 0;
-    padding: clamp(0.625rem, 1.5vw, 0.875rem);
-  }
-  
-  .message-input-container {
-    padding: clamp(0.75rem, 2.5vw, 1.25rem);
-  }
-  
-  .message-input-wrapper {
-    gap: clamp(0.375rem, 1vw, 0.625rem);
-  }
-}
-
-/* Mobile (≤480px) with enhanced accessibility */
-@media (max-width: 480px) {
-  .messages-area {
-    padding: clamp(0.5rem, 3vw, 1rem);
-    gap: clamp(0.5rem, 2vw, 1rem);
-    overflow-y: auto;
-    overflow-x: hidden;
-    /* Better mobile scrolling */
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 90%;
-    gap: clamp(0.375rem, 1vw, 0.5rem);
-    /* Better focus management */
-    scroll-margin: 20px;
-  }
-  
-  .message-avatar {
-    width: clamp(1.5rem, 4vw, 1.75rem);
-    height: clamp(1.5rem, 4vw, 1.75rem);
-  }
-  
-  .message-bubble {
-    padding: clamp(0.5rem, 2vw, 0.75rem);
-    gap: clamp(0.125rem, 0.5vw, 0.25rem);
-    /* Better touch target for accessibility */
-    min-height: 44px;
-    /* Focus indicator */
-    position: relative;
-  }
-  
-  .message-bubble:focus-within {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-  }
-  
-  .message-text {
-    font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
-    /* Better readability */
-    line-height: 1.5;
-  }
-  
-  .message-timestamp,
-  .message-status {
-    font-size: clamp(0.6875rem, 2vw, 0.8125rem);
-  }
-  
-  .message-input-container {
-    padding: clamp(0.5rem, 3vw, 1rem);
-    /* Safe area support for mobile keyboards */
-    padding-bottom: max(clamp(0.5rem, 3vw, 1rem), env(safe-area-inset-bottom));
-  }
-  
-  .message-input {
-    padding: clamp(0.5rem, 2vw, 0.75rem);
-    font-size: clamp(0.8125rem, 2.5vw, 0.9375rem);
-    /* Better touch target */
-    min-height: 44px;
-  }
-  
-  .message-input:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-  }
-  
-  .send-button {
-    padding: clamp(0.375rem, 1.5vw, 0.625rem);
-    min-width: clamp(2.5rem, 7vw, 3rem);
-    min-height: 44px;
-    /* Better accessibility */
-    position: relative;
-  }
-  
-  .send-button:focus {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-  }
-}
-
-/* Container queries for even more responsive design */
-@container (min-width: 600px) {
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 70%;
-    box-sizing: border-box;
-  }
-}
-
-@container (min-width: 400px) and (max-width: 599px) {
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 80%;
-    box-sizing: border-box;
-  }
-}
-
-@container (max-width: 399px) {
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 90%;
-  }
-}
-
-/* Extra small screens */
-@media (max-width: 360px) {
-  .messages-area {
-    padding: clamp(0.375rem, 2vw, 0.75rem);
-    gap: clamp(0.375rem, 1.5vw, 0.75rem);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  
-  .message-wrapper.user-message,
-  .message-wrapper.other-message {
-    max-width: 95%;
-    gap: clamp(0.25rem, 1vw, 0.375rem);
-  }
-  
-  .message-bubble {
-    padding: clamp(0.375rem, 1.5vw, 0.625rem);
-    min-width: 0;
-  }
-  
-  .message-avatar {
-    width: clamp(1.25rem, 5vw, 1.5rem);
-    height: clamp(1.25rem, 5vw, 1.5rem);
-  }
-  
-  .message-input-container {
-    padding: clamp(0.375rem, 2vw, 0.75rem);
-  }
-  
-  .message-input {
-    padding: clamp(0.375rem, 1.5vw, 0.625rem);
-    font-size: clamp(0.75rem, 3vw, 0.875rem);
-  }
-  
-  .send-button {
-    padding: clamp(0.25rem, 1vw, 0.5rem);
-    min-width: clamp(1.75rem, 7vw, 2.25rem);
-  }
-}
-
-/* Accessibility and preference support */
-@media (prefers-reduced-motion: reduce) {
-  .send-button {
-    transition: none;
-  }
-}
-
-@media (prefers-contrast: high) {
-  .message-bubble {
-    border-width: 2px;
-  }
-  
-  .other-bubble {
-    border-color: #000;
-  }
-  
-  .user-bubble {
-    border-color: #fff;
-  }
-  
-  .message-input {
-    border-width: 2px;
-  }
-  
-  .message-input-container {
-    border-top-width: 2px;
-  }
+.message-wrapper[data-visible="true"] {
+  visibility: visible;
 }
