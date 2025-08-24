@@ -110,6 +110,7 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      AIRFLOW_SECRET="${AIRFLOW_SECRET:-}" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 else
@@ -129,6 +130,7 @@ else
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+  AIRFLOW_SECRET="${AIRFLOW_SECRET:-}" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 fi
