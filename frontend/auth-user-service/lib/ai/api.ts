@@ -1,7 +1,7 @@
 // AI API functions for portfolio generation
 import { getSession } from "next-auth/react";
 
-const AI_API_BASE_URL = process.env.NEXT_PUBLIC_AI_API_URL || 'http://localhost:5134';
+const AI_API_BASE_URL = process.env.NEXT_PUBLIC_AI_API_URL || 'https://backend-ai.kindmoss-e060904c.westeurope.azurecontainerapps.io';
 
 // Portfolio data returned by AI service
 export interface AIGeneratedPortfolio {
