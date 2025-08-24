@@ -340,7 +340,58 @@
   }
 }
 
-/* This breakpoint is now covered by the mobile breakpoint above */
+@media (max-width: 745px) {
+  .messages-sidebar {
+    width: 100%;
+    max-width: none;
+    min-width: 100%;
+    height: 100%;
+    max-height: none;
+  }
+  
+  .sidebar-header {
+    padding: 1rem;
+  }
+  
+  .sidebar-title {
+    font-size: 1.125rem;
+  }
+  
+  .new-message-button {
+    padding: 8px 16px;
+  }
+  
+  .new-message-icon,
+  .new-message-text {
+    font-size: 13px;
+  }
+  
+  .contact-item {
+    padding: 14px 16px;
+    min-height: 80px;
+  }
+  
+  .contact-avatar-container {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .contact-name {
+    font-size: 0.8125rem;
+  }
+  
+  .contact-message {
+    font-size: 0.75rem;
+  }
+  
+  .contact-timestamp {
+    font-size: 0.6875rem;
+  }
+
+  .contact-menu {
+    opacity: 1; 
+  }
+}
 
 /* Enhanced touch targets for smaller mobile devices */
 @media (max-width: 480px) {

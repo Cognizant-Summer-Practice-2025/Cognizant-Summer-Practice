@@ -72,7 +72,7 @@ const MessagesPage = () => {
   useEffect(() => {
     const checkIsMobile = () => {
       const width = window.innerWidth;
-      setIsMobile(width <= 768);
+      setIsMobile(width <= 745);
     };
 
     checkIsMobile();
