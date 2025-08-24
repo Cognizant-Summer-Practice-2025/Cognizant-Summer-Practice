@@ -57,12 +57,12 @@
 }
 
 .send-button {
-  /* Smaller touch targets */
+  /* Match input height exactly */
   flex-shrink: 0;
   min-width: 36px;
   min-height: 36px;
-  height: clamp(36px, 6vw, 40px);
-  width: clamp(36px, 6vw, 40px);
+  height: 36px; /* Same as input min-height */
+  width: 36px;
   border-radius: clamp(0.375rem, 0.75vw, 0.5rem);
   background: #2563EB;
   border: none;
@@ -196,10 +196,10 @@
   }
   
   .send-button {
-    min-width: 40px;
-    min-height: 40px;
-    width: 40px;
-    height: 40px;
+    min-width: 36px;
+    min-height: 36px;
+    width: 36px;
+    height: 36px; /* Match input height */
   }
 }
 
