@@ -73,6 +73,7 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
         services.AddScoped<IOAuth2Service, OAuth2Service>();
         services.AddScoped<IStripeService, StripeService>();
+        services.AddScoped<IHealthCheckService, HealthCheckService>();
 
         return services;
     }

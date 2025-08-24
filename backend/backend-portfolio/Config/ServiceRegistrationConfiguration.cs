@@ -93,6 +93,7 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IProjectQueryService, ProjectQueryService>();
         services.AddScoped<IProjectCommandService, ProjectCommandService>();
         services.AddScoped<ITechNewsSummaryService, TechNewsSummaryService>();
+        services.AddScoped<IHealthCheckService, HealthCheckService>();
 
         return services;
     }

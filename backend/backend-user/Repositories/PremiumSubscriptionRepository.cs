@@ -32,6 +32,9 @@ namespace backend_user.Repositories
                 throw new ArgumentNullException(nameof(dto));
                 
             var subscription = dto.ToModel();
+            if (subscription == null)
+                throw new InvalidOperationException("Failed to create subscription model from DTO");
+                
             _context.PremiumSubscriptions.Add(subscription);
             await _context.SaveChangesAsync();
             return subscription;
