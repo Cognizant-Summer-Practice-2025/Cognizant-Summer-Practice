@@ -31,7 +31,6 @@ namespace BackendMessages.Services
             try
             {
                 // Get all users who have unread messages
-                _logger.LogDebug("Querying database for unread messages...");
                 var usersWithUnreadMessages = await _context.Messages
                     .Where(m => !m.IsRead && m.DeletedAt == null)
                     .GroupBy(m => m.ReceiverId)
@@ -43,17 +42,12 @@ namespace BackendMessages.Services
                     })
                     .ToListAsync();
 
-                _logger.LogInformation("Found {UserGroupCount} users with unread messages in database", usersWithUnreadMessages.Count);
-
                 var summaries = new List<UnreadMessagesSummary>();
 
                 foreach (var userGroup in usersWithUnreadMessages)
                 {
                     try
                     {
-                        _logger.LogDebug("Processing unread messages for user {UserId} - {UnreadCount} messages from {SenderCount} senders", 
-                            userGroup.UserId, userGroup.UnreadCount, userGroup.SenderIds.Count);
-
                         // Get user details
                         var user = await _userSearchService.GetUserByIdAsync(userGroup.UserId);
                         if (user == null)
@@ -61,9 +55,6 @@ namespace BackendMessages.Services
                             _logger.LogWarning("User {UserId} not found in user service, skipping notification", userGroup.UserId);
                             continue;
                         }
-
-                        _logger.LogDebug("Retrieved user details for {UserId}: {UserName} ({UserEmail})", 
-                            userGroup.UserId, user.FullName, user.Email);
 
                         // Get sender names
                         var senderNames = new List<string>();
@@ -73,7 +64,6 @@ namespace BackendMessages.Services
                             if (sender != null)
                             {
                                 senderNames.Add(sender.Username);
-                                _logger.LogDebug("Added sender {SenderId}: {SenderName}", senderId, sender.Username);
                             }
                             else
                             {
@@ -89,8 +79,6 @@ namespace BackendMessages.Services
                             UnreadCount = userGroup.UnreadCount,
                             SenderNames = senderNames
                         });
-                        
-                        _logger.LogDebug("Successfully processed user {UserId} for notification", userGroup.UserId);
                     }
                     catch (Exception ex)
                     {
@@ -122,8 +110,7 @@ namespace BackendMessages.Services
                 if (usersWithUnreadMessages.Count == 0)
                 {
                     _logger.LogInformation("No users with unread messages found - no notifications to send");
-                    _logger.LogInformation("=== UNREAD MESSAGES NOTIFICATION SERVICE END (No Work) ===");
-                    return;
+                     return;
                 }
 
                 _logger.LogInformation("Found {UserCount} users with unread messages - proceeding with email notifications", usersWithUnreadMessages.Count);
@@ -138,11 +125,14 @@ namespace BackendMessages.Services
                     
                     try
                     {
-                        var success = await _emailService.SendUnreadMessagesNotificationAsync(
-                            userSummary.UserEmail,
-                            userSummary.UserName,
-                            userSummary.UnreadCount,
-                            userSummary.SenderNames);
+                        var notification = new BackendMessages.Models.Email.UnreadMessagesNotification
+                        {
+                            RecipientEmail = userSummary.UserEmail,
+                            RecipientName = userSummary.UserName,
+                            UnreadCount = userSummary.UnreadCount,
+                            SenderNames = userSummary.SenderNames
+                        };
+                        var success = await _emailService.SendUnreadMessagesNotificationAsync(notification);
 
                         if (success)
                         {
@@ -165,14 +155,12 @@ namespace BackendMessages.Services
                 stopwatch.Stop();
                 _logger.LogInformation("Unread messages notification job completed in {ElapsedMilliseconds}ms. Success: {SuccessCount}, Failures: {FailureCount}", 
                     stopwatch.ElapsedMilliseconds, successCount, failureCount);
-                _logger.LogInformation("=== UNREAD MESSAGES NOTIFICATION SERVICE END ===");
-            }
+           }
             catch (Exception ex)
             {
                 stopwatch.Stop();
                 _logger.LogError(ex, "Critical error in unread messages notification job after {ElapsedMilliseconds}ms", stopwatch.ElapsedMilliseconds);
-                _logger.LogError("=== UNREAD MESSAGES NOTIFICATION SERVICE FAILED ===");
-            }
+             }
         }
     }
 } 

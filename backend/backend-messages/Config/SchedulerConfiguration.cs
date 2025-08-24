@@ -29,20 +29,14 @@ public static class SchedulerConfiguration
 
         // Add Quartz services
         services.AddQuartz(q =>
-        {
-            logger?.LogInformation("Setting up Quartz scheduler configuration");
-            
+        {     
             // Create a job key for our twice daily notification job
-            var jobKey = new JobKey("TwiceDailyUnreadMessagesJob");
-            
+            var jobKey = new JobKey("TwiceDailyUnreadMessagesJob");          
             // Configure the job
             q.AddJob<DailyUnreadMessagesJob>(opts => opts.WithIdentity(jobKey));
-            logger?.LogInformation("Registered job: {JobKey}", jobKey);
 
-            // Configure to run twice daily at 12:00 AM and 12:00 PM
-            var cronExpression = "0 0 0,12 * * ?"; // At 00:00 and 12:00 every day
-            logger?.LogInformation("Configuring unread messages job to run twice daily at 12:00 AM and 12:00 PM (cron: {CronExpression})", 
-                cronExpression);
+            // Configure to run twice daily at 8:00 AM and 4:00 PM
+            var cronExpression = "0 0 8,16 * * ?"; // At 08:00 and 16:00 every day
 
             // Configure the trigger to run twice daily
             q.AddTrigger(opts => opts
@@ -51,7 +45,6 @@ public static class SchedulerConfiguration
                 .WithCronSchedule(cronExpression) // Cron expression for twice daily
                 .WithDescription("Trigger for twice daily unread messages notification job"));
                 
-            logger?.LogInformation("Configured trigger for job: {JobKey}", jobKey);
         });
 
         // Add the Quartz hosted service

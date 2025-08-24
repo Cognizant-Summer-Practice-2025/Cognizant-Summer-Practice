@@ -22,7 +22,7 @@ namespace BackendMessages.Controllers
         private readonly IEmailService _emailService;
         private readonly IUserSearchService _userSearchService;
         private readonly IConfiguration _configuration;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public MessagesController(
             MessagesDbContext context, 
@@ -32,7 +32,7 @@ namespace BackendMessages.Controllers
             IEmailService emailService,
             IUserSearchService userSearchService,
             IConfiguration configuration,
-            IServiceProvider serviceProvider)
+            IServiceScopeFactory serviceScopeFactory)
         {
             _context = context;
             _logger = logger;
@@ -41,7 +41,7 @@ namespace BackendMessages.Controllers
             _emailService = emailService;
             _userSearchService = userSearchService;
             _configuration = configuration;
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -180,6 +180,7 @@ namespace BackendMessages.Controllers
 
                 // Send "wants to contact you" email notification only for first message from conversation initiator
                 var enableContactNotifications = bool.Parse(_configuration["Email:EnableContactNotifications"] ?? "true");
+                
                 if (enableContactNotifications)
                 {
                     // Capture values for the background task
@@ -191,8 +192,7 @@ namespace BackendMessages.Controllers
                     {
                         try
                         {
-                            // Create a new service container for the background task
-                            using var serviceContainer = _serviceProvider.CreateScope();
+                            using var serviceContainer = _serviceScopeFactory.CreateScope();
                             var services = serviceContainer.ServiceProvider;
                             
                             var context = services.GetRequiredService<MessagesDbContext>();
@@ -217,39 +217,38 @@ namespace BackendMessages.Controllers
                                     
                                     if (recipient != null && sender != null && !string.IsNullOrEmpty(recipient.Email))
                                     {
-                                        await emailService.SendContactRequestNotificationAsync(recipient, sender);
-                                        logger.LogInformation("Contact request email notification sent for conversation {ConversationId} from {SenderUsername} to {RecipientEmail}", 
-                                            conversationId, sender.Username, recipient.Email);
+                                        var notification = new BackendMessages.Models.Email.ContactRequestNotification
+                                        {
+                                            Recipient = recipient,
+                                            Sender = sender
+                                        };
+                                        var emailResult = await emailService.SendContactRequestNotificationAsync(notification);
+                                        
+                                        if (emailResult)
+                                        {
+                                            logger.LogInformation("Contact request email notification sent successfully for conversation {ConversationId}", conversationId);
+                                        }
+                                        else
+                                        {
+                                            logger.LogWarning("Contact request email notification failed for conversation {ConversationId}", conversationId);
+                                        }
                                     }
-                                    else
-                                    {
-                                        logger.LogWarning("Could not send contact request notification for conversation {ConversationId}. Recipient: {RecipientFound}, Sender: {SenderFound}, Email: {HasEmail}", 
-                                            conversationId, recipient != null, sender != null, recipient?.Email != null);
-                                    }
-                                }
-                                else
-                                {
-                                    logger.LogDebug("Skipping contact request notification - not the first message in conversation {ConversationId}", conversationId);
                                 }
                             }
                             else
                             {
-                                logger.LogDebug("Skipping contact request notification - sender is not the conversation initiator for conversation {ConversationId}", conversationId);
+                                logger.LogInformation("⏭️ Skipping contact request notification - sender {SenderId} is not the conversation initiator {InitiatorId} for conversation {ConversationId}", 
+                                    senderId, conversationInitiatorId, conversationId);
                             }
                         }
                         catch (Exception emailEx)
                         {
-                            using var errorServiceContainer = _serviceProvider.CreateScope();
-                            var logger = errorServiceContainer.ServiceProvider.GetRequiredService<ILogger<MessagesController>>();
-                            logger.LogError(emailEx, "Failed to send contact request notification for conversation {ConversationId}", conversationId);
+                            _logger.LogError(emailEx, "Background task failed for conversation {ConversationId}", conversationId);
                             // Don't fail the request if email fails
                         }
                     });
                 }
-                else
-                {
-                    _logger.LogDebug("Real-time email notifications are disabled for message {MessageId}", message.Id);
-                }
+
 
                 return Ok(messageResponse);
             }

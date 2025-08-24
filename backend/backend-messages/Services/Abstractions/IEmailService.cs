@@ -1,11 +1,11 @@
 using BackendMessages.Models;
+using BackendMessages.Models.Email;
 
 namespace BackendMessages.Services.Abstractions
 {
     public interface IEmailService
     {
-        Task<bool> SendUnreadMessagesNotificationAsync(string recipientEmail, string recipientName, int unreadCount, List<string> senderNames);
-        Task<bool> SendMessageReceivedNotificationAsync(Message message, SearchUser recipient, SearchUser sender);
-        Task<bool> SendContactRequestNotificationAsync(SearchUser recipient, SearchUser sender);
+        Task<bool> SendUnreadMessagesNotificationAsync(UnreadMessagesNotification notification);
+        Task<bool> SendContactRequestNotificationAsync(ContactRequestNotification notification);
     }
 } 

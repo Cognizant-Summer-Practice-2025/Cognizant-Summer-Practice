@@ -22,14 +22,22 @@ builder.Services
 
 var app = builder.Build();
 
-// Log scheduler startup information
+// Validate critical email configuration
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("=== MESSAGES SERVICE STARTUP ===");
-logger.LogInformation("Application starting up at {StartupTime} UTC", DateTime.UtcNow);
+var configuration = app.Services.GetRequiredService<IConfiguration>();
+
+var smtpPassword = configuration["Email:SmtpPassword"];
+if (string.IsNullOrEmpty(smtpPassword))
+{
+    logger.LogWarning("SMTP Password not configured");
+}
+else if (smtpPassword.Contains("REPLACE_WITH") || smtpPassword.Contains("YOUR_PASSWORD") || smtpPassword.Contains("PLACEHOLDER"))
+{
+    logger.LogError("SMTP Password appears to be a placeholder. Please configure a real Gmail App Password.");
+}
 
 // Log scheduler configuration
-var configuration = app.Services.GetRequiredService<IConfiguration>();
-logger.LogInformation("Scheduler configured to send unread messages notifications twice daily at 12:00 AM and 12:00 PM UTC");
+logger.LogInformation("Scheduler configured to send unread messages notifications twice daily at 8:00 AM and 4:00 PM UTC");
 
 // Configure middleware pipeline
 app.UseApplicationMiddleware();
@@ -47,22 +55,40 @@ static Dictionary<string, string?> GetEmailConfigurationFromEnvironment()
 {
     var emailConfig = new Dictionary<string, string?>();
     
-    var emailUsername = Environment.GetEnvironmentVariable("GMAIL_USERNAME");
-    var emailPassword = Environment.GetEnvironmentVariable("GMAIL_APP_PASSWORD");
-    
-    if (!string.IsNullOrEmpty(emailUsername) && !string.IsNullOrEmpty(emailPassword))
+    // Add email configuration from environment variables if they exist
+    var envVars = new[]
     {
-        emailConfig["Email:SmtpUsername"] = emailUsername;
-        emailConfig["Email:SmtpPassword"] = emailPassword;
-        emailConfig["Email:FromAddress"] = emailUsername;
-        
-        Console.WriteLine($"✅ Email configured from environment variables: {emailUsername}");
-    }
-    else
+        "EMAIL_SMTP_HOST",
+        "EMAIL_SMTP_PORT", 
+        "EMAIL_SMTP_USERNAME",
+        "EMAIL_FROM_ADDRESS",
+        "EMAIL_FROM_NAME",
+        "EMAIL_USE_SSL",
+        "EMAIL_ENABLE_CONTACT_NOTIFICATIONS"
+    };
+
+    foreach (var envVar in envVars)
     {
-        Console.WriteLine("⚠️  Email environment variables not found. Using appsettings.json configuration.");
-        Console.WriteLine("   To use Gmail: Set GMAIL_USERNAME and GMAIL_APP_PASSWORD environment variables.");
+        var value = Environment.GetEnvironmentVariable(envVar);
+        if (!string.IsNullOrEmpty(value))
+        {
+            var configKey = envVar.Replace("EMAIL_", "Email:").Replace("_", "");
+            emailConfig[configKey] = value;
+        }
+    }
+
+    // Handle Gmail-specific environment variables
+    var gmailUsername = Environment.GetEnvironmentVariable("GMAIL_USERNAME");
+    if (!string.IsNullOrEmpty(gmailUsername))
+    {
+        emailConfig["Email:SmtpUsername"] = gmailUsername;
     }
     
+    var gmailAppPassword = Environment.GetEnvironmentVariable("GMAIL_APP_PASSWORD");
+    if (!string.IsNullOrEmpty(gmailAppPassword))
+    {
+        emailConfig["Email:SmtpPassword"] = gmailAppPassword;
+    }
+
     return emailConfig;
 }

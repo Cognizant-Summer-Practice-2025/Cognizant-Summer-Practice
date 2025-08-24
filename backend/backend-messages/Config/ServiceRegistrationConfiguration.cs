@@ -47,6 +47,9 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IUserSearchService, UserSearchService>();
         services.AddScoped<IConversationService, ConversationServiceRefactored>();
         services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IEmailValidator, EmailValidator>();
+        services.AddScoped<IEmailTemplateEngine, EmailTemplateEngine>();
+        services.AddScoped<ISmtpClientService, SmtpClientService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
 
