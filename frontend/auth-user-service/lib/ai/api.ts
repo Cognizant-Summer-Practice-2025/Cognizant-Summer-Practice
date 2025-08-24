@@ -151,7 +151,7 @@ export async function convertAIPortfoliosToCards(aiPortfolios: any[]): Promise<i
   return portfolioCards;
 } 
 
-export async function getLatestTechNews(): Promise<{ Summary: string }> {
+export async function getLatestTechNews(): Promise<{ summary: string }> {
   const session = await getSession();
   const headers: Record<string, string> = {};
   if (session?.accessToken) {
@@ -163,5 +163,5 @@ export async function getLatestTechNews(): Promise<{ Summary: string }> {
     headers,
   });
 
-  return handleApiResponse<{ Summary: string }>(response);
+  return handleApiResponse<{ summary: string }>(response);
 }

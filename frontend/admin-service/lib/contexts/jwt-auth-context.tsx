@@ -106,7 +106,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         setIsAuthenticated(true);
         storeToken(token, true);
-        console.log('[admin][auth] login: success', userData.email);
+        console.log('[admin][auth] login: success');
         return true;
       }
       return false;

@@ -209,7 +209,7 @@ const MessagesPage = () => {
     };
   
     if (conv.otherUserId === '6677b218-6e92-47b3-9e9f-61bea9f15f8d') {
-      console.log(`getEnhancedContact for user ${conv.otherUserId}:`, {
+      console.log('getEnhancedContact for conversation:', {
         convOnline: conv.isOnline,
         enhancedOnline: enhanced?.isOnline,
         resultOnline: result.isOnline

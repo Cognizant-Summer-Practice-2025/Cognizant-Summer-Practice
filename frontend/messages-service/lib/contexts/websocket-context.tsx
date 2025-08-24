@@ -264,7 +264,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     }
     try {
       await connection.invoke('DeleteMessage', messageId, userId);
-      console.log(`Message with ID ${messageId} deleted by user ${userId}`);
+      // Message deleted
     } catch (deleteError) {
       console.error('Error deleting message:', deleteError);
     }

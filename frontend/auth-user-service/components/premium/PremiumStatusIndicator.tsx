@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Crown, CrownOff } from 'lucide-react';
+import { Crown, X } from 'lucide-react';
 import { premiumService } from '@/lib/services/premium-service';
 
 interface PremiumStatusIndicatorProps {
@@ -53,7 +53,7 @@ export default function PremiumStatusIndicator({
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <CrownOff className="w-4 h-4 text-gray-400" />
+      <X className="w-4 h-4 text-gray-400" />
       {showText && <span className="text-sm text-gray-500">Free</span>}
     </div>
   );

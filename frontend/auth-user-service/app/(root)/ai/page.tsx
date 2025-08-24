@@ -15,7 +15,7 @@ interface AIPageState {
   loading: boolean;
   error: string | null;
   hasGenerated: boolean;
-  techNews?: { summary?: string } | null;
+  techNews?: { summary: string } | null;
   techLoading?: boolean;
 }
 
@@ -108,6 +108,7 @@ function AIPageContent() {
     
     try {
       const news = await getLatestTechNews();
+      
       setState(prev => ({ 
         ...prev, 
         techNews: news, 
@@ -212,7 +213,7 @@ function AIPageContent() {
             <h2 className="text-xl font-semibold text-gray-900">Tech News Summary</h2>
             {/* no timestamp */}
           </div>
-          <TechNewsSummary summary={state.techNews.summary} />
+                      <TechNewsSummary summary={state.techNews.summary} />
         </div>
       );
     }
