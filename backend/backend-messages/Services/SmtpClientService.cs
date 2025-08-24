@@ -20,6 +20,12 @@ namespace BackendMessages.Services
 
         public async Task<bool> SendEmailAsync(EmailMessage emailMessage)
         {
+            if (emailMessage == null)
+            {
+                _logger.LogWarning("Attempted to send email with null EmailMessage");
+                return false;
+            }
+
             var stopwatch = Stopwatch.StartNew();
 
             try
