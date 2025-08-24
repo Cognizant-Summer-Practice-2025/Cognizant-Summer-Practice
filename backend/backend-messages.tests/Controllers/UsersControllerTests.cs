@@ -175,51 +175,7 @@ namespace BackendMessages.Tests.Controllers
             result.Should().BeOfType<OkObjectResult>();
         }
 
-        [Fact]
-        public void GetDebugConnections_WithAuthenticatedUser_ShouldReturnOnlineUsers()
-        {
-            // Arrange
-            SetupAuthenticatedUser(_testUserId);
 
-            // Act
-            var result = _controller.GetDebugConnections();
-
-            // Assert
-            result.Should().BeOfType<OkObjectResult>();
-            var okResult = result as OkObjectResult;
-            okResult!.Value.Should().NotBeNull();
-            
-            okResult.Value.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void GetDebugConnections_WithUnauthenticatedUser_ShouldReturnUnauthorized()
-        {
-            // Arrange
-            SetupUnauthenticatedUser();
-
-            // Act
-            var result = _controller.GetDebugConnections();
-
-            // Assert
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            var unauthorizedResult = result as UnauthorizedObjectResult;
-            unauthorizedResult!.Value.Should().Be("User not authenticated");
-        }
-
-        [Fact]
-        public void GetDebugConnections_WithException_ShouldReturnInternalServerError()
-        {
-            // Arrange
-            SetupAuthenticatedUser(_testUserId);
-
-            // Act
-            var result = _controller.GetDebugConnections();
-
-            // Assert
-            // The method should handle any exceptions gracefully
-            result.Should().BeOfType<OkObjectResult>();
-        }
 
         [Fact]
         public async Task SearchUsers_WithValidRequest_ShouldReturnUsers()

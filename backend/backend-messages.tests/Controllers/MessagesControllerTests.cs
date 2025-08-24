@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 using System.Threading;
@@ -33,6 +34,7 @@ namespace BackendMessages.Tests.Controllers
         private readonly Mock<IEmailService> _emailServiceMock;
         private readonly Mock<IUserSearchService> _userSearchServiceMock;
         private readonly Mock<IConfiguration> _configurationMock;
+        private readonly Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
         private readonly MessagesController _controller;
         private readonly Guid _testUserId = Guid.NewGuid();
         private readonly Guid _testConversationId = Guid.NewGuid();
@@ -54,6 +56,7 @@ namespace BackendMessages.Tests.Controllers
             _emailServiceMock = new Mock<IEmailService>();
             _userSearchServiceMock = new Mock<IUserSearchService>();
             _configurationMock = new Mock<IConfiguration>();
+            _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
 
             // Setup hub context
             var hubClientsMock = new Mock<IHubClients>();
@@ -74,7 +77,8 @@ namespace BackendMessages.Tests.Controllers
                 _messageReportRepositoryMock.Object,
                 _emailServiceMock.Object,
                 _userSearchServiceMock.Object,
-                _configurationMock.Object);
+                _configurationMock.Object,
+                _serviceScopeFactoryMock.Object);
 
             // Setup test data
             SetupTestData();
