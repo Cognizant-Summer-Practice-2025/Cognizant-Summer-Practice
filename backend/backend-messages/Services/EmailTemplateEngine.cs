@@ -45,7 +45,7 @@ namespace BackendMessages.Services
                             <div style='background-color: #f8f9ff; border-radius: 8px; padding: 25px; margin-bottom: 20px; border-left: 4px solid #667eea;'>
                                 <div style='display: flex; align-items: center; margin-bottom: 15px;'>
                                     <div style='width: 40px; height: 40px; background-color: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;'>
-                                        <span style='color: white; font-weight: bold; font-size: 16px;'>👥</span>
+                                        <span style='color: white; font-weight: bold; font-size: 16px;'></span>
                                     </div>
                                     <div style='flex: 1;'>
                                         <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>FROM</p>
@@ -57,7 +57,7 @@ namespace BackendMessages.Services
                             <div style='background-color: #fff5f5; border-radius: 8px; padding: 25px; border-left: 4px solid #ff6b6b;'>
                                 <div style='display: flex; align-items: center;'>
                                     <div style='width: 40px; height: 40px; background-color: #ff6b6b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;'>
-                                        <span style='color: white; font-weight: bold; font-size: 16px;'>💬</span>
+                                        <span style='color: white; font-weight: bold; font-size: 16px;'></span>
                                     </div>
                                     <div>
                                         <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>UNREAD MESSAGES</p>
@@ -101,7 +101,7 @@ UNREAD MESSAGES: {unreadCount}
                 <body style='margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;'>
                     <div style='max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden;'>
                         <div style='background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); padding: 30px; text-align: center;'>
-                            <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;'>💬 Contact Request</h1>
+                            <h1 style='color: #ffffff; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;'> Contact Request</h1>
                         </div>
                         
                         <div style='padding: 40px 30px;'>
@@ -113,7 +113,7 @@ UNREAD MESSAGES: {unreadCount}
                             <div style='background-color: #f8f9ff; border-radius: 8px; padding: 25px; margin-bottom: 20px; border-left: 4px solid #4CAF50;'>
                                 <div style='display: flex; align-items: center; margin-bottom: 15px;'>
                                     <div style='width: 50px; height: 50px; background-color: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px;'>
-                                        <span style='color: white; font-weight: bold; font-size: 20px;'>👤</span>
+                                        <span style='color: white; font-weight: bold; font-size: 20px;'></span>
                                     </div>
                                     <div>
                                         <p style='margin: 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;'>FROM</p>
