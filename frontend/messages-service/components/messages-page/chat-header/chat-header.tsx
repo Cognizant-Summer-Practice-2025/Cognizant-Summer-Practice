@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { User, MoreHorizontal, AlertTriangle, ArrowLeft } from "lucide-react";
+import { User, MoreHorizontal, AlertTriangle, ArrowLeft, UserCircle } from "lucide-react";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import { redirectToService } from "@/lib/config/services";
 import { reportUser } from "@/lib/user/api";
@@ -128,8 +128,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
             className="view-portfolio-btn"
             onClick={handleViewProfile}
           >
-            <User className="w-4 h-4 mr-2" />
-            View Portfolio
+            <User className="w-4 h-4 mr-2 hidden sm:block" />
+            <UserCircle className="w-4 h-4 sm:hidden" />
+            <span className="hidden sm:inline">View Portfolio</span>
           </Button>
         )}
         
