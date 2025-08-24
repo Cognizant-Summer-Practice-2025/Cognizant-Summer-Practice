@@ -112,7 +112,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
           <h3 className="contact-name">{selectedContact.name}</h3>
           <div className="contact-status">
             <span className="contact-role">{selectedContact.professionalTitle || 'Professional'}</span>
-            <span className="status-separator">•</span>
             <span className={`online-status ${selectedContact.isOnline ? 'online' : 'offline'}`}>
               <span className="status-dot"></span>
               {selectedContact.isOnline ? 'Online' : 'Offline'}
