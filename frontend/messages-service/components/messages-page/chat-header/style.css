@@ -131,6 +131,11 @@
   .contact-status {
     font-size: clamp(0.75rem, 3vw, 0.875rem);
   }
+  
+  /* Mobile-only status dot positioning */
+  .online-status {
+    gap: clamp(0.25rem, 1vw, 0.375rem);
+  }
 
   /* Smaller touch targets for mobile - prioritize space */
   .back-button,
@@ -199,6 +204,11 @@
   
   .contact-status {
     font-size: clamp(0.8125rem, 2.5vw, 0.875rem);
+  }
+  
+  /* Adjust gap for larger mobile screens */
+  .online-status {
+    gap: clamp(0.25rem, 1vw, 0.375rem);
   }
   
   .back-button,
