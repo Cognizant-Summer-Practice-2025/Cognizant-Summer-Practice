@@ -132,8 +132,8 @@ namespace BackendMessages.Tests.Services
                 Subject = "Test Subject",
                 HtmlBody = "<p>Test HTML</p>",
                 TextBody = "Test Text",
-                FromEmail = null, // Null from email
-                FromName = null   // Null from name
+                FromEmail = null!, // Null from email
+                FromName = null!   // Null from name
             };
 
             // Setup configuration defaults
@@ -161,8 +161,8 @@ namespace BackendMessages.Tests.Services
                 Subject = "Test Subject",
                 HtmlBody = "<p>Test HTML</p>",
                 TextBody = "Test Text",
-                FromEmail = null,
-                FromName = null
+                FromEmail = null!,
+                FromName = null!
             };
 
             // Setup configuration to return null (no defaults configured)
@@ -296,6 +296,8 @@ namespace BackendMessages.Tests.Services
 
             // Assert - Should return false due to connection failure, but SSL setting was parsed
             result.Should().BeFalse();
+            
+            expectedSSL.Should().Be(bool.Parse(sslSetting));
         }
 
         [Theory]

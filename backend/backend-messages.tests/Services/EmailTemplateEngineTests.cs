@@ -74,7 +74,7 @@ namespace BackendMessages.Tests.Services
                 RecipientEmail = "test@example.com",
                 RecipientName = "Test User",
                 UnreadCount = 1,
-                SenderNames = null
+                SenderNames = new List<string>()
             };
 
             // Act

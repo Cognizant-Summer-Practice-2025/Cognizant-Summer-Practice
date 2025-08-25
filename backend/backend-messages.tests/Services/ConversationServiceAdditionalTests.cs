@@ -248,7 +248,7 @@ namespace BackendMessages.Tests.Services
 
             // Assert
             result.Should().NotBeNull();
-            result.Id.Should().Be(existingConversation.Id);
+            result!.Id.Should().Be(existingConversation.Id);
             _conversationRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Conversation>()), Times.Never);
         }
 

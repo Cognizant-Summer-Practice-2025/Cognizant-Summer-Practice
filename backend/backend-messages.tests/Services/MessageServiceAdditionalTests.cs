@@ -45,6 +45,7 @@ namespace BackendMessages.Tests.Services
             _conversationRepositoryMock = new Mock<IConversationRepository>();
             _hubContextMock = new Mock<IHubContext<MessageHub>>();
             _clientProxyMock = new Mock<IClientProxy>();
+            _groupManagerMock = new Mock<IGroupManager>();
             _loggerMock = new Mock<ILogger<MessageService>>();
 
             // Setup hub context
