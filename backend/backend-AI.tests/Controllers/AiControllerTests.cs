@@ -16,6 +16,7 @@ namespace backend_AI.tests.Controllers
         private readonly Mock<IPortfolioApiClient> _mockPortfolioApi;
         private readonly Mock<IPortfolioRankingService> _mockRanking;
         private readonly Mock<ILogger<AiController>> _mockLogger;
+        private readonly Mock<ITechNewsPortfolioClient> _mockTechNewsPortfolioClient;
         private readonly AiController _controller;
 
         public AiControllerTests()
@@ -24,7 +25,8 @@ namespace backend_AI.tests.Controllers
             _mockPortfolioApi = new Mock<IPortfolioApiClient>();
             _mockRanking = new Mock<IPortfolioRankingService>();
             _mockLogger = new Mock<ILogger<AiController>>();
-            _controller = new AiController(_mockChat.Object, _mockPortfolioApi.Object, _mockRanking.Object, _mockLogger.Object);
+            _mockTechNewsPortfolioClient = new Mock<ITechNewsPortfolioClient>();
+            _controller = new AiController(_mockChat.Object, _mockPortfolioApi.Object, _mockRanking.Object, _mockLogger.Object, _mockTechNewsPortfolioClient.Object);
         }
 
         [Fact]

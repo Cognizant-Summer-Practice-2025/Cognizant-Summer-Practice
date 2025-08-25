@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedRoutes = ["/profile", "/publish"];
+const protectedRoutes = ["/profile", "/publish", "/ai"];
 
 // Define allowed origins for CORS
 const allowedOrigins = [
@@ -70,6 +70,7 @@ export const config = {
     matcher: [
         "/profile/:path*", 
         "/publish/:path*",
+        "/ai/:path*",
         "/api/:path*"  // Include API routes for CORS handling
     ]
 };

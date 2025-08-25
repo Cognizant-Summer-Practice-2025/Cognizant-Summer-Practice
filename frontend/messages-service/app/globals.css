@@ -118,6 +118,15 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Ensure light background by default */
+    background-color: white !important;
+    color: #020817 !important;
+  }
+  
+  /* Only apply dark mode when explicitly using dark class */
+  .dark body {
+    background-color: #1a1a1a !important;
+    color: white !important;
   }
 }
 

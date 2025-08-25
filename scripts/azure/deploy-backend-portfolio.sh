@@ -50,22 +50,22 @@ PORTFOLIO_DB_HOST="${PORTFOLIO_DB_HOST:-portfolio-db}"
 if [[ "$PORTFOLIO_DB_HOST" == *".postgres.database.azure.com"* ]]; then
   echo "Ensuring database 'portfolio_db' exists on $PORTFOLIO_DB_HOST with SSL"
   docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
-    psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -tc \
+    psql "host=$PORTFOLIO_DB_HOST port=5434 dbname=postgres user=$POSTGRES_USER sslmode=require" -tc \
     "SELECT 1 FROM pg_database WHERE datname='portfolio_db'" | grep -q 1 || \
   docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
-    psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=postgres user=$POSTGRES_USER sslmode=require" -c \
+    psql "host=$PORTFOLIO_DB_HOST port=5434 dbname=postgres user=$POSTGRES_USER sslmode=require" -c \
     "CREATE DATABASE portfolio_db;"
 
   # Initialize schema if core table is missing
   echo "Checking if schema is initialized in 'portfolio_db'"
   if ! docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" postgres:15 \
-    psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=portfolio_db user=$POSTGRES_USER sslmode=require" -tAc \
+    psql "host=$PORTFOLIO_DB_HOST port=5434 dbname=portfolio_db user=$POSTGRES_USER sslmode=require" -tAc \
     "SELECT to_regclass('public.portfolios')" | grep -q portfolios; then
     echo "Initializing schema from database/portfolio-db/portfolio_db_init.sql"
     SQL_FILE="$SCRIPT_DIR/../../database/portfolio-db/portfolio_db_init.sql"
     if [[ -f "$SQL_FILE" ]]; then
       docker run --rm -e PGPASSWORD="$POSTGRES_PASSWORD" -v "$REPO_ROOT:/repo" postgres:15 \
-        psql "host=$PORTFOLIO_DB_HOST port=5432 dbname=portfolio_db user=$POSTGRES_USER sslmode=require" -f \
+        psql "host=$PORTFOLIO_DB_HOST port=5434 dbname=portfolio_db user=$POSTGRES_USER sslmode=require" -f \
         "/repo/database/portfolio-db/portfolio_db_init.sql"
     else
       echo "Warning: SQL init file not found at $SQL_FILE; skipping schema init"
@@ -98,6 +98,8 @@ echo "  USER_SERVICE_URL: $USER_SERVICE_URL"
 echo "  ConnectionStrings__Database_Portfolio: ${ConnectionStrings__Database_Portfolio:0:50}..."
 echo ""
 
+echo "Using ConnectionStrings__Database_Portfolio from .env"
+
 if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&1; then
   echo "Updating existing Container App: $APP_NAME"
   az containerapp update \
@@ -105,13 +107,15 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
     --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
     --image "$FQ_IMAGE" \
     --set-env-vars \
-      ConnectionStrings__Database_Portfolio="Host=$PORTFOLIO_DB_HOST;Port=5432;Database=portfolio_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
+  ConnectionStrings__Database_Portfolio="$ConnectionStrings__Database_Portfolio" \
       ExternalServices__UserService__BaseUrl="$USER_SVC_URL" \
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      AIRFLOW_SECRET="${AIRFLOW_SECRET:-}" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
+
 else
   az containerapp up \
     --name "$APP_NAME" \
@@ -124,15 +128,17 @@ else
     --ingress external \
     --target-port 5201 \
     --env-vars \
-      ConnectionStrings__Database_Portfolio="Host=$PORTFOLIO_DB_HOST;Port=5432;Database=portfolio_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
+      ConnectionStrings__Database_Portfolio="$ConnectionStrings__Database_Portfolio" \
       ExternalServices__UserService__BaseUrl="$USER_SVC_URL" \
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      AIRFLOW_SECRET="${AIRFLOW_SECRET:-}" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 fi
 
 echo "Deployed $APP_NAME"
+
 
 

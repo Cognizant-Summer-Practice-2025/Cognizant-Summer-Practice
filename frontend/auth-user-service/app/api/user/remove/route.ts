@@ -56,9 +56,9 @@ export async function DELETE(request: NextRequest) {
     // If this is the current user, set a signout signal
     if (isCurrentUser) {
       global.authServiceSignoutSignals.add(email);
-      console.log(`User ${email} removed from auth-service (current user - signout signal set)`);
-    } else {
-      console.log(`User ${email} removed from auth-service`);
+              // User removed from auth-service (current user - signout signal set)
+      } else {
+        // User removed from auth-service
     }
 
     return NextResponse.json({ 

@@ -28,22 +28,16 @@ export class AuthenticatedApiClient {
     // Add OAuth 2.0 Bearer token if required
     if (requireAuth) {
       const session = await getSession()
-      console.log('🔐 Auth: Session data:', { 
-        hasSession: !!session, 
-        hasAccessToken: session?.accessToken,
-        tokenLength: session?.accessToken?.length || 0 
-      });
       
       if (session?.accessToken) {
         requestHeaders['Authorization'] = `Bearer ${session.accessToken}`
-        console.log('🔐 Auth: Added Authorization header with token length:', session.accessToken.length);
       } else {
         console.error('🔐 Auth: No access token available in session');
         throw new Error('No access token available. Please sign in.')
       }
-    } else {
-      console.log('🔐 Auth: Skipping authentication for endpoint:', endpoint);
-    }
+          } else {
+        // Authentication skipped for public endpoint
+      }
 
     const config: RequestInit = {
       method,

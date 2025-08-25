@@ -808,7 +808,7 @@
   background: linear-gradient(135deg, #f0fdf4 0%, #f1f5f9 100%);
 }
 
-/* OLD CATEGORY HEADER CSS REMOVED - Using new clean structure above */
+
 
 .skill-category-header-left {
   display: flex;
@@ -901,7 +901,7 @@
   transform: rotate(-90deg) scale(1.1);
 }
 
-/* OLD CSS REMOVED - Using new clean structure above */
+
 
 .skill-subcategories::-webkit-scrollbar {
   width: 6px;
@@ -923,9 +923,9 @@
   background: #94a3b8;
 }
 
-/* OLD ENHANCED SCROLLING REMOVED - Using new clean structure */
 
-/* OLD SUBCATEGORY CSS REMOVED - Using new clean structure above */
+
+
 
 /* When subcategory options are collapsed, reduce spacing */
 .skill-subcategory:has(.skill-subcategory-options.collapsed) {
@@ -954,7 +954,7 @@
   margin-bottom: 3rem; /* Extra margin for last category */
 }
 
-/* OLD COMPLEX SUBCATEGORY HEADER REMOVED - Using new clean structure above */
+
 
 .skill-subcategory-header-left {
   display: flex;
@@ -1273,7 +1273,7 @@
   scroll-behavior: smooth;
 }
 
-/* OLD COMPLEX SKILL OPTION STYLING REMOVED - Using new clean structure above */
+
 
 /* Staggered animation for skill options */
 .skill-subcategory-options:not(.collapsed) .skill-option {

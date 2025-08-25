@@ -38,6 +38,7 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IBookmarkRepository, BookmarkRepository>();
         services.AddScoped<IUserReportRepository, UserReportRepository>();
         services.AddScoped<IUserAnalyticsRepository, UserAnalyticsRepository>();
+        services.AddScoped<IPremiumSubscriptionRepository, PremiumSubscriptionRepository>();
 
         return services;
     }
@@ -71,6 +72,8 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IUserReportService, UserReportService>();
         services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
         services.AddScoped<IOAuth2Service, OAuth2Service>();
+        services.AddScoped<IStripeService, StripeService>();
+        services.AddScoped<IHealthCheckService, HealthCheckService>();
 
         return services;
     }

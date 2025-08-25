@@ -27,7 +27,11 @@ namespace backend_AI.Services.External
         public async Task<string> GetAllPortfoliosDetailedJsonAsync(CancellationToken cancellationToken = default)
         {
             var portfolioBaseUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL")
-                                   ?? throw new InvalidOperationException("PORTFOLIO_SERVICE_URL environment variable is not set");
+                                   ?? _configuration["PortfolioService:BaseUrl"];
+            if (string.IsNullOrEmpty(portfolioBaseUrl))
+            {
+                throw new InvalidOperationException("PORTFOLIO_SERVICE_URL environment variable or PortfolioService:BaseUrl configuration is not set");
+            }
 
             var url = new Uri(new Uri(portfolioBaseUrl), "/api/portfolio/detailed-all");
             _logger.LogInformation("AI: Fetching portfolios from {Url}", url);
@@ -58,8 +62,11 @@ namespace backend_AI.Services.External
         public async Task<System.Text.Json.JsonElement?> GetPortfolioByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var portfolioBaseUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL")
-                                   ?? _configuration["PortfolioService:BaseUrl"]
-                                   ?? "http://localhost:5201";
+                                   ?? _configuration["PortfolioService:BaseUrl"];
+            if (string.IsNullOrEmpty(portfolioBaseUrl))
+            {
+                throw new InvalidOperationException("PORTFOLIO_SERVICE_URL environment variable or PortfolioService:BaseUrl configuration is not set");
+            }
 
             var url = new Uri(new Uri(portfolioBaseUrl), $"/api/portfolio/{id}");
             _logger.LogInformation("AI: Fetching portfolio by id from {Url}", url);
@@ -97,8 +104,11 @@ namespace backend_AI.Services.External
         public async Task<string> GetAllPortfoliosBasicJsonAsync(CancellationToken cancellationToken = default)
         {
             var portfolioBaseUrl = Environment.GetEnvironmentVariable("PORTFOLIO_SERVICE_URL")
-                                   ?? _configuration["PortfolioService:BaseUrl"]
-                                   ?? "http://localhost:5201";
+                                   ?? _configuration["PortfolioService:BaseUrl"];
+            if (string.IsNullOrEmpty(portfolioBaseUrl))
+            {
+                throw new InvalidOperationException("PORTFOLIO_SERVICE_URL environment variable or PortfolioService:BaseUrl configuration is not set");
+            }
 
             var url = new Uri(new Uri(portfolioBaseUrl), "/api/portfolio");
             _logger.LogInformation("AI: Fetching basic portfolios from {Url}", url);

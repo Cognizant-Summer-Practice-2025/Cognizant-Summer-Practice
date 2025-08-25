@@ -63,8 +63,8 @@ const Chat: React.FC<ChatProps> = ({
             try {
                 await onSendMessage(newMessage.trim());
                 setNewMessage("");
-            } catch (sendError) {
-                console.error('Failed to send message:', sendError);
+            } catch {
+                // Error handling done by parent component
             }
         }
     };
@@ -80,8 +80,7 @@ const Chat: React.FC<ChatProps> = ({
         try {
             await navigator.clipboard.writeText(text);
             message.success('Message copied to clipboard');
-                    } catch (copyError) {
-                console.error('Failed to copy message:', copyError);
+                    } catch {
             message.error('Failed to copy message');
         }
     };
@@ -91,12 +90,10 @@ const Chat: React.FC<ChatProps> = ({
             try {
                 await onDeleteMessage(messageId);
                 message.success('Message deleted successfully');
-            } catch (deleteError) {
-                console.error('Failed to delete message:', deleteError);
+            } catch {
                 message.error('Failed to delete message');
             }
         } else {
-            console.log('Delete message functionality not implemented yet');
             message.info('Delete functionality will be available soon');
         }
     };
