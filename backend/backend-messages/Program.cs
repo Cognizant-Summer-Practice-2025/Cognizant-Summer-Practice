@@ -4,7 +4,7 @@ using System.IO;
 var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables from .env file located in the project content root
-DotNetEnv.Env.Load(Path.Combine(builder.Environment.ContentRootPath, ".env"));
+DotNetEnv.Env.Load();
 
 // Configure Email settings from environment variables
 builder.Configuration.AddInMemoryCollection(GetEmailConfigurationFromEnvironment());
