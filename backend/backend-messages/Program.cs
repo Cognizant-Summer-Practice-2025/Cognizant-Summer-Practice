@@ -1,10 +1,10 @@
 using BackendMessages.Config;
 using System.IO;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Load environment variables from .env file located in the project content root
+// Load environment variables 
 DotNetEnv.Env.Load();
+
+var builder = WebApplication.CreateBuilder(args);
 
 // Configure Email settings from environment variables
 builder.Configuration.AddInMemoryCollection(GetEmailConfigurationFromEnvironment());
