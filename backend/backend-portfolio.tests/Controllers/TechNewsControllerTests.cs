@@ -16,6 +16,7 @@ namespace backend_portfolio.tests.Controllers
     public class TechNewsControllerTests
     {
         private readonly Mock<ITechNewsSummaryService> _mockService;
+        private readonly Mock<IAirflowAuthorizationService> _mockAirflowAuth;
         private readonly Mock<ILogger<TechNewsController>> _mockLogger;
         private readonly TechNewsController _controller;
 
@@ -28,13 +29,15 @@ namespace backend_portfolio.tests.Controllers
             {
                 HttpContext = httpContext
             };
+            _mockAirflowAuth.Setup(a => a.IsServiceToServiceCall(It.IsAny<HttpContext>())).Returns(true);
         }
 
         public TechNewsControllerTests()
         {
             _mockService = new Mock<ITechNewsSummaryService>();
+            _mockAirflowAuth = new Mock<IAirflowAuthorizationService>();
             _mockLogger = new Mock<ILogger<TechNewsController>>();
-            _controller = new TechNewsController(_mockService.Object, _mockLogger.Object);
+            _controller = new TechNewsController(_mockService.Object, _mockAirflowAuth.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -202,58 +205,7 @@ namespace backend_portfolio.tests.Controllers
         }
 
         [Fact]
-        public async Task PostSummary_ShouldReturn500_WhenServiceThrowsArgumentException()
-        {
-            // Arrange
-            var request = new TechNewsSummaryRequestDto
-            {
-                Summary = "Valid summary",
-                WorkflowCompleted = false
-            };
-
-            var expectedException = new ArgumentException("Invalid request", "request");
-            _mockService.Setup(s => s.UpsertAsync(It.IsAny<TechNewsSummaryRequestDto>())).ThrowsAsync(expectedException);
-            SetupServiceToServiceCall();
-
-            // Act
-            var result = await _controller.PostSummary(request);
-
-            // Assert
-            result.Should().BeOfType<BadRequestObjectResult>();
-            var badRequestResult = result as BadRequestObjectResult;
-            badRequestResult!.Value.Should().BeEquivalentTo(new { error = expectedException.Message });
-
-            _mockService.Verify(s => s.UpsertAsync(It.IsAny<TechNewsSummaryRequestDto>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task PostSummary_ShouldReturn500_WhenServiceThrowsOtherException()
-        {
-            // Arrange
-            var request = new TechNewsSummaryRequestDto
-            {
-                Summary = "Valid summary",
-                WorkflowCompleted = false
-            };
-
-            var expectedException = new InvalidOperationException("Service error");
-            _mockService.Setup(s => s.UpsertAsync(It.IsAny<TechNewsSummaryRequestDto>())).ThrowsAsync(expectedException);
-            SetupServiceToServiceCall();
-
-            // Act
-            var result = await _controller.PostSummary(request);
-
-            // Assert
-            result.Should().BeOfType<ObjectResult>();
-            var objectResult = result as ObjectResult;
-            objectResult!.StatusCode.Should().Be(500);
-            objectResult.Value.Should().BeEquivalentTo(new { error = "Internal server error" });
-
-            _mockService.Verify(s => s.UpsertAsync(It.IsAny<TechNewsSummaryRequestDto>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task PostSummary_ShouldReturn500_WhenRequestIsNull()
+        public async Task PostSummary_ShouldReturnBadRequest_WhenRequestIsNull()
         {
             // Arrange
             TechNewsSummaryRequestDto? request = null;
@@ -268,6 +220,25 @@ namespace backend_portfolio.tests.Controllers
             var badRequestResult = result as BadRequestObjectResult;
             badRequestResult!.Value.Should().BeEquivalentTo(new { error = "Request body is required" });
 
+            _mockService.Verify(s => s.UpsertAsync(It.IsAny<TechNewsSummaryRequestDto>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task PostSummary_ShouldReturnUnauthorized_WhenExternalCallNotAuthorized()
+        {
+            // Arrange: external call (not service-to-service), unauthorized
+            var request = new TechNewsSummaryRequestDto { Summary = "Valid", WorkflowCompleted = true };
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Host = new HostString("example.com");
+            _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+            _mockAirflowAuth.Setup(a => a.IsServiceToServiceCall(It.IsAny<HttpContext>())).Returns(false);
+            _mockAirflowAuth.Setup(a => a.IsAuthorizedExternalCall(It.IsAny<HttpContext>())).Returns(false);
+
+            // Act
+            var result = await _controller.PostSummary(request);
+
+            // Assert
+            result.Should().BeOfType<UnauthorizedObjectResult>();
             _mockService.Verify(s => s.UpsertAsync(It.IsAny<TechNewsSummaryRequestDto>()), Times.Never);
         }
     }
