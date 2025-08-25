@@ -29,9 +29,8 @@ namespace BackendMessages.Services
         public async Task<bool> SendUnreadMessagesNotificationAsync(UnreadMessagesNotification notification)
         {
             // Validate input
-            if (!_emailValidator.IsValidUnreadMessagesNotification(notification))
+            if (!ValidateNotification(notification, _emailValidator.IsValidUnreadMessagesNotification))
             {
-                _logger.LogWarning("Validation failed for unread messages notification");
                 return false;
             }
 
@@ -60,9 +59,8 @@ namespace BackendMessages.Services
         public async Task<bool> SendContactRequestNotificationAsync(ContactRequestNotification notification)
         {
             // Validate input
-            if (!_emailValidator.IsValidContactRequestNotification(notification))
+            if (!ValidateNotification(notification, _emailValidator.IsValidContactRequestNotification))
             {
-                _logger.LogWarning("Validation failed for contact request notification");
                 return false;
             }
 
@@ -87,6 +85,16 @@ namespace BackendMessages.Services
                     notification.Recipient.Email);
                 return false;
             }
+        }
+
+        private bool ValidateNotification<T>(T notification, Func<T, bool> validationFunc)
+        {
+            if (!validationFunc(notification))
+            {
+                _logger.LogWarning("Validation failed for {NotificationType} notification", typeof(T).Name);
+                return false;
+            }
+            return true;
         }
 
         private EmailMessage CreateEmailMessage(
