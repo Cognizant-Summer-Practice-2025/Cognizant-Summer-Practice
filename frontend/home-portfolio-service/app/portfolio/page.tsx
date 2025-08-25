@@ -74,7 +74,6 @@ function NoPortfolioFound({
 const PortfolioContent = () => {
   const [TemplateComponent, setTemplateComponent] = useState<React.ComponentType<{data: PortfolioDataFromDB | PortfolioData}> | null>(null);
   const [templateLoading, setTemplateLoading] = useState(false);
-  const [hasCheckedPortfolio, setHasCheckedPortfolio] = useState(false);
   
   const router = useRouter();
   const { user: currentUser } = useUser();
@@ -94,30 +93,12 @@ const PortfolioContent = () => {
   const searchParams = useSearchParams();
   const userId = searchParams.get('user');
   const portfolioId = searchParams.get('portfolio');
+  
+
 
   const handleCreatePortfolio = () => {
     router.push('/publish');
   };
-
-  // Check if portfolio exists and redirect if not
-  useEffect(() => {
-    // Only check once after portfolio loading is complete
-    if (hasCheckedPortfolio || portfolioLoading) return;
-
-    // If there's an error or no portfolio found, redirect to home
-    if (portfolioError || (!currentPortfolio && !portfolioLoading)) {
-      // Check if we have URL parameters to determine the redirect reason
-      if (portfolioId || userId) {
-        // Portfolio not found, redirect to home page
-        router.replace('/');
-      }
-    }
-
-    // Mark that we've checked the portfolio
-    if (!portfolioLoading) {
-      setHasCheckedPortfolio(true);
-    }
-  }, [portfolioError, currentPortfolio, portfolioLoading, hasCheckedPortfolio, router, portfolioId, userId]);
 
   // Create portfolio data structure for templates (compatibility layer)
   const createPortfolioDataForTemplate = (): PortfolioDataFromDB | PortfolioData | null => {
@@ -212,25 +193,24 @@ const PortfolioContent = () => {
   // Load portfolio data when URL parameters change
   useEffect(() => {
     async function loadPortfolio() {
-      // Clear any existing portfolio when URL changes
-      clearCurrentPortfolio();
-      setHasCheckedPortfolio(false); // Reset check flag when URL changes
-      
-      if (portfolioId) {
-        // Load portfolio by ID
-        await loadPortfolioById(portfolioId, true); // increment views
-      } else if (userId) {
-        // Load user's published portfolio
-        await loadPortfolioByUserId(userId, true); // increment views
-      }
+              // Clear any existing portfolio when URL changes
+        clearCurrentPortfolio();
+        
+        if (portfolioId) {
+          // Load portfolio by ID
+          await loadPortfolioById(portfolioId, true); // increment views
+        } else if (userId) {
+          // Load user's published portfolio
+          await loadPortfolioByUserId(userId, true); // increment views
+        }
     }
 
-    if (portfolioId || userId) {
-      loadPortfolio();
-    } else if (currentUser?.id) {
-      // If no user ID provided but we have a current user, load their portfolio
-      loadPortfolioByUserId(currentUser.id, true);
-    }
+          if (portfolioId || userId) {
+        loadPortfolio();
+      } else if (currentUser?.id) {
+        // If no user ID provided but we have a current user, load their portfolio
+        loadPortfolioByUserId(currentUser.id, true);
+      }
   }, [portfolioId, userId, loadPortfolioByUserId, loadPortfolioById, clearCurrentPortfolio, currentUser]);
 
   // Load template component when portfolio data is available
@@ -248,6 +228,8 @@ const PortfolioContent = () => {
         const rawTemplateId = currentPortfolio.templateId || getDefaultTemplate().id;
         const templateId = await convertTemplateUuidToId(rawTemplateId);
         
+
+        
         // Load the template component
         const templateModule = await loadTemplateComponent(templateId);
         setTemplateComponent(() => templateModule.default as React.ComponentType<{data: PortfolioDataFromDB | PortfolioData}>);
@@ -262,20 +244,15 @@ const PortfolioContent = () => {
     loadTemplate();
   }, [currentPortfolio]);
 
+
+
   // Show loading state
   if (portfolioLoading || templateLoading || !currentPortfolio || !currentPortfolioEntities) {
     return <TemplateLoader />;
   }
 
-  // Show no portfolio found (this should only show for own portfolio creation, not for invalid URLs)
+  // Show no portfolio found
   if (portfolioError || (!currentPortfolio && !portfolioLoading)) {
-    // If we have URL parameters but no portfolio, this means the portfolio doesn't exist
-    // and we should redirect (handled by the useEffect above)
-    if (portfolioId || userId) {
-      return <TemplateLoader />; // Show loading while redirecting
-    }
-    
-    // For own portfolio (no URL params), show the create portfolio option
     return (
       <NoPortfolioFound 
         isOwnProfile={isViewingOwnPortfolio}
