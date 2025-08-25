@@ -94,6 +94,7 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IProjectCommandService, ProjectCommandService>();
         services.AddScoped<ITechNewsSummaryService, TechNewsSummaryService>();
         services.AddScoped<IHealthCheckService, HealthCheckService>();
+        services.AddScoped<IAirflowAuthorizationService, AirflowAuthorizationService>();
 
         return services;
     }

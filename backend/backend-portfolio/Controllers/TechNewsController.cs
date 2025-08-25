@@ -14,12 +14,15 @@ namespace backend_portfolio.Controllers
     {
         private readonly ITechNewsSummaryService _techNewsService;
         private readonly ILogger<TechNewsController> _logger;
+        private readonly IAirflowAuthorizationService _airflowAuthorizationService;
 
         public TechNewsController(
             ITechNewsSummaryService techNewsService,
+            IAirflowAuthorizationService airflowAuthorizationService,
             ILogger<TechNewsController> logger)
         {
             _techNewsService = techNewsService ?? throw new ArgumentNullException(nameof(techNewsService));
+            _airflowAuthorizationService = airflowAuthorizationService ?? throw new ArgumentNullException(nameof(airflowAuthorizationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -60,36 +63,11 @@ namespace backend_portfolio.Controllers
             try
             {
                 // Check if this is a service-to-service call from backend-AI
-                var isServiceToServiceCall = IsServiceToServiceCall();
+                var isServiceToServiceCall = _airflowAuthorizationService.IsServiceToServiceCall(HttpContext);
                 
                 if (!isServiceToServiceCall)
                 {
-                    // For external calls (like direct AirFlow calls), require AIRFLOW_SECRET
-                    var airflowSecret = Environment.GetEnvironmentVariable("AIRFLOW_SECRET");
-                    if (string.IsNullOrEmpty(airflowSecret))
-                    {
-                        _logger.LogError("AIRFLOW_SECRET environment variable is not configured");
-                        return StatusCode(503, new { error = "Airflow secret not configured on server" });
-                    }
-
-                    var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-                    var xAirflowSecretHeader = Request.Headers["X-Airflow-Secret"].FirstOrDefault();
-
-                    var isAuthorized = false;
-                    if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var token = authHeader.Substring("Bearer ".Length).Trim();
-                        if (token == airflowSecret)
-                        {
-                            isAuthorized = true;
-                        }
-                    }
-                    else if (!string.IsNullOrEmpty(xAirflowSecretHeader) && xAirflowSecretHeader == airflowSecret)
-                    {
-                        isAuthorized = true;
-                    }
-
-                    if (!isAuthorized)
+                    if (!_airflowAuthorizationService.IsAuthorizedExternalCall(HttpContext))
                     {
                         _logger.LogWarning("Unauthorized attempt to post tech news summary");
                         return Unauthorized(new { error = "Unauthorized: Invalid or missing Airflow secret" });
@@ -130,20 +108,6 @@ namespace backend_portfolio.Controllers
         /// <summary>
         /// Determines if the request is a service-to-service call from backend-AI
         /// </summary>
-        private bool IsServiceToServiceCall()
-        {
-            // Check if the request is coming from localhost (service-to-service)
-            var remoteIp = HttpContext.Connection.RemoteIpAddress;
-            var isLocalhost = remoteIp?.Equals(System.Net.IPAddress.Loopback) == true || 
-                             remoteIp?.Equals(System.Net.IPAddress.IPv6Loopback) == true ||
-                             Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
-                             Request.Host.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase);
-
-            // Also check if there's a specific header indicating it's from backend-AI
-            var isFromBackendAI = Request.Headers.ContainsKey("X-Service-Name") && 
-                                 Request.Headers["X-Service-Name"].ToString().Equals("backend-AI", StringComparison.OrdinalIgnoreCase);
-
-            return isLocalhost || isFromBackendAI;
-        }
+        // Authorization logic moved into service
     }
 }
