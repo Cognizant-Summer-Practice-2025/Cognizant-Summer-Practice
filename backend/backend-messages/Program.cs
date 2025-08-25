@@ -1,13 +1,17 @@
 using BackendMessages.Config;
+using BackendMessages.Models.Email;
+using Microsoft.Extensions.Options;
 using System.IO;
+
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load environment variables from .env file located in the project content root
-DotNetEnv.Env.Load();
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection(EmailSettings.SectionName));
 
-// Configure Email settings from environment variables
-builder.Configuration.AddInMemoryCollection(GetEmailConfigurationFromEnvironment());
+// Add configuration validation
+builder.Services.AddSingleton<IValidateOptions<EmailSettings>, EmailSettingsValidator>();
 
 // Configure services using extension methods
 builder.Services
@@ -22,73 +26,51 @@ builder.Services
 
 var app = builder.Build();
 
-// Validate critical email configuration
+// Validate critical email configuration using strongly-typed settings
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-var configuration = app.Services.GetRequiredService<IConfiguration>();
+var emailSettings = app.Services.GetRequiredService<IOptions<EmailSettings>>().Value;
 
-var smtpPassword = configuration["Email:SmtpPassword"];
-if (string.IsNullOrEmpty(smtpPassword))
+try
 {
-    logger.LogWarning("SMTP Password not configured");
+    emailSettings.Validate();
+
+    var hasUsername = !string.IsNullOrEmpty(emailSettings.SmtpUsername);
+    var hasPassword = !string.IsNullOrEmpty(emailSettings.SmtpPassword);
 }
-else if (smtpPassword.Contains("REPLACE_WITH") || smtpPassword.Contains("YOUR_PASSWORD") || smtpPassword.Contains("PLACEHOLDER"))
+catch (Exception ex)
 {
-    logger.LogError("SMTP Password appears to be a placeholder. Please configure a real Gmail App Password.");
+    logger.LogError(ex, "Email configuration validation failed: {Message}", ex.Message);
+    
+    // In production, you might want to exit the application if email config is invalid
+    if (app.Environment.IsProduction())
+    {
+        logger.LogCritical("Application cannot start with invalid email configuration in production");
+        Environment.Exit(1);
+    }
 }
 
-// Log scheduler configuration
-logger.LogInformation("Scheduler configured to send unread messages notifications twice daily at 8:00 AM and 4:00 PM UTC");
-
-// Configure middleware pipeline
 app.UseApplicationMiddleware();
 
 // Map SignalR hubs
 app.MapSignalRHubs();
 
-logger.LogInformation("Messages service started successfully with scheduler enabled");
-logger.LogInformation("=== MESSAGES SERVICE READY ===");
-
 app.Run();
 
-// Method to get email configuration from environment variables
-static Dictionary<string, string?> GetEmailConfigurationFromEnvironment()
+/// <summary>
+/// Validator for EmailSettings configuration
+/// </summary>
+public class EmailSettingsValidator : IValidateOptions<EmailSettings>
 {
-    var emailConfig = new Dictionary<string, string?>();
-    
-    // Add email configuration from environment variables if they exist
-    var envVars = new[]
+    public ValidateOptionsResult Validate(string? name, EmailSettings options)
     {
-        "EMAIL_SMTP_HOST",
-        "EMAIL_SMTP_PORT", 
-        "EMAIL_SMTP_USERNAME",
-        "EMAIL_FROM_ADDRESS",
-        "EMAIL_FROM_NAME",
-        "EMAIL_USE_SSL",
-        "EMAIL_ENABLE_CONTACT_NOTIFICATIONS"
-    };
-
-    foreach (var envVar in envVars)
-    {
-        var value = Environment.GetEnvironmentVariable(envVar);
-        if (!string.IsNullOrEmpty(value))
+        try
         {
-            var configKey = envVar.Replace("EMAIL_", "Email:").Replace("_", "");
-            emailConfig[configKey] = value;
+            options.Validate();
+            return ValidateOptionsResult.Success;
+        }
+        catch (Exception ex)
+        {
+            return ValidateOptionsResult.Fail(ex.Message);
         }
     }
-
-    // Handle Gmail-specific environment variables
-    var gmailUsername = Environment.GetEnvironmentVariable("GMAIL_USERNAME");
-    if (!string.IsNullOrEmpty(gmailUsername))
-    {
-        emailConfig["Email:SmtpUsername"] = gmailUsername;
-    }
-    
-    var gmailAppPassword = Environment.GetEnvironmentVariable("GMAIL_APP_PASSWORD");
-    if (!string.IsNullOrEmpty(gmailAppPassword))
-    {
-        emailConfig["Email:SmtpPassword"] = gmailAppPassword;
-    }
-
-    return emailConfig;
 }

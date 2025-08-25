@@ -7,6 +7,7 @@ using BackendMessages.Services.Abstractions;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace BackendMessages.Tests.Services
         private readonly Mock<IEmailValidator> _emailValidatorMock;
         private readonly Mock<IEmailTemplateEngine> _templateEngineMock;
         private readonly Mock<ISmtpClientService> _smtpClientServiceMock;
-        private readonly Mock<IConfiguration> _configurationMock;
+        private readonly Mock<IOptions<EmailSettings>> _emailSettingsMock;
         private readonly EmailService _service;
 
         public EmailServiceTests()
@@ -27,14 +28,31 @@ namespace BackendMessages.Tests.Services
             _emailValidatorMock = new Mock<IEmailValidator>();
             _templateEngineMock = new Mock<IEmailTemplateEngine>();
             _smtpClientServiceMock = new Mock<ISmtpClientService>();
-            _configurationMock = new Mock<IConfiguration>();
+            _emailSettingsMock = new Mock<IOptions<EmailSettings>>();
+
+            // Setup default email settings for tests
+            var emailSettings = new EmailSettings
+            {
+                SmtpHost = "localhost",
+                SmtpPort = 1025,
+                SmtpUsername = "test@example.com",
+                SmtpPassword = "testpassword",
+                FromAddress = "test@example.com",
+                FromName = "Test Service",
+                UseSSL = false,
+                EnableContactNotifications = true,
+                TimeoutSeconds = 30,
+                MaxRetryAttempts = 3,
+                RetryDelaySeconds = 5
+            };
+            _emailSettingsMock.Setup(x => x.Value).Returns(emailSettings);
 
             _service = new EmailService(
                 _loggerMock.Object,
                 _emailValidatorMock.Object,
                 _templateEngineMock.Object,
                 _smtpClientServiceMock.Object,
-                _configurationMock.Object);
+                _emailSettingsMock.Object);
         }
 
         [Fact]
@@ -54,9 +72,6 @@ namespace BackendMessages.Tests.Services
             _templateEngineMock.Setup(x => x.GenerateUnreadMessagesTemplate(notification))
                 .Returns(("<html>Test HTML</html>", "Test Text"));
             
-            _configurationMock.Setup(x => x["Email:FromAddress"]).Returns("noreply@test.com");
-            _configurationMock.Setup(x => x["Email:FromName"]).Returns("Test Service");
-            
             _smtpClientServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<EmailMessage>()))
                 .ReturnsAsync(true);
 
@@ -70,7 +85,7 @@ namespace BackendMessages.Tests.Services
             _smtpClientServiceMock.Verify(x => x.SendEmailAsync(It.Is<EmailMessage>(em => 
                 em.RecipientEmail == notification.RecipientEmail &&
                 em.Subject == "You have 5 unread messages" &&
-                em.FromEmail == "noreply@test.com")), Times.Once);
+                em.FromEmail == "test@example.com")), Times.Once);
         }
 
         [Fact]
@@ -187,9 +202,6 @@ namespace BackendMessages.Tests.Services
             _templateEngineMock.Setup(x => x.GenerateContactRequestTemplate(notification))
                 .Returns(("<html>Contact Request</html>", "Contact Request Text"));
             
-            _configurationMock.Setup(x => x["Email:FromAddress"]).Returns("noreply@test.com");
-            _configurationMock.Setup(x => x["Email:FromName"]).Returns("Test Service");
-            
             _smtpClientServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<EmailMessage>()))
                 .ReturnsAsync(true);
 
@@ -292,10 +304,6 @@ namespace BackendMessages.Tests.Services
             _templateEngineMock.Setup(x => x.GenerateUnreadMessagesTemplate(notification))
                 .Returns(("<html>Test HTML</html>", "Test Text"));
             
-            // Configuration returns null, should use defaults
-            _configurationMock.Setup(x => x["Email:FromAddress"]).Returns((string?)null);
-            _configurationMock.Setup(x => x["Email:FromName"]).Returns((string?)null);
-            
             _smtpClientServiceMock.Setup(x => x.SendEmailAsync(It.IsAny<EmailMessage>()))
                 .ReturnsAsync(true);
 
@@ -305,8 +313,8 @@ namespace BackendMessages.Tests.Services
             // Assert
             result.Should().BeTrue();
             _smtpClientServiceMock.Verify(x => x.SendEmailAsync(It.Is<EmailMessage>(em => 
-                em.FromEmail == "noreply@goalkeeper.com" &&
-                em.FromName == "GoalKeeper Messages")), Times.Once);
+                em.FromEmail == "test@example.com" &&
+                em.FromName == "Test Service")), Times.Once);
         }
     }
 } 

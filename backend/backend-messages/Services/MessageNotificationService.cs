@@ -2,35 +2,33 @@ using Microsoft.EntityFrameworkCore;
 using BackendMessages.Data;
 using BackendMessages.Services.Abstractions;
 using BackendMessages.Models.Email;
+using Microsoft.Extensions.Options;
 
 namespace BackendMessages.Services
 {
     /// <summary>
-    /// Service for handling message-related notifications (email, push, etc.)
+    /// Service for handling message-related notifications (email)
     /// </summary>
     public class MessageNotificationService : IMessageNotificationService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly IConfiguration _configuration;
+        private readonly EmailSettings _emailSettings;
         private readonly ILogger<MessageNotificationService> _logger;
 
         public MessageNotificationService(
             IServiceScopeFactory serviceScopeFactory,
-            IConfiguration configuration,
+            IOptions<EmailSettings> emailSettings,
             ILogger<MessageNotificationService> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _configuration = configuration;
+            _emailSettings = emailSettings.Value;
             _logger = logger;
         }
 
         public Task SendContactRequestNotificationAsync(Guid conversationId, Guid senderId, Guid receiverId, bool isFirstMessageFromInitiator)
         {
-            var enableContactNotifications = bool.Parse(_configuration["Email:EnableContactNotifications"] ?? "true");
-            
-            if (!enableContactNotifications)
+            if (!_emailSettings.EnableContactNotifications)
             {
-                _logger.LogInformation("Contact notifications are disabled via configuration");
                 return Task.CompletedTask;
             }
 
@@ -69,21 +67,12 @@ namespace BackendMessages.Services
                                 };
                                 var emailResult = await emailService.SendContactRequestNotificationAsync(notification);
                                 
-                                if (emailResult)
-                                {
-                                    logger.LogInformation("Contact request email notification sent successfully for conversation {ConversationId}", conversationId);
-                                }
-                                else
+                                if (!emailResult)
                                 {
                                     logger.LogWarning("Contact request email notification failed for conversation {ConversationId}", conversationId);
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        logger.LogInformation("Skipping contact request notification - sender {SenderId} is not the conversation initiator for conversation {ConversationId}", 
-                            senderId, conversationId);
                     }
                 }
                 catch (Exception emailEx)

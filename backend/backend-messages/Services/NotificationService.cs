@@ -85,8 +85,6 @@ namespace BackendMessages.Services
                         _logger.LogError(ex, "Error processing unread messages for user {UserId}", userGroup.UserId);
                     }
                 }
-
-                _logger.LogInformation("Successfully processed {SummaryCount} user summaries for notifications", summaries.Count);
                 return summaries;
             }
             catch (Exception ex)
@@ -98,13 +96,11 @@ namespace BackendMessages.Services
 
                 public async Task SendDailyUnreadMessagesNotificationsAsync()
         {
-            _logger.LogInformation("=== UNREAD MESSAGES NOTIFICATION SERVICE START ===");
+
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             
             try
             {
-                _logger.LogInformation("Starting unread messages notification process at {StartTime} UTC", DateTime.UtcNow);
-
                 var usersWithUnreadMessages = await GetUsersWithUnreadMessagesAsync();
                 
                 if (usersWithUnreadMessages.Count == 0)
@@ -113,17 +109,12 @@ namespace BackendMessages.Services
                      return;
                 }
 
-                _logger.LogInformation("Found {UserCount} users with unread messages - proceeding with email notifications", usersWithUnreadMessages.Count);
-
                 var successCount = 0;
                 var failureCount = 0;
 
                 foreach (var userSummary in usersWithUnreadMessages)
                 {
-                    _logger.LogInformation("Sending notification to user {UserId} ({UserEmail}) for {UnreadCount} unread messages", 
-                        userSummary.UserId, userSummary.UserEmail, userSummary.UnreadCount);
-                    
-                    try
+                     try
                     {
                         var notification = new BackendMessages.Models.Email.UnreadMessagesNotification
                         {

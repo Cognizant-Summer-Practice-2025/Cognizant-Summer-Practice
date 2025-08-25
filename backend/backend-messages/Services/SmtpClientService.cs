@@ -3,6 +3,7 @@ using BackendMessages.Services.Abstractions;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 
 namespace BackendMessages.Services
@@ -10,12 +11,12 @@ namespace BackendMessages.Services
     public class SmtpClientService : ISmtpClientService
     {
         private readonly ILogger<SmtpClientService> _logger;
-        private readonly IConfiguration _configuration;
+        private readonly EmailSettings _emailSettings;
 
-        public SmtpClientService(ILogger<SmtpClientService> logger, IConfiguration configuration)
+        public SmtpClientService(ILogger<SmtpClientService> logger, IOptions<EmailSettings> emailSettings)
         {
             _logger = logger;
-            _configuration = configuration;
+            _emailSettings = emailSettings.Value;
         }
 
         public async Task<bool> SendEmailAsync(EmailMessage emailMessage)
@@ -38,9 +39,7 @@ namespace BackendMessages.Services
                 await client.DisconnectAsync(true);
                 
                 stopwatch.Stop();
-                _logger.LogInformation("Email sent successfully to {RecipientEmail} in {ElapsedMs}ms", 
-                    emailMessage.RecipientEmail, stopwatch.ElapsedMilliseconds);
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -56,11 +55,11 @@ namespace BackendMessages.Services
         {
             var fromEmail = !string.IsNullOrEmpty(emailMessage.FromEmail) 
                 ? emailMessage.FromEmail 
-                : _configuration["Email:FromAddress"] ?? "noreply@goalkeeper.com";
+                : _emailSettings.FromAddress;
             
             var fromName = !string.IsNullOrEmpty(emailMessage.FromName) 
                 ? emailMessage.FromName 
-                : _configuration["Email:FromName"] ?? "GoalKeeper Messages";
+                : _emailSettings.FromName;
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(fromName, fromEmail));
@@ -79,15 +78,15 @@ namespace BackendMessages.Services
 
         private async Task ConfigureSmtpClientAsync(SmtpClient client)
         {
-            var host = _configuration["Email:SmtpHost"] ?? "localhost";
-            var port = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
-            var useSSL = bool.Parse(_configuration["Email:UseSSL"] ?? "true");
-            var username = _configuration["Email:SmtpUsername"];
-            var password = _configuration["Email:SmtpPassword"];
+            var host = _emailSettings.SmtpHost;
+            var port = _emailSettings.SmtpPort;
+            var useSSL = _emailSettings.UseSSL;
+            var username = _emailSettings.SmtpUsername;
+            var password = _emailSettings.SmtpPassword;
             var isGmail = host.Contains("gmail.com", StringComparison.OrdinalIgnoreCase);
             var hasCredentials = !string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password);
 
-            client.Timeout = 60000; // 60 seconds
+            client.Timeout = _emailSettings.TimeoutSeconds * 1000; // Convert to milliseconds
             client.ServerCertificateValidationCallback = (s, c, h, e) => true; // Accept all certificates for development
             
             // Gmail-specific connection handling
