@@ -33,17 +33,14 @@ namespace BackendMessages.Services
             try
             {
                 var userServiceUrl = _configuration["UserServiceUrl"] ?? "http://localhost:5200";
-                _logger.LogInformation("🔐 AuthService: Validating token with user service at {UserServiceUrl}", userServiceUrl);
                 
                 // Call the user service to validate the token and get user info
                 using var httpClient = _httpClientFactory.CreateClient("UserService");
                 var request = new HttpRequestMessage(HttpMethod.Get, $"{userServiceUrl}/api/oauth/me");
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                _logger.LogInformation("🔐 AuthService: Sending validation request to user service with token length: {TokenLength}", token.Length);
-
+                
                 var response = await httpClient.SendAsync(request);
-                _logger.LogInformation("🔐 AuthService: User service response status: {StatusCode}", response.StatusCode);
-
+                
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("🔐 AuthService: Token validation failed with status: {StatusCode}", response.StatusCode);
@@ -51,8 +48,6 @@ namespace BackendMessages.Services
                 }
 
                 var userJson = await response.Content.ReadAsStringAsync();
-                _logger.LogInformation("🔐 AuthService: User service response body: {ResponseBody}", userJson);
-                
                 var userInfo = JsonSerializer.Deserialize<UserInfo>(userJson, new JsonSerializerOptions 
                 { 
                     PropertyNameCaseInsensitive = true 
@@ -64,10 +59,7 @@ namespace BackendMessages.Services
                     return null;
                 }
                 
-                _logger.LogInformation("🔐 AuthService: Successfully deserialized user info: {UserId}, {Email}, {Username}", 
-                    userInfo.UserId, userInfo.Email, userInfo.Username);
-
-                // Create claims from user info
+                 // Create claims from user info
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.NameIdentifier, userInfo.UserId.ToString()),
@@ -77,7 +69,6 @@ namespace BackendMessages.Services
                 };
 
                 var identity = new ClaimsIdentity(claims, "OAuth2");
-                _logger.LogInformation("🔐 AuthService: Created claims principal with {ClaimCount} claims", claims.Count);
                 return new ClaimsPrincipal(identity);
             }
             catch (Exception ex)

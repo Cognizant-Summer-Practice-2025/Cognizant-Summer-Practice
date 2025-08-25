@@ -61,6 +61,17 @@ public static class ServiceRegistrationConfiguration
     }
 
     /// <summary>
+    /// Registers startup validation services
+    /// </summary>
+    /// <param name="services">Service collection to configure</param>
+    /// <returns>Configured service collection</returns>
+    public static IServiceCollection AddStartupValidation(this IServiceCollection services)
+    {
+        services.AddScoped<IStartupValidationService, StartupValidationService>();
+        return services;
+    }
+
+    /// <summary>
     /// Registers authentication services
     /// </summary>
     /// <param name="services">Service collection to configure</param>

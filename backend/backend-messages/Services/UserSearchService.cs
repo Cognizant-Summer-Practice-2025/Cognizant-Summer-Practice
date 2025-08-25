@@ -32,8 +32,6 @@ namespace BackendMessages.Services
                 var encodedSearchTerm = Uri.EscapeDataString(searchTerm);
                 var requestUrl = $"{_userServiceBaseUrl}/api/users/search?q={encodedSearchTerm}";
 
-                _logger.LogInformation("Searching users with term: {SearchTerm}", searchTerm);
-
                 using var httpClient = _httpClientFactory.CreateClient("UserService");
                 var response = await httpClient.GetAsync(requestUrl);
 

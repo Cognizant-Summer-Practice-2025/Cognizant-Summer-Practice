@@ -47,9 +47,6 @@ namespace BackendMessages.Services
                 // Send to sender (for multi-device support)
                 await _hubContext.Clients.Group($"user_{message.SenderId}")
                     .SendAsync("ReceiveMessage", messageResponse);
-
-                _logger.LogInformation("Message {MessageId} broadcasted via SignalR to sender {SenderId} and receiver {ReceiverId}", 
-                    message.Id, message.SenderId, message.ReceiverId);
             }
             catch (Exception ex)
             {
@@ -90,9 +87,7 @@ namespace BackendMessages.Services
                 await _hubContext.Clients.Group($"user_{conversation.ReceiverId}")
                     .SendAsync("ConversationUpdated", conversationUpdate);
 
-                _logger.LogInformation("Conversation {ConversationId} update broadcasted via SignalR to participants {InitiatorId} and {ReceiverId}", 
-                    conversation.Id, conversation.InitiatorId, conversation.ReceiverId);
-            }
+             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to broadcast conversation update {ConversationId} via SignalR", conversation.Id);

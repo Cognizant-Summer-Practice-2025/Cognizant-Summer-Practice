@@ -67,9 +67,6 @@ namespace BackendMessages.Services
                             </div>
                         </div>
                         
-                        <div style='background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;'>
-                            <p style='margin: 0; color: #6c757d; font-size: 12px;'>Twice daily digest • {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC</p>
-                        </div>
                     </div>
                 </body>
                 </html>";
@@ -129,10 +126,6 @@ UNREAD MESSAGES: {unreadCount}
                                     Log in to your account to view their message and respond.
                                 </p>
                             </div>
-                        </div>
-                        
-                        <div style='background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;'>
-                            <p style='margin: 0; color: #6c757d; font-size: 12px;'>Contact request • {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC</p>
                         </div>
                     </div>
                 </body>
