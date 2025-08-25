@@ -7,6 +7,7 @@ using BackendMessages.Data;
 using BackendMessages.Models;
 using BackendMessages.Hubs;
 using BackendMessages.Repositories;
+using BackendMessages.Services.Abstractions;
 using BackendMessages.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +15,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 using System.Threading;
@@ -28,6 +31,9 @@ namespace BackendMessages.Tests.Controllers
         private readonly Mock<IClientProxy> _clientProxyMock;
         private readonly Mock<IGroupManager> _groupManagerMock;
         private readonly Mock<IMessageReportRepository> _messageReportRepositoryMock;
+        private readonly Mock<IMessageCreationService> _messageCreationServiceMock;
+        private readonly Mock<IMessageBroadcastService> _messageBroadcastServiceMock;
+        private readonly Mock<IMessageNotificationService> _messageNotificationServiceMock;
         private readonly MessagesController _controller;
         private readonly Guid _testUserId = Guid.NewGuid();
         private readonly Guid _testConversationId = Guid.NewGuid();
@@ -46,6 +52,12 @@ namespace BackendMessages.Tests.Controllers
             _clientProxyMock = new Mock<IClientProxy>();
             _groupManagerMock = new Mock<IGroupManager>();
             _messageReportRepositoryMock = new Mock<IMessageReportRepository>();
+            _messageCreationServiceMock = new Mock<IMessageCreationService>();
+            _messageBroadcastServiceMock = new Mock<IMessageBroadcastService>();
+            _messageNotificationServiceMock = new Mock<IMessageNotificationService>();
+
+            // Setup service mocks
+            SetupServiceMocks();
 
             // Setup hub context
             var hubClientsMock = new Mock<IHubClients>();
@@ -56,10 +68,73 @@ namespace BackendMessages.Tests.Controllers
                 .Returns(Task.CompletedTask);
 
             // Create controller
-            _controller = new MessagesController(_context, _loggerMock.Object, _hubContextMock.Object, _messageReportRepositoryMock.Object);
+            _controller = new MessagesController(
+                _context, 
+                _loggerMock.Object, 
+                _hubContextMock.Object, 
+                _messageReportRepositoryMock.Object,
+                _messageCreationServiceMock.Object,
+                _messageBroadcastServiceMock.Object,
+                _messageNotificationServiceMock.Object);
 
             // Setup test data
             SetupTestData();
+        }
+
+        private void SetupServiceMocks()
+        {
+            // Setup message creation service to return a valid message and conversation
+            _messageCreationServiceMock
+                .Setup(x => x.CreateMessageAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<MessageType?>(), It.IsAny<Guid?>()))
+                .ReturnsAsync((Guid conversationId, Guid senderId, string content, MessageType? messageType, Guid? replyToMessageId) =>
+                {
+                    var conversation = _context.Conversations.FirstOrDefault(c => c.Id == conversationId);
+                    if (conversation == null)
+                    {
+                        throw new ArgumentException($"Conversation with ID {conversationId} not found");
+                    }
+
+                    if (conversation.InitiatorId != senderId && conversation.ReceiverId != senderId)
+                    {
+                        throw new UnauthorizedAccessException("User is not part of this conversation");
+                    }
+
+                    var receiverId = conversation.InitiatorId == senderId ? conversation.ReceiverId : conversation.InitiatorId;
+                    
+                    var message = new Message
+                    {
+                        Id = Guid.NewGuid(),
+                        ConversationId = conversationId,
+                        SenderId = senderId,
+                        ReceiverId = receiverId,
+                        Content = content,
+                        MessageType = messageType ?? MessageType.Text,
+                        ReplyToMessageId = replyToMessageId,
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    conversation.LastMessageId = message.Id;
+                    conversation.LastMessageTimestamp = message.CreatedAt;
+                    conversation.UpdatedAt = DateTime.UtcNow;
+
+                    return (message, conversation);
+                });
+
+            // Setup broadcast service to not throw
+            _messageBroadcastServiceMock
+                .Setup(x => x.BroadcastNewMessageAsync(It.IsAny<Message>(), It.IsAny<Conversation>()))
+                .Returns(Task.CompletedTask);
+
+            _messageBroadcastServiceMock
+                .Setup(x => x.BroadcastConversationUpdateAsync(It.IsAny<Conversation>(), It.IsAny<Message>()))
+                .Returns(Task.CompletedTask);
+
+            // Setup notification service to not throw
+            _messageNotificationServiceMock
+                .Setup(x => x.SendContactRequestNotificationAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<bool>()))
+                .Returns(Task.CompletedTask);
         }
 
         private void SetupTestData()

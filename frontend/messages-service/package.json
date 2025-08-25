@@ -14,7 +14,6 @@
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
     "@ant-design/nextjs-registry": "^1.0.2",
-    "@emailjs/browser": "^4.4.1",
     "@microsoft/signalr": "^8.0.7",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-avatar": "^1.1.10",

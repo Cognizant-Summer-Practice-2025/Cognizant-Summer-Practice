@@ -81,36 +81,7 @@ namespace BackendMessages.Controllers
             }
         }
 
-        /// <summary>
-        /// Debug endpoint to see all tracked connections (remove in production)
-        /// </summary>
-        [HttpGet("debug/connections")]
-        public IActionResult GetDebugConnections()
-        {
-            try
-            {
-                // Validate authenticated user
-                var authenticatedUserId = GetAuthenticatedUserId();
-                if (authenticatedUserId == null)
-                {
-                    return Unauthorized("User not authenticated");
-                }
-                var onlineUsers = MessageHub.GetOnlineUsers().ToList();
-                
-                _logger.LogInformation("Debug: Retrieved {Count} tracked users", onlineUsers.Count);
 
-                return Ok(new {
-                    trackedUsers = onlineUsers,
-                    count = onlineUsers.Count,
-                    timestamp = DateTime.UtcNow
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving debug connections");
-                return StatusCode(500, "An error occurred while retrieving debug connections");
-            }
-        }
 
         /// <summary>
         /// Search for users by username, name, or professional title

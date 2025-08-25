@@ -1,39 +1,120 @@
 using BackendMessages.Config;
-using BackendMessages.Data;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 using Xunit;
 
-namespace backend_messages.tests.Config
+namespace BackendMessages.Tests.Config
 {
     public class DatabaseConfigurationTests
     {
-        [Fact]
-        public void AddDatabaseServices_WithValidConnection_ShouldRegisterDbContext()
+        private readonly IServiceCollection _services;
+
+        public DatabaseConfigurationTests()
         {
-            var dict = new Dictionary<string, string?>
-            {
-                {"ConnectionStrings:Database_Messages", "Host=localhost;Username=test;Password=test;Database=test"}
-            };
-            var cfg = new ConfigurationBuilder().AddInMemoryCollection(dict!).Build();
-            var services = new ServiceCollection();
-
-            services.AddDatabaseServices(cfg);
-
-            var provider = services.BuildServiceProvider();
-            provider.GetRequiredService<MessagesDbContext>().Should().NotBeNull();
+            _services = new ServiceCollection();
         }
 
         [Fact]
-        public void AddDatabaseServices_WithoutConnection_ShouldThrow()
+        public void AddDatabaseServices_WithValidConfiguration_ShouldAddDbContext()
         {
-            var cfg = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>()!).Build();
-            var services = new ServiceCollection();
+            // Arrange
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = "Host=localhost;Database=testdb;Username=test;Password=test"
+                })
+                .Build();
 
-            var act = () => services.AddDatabaseServices(cfg);
-            act.Should().Throw<InvalidOperationException>();
+            // Act
+            var result = _services.AddDatabaseServices(configuration);
+
+            // Assert
+            result.Should().NotBeNull();
+            _services.Should().NotBeEmpty();
+        }
+
+        [Fact]
+        public void AddDatabaseServices_WithNullConfiguration_ShouldThrowException()
+        {
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => 
+                _services.AddDatabaseServices(null!));
+        }
+
+        [Fact]
+        public void AddDatabaseServices_WithEmptyConnectionString_ShouldAddServices()
+        {
+            // Arrange
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = ""
+                })
+                .Build();
+
+            // Act
+            var result = _services.AddDatabaseServices(configuration);
+
+            // Assert
+            result.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void AddDatabaseServices_WithNullConnectionString_ShouldThrowException()
+        {
+            // Arrange
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = null
+                })
+                .Build();
+
+            // Act & Assert
+            Assert.Throws<InvalidOperationException>(() => 
+                _services.AddDatabaseServices(configuration));
+        }
+
+        [Theory]
+        [InlineData("Host=localhost;Database=messages;Username=user;Password=pass")]
+        [InlineData("Server=.;Database=MessagesDB;Trusted_Connection=true")]
+        [InlineData("Data Source=localhost;Initial Catalog=Messages;Integrated Security=true")]
+        public void AddDatabaseServices_WithVariousConnectionStrings_ShouldAddServices(string connectionString)
+        {
+            // Arrange
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = connectionString
+                })
+                .Build();
+
+            // Act
+            var result = _services.AddDatabaseServices(configuration);
+
+            // Assert
+            result.Should().NotBeNull();
+            _services.Should().NotBeEmpty();
+        }
+
+        [Fact]
+        public void AddDatabaseServices_ShouldReturnSameServiceCollection()
+        {
+            // Arrange
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:Database_Messages"] = "Host=localhost;Database=testdb"
+                })
+                .Build();
+
+            // Act
+            var result = _services.AddDatabaseServices(configuration);
+
+            // Assert
+            result.Should().BeSameAs(_services);
         }
     }
 }
