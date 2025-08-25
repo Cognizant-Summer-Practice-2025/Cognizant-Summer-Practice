@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { User, MoreHorizontal, AlertTriangle, ArrowLeft } from "lucide-react";
+import { User, MoreHorizontal, AlertTriangle, ArrowLeft, UserCircle } from "lucide-react";
 import { getPortfoliosByUserId } from "@/lib/portfolio/api";
 import { redirectToService } from "@/lib/config/services";
 import { reportUser } from "@/lib/user/api";
@@ -42,22 +42,18 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
   const { user } = useUser();
 
   const handleReportUser = () => {
-    console.log('Report user:', selectedContact.name);
     setIsReportModalOpen(true);
   };
 
   const handleReportSubmit = async (reason: string) => {
     if (!user?.id || !selectedContact.userId) {
-      console.error('Missing user ID or contact user ID for report');
       return;
     }
 
     setIsReporting(true);
     try {
       await reportUser(selectedContact.userId, user.id, reason);
-      console.log('User reported successfully');
     } catch (error) {
-      console.error('Failed to report user:', error);
       throw error;
     } finally {
       setIsReporting(false);
@@ -73,8 +69,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
           // Find the first published portfolio and get its ID
           const publishedPortfolio = portfolios.find(portfolio => portfolio.isPublished);
           setPortfolioId(publishedPortfolio ? publishedPortfolio.id : null);
-        } catch (error) {
-          console.error('Error checking user portfolio:', error);
+        } catch {
           setPortfolioId(null);
         }
       } else {
@@ -86,14 +81,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
   }, [selectedContact.userId]);
 
   const handleViewProfile = () => {
-    console.log('View Portfolio clicked for:', selectedContact.name);
-    console.log('Selected contact data:', selectedContact);
-    
     if (portfolioId) {
-      console.log('Navigating to portfolio with portfolioId:', portfolioId);
       redirectToService('HOME_PORTFOLIO_SERVICE', `portfolio?portfolio=${portfolioId}`);
-    } else {
-      console.log('No portfolio ID available for:', selectedContact.name);
     }
   };
 
@@ -123,10 +112,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
           <h3 className="contact-name">{selectedContact.name}</h3>
           <div className="contact-status">
             <span className="contact-role">{selectedContact.professionalTitle || 'Professional'}</span>
-            <span className="status-separator">•</span>
             <span className={`online-status ${selectedContact.isOnline ? 'online' : 'offline'}`}>
               <span className="status-dot"></span>
-              {selectedContact.isOnline ? 'Online' : 'Offline'}
+              <span className="hidden sm:inline">{selectedContact.isOnline ? 'Online' : 'Offline'}</span>
             </span>
           </div>
         </div>
@@ -139,8 +127,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ selectedContact, onBackToSideba
             className="view-portfolio-btn"
             onClick={handleViewProfile}
           >
-            <User className="w-4 h-4 mr-2" />
-            View Portfolio
+            <User className="w-4 h-4 mr-2 hidden sm:block" />
+            <UserCircle className="w-4 h-4 sm:hidden" />
+            <span className="hidden sm:inline">View Portfolio</span>
           </Button>
         )}
         

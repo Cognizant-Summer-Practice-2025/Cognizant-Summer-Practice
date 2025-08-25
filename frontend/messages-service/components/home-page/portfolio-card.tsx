@@ -55,8 +55,6 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
     e.stopPropagation(); 
     
     if (!user) {
-      // Note: router is not imported, this should be handled differently
-      // For now, we'll just return without action
       return;
     }
 
