@@ -19,29 +19,26 @@ namespace BackendMessages.Controllers
         private readonly ILogger<MessagesController> _logger;
         private readonly IHubContext<MessageHub> _hubContext;
         private readonly IMessageReportRepository _messageReportRepository;
-        private readonly IEmailService _emailService;
-        private readonly IUserSearchService _userSearchService;
-        private readonly IConfiguration _configuration;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IMessageCreationService _messageCreationService;
+        private readonly IMessageBroadcastService _messageBroadcastService;
+        private readonly IMessageNotificationService _messageNotificationService;
 
         public MessagesController(
             MessagesDbContext context, 
             ILogger<MessagesController> logger, 
             IHubContext<MessageHub> hubContext, 
             IMessageReportRepository messageReportRepository,
-            IEmailService emailService,
-            IUserSearchService userSearchService,
-            IConfiguration configuration,
-            IServiceScopeFactory serviceScopeFactory)
+            IMessageCreationService messageCreationService,
+            IMessageBroadcastService messageBroadcastService,
+            IMessageNotificationService messageNotificationService)
         {
             _context = context;
             _logger = logger;
             _hubContext = hubContext;
             _messageReportRepository = messageReportRepository;
-            _emailService = emailService;
-            _userSearchService = userSearchService;
-            _configuration = configuration;
-            _serviceScopeFactory = serviceScopeFactory;
+            _messageCreationService = messageCreationService;
+            _messageBroadcastService = messageBroadcastService;
+            _messageNotificationService = messageNotificationService;
         }
 
         /// <summary>
@@ -85,48 +82,26 @@ namespace BackendMessages.Controllers
                     return BadRequest("Message content cannot be empty");
                 }
 
-                // Check if conversation exists
-                var conversation = await _context.Conversations
-                    .FirstOrDefaultAsync(c => c.Id == request.ConversationId);
-
-                if (conversation == null)
+                // Create message
+                Message message;
+                Conversation conversation;
+                try
+                {
+                    (message, conversation) = await _messageCreationService.CreateMessageAsync(
+                        request.ConversationId,
+                        request.SenderId,
+                        request.Content,
+                        request.MessageType,
+                        request.ReplyToMessageId);
+                }
+                catch (ArgumentException)
                 {
                     return NotFound("Conversation not found");
                 }
-
-                // Verify user is part of the conversation
-                if (conversation.InitiatorId != request.SenderId && conversation.ReceiverId != request.SenderId)
+                catch (UnauthorizedAccessException ex)
                 {
-                    return StatusCode(403, "User is not part of this conversation");
+                    return StatusCode(403, ex.Message);
                 }
-
-                // Determine receiver ID
-                var receiverId = conversation.InitiatorId == request.SenderId 
-                    ? conversation.ReceiverId 
-                    : conversation.InitiatorId;
-
-                // Create message
-                var message = new Message
-                {
-                    ConversationId = request.ConversationId,
-                    SenderId = request.SenderId,
-                    ReceiverId = receiverId,
-                    Content = request.Content,
-                    MessageType = request.MessageType ?? MessageType.Text,
-                    ReplyToMessageId = request.ReplyToMessageId,
-                    IsRead = false,
-                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-                    UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                };
-
-                _context.Messages.Add(message);
-
-                // Update conversation's last message
-                conversation.LastMessageId = message.Id;
-                conversation.LastMessageTimestamp = message.CreatedAt;
-                conversation.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-
-                await _context.SaveChangesAsync();
 
                 // Create response object
                 var messageResponse = new
@@ -143,111 +118,17 @@ namespace BackendMessages.Controllers
                     message.UpdatedAt
                 };
 
-                // Broadcast the new message to both sender and receiver
-                try
-                {
-                    // Send to receiver
-                    await _hubContext.Clients.Group($"user_{receiverId}")
-                        .SendAsync("ReceiveMessage", messageResponse);
+                // Broadcast the new message and conversation update
+                await _messageBroadcastService.BroadcastNewMessageAsync(message, conversation);
+                await _messageBroadcastService.BroadcastConversationUpdateAsync(conversation, message);
 
-                    // Send to sender (for multi-device support)
-                    await _hubContext.Clients.Group($"user_{request.SenderId}")
-                        .SendAsync("ReceiveMessage", messageResponse);
-
-                    // Also broadcast conversation update
-                    var conversationUpdate = new
-                    {
-                        conversation.Id,
-                        conversation.LastMessageTimestamp,
-                        LastMessage = messageResponse,
-                        conversation.UpdatedAt
-                    };
-
-                    await _hubContext.Clients.Group($"user_{receiverId}")
-                        .SendAsync("ConversationUpdated", conversationUpdate);
-                    
-                    await _hubContext.Clients.Group($"user_{request.SenderId}")
-                        .SendAsync("ConversationUpdated", conversationUpdate);
-
-                    _logger.LogInformation("Message {MessageId} broadcasted via SignalR to sender {SenderId} and receiver {ReceiverId}", 
-                        message.Id, request.SenderId, receiverId);
-                }
-                catch (Exception hubEx)
-                {
-                    _logger.LogError(hubEx, "Failed to broadcast message {MessageId} via SignalR", message.Id);
-                    // Don't fail the request if SignalR fails
-                }
-
-                // Send "wants to contact you" email notification only for first message from conversation initiator
-                var enableContactNotifications = bool.Parse(_configuration["Email:EnableContactNotifications"] ?? "true");
-                
-                if (enableContactNotifications)
-                {
-                    // Capture values for the background task
-                    var conversationId = conversation.Id;
-                    var conversationInitiatorId = conversation.InitiatorId;
-                    var senderId = request.SenderId;
-                    
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            using var serviceContainer = _serviceScopeFactory.CreateScope();
-                            var services = serviceContainer.ServiceProvider;
-                            
-                            var context = services.GetRequiredService<MessagesDbContext>();
-                            var userSearchService = services.GetRequiredService<IUserSearchService>();
-                            var emailService = services.GetRequiredService<IEmailService>();
-                            var logger = services.GetRequiredService<ILogger<MessagesController>>();
-                            
-                            // Check if this is the first message from the conversation initiator
-                            var isFirstMessageFromInitiator = conversationInitiatorId == senderId;
-                            
-                            if (isFirstMessageFromInitiator)
-                            {
-                                // Check if this is actually the first message in the conversation
-                                var messageCount = await context.Messages
-                                    .Where(m => m.ConversationId == conversationId && m.DeletedAt == null)
-                                    .CountAsync();
-                                
-                                if (messageCount == 1) // This is the first message
-                                {
-                                    var recipient = await userSearchService.GetUserByIdAsync(receiverId);
-                                    var sender = await userSearchService.GetUserByIdAsync(senderId);
-                                    
-                                    if (recipient != null && sender != null && !string.IsNullOrEmpty(recipient.Email))
-                                    {
-                                        var notification = new BackendMessages.Models.Email.ContactRequestNotification
-                                        {
-                                            Recipient = recipient,
-                                            Sender = sender
-                                        };
-                                        var emailResult = await emailService.SendContactRequestNotificationAsync(notification);
-                                        
-                                        if (emailResult)
-                                        {
-                                            logger.LogInformation("Contact request email notification sent successfully for conversation {ConversationId}", conversationId);
-                                        }
-                                        else
-                                        {
-                                            logger.LogWarning("Contact request email notification failed for conversation {ConversationId}", conversationId);
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                logger.LogInformation("⏭️ Skipping contact request notification - sender {SenderId} is not the conversation initiator {InitiatorId} for conversation {ConversationId}", 
-                                    senderId, conversationInitiatorId, conversationId);
-                            }
-                        }
-                        catch (Exception emailEx)
-                        {
-                            _logger.LogError(emailEx, "Background task failed for conversation {ConversationId}", conversationId);
-                            // Don't fail the request if email fails
-                        }
-                    });
-                }
+                // Send email notification for contact requests
+                var isFirstMessageFromInitiator = conversation.InitiatorId == request.SenderId;
+                await _messageNotificationService.SendContactRequestNotificationAsync(
+                    conversation.Id, 
+                    request.SenderId, 
+                    message.ReceiverId, 
+                    isFirstMessageFromInitiator);
 
 
                 return Ok(messageResponse);

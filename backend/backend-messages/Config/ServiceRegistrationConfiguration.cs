@@ -52,6 +52,9 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<ISmtpClientService, SmtpClientService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IMessageCreationService, MessageCreationService>();
+        services.AddScoped<IMessageBroadcastService, MessageBroadcastService>();
+        services.AddScoped<IMessageNotificationService, MessageNotificationService>();
 
         return services;
     }
