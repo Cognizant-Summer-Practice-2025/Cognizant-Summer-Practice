@@ -24,7 +24,11 @@ namespace backend_AI.Services.External
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             
-            _portfolioServiceUrl = configuration["PORTFOLIO_SERVICE_URL"] ?? "http://localhost:5201";
+            _portfolioServiceUrl = configuration["PORTFOLIO_SERVICE_URL"];
+            if (string.IsNullOrEmpty(_portfolioServiceUrl))
+            {
+                throw new InvalidOperationException("PORTFOLIO_SERVICE_URL configuration is not set");
+            }
         }
 
         public async Task<bool> UpsertSummaryAsync(TechNewsSummaryDto request)
