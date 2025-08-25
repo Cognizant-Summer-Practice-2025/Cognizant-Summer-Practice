@@ -97,7 +97,7 @@ describe('useOAuthSession', () => {
       avatarUrl: 'https://example.com/avatar.jpg',
       isActive: true,
       isAdmin: false,
-      lastLoginAt: '2023-01-01T23:59:59.999Z'
+      lastLoginAt: '2023-01-01T00:00:00Z'
     })
     expect(result.current.accessToken).toBe('mock-access-token')
   })
