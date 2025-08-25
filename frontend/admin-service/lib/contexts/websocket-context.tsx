@@ -139,8 +139,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         setIsConnected(false);
       });
 
-      newConnection.onreconnected((connectionId) => {
-        console.log('SignalR reconnected:', connectionId);
+              newConnection.onreconnected(() => {
+        console.log('SignalR reconnected');
         setIsConnected(true);
         // Rejoin user group after reconnection
         if (user?.id) {
@@ -160,9 +160,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       console.log('SignalR connected successfully');
 
       // Join user group
-      console.log(`Attempting to join user group for user ID: ${user.id}`);
       await newConnection.invoke('JoinUserGroup', user.id.toString());
-      console.log(`Successfully joined user group: ${user.id}`);
 
       setConnection(newConnection);
       setIsConnected(true);
@@ -259,7 +257,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     }
     try {
       await connection.invoke('MarkMessageAsRead', messageId, userId);
-      console.log(`Message with ID ${messageId} marked as read by user ${userId}`);
+      // Message marked as read
     } catch (error) {
       console.error('Error marking message as read:', error);
     }
@@ -272,7 +270,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
     }
     try {
       await connection.invoke('DeleteMessage', messageId, userId);
-      console.log(`Message with ID ${messageId} deleted by user ${userId}`);
+      // Message deleted
     } catch (error) {
       console.error('Error deleting message:', error);
     }

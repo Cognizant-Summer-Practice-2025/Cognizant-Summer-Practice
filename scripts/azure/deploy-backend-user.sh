@@ -92,6 +92,8 @@ echo "  ALLOWED_ORIGINS: $ALLOWED_ORIGINS"
 echo "  ConnectionStrings__Database_User: ${ConnectionStrings__Database_User:0:50}..."
 echo ""
 
+echo "Using ConnectionStrings__Database_User from .env"
+
 if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&1; then
   echo "Updating existing Container App: $APP_NAME"
   az containerapp update \
@@ -99,7 +101,7 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
     --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
     --image "$FQ_IMAGE" \
     --set-env-vars \
-      ConnectionStrings__Database_User="Host=$USER_DB_HOST;Port=5432;Database=user_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
+  ConnectionStrings__Database_User="$ConnectionStrings__Database_User" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
       AUTH_GOOGLE_ID="${AUTH_GOOGLE_ID:-}" \
       AUTH_GOOGLE_SECRET="${AUTH_GOOGLE_SECRET:-}" \
@@ -109,8 +111,12 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
       AUTH_LINKEDIN_SECRET="${AUTH_LINKEDIN_SECRET:-}" \
       AUTH_FACEBOOK_ID="${AUTH_FACEBOOK_ID:-}" \
       AUTH_FACEBOOK_SECRET="${AUTH_FACEBOOK_SECRET:-}" \
+      STRIPE_SECRET_KEY="${STRIPE_SECRET_KEY:-}" \
+      STRIPE_WEBHOOK_SECRET="${STRIPE_WEBHOOK_SECRET:-}" \
+      STRIPE_PRICE_ID="${STRIPE_PRICE_ID:-}" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
+
 else
   az containerapp up \
     --name "$APP_NAME" \
@@ -123,7 +129,7 @@ else
     --ingress external \
     --target-port 5200 \
     --env-vars \
-      ConnectionStrings__Database_User="Host=$USER_DB_HOST;Port=5432;Database=user_db;Username=$POSTGRES_USER;Password=$POSTGRES_PASSWORD;Ssl Mode=Require;Trust Server Certificate=true" \
+      ConnectionStrings__Database_User="$ConnectionStrings__Database_User" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
       AUTH_GOOGLE_ID="${AUTH_GOOGLE_ID:-}" \
       AUTH_GOOGLE_SECRET="${AUTH_GOOGLE_SECRET:-}" \
@@ -133,6 +139,9 @@ else
       AUTH_LINKEDIN_SECRET="${AUTH_LINKEDIN_SECRET:-}" \
       AUTH_FACEBOOK_ID="${AUTH_FACEBOOK_ID:-}" \
       AUTH_FACEBOOK_SECRET="${AUTH_FACEBOOK_SECRET:-}" \
+      STRIPE_SECRET_KEY="${STRIPE_SECRET_KEY:-}" \
+      STRIPE_WEBHOOK_SECRET="${STRIPE_WEBHOOK_SECRET:-}" \
+      STRIPE_PRICE_ID="${STRIPE_PRICE_ID:-}" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 fi

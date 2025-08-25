@@ -82,6 +82,21 @@ CREATE TABLE bookmarks (
     UNIQUE(user_id, portfolio_id)
 );
 
+-- Premium Subscriptions table
+CREATE TABLE premium_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    stripe_subscription_id VARCHAR(255) UNIQUE,
+    stripe_customer_id VARCHAR(255),
+    status VARCHAR(50) NOT NULL DEFAULT 'active',
+    current_period_start TIMESTAMP WITH TIME ZONE,
+    current_period_end TIMESTAMP WITH TIME ZONE,
+    cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id)
+);
+
 -- Create indexes for performance
 CREATE INDEX idx_users_created_at ON users(created_at);
 CREATE INDEX idx_users_is_active ON users(is_active);
@@ -95,6 +110,9 @@ CREATE INDEX idx_user_reports_reported_by_user_id ON user_reports(reported_by_us
 CREATE INDEX idx_user_reports_created_at ON user_reports(created_at);
 CREATE INDEX idx_bookmarks_user_id ON bookmarks(user_id);
 CREATE INDEX idx_bookmarks_created_at ON bookmarks(created_at);
+CREATE INDEX idx_premium_subscriptions_user_id ON premium_subscriptions(user_id);
+CREATE INDEX idx_premium_subscriptions_status ON premium_subscriptions(status);
+CREATE INDEX idx_premium_subscriptions_stripe_subscription_id ON premium_subscriptions(stripe_subscription_id);
 
 -- Insert sample users for testing
 INSERT INTO users (id, email, username, first_name, last_name, professional_title, bio, location, avatar_url, is_active, is_admin) VALUES 
@@ -109,5 +127,5 @@ INSERT INTO users (id, email, username, first_name, last_name, professional_titl
 
 -- Success message
 \echo 'User service database initialized successfully!'
-\echo 'Created tables: users, oauth_providers, newsletters, user_analytics, user_reports, bookmarks' 
+\echo 'Created tables: users, oauth_providers, newsletters, user_analytics, user_reports, bookmarks, premium_subscriptions' 
 \echo 'Inserted 8 sample users for testing' 

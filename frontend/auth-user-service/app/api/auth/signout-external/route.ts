@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
     
     if (session?.user?.email === userEmail) {
       // User matches current session, we should sign them out
-      console.log(`External signout request for current user: ${userEmail}`);
       
       // Clear the auth service user storage
       if (global.authServiceUserStorage) {
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Different user or no session, just clear storage
-      console.log(`External signout request for different user: ${userEmail}`);
       
       if (global.authServiceUserStorage) {
         global.authServiceUserStorage.delete(userEmail);

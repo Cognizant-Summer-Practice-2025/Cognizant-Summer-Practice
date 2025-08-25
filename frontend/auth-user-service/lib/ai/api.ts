@@ -1,7 +1,7 @@
 // AI API functions for portfolio generation
 import { getSession } from "next-auth/react";
 
-const AI_API_BASE_URL = process.env.NEXT_PUBLIC_AI_API_URL || 'http://localhost:5134';
+const AI_API_BASE_URL = process.env.NEXT_PUBLIC_AI_API_URL || 'https://backend-ai.kindmoss-e060904c.westeurope.azurecontainerapps.io';
 
 // Portfolio data returned by AI service
 export interface AIGeneratedPortfolio {
@@ -22,6 +22,10 @@ export interface AIGeneratedPortfolio {
 // Response from AI generate-best-portfolio endpoint
 export interface AIPortfolioResponse {
   response: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any -- Backend returns JsonElement[], not structured objects
+}
+
+export interface TechNewsSummaryResponse {
+  Summary: string;
 }
 
 // Helper function to handle API responses
@@ -146,3 +150,18 @@ export async function convertAIPortfoliosToCards(aiPortfolios: any[]): Promise<i
   
   return portfolioCards;
 } 
+
+export async function getLatestTechNews(): Promise<{ summary: string }> {
+  const session = await getSession();
+  const headers: Record<string, string> = {};
+  if (session?.accessToken) {
+    headers['Authorization'] = `Bearer ${session.accessToken}`;
+  }
+
+  const response = await fetch(`${AI_API_BASE_URL}/api/ai/tech-news`, {
+    method: 'GET',
+    headers,
+  });
+
+  return handleApiResponse<{ summary: string }>(response);
+}

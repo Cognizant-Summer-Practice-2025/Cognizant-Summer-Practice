@@ -24,7 +24,12 @@ namespace backend_AI.Services
         {
             try
             {
-                var userServiceUrl = _configuration["UserServiceUrl"] ?? Environment.GetEnvironmentVariable("USER_SERVICE_URL") ?? "http://localhost:5200";
+                var userServiceUrl = _configuration["UserServiceUrl"] ?? Environment.GetEnvironmentVariable("USER_SERVICE_URL");
+                if (string.IsNullOrEmpty(userServiceUrl))
+                {
+                    _logger.LogError("AuthService(AI): USER_SERVICE_URL not configured. Please set UserServiceUrl in appsettings.json or USER_SERVICE_URL environment variable.");
+                    return null;
+                }
                 _logger.LogInformation("AuthService(AI): Validating token with user service at {UserServiceUrl}", userServiceUrl);
 
                 var request = new HttpRequestMessage(HttpMethod.Get, $"{userServiceUrl}/api/oauth/me");

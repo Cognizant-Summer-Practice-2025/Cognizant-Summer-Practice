@@ -111,7 +111,7 @@ const MessagesPage = () => {
     }
   }, [isAuthenticated, authLoading, userLoading]);
 
-  // Loading states
+  // Show loading only for essential auth/user loading
   if (authLoading || userLoading) {
     return <AuthLoadingState />;
   }

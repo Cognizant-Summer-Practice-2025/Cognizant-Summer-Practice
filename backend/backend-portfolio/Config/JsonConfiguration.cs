@@ -18,7 +18,7 @@ public static class JsonConfiguration
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                // Removed camelCase policy to preserve original property names
                 options.JsonSerializerOptions.WriteIndented = false;
             });
 

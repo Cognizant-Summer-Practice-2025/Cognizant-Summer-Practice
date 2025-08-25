@@ -44,7 +44,6 @@ async function refreshAccessToken(token: TokenData): Promise<TokenRefreshResult>
   try {
     console.log('🔄 Attempting token refresh with token data:', {
       hasRefreshToken: !!token.refreshToken,
-      refreshTokenLength: token.refreshToken?.length || 0,
       hasAccessToken: !!token.accessToken,
       provider: token.provider,
       userId: token.userId
@@ -83,7 +82,6 @@ async function refreshAccessToken(token: TokenData): Promise<TokenRefreshResult>
     if (refreshData.accessToken) {
       console.log('🔑 Using refreshed token data:', {
         hasNewAccessToken: !!refreshData.accessToken,
-        newTokenLength: refreshData.accessToken?.length || 0,
         newExpiresAt: refreshData.tokenExpiresAt,
         hasRefreshToken: refreshData.hasRefreshToken
       });
@@ -366,9 +364,8 @@ export const authOptions: AuthOptions = {
       // When NextAuth signOut is called directly, remove user from all services
       if (message.session?.user?.email) {
         try {
-          console.log(`NextAuth signOut event - removing user: ${message.session.user.email}`);
           // await UserInjectionService.removeUser(message.session.user.email); // Removed
-          console.log(`User ${message.session.user.email} removed from all services during NextAuth signOut`);
+          // User removed from all services during NextAuth signOut
         } catch (error) {
           console.error('Error removing user during NextAuth signOut:', error);
         }

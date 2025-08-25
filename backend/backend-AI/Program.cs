@@ -1,7 +1,8 @@
 
 using backend_AI.Config;
 
-// Load environment variables from .env file 
+// Load environment variables from .env file (for local development)
+// In production, environment variables should be set directly
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);

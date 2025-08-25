@@ -84,6 +84,7 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
       OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}" \
       OPENROUTER_PROMPT="${OPENROUTER_PROMPT:-What is the meaning of life?}" \
       BEST_PORTFOLIO_PROMPT="${BEST_PORTFOLIO_PROMPT:-}" \
+  AIRFLOW_SECRET="${AIRFLOW_SECRET:-}" \
       RANKING_LOG_LEVEL="${RANKING_LOG_LEVEL:-Information}" \
       LOG_LEVEL="${LOG_LEVEL:-Information}" \
       AI_LOG_LEVEL="${AI_LOG_LEVEL:-Information}"
@@ -107,6 +108,7 @@ else
       OPENROUTER_BASE_URL="${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}" \
       OPENROUTER_PROMPT="${OPENROUTER_PROMPT:-What is the meaning of life?}" \
       BEST_PORTFOLIO_PROMPT="${BEST_PORTFOLIO_PROMPT:-}" \
+      AIRFLOW_SECRET="${AIRFLOW_SECRET:-}" \
       RANKING_LOG_LEVEL="${RANKING_LOG_LEVEL:-Information}" \
       LOG_LEVEL="${LOG_LEVEL:-Information}" \
       AI_LOG_LEVEL="${AI_LOG_LEVEL:-Information}"

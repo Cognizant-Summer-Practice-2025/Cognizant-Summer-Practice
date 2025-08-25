@@ -17,6 +17,7 @@ namespace backend_portfolio.Data
         public DbSet<Skill> Skills { get; set; }
         public DbSet<BlogPost> BlogPosts { get; set; }
         public DbSet<Bookmark> Bookmarks { get; set; }
+        public DbSet<TechNewsSummary> TechNewsSummaries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -128,6 +129,16 @@ namespace backend_portfolio.Data
                     .WithMany(p => p.Bookmarks)
                     .HasForeignKey(e => e.PortfolioId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // TechNewsSummary configuration
+            modelBuilder.Entity<TechNewsSummary>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Summary).IsRequired();
+                entity.Property(e => e.WorkflowCompleted).HasDefaultValue(false);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
         }
     }

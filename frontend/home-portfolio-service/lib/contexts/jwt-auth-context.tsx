@@ -148,7 +148,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         setIsAuthenticated(true);
         storeToken(token, true); // Store persistently
-        console.log('✅ JWT authentication successful for user:', userData.email);
+        console.log('✅ JWT authentication successful');
         return true;
       }
       
@@ -209,7 +209,7 @@ export function JWTAuthProvider({ children }: { children: ReactNode }) {
       if (userData) {
         setUser(userData);
         setIsAuthenticated(true);
-        console.log('✅ JWT authentication refreshed for user:', userData.email);
+        console.log('✅ JWT authentication refreshed');
       } else {
         setIsAuthenticated(false);
         setUser(null);
