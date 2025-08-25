@@ -110,6 +110,8 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
       UserService__BaseUrl="$USER_SVC_URL" \
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
+      GMAIL_USERNAME="$GMAIL_USERNAME" \
+      GMAIL_APP_PASSWORD="$GMAIL_APP_PASSWORD" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
@@ -130,6 +132,8 @@ else
       UserService__BaseUrl="$USER_SVC_URL" \
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
+      GMAIL_USERNAME="$GMAIL_USERNAME" \
+      GMAIL_APP_PASSWORD="$GMAIL_APP_PASSWORD" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
