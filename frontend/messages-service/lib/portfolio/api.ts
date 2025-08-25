@@ -1,5 +1,4 @@
 // Portfolio API functions
-// This file contains API calls for portfolio-related operations
 
 import { 
   PortfolioDataFromDB, 
@@ -18,7 +17,7 @@ import { authenticatedClient } from '@/lib/authenticated-client';
 const API_BASE_URL = process.env.NEXT_PUBLIC_PORTFOLIO_API_URL!;
 const USER_API_BASE_URL = process.env.NEXT_PUBLIC_USER_API_URL!;
 
-// User info for portfolio cards
+
 export interface UserPortfolioInfo {
   userId: string;
   username: string;
@@ -811,8 +810,6 @@ export async function seedDefaultTemplates(): Promise<void> {
 }
 
 // ============= INDIVIDUAL ENTITY API FUNCTIONS =============
-// Note: These would need to be implemented as separate controllers in the backend
-// For now, they're placeholder functions that could be used if individual entity endpoints are added
 
 // Projects
 export async function getProjectsByPortfolioId(portfolioId: string): Promise<ProjectResponseDto[]> {
@@ -844,7 +841,7 @@ export async function updateProject(projectId: string, projectData: ProjectUpdat
     Object.entries(projectData).filter(([, value]) => value !== undefined)
   ) as ProjectUpdateDto;
 
-  console.log('Sending project update data:', cleanedData); // Debug log
+
 
   const response = await fetch(`${API_BASE_URL}/api/Project/${projectId}`, {
     method: 'PUT',
@@ -1026,7 +1023,7 @@ export async function getUserPortfolioComprehensive(userId: string): Promise<Use
     const portfolios = await getPortfoliosByUserId(userId);
     const templates = await getActiveTemplates();
     
-    // For now, return empty arrays for other entities since we don't have direct user-level endpoints
+  
     // In a real implementation, you'd need to aggregate data from all user's portfolios
     return {
       userId,
