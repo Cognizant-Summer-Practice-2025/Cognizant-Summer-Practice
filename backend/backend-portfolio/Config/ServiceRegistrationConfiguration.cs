@@ -45,6 +45,7 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<ISkillRepository, SkillRepository>();
         services.AddScoped<IBlogPostRepository, BlogPostRepository>();
         services.AddScoped<IBookmarkRepository, BookmarkRepository>();
+        services.AddScoped<ITechNewsSummaryRepository, TechNewsSummaryRepository>();
 
         return services;
     }
@@ -91,6 +92,9 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IPortfolioTemplateService, PortfolioTemplateService>();
         services.AddScoped<IProjectQueryService, ProjectQueryService>();
         services.AddScoped<IProjectCommandService, ProjectCommandService>();
+        services.AddScoped<ITechNewsSummaryService, TechNewsSummaryService>();
+        services.AddScoped<IHealthCheckService, HealthCheckService>();
+        services.AddScoped<IAirflowAuthorizationService, AirflowAuthorizationService>();
 
         return services;
     }

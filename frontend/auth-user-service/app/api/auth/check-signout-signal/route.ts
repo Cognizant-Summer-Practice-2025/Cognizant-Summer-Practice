@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (shouldSignOut) {
       // Clear the signal after detecting it
       global.authServiceSignoutSignals.delete(email);
-      console.log(`Signout signal detected and cleared for user: ${email}`);
+              // Signout signal detected and cleared for user
     }
 
     return NextResponse.json({ 

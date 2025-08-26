@@ -16,12 +16,14 @@ describe('useTokenRefresh', () => {
   it('should return session data and status', () => {
     const mockSession = {
       user: { email: 'test@example.com' },
-      accessToken: 'mock-token'
+      accessToken: 'mock-token',
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     mockUseSession.mockReturnValue({
       data: mockSession,
       status: 'authenticated',
+      update: jest.fn(),
     })
 
     const { result } = renderHook(() => useTokenRefresh())
@@ -36,7 +38,8 @@ describe('useTokenRefresh', () => {
     const mockSession = {
       user: { email: 'test@example.com' },
       accessToken: 'expired-token',
-      error: 'RefreshAccessTokenError'
+      error: 'RefreshAccessTokenError',
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation()
@@ -61,7 +64,8 @@ describe('useTokenRefresh', () => {
     const mockSession = {
       user: { email: 'test@example.com' },
       accessToken: 'expired-token',
-      error: 'RefreshAccessTokenError'
+      error: 'RefreshAccessTokenError' as const,
+      expires: '2024-12-31T23:59:59.999Z'
     }
 
     mockUseSession.mockReturnValue({

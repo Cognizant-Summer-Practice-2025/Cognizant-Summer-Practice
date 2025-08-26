@@ -85,6 +85,19 @@ namespace backend_user.Data
                 entity.HasIndex(b => new { b.UserId, b.PortfolioId }).IsUnique();
                 entity.HasIndex(b => b.CreatedAt);
             });
+
+            // Configure PremiumSubscription entity
+            modelBuilder.Entity<PremiumSubscription>(entity =>
+            {
+                entity.HasOne(ps => ps.User)
+                    .WithOne(u => u.PremiumSubscription)
+                    .HasForeignKey<PremiumSubscription>(ps => ps.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(ps => ps.UserId).IsUnique();
+                entity.HasIndex(ps => ps.Status);
+                entity.HasIndex(ps => ps.StripeSubscriptionId);
+            });
         }
 
         // DbSets
@@ -94,5 +107,6 @@ namespace backend_user.Data
         public DbSet<UserAnalytics> UserAnalytics { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<Bookmark> Bookmarks { get; set; }
+        public DbSet<PremiumSubscription> PremiumSubscriptions { get; set; }
     }
 }

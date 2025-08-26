@@ -20,7 +20,7 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Removed the hover opacity change - button is always visible now */
+
 
 /* Positioning for own messages (sent) - button on left side */
 .message-wrapper.user-message .message-menu-button {

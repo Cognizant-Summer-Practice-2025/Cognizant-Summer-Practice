@@ -55,6 +55,7 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<IMessageCreationService, MessageCreationService>();
         services.AddScoped<IMessageBroadcastService, MessageBroadcastService>();
         services.AddScoped<IMessageNotificationService, MessageNotificationService>();
+        services.AddScoped<IHealthCheckService, HealthCheckService>();
 
         return services;
     }

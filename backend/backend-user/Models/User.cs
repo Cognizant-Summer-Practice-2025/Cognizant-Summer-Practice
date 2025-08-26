@@ -54,5 +54,6 @@ namespace backend_user.Models
         public virtual ICollection<UserAnalytics> UserAnalytics { get; set; } = new List<UserAnalytics>();
         public virtual ICollection<UserReport> UserReports { get; set; } = new List<UserReport>();
         public virtual ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
+        public virtual PremiumSubscription? PremiumSubscription { get; set; }
     }
 }

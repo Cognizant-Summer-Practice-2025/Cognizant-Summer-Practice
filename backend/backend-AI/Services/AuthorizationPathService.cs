@@ -38,6 +38,13 @@ namespace backend_AI.Services
                 return true;
             }
 
+            // Allow Airflow to POST tech news using shared secret (handled in controller)
+            if (string.Equals(path, "/api/ai/tech-news", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(method, HttpMethods.Post, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
             if (_publicPaths.Contains(path))
             {
                 return false;

@@ -1,4 +1,9 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using backend_AI.Services.Abstractions;
+using backend_AI.DTO.Ai;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend_AI.Controllers
@@ -11,13 +16,20 @@ namespace backend_AI.Controllers
         private readonly Services.External.IPortfolioApiClient _portfolioApiClient;
         private readonly Services.Abstractions.IPortfolioRankingService _rankingService;
         private readonly ILogger<AiController> _logger;
+        private readonly Services.External.ITechNewsPortfolioClient _techNewsPortfolioClient;
 
-        public AiController(IAiChatService aiChatService, Services.External.IPortfolioApiClient portfolioApiClient, Services.Abstractions.IPortfolioRankingService rankingService, ILogger<AiController> logger)
+        public AiController(
+            IAiChatService aiChatService,
+            Services.External.IPortfolioApiClient portfolioApiClient,
+            Services.Abstractions.IPortfolioRankingService rankingService,
+            ILogger<AiController> logger,
+            Services.External.ITechNewsPortfolioClient techNewsPortfolioClient)
         {
             _aiChatService = aiChatService ?? throw new ArgumentNullException(nameof(aiChatService));
             _portfolioApiClient = portfolioApiClient ?? throw new ArgumentNullException(nameof(portfolioApiClient));
             _rankingService = rankingService ?? throw new ArgumentNullException(nameof(rankingService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _techNewsPortfolioClient = techNewsPortfolioClient ?? throw new ArgumentNullException(nameof(techNewsPortfolioClient));
         }
 
         [HttpGet("generate")]
@@ -130,6 +142,114 @@ namespace backend_AI.Controllers
             {
                 _logger.LogError(ex, "AI: Error generating best portfolio");
                 return StatusCode(502, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("tech-news")]
+        [Authorize]
+        public async Task<IActionResult> GetLatestTechNews()
+        {
+            try
+            {
+                var rawResponse = await _techNewsPortfolioClient.GetLatestSummaryAsync();
+                
+                if (string.IsNullOrWhiteSpace(rawResponse))
+                {
+                    return Ok(new { Summary = "No tech news for now" });
+                }
+
+                // Parse the raw response to extract the summary content
+                try
+                {
+                    var jsonDoc = System.Text.Json.JsonDocument.Parse(rawResponse);
+                    
+                    if (jsonDoc.RootElement.TryGetProperty("summary", out var summaryElement))
+                    {
+                        var summary = summaryElement.GetString();
+                        
+                        if (!string.IsNullOrWhiteSpace(summary))
+                        {
+                            return Ok(new { Summary = summary });
+                        }
+                    }
+                    
+                    return Ok(new { Summary = "No tech news for now" });
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    _logger.LogWarning("Failed to parse portfolio service response: {Error}", ex.Message);
+                    return Ok(new { Summary = "No tech news for now" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving summary from portfolio service");
+                return StatusCode(500, new { error = "Failed to retrieve tech news summary" });
+            }
+        }
+
+        [HttpPost("tech-news")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpsertTechNews([FromBody] TechNewsSummaryDto request)
+        {
+            try
+            {
+                var configuredSecret = Environment.GetEnvironmentVariable("AIRFLOW_SECRET");
+                if (string.IsNullOrWhiteSpace(configuredSecret))
+                {
+                    _logger.LogWarning("AIRFLOW_SECRET is not configured");
+                    return StatusCode(503, new { error = "Service not configured" });
+                }
+
+                // Accept either Authorization: Bearer <secret> or X-Airflow-Secret: <secret>
+                string? providedSecret = null;
+                if (Request.Headers.TryGetValue("Authorization", out var authHeader))
+                {
+                    var header = authHeader.ToString();
+                    const string bearerPrefix = "Bearer ";
+                    if (header.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        providedSecret = header.Substring(bearerPrefix.Length).Trim();
+                    }
+                }
+                if (string.IsNullOrEmpty(providedSecret) && Request.Headers.TryGetValue("X-Airflow-Secret", out var xHeader))
+                {
+                    providedSecret = xHeader.ToString().Trim();
+                }
+
+                if (!string.Equals(providedSecret, configuredSecret, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("Secret auth failed (provided: {ProvidedLength} chars)", providedSecret?.Length ?? 0);
+                    return Unauthorized(new { error = "Unauthorized" });
+                }
+
+                if (request is null)
+                {
+                    _logger.LogWarning("Missing request body");
+                    return BadRequest(new { error = "Request body is required" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Summary))
+                {
+                    _logger.LogWarning("Missing summary");
+                    return BadRequest(new { error = "summary is required" });
+                }
+
+                var success = await _techNewsPortfolioClient.UpsertSummaryAsync(request);
+                if (success)
+                {
+                    return Ok(new { status = "ok", message = "Tech news summary forwarded to portfolio service" });
+                }
+                else
+                {
+                    _logger.LogError("Failed to forward to portfolio service");
+                    return StatusCode(500, new { error = "Failed to store tech news summary" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in tech news upsert");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
     }
