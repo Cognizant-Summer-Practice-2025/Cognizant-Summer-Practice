@@ -109,6 +109,17 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+  Email__SmtpHost="$Email__SmtpHost" \
+  Email__SmtpPort="$Email__SmtpPort" \
+  Email__SmtpUsername="$Email__SmtpUsername" \
+  Email__SmtpPassword="$Email__SmtpPassword" \
+  Email__FromAddress="$Email__FromAddress" \
+  Email__FromName="$Email__FromName" \
+  Email__UseSSL="$Email__UseSSL" \
+  Email__EnableContactNotifications="$Email__EnableContactNotifications" \
+  Email__TimeoutSeconds="$Email__TimeoutSeconds" \
+  Email__MaxRetryAttempts="$Email__MaxRetryAttempts" \
+  Email__RetryDelaySeconds="$Email__RetryDelaySeconds" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 else
@@ -128,6 +139,17 @@ else
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+  Email__SmtpHost="$Email__SmtpHost" \
+  Email__SmtpPort="$Email__SmtpPort" \
+  Email__SmtpUsername="$Email__SmtpUsername" \
+  Email__SmtpPassword="$Email__SmtpPassword" \
+  Email__FromAddress="$Email__FromAddress" \
+  Email__FromName="$Email__FromName" \
+  Email__UseSSL="$Email__UseSSL" \
+  Email__EnableContactNotifications="$Email__EnableContactNotifications" \
+  Email__TimeoutSeconds="$Email__TimeoutSeconds" \
+  Email__MaxRetryAttempts="$Email__MaxRetryAttempts" \
+  Email__RetryDelaySeconds="$Email__RetryDelaySeconds" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 fi
