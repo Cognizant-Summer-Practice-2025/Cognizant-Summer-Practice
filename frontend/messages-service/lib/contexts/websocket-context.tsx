@@ -100,11 +100,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       // Create new connection
       const newConnection = new signalR.HubConnectionBuilder()
         .withUrl(`${signalRUrl}/messagehub`, {
-          transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling,
-          skipNegotiation: false, // Let SignalR negotiate the best transport
+          skipNegotiation: true, // Skip negotiation for production reliability
+          transport: signalR.HttpTransportType.WebSockets, // WebSocket-only transport
         })
         .withAutomaticReconnect([0, 2000, 10000, 30000]) // Retry delays in ms
-        .configureLogging(signalR.LogLevel.None) // Disable SignalR internal logging in client
+        .configureLogging(signalR.LogLevel.Information) // Enable logging for debugging
         .build();
 
       // Set up event handlers
@@ -129,11 +129,13 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       });
 
       // Handle connection events
-      newConnection.onreconnecting(() => {
+      newConnection.onreconnecting((error) => {
+        console.log('SignalR reconnecting...', error);
         setIsConnected(false);
       });
 
-      newConnection.onreconnected(() => {
+      newConnection.onreconnected((connectionId) => {
+        console.log('SignalR reconnected with connection ID:', connectionId);
         setIsConnected(true);
         // Rejoin user group after reconnection
         if (user?.id) {
@@ -142,7 +144,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
         }
       });
 
-      newConnection.onclose(() => {
+      newConnection.onclose((error) => {
+        console.log('SignalR connection closed:', error);
         setIsConnected(false);
         setIsConnecting(false);
       });
