@@ -402,14 +402,14 @@
 }
 
 /* Contact */
-.contact-info {
+.terminal-template .contact-info {
   background: var(--terminal-bg);
   border: 1px solid var(--terminal-border);
   border-radius: 6px;
   padding: 16px;
 }
 
-.contact-item {
+.terminal-template .contact-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -417,12 +417,12 @@
   color: var(--terminal-text-dim);
 }
 
-.contact-item a {
+.terminal-template .contact-item a {
   color: var(--terminal-accent);
   text-decoration: none;
 }
 
-.contact-item a:hover {
+.terminal-template .contact-item a:hover {
   text-decoration: underline;
 }
 

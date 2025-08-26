@@ -272,7 +272,7 @@
   box-shadow: 0 0 8px var(--cyber-accent);
 }
 
-.bio-section {
+.cyberpunk-header .bio-section {
   padding: 4px 20px;
   background: var(--cyber-bg);
   border-bottom: 1px solid var(--cyber-border);
@@ -302,7 +302,7 @@
   font-weight: 500;
 }
 
-.bio-text {
+.cyberpunk-header .bio-text {
   font-size: 0.65rem;
   line-height: 1.2;
   color: var(--cyber-text-dim);
