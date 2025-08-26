@@ -12,10 +12,12 @@ export function Experience({ data: experience }: ExperienceProps) {
 
   useEffect(() => {
     // Simulate git log command output
+    const safeExperience = Array.isArray(experience) ? experience : [];
+    const displayExperience = safeExperience.slice(0, 5);
     const gitLogOutput = [
       '$ git log --oneline --graph --all',
       '',
-      ...experience.map((exp, index) => {
+      ...displayExperience.map((exp, index) => {
         const startYear = new Date(exp.startDate).getFullYear();
         const endYear = exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present';
         return `* ${(index + 1).toString().padStart(7, '0')} (${startYear}-${endYear}) ${exp.jobTitle} at ${exp.companyName}`;
@@ -75,12 +77,12 @@ export function Experience({ data: experience }: ExperienceProps) {
           <div className="git-log">
             {terminalOutput.map((line, index) => (
               <div key={index} className="log-line">
-                {line.startsWith('*') ? (
+                {typeof line === 'string' && line.startsWith('*') ? (
                   <span className="commit-line">
                     <GitBranch className="git-icon" size={12} />
                     {line.substring(1)}
                   </span>
-                ) : line.startsWith('$') ? (
+                ) : typeof line === 'string' && line.startsWith('$') ? (
                   <span className="command-line">
                     <Terminal className="cmd-icon" size={12} />
                     {line}

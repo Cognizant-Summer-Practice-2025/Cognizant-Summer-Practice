@@ -34,15 +34,17 @@ export function Skills({ data: skills }: SkillsProps) {
 
   useEffect(() => {
     // Simulate package manager output
+    const safeSkills = Array.isArray(skills) ? skills : [];
+    const displaySkills = safeSkills.slice(0, 5);
     const packageOutput = [
       '$ npm list --depth=0',
       '',
       'portfolio@1.0.0 /home/user/portfolio',
-      ...skills.map(skill => `├── ${skill.name.toLowerCase().replace(/\s+/g, '-')}@${((skill.proficiencyLevel || 80) / 10).toFixed(1)}.0`),
+      ...displaySkills.map(skill => `├── ${skill.name.toLowerCase().replace(/\s+/g, '-')}@${((skill.proficiencyLevel || 80) / 10).toFixed(1)}.0`),
       '',
       '$ composer show --installed',
       '',
-      ...skills.filter(skill => getSkillCategory(skill) === 'backend').map(skill => 
+      ...displaySkills.filter(skill => getSkillCategory(skill) === 'backend').map(skill => 
         `${skill.name.toLowerCase().replace(/\s+/g, '-')} v${((skill.proficiencyLevel || 80) / 10).toFixed(1)}.0`
       )
     ];
@@ -124,12 +126,12 @@ export function Skills({ data: skills }: SkillsProps) {
           <div className="package-output">
             {terminalOutput.map((line, index) => (
               <div key={index} className="output-line">
-                {line.startsWith('$') ? (
+                {typeof line === 'string' && line.startsWith('$') ? (
                   <span className="command-line">
                     <Terminal className="cmd-icon" size={12} />
                     {line}
                   </span>
-                ) : line.startsWith('├──') || line.startsWith('└──') ? (
+                ) : typeof line === 'string' && (line.startsWith('├──') || line.startsWith('└──')) ? (
                   <span className="package-line">
                     <Code className="package-icon" size={12} />
                     {line}

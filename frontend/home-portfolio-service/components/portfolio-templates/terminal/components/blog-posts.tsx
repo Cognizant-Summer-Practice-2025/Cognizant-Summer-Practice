@@ -17,20 +17,21 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
     if (!blogPosts || blogPosts.length === 0) return;
 
     // Simulate ls and grep commands for blog posts
+    const displayPosts = blogPosts.slice(0, 5);
     const commands = [
       '$ ls -la ~/blog/',
       'total ' + blogPosts.length,
       'drwxr-xr-x 3 user user 4096 ' + new Date().toDateString() + ' .',
       'drwxr-xr-x 3 user user 4096 ' + new Date().toDateString() + ' ..',
       '',
-      ...blogPosts.map((post) => {
+      ...displayPosts.map((post) => {
         const date = post.publishedAt ? new Date(post.publishedAt).toDateString() : 'No date';
         const size = Math.floor(Math.random() * 5000) + 1000;
         return `-rw-r--r-- 1 user user ${size} ${date} ${post.title.toLowerCase().replace(/\s+/g, '-')}.md`;
       }),
       '',
       '$ wc -w ~/blog/*.md',
-      ...blogPosts.map(post => `${Math.floor(Math.random() * 2000) + 500} ${post.title.toLowerCase().replace(/\s+/g, '-')}.md`),
+      ...displayPosts.map(post => `${Math.floor(Math.random() * 2000) + 500} ${post.title.toLowerCase().replace(/\s+/g, '-')}.md`),
       `${blogPosts.reduce((sum) => sum + Math.floor(Math.random() * 2000) + 500, 0)} total`
     ];
     
@@ -107,12 +108,12 @@ export function BlogPosts({ data: blogPosts }: BlogPostsProps) {
           <div className="blog-output">
             {terminalOutput.map((line, index) => (
               <div key={index} className="output-line">
-                {line.startsWith('$') ? (
+                {typeof line === 'string' && line.startsWith('$') ? (
                   <span className="command-line">
                     <Terminal className="cmd-icon" size={12} />
                     {line}
                   </span>
-                ) : line.startsWith('-rw-r--r--') ? (
+                ) : typeof line === 'string' && line.startsWith('-rw-r--r--') ? (
                   <span className="file-line">
                     <FileText className="file-icon" size={12} />
                     {line}
