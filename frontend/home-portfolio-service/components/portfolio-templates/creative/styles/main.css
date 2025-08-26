@@ -441,6 +441,8 @@
   background: var(--status-bg);
   color: white;
   font-size: 12px;
+  white-space: nowrap; /* prevent multi-line growth */
+  overflow: hidden;    /* clip overflow to keep fixed height */
 }
 
 .status-left,
@@ -448,7 +450,19 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  min-width: 0; /* allow flex children to shrink */
 }
+
+/* Truncate long file/user names to avoid status bar overflow */
+.status-left span,
+.status-right span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-left { max-width: 60%; }
+.status-right { max-width: 40%; justify-content: flex-end; }
 
 /* Animations */
 @keyframes fadeInUp {

@@ -15,17 +15,20 @@ export function Projects({ data: projects }: ProjectsProps) {
 
   useEffect(() => {
     // Simulate ls -la command output
+    const safeProjects = Array.isArray(projects) ? projects : [];
+    const displayProjects = safeProjects.slice(0, 5);
     const lsCommand = [
       '$ ls -la ~/projects',
-      'total ' + projects.length,
+      'total ' + safeProjects.length,
       'drwxr-xr-x 3 user user 4096 ' + new Date().toDateString() + ' .',
       'drwxr-xr-x 3 user user 4096 ' + new Date().toDateString() + ' ..',
       '',
-      ...projects.map((project, index) => {
+      ...displayProjects.map((project, index) => {
         const permissions = 'drwxr-xr-x';
         const size = Math.floor(Math.random() * 9000) + 1000;
         const date = new Date().toDateString();
-        return `${permissions} ${index + 1} user user ${size} ${date} ${project.title.toLowerCase().replace(/\s+/g, '-')}`;
+        const title = (project?.title ?? 'untitled').toString();
+        return `${permissions} ${index + 1} user user ${size} ${date} ${title.toLowerCase().replace(/\s+/g, '-')}`;
       })
     ];
     
@@ -63,12 +66,12 @@ export function Projects({ data: projects }: ProjectsProps) {
           <div className="ls-output">
             {lsOutput.map((line, index) => (
               <div key={index} className="output-line">
-                {line.startsWith('$') ? (
+                {typeof line === 'string' && line.startsWith('$') ? (
                   <span className="command-line">
                     <Terminal className="cmd-icon" size={12} />
                     {line}
                   </span>
-                ) : line.startsWith('drwxr-xr-x') ? (
+                ) : typeof line === 'string' && line.startsWith('drwxr-xr-x') ? (
                   <span className="file-line">
                     <Folder className="folder-icon" size={12} />
                     {line}
@@ -90,7 +93,7 @@ export function Projects({ data: projects }: ProjectsProps) {
         </div>
         
         <div className="project-cards">
-          {projects.map((project, index) => (
+          {(Array.isArray(projects) ? projects : []).map((project, index) => (
             <div 
               key={project.id} 
               className="project-card"
@@ -99,7 +102,7 @@ export function Projects({ data: projects }: ProjectsProps) {
               <div className="card-header">
                 <div className="repo-info">
                   <GitBranch className="repo-icon" size={16} />
-                  <span className="repo-name">{project.title.toLowerCase().replace(/\s+/g, '-')}</span>
+                  <span className="repo-name">{(project.title ?? 'untitled').toLowerCase().replace(/\s+/g, '-')}</span>
                 </div>
                 <div className="repo-stats">
                   <Star className="star-icon" size={14} />
@@ -111,7 +114,7 @@ export function Projects({ data: projects }: ProjectsProps) {
                 <div className="project-preview">
                   <Image 
                     src={project.imageUrl} 
-                    alt={project.title}
+                    alt={project.title ?? 'Project image'}
                     className="preview-image"
                     width={400}
                     height={250}
@@ -134,8 +137,8 @@ export function Projects({ data: projects }: ProjectsProps) {
               )}
 
               <div className="card-content">
-                <h3 className="project-title">{project.title}</h3>
-                <p className="project-description">{project.description}</p>
+                <h3 className="project-title">{project.title ?? 'Untitled Project'}</h3>
+                <p className="project-description">{project.description ?? ''}</p>
 
                 {project.technologies && (
                   <div className="tech-stack">

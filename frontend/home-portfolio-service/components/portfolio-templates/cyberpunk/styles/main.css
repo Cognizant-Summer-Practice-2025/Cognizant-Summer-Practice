@@ -272,7 +272,7 @@
   box-shadow: 0 0 8px var(--cyber-accent);
 }
 
-.bio-section {
+.cyberpunk-header .bio-section {
   padding: 4px 20px;
   background: var(--cyber-bg);
   border-bottom: 1px solid var(--cyber-border);
@@ -302,7 +302,7 @@
   font-weight: 500;
 }
 
-.bio-text {
+.cyberpunk-header .bio-text {
   font-size: 0.65rem;
   line-height: 1.2;
   color: var(--cyber-text-dim);
@@ -1047,6 +1047,52 @@
 .cyberpunk-blog .blog-post,
 .cyberpunk-contact .contact-section {
   margin-bottom: 1.5rem; /* Add spacing between sub-elements */
+}
+
+/* Projects visual styles and color safety */
+.cyberpunk-projects {
+  color: var(--cyber-text);
+}
+
+.cyberpunk-projects .projects-header .section-title {
+  color: var(--cyber-accent);
+}
+
+.cyberpunk-projects .project-card {
+  background: var(--cyber-surface) !important;
+  border: 1px solid var(--cyber-border) !important;
+  color: var(--cyber-text) !important;
+}
+
+.cyberpunk-projects .project-title {
+  color: var(--cyber-text-bright) !important;
+}
+
+.cyberpunk-projects .project-description,
+.cyberpunk-projects .project-id,
+.cyberpunk-projects .query-text,
+.cyberpunk-projects .result-count,
+.cyberpunk-projects .date-label,
+.cyberpunk-projects .date-value {
+  color: var(--cyber-text) !important;
+  opacity: 0.9;
+}
+
+.cyberpunk-projects .featured-badge,
+.cyberpunk-projects .tech-tag {
+  color: var(--cyber-accent) !important;
+  border-color: var(--cyber-accent) !important;
+  background: rgba(0, 255, 255, 0.06) !important;
+}
+
+.cyberpunk-projects .action-button {
+  color: var(--cyber-accent) !important;
+  border-color: var(--cyber-accent) !important;
+  background: transparent !important;
+}
+
+.cyberpunk-projects .action-button:hover {
+  background: rgba(0, 255, 255, 0.08) !important;
 }
 
 /* Ensure proper spacing in lists */
