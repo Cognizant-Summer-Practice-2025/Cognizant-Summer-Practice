@@ -1,6 +1,6 @@
 using backend_portfolio.Config;
 
-// Load environment variables from .env file (same pattern as other backends)
+// Load environment variables from .env file 
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);

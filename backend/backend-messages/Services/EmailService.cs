@@ -1,6 +1,7 @@
 using BackendMessages.Models;
 using BackendMessages.Models.Email;
 using BackendMessages.Services.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace BackendMessages.Services
 {
@@ -10,20 +11,20 @@ namespace BackendMessages.Services
         private readonly IEmailValidator _emailValidator;
         private readonly IEmailTemplateEngine _templateEngine;
         private readonly ISmtpClientService _smtpClientService;
-        private readonly IConfiguration _configuration;
+        private readonly EmailSettings _emailSettings;
 
         public EmailService(
             ILogger<EmailService> logger,
             IEmailValidator emailValidator,
             IEmailTemplateEngine templateEngine,
             ISmtpClientService smtpClientService,
-            IConfiguration configuration)
+            IOptions<EmailSettings> emailSettings)
         {
             _logger = logger;
             _emailValidator = emailValidator;
             _templateEngine = templateEngine;
             _smtpClientService = smtpClientService;
-            _configuration = configuration;
+            _emailSettings = emailSettings.Value;
         }
 
         public async Task<bool> SendUnreadMessagesNotificationAsync(UnreadMessagesNotification notification)
@@ -104,9 +105,6 @@ namespace BackendMessages.Services
             string htmlBody,
             string textBody)
         {
-            var fromEmail = _configuration["Email:FromAddress"] ?? "noreply@goalkeeper.com";
-            var fromName = _configuration["Email:FromName"] ?? "GoalKeeper Messages";
-
             return new EmailMessage
             {
                 RecipientEmail = recipientEmail,
@@ -114,8 +112,8 @@ namespace BackendMessages.Services
                 Subject = subject,
                 HtmlBody = htmlBody,
                 TextBody = textBody,
-                FromEmail = fromEmail,
-                FromName = fromName
+                FromEmail = _emailSettings.FromAddress,
+                FromName = _emailSettings.FromName
             };
         }
 

@@ -292,7 +292,7 @@ namespace BackendMessages.Services
             {
                 var totalConversations = await _conversationRepository.GetTotalCountByUserIdAsync(userId);
                 var unreadConversations = await _conversationRepository.GetUnreadConversationCountAsync(userId);
-                var totalMessages = 0; // Would need to implement this in repository
+                var totalMessages = 0; 
                 var unreadMessages = await _messageRepository.GetUnreadCountByUserIdAsync(userId);
 
                 return ConversationMapper.ToStatsResponse(totalConversations, unreadConversations, totalMessages, unreadMessages);

@@ -71,9 +71,6 @@ namespace BackendMessages.Services
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Message {MessageId} created successfully in conversation {ConversationId} from {SenderId} to {ReceiverId}", 
-                message.Id, conversationId, senderId, receiverId);
-
             return (message, conversation);
         }
     }

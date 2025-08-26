@@ -241,11 +241,6 @@ namespace BackendMessages.Services
                     return MessageMapper.ToDeleteMessageResponse(false, "Message not found or access denied");
                 }
 
-                // Here you would typically save the report to a reports table
-                // For now, we'll just log it
-                _logger.LogWarning("Message {MessageId} reported by user {UserId} for reason: {Reason}", 
-                    request.MessageId, request.ReportedById, request.Reason);
-
                 return MessageMapper.ToDeleteMessageResponse();
             }
             catch (Exception ex)

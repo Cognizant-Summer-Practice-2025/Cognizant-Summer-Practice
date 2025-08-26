@@ -97,7 +97,28 @@ echo "  USER_SERVICE_URL: $USER_SERVICE_URL"
 echo "  ConnectionStrings__Database_Messages: ${ConnectionStrings__Database_Messages:0:50}..."
 echo ""
 
-echo "Using ConnectionStrings__Database_Messages from .env"
+echo "Using ConnectionStrings__Database_Messages from .env (with validation)"
+
+# Normalize and validate database connection string
+# 1) Strip surrounding quotes if present
+# 2) Fallback to constructed string if missing
+CLEAN_DB_CONN_STR="${ConnectionStrings__Database_Messages}"
+# Strip surrounding single/double quotes if present
+if [[ "$CLEAN_DB_CONN_STR" =~ ^\".*\"$ ]]; then
+  CLEAN_DB_CONN_STR=${CLEAN_DB_CONN_STR:1:${#CLEAN_DB_CONN_STR}-2}
+elif [[ "$CLEAN_DB_CONN_STR" =~ ^\'.*\'$ ]]; then
+  CLEAN_DB_CONN_STR=${CLEAN_DB_CONN_STR:1:${#CLEAN_DB_CONN_STR}-2}
+fi
+
+if [[ -z "$CLEAN_DB_CONN_STR" ]]; then
+  echo "ConnectionStrings__Database_Messages not set; constructing from host/user/password variables"
+  : "${MESSAGES_DB_HOST:=messages-db}"
+  : "${POSTGRES_USER:=postgres}"
+  : "${POSTGRES_PASSWORD:=postgres}"
+  CLEAN_DB_CONN_STR="Host=${MESSAGES_DB_HOST};Port=5433;Database=messages_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+fi
+
+echo "Resolved DB conn length: ${#CLEAN_DB_CONN_STR}"
 
 if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&1; then
   echo "Updating existing Container App: $APP_NAME"
@@ -106,11 +127,22 @@ if az containerapp show -g "${AZ_ENV_RG:-$AZ_RG}" -n "$APP_NAME" 1>/dev/null 2>&
     --resource-group "${AZ_ENV_RG:-$AZ_RG}" \
     --image "$FQ_IMAGE" \
     --set-env-vars \
-  ConnectionStrings__Database_Messages="$ConnectionStrings__Database_Messages" \
+  ConnectionStrings__Database_Messages="$CLEAN_DB_CONN_STR" \
       UserService__BaseUrl="$USER_SVC_URL" \
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+      Email__SmtpHost="$Email__SmtpHost" \
+      Email__SmtpPort="$Email__SmtpPort" \
+      Email__SmtpUsername="$Email__SmtpUsername" \
+      Email__SmtpPassword="$Email__SmtpPassword" \
+      Email__FromAddress="$Email__FromAddress" \
+      Email__FromName="$Email__FromName" \
+      Email__UseSSL="$Email__UseSSL" \
+      Email__EnableContactNotifications="$Email__EnableContactNotifications" \
+      Email__TimeoutSeconds="$Email__TimeoutSeconds" \
+      Email__MaxRetryAttempts="$Email__MaxRetryAttempts" \
+      Email__RetryDelaySeconds="$Email__RetryDelaySeconds" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 
@@ -126,11 +158,22 @@ else
     --ingress external \
     --target-port 5093 \
     --env-vars \
-      ConnectionStrings__Database_Messages="$ConnectionStrings__Database_Messages" \
+      ConnectionStrings__Database_Messages="$CLEAN_DB_CONN_STR" \
       UserService__BaseUrl="$USER_SVC_URL" \
       UserServiceUrl="$USER_SVC_URL" \
       USER_SERVICE_URL="$USER_SVC_URL" \
       ALLOWED_ORIGINS="$ALLOWED_ORIGINS" \
+  Email__SmtpHost="$Email__SmtpHost" \
+  Email__SmtpPort="$Email__SmtpPort" \
+  Email__SmtpUsername="$Email__SmtpUsername" \
+  Email__SmtpPassword="$Email__SmtpPassword" \
+  Email__FromAddress="$Email__FromAddress" \
+  Email__FromName="$Email__FromName" \
+  Email__UseSSL="$Email__UseSSL" \
+  Email__EnableContactNotifications="$Email__EnableContactNotifications" \
+  Email__TimeoutSeconds="$Email__TimeoutSeconds" \
+  Email__MaxRetryAttempts="$Email__MaxRetryAttempts" \
+  Email__RetryDelaySeconds="$Email__RetryDelaySeconds" \
       LOGGING_LOGLEVEL_DEFAULT=Information \
       LOGGING_LOGLEVEL_MICROSOFT_ASPNETCORE=Warning
 fi
