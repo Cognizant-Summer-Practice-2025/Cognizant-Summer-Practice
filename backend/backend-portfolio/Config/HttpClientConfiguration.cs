@@ -8,6 +8,8 @@ namespace backend_portfolio.Config;
 public static class HttpClientConfiguration
 {
     public const string ExternalUserServiceClientName = "ExternalUserService";
+    public const string VercelApiClientName = "VercelApi";
+    public const string HomePortfolioServiceClientName = "HomePortfolioService";
 
     /// <summary>
     /// Configures HTTP client services with connection pooling and recycling
@@ -31,6 +33,41 @@ public static class HttpClientConfiguration
             UseCookies = httpClientSettings.UseCookies
         })
         .SetHandlerLifetime(httpClientSettings.HandlerLifetime);
+
+        // Configure named HttpClient for Vercel API
+        services.AddHttpClient(VercelApiClientName, client =>
+        {
+            client.BaseAddress = new Uri(configuration["Vercel:ApiUrl"] ?? "https://api.vercel.com");
+            client.Timeout = TimeSpan.FromMinutes(5); // Longer timeout for deployments
+            client.DefaultRequestHeaders.Add("User-Agent", "Goalkeeper-Portfolio-Deployer/1.0");
+            
+            var vercelToken = configuration["Vercel:Token"];
+            if (!string.IsNullOrEmpty(vercelToken))
+            {
+                client.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", vercelToken);
+            }
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+        {
+            MaxConnectionsPerServer = 5,
+            UseCookies = false
+        })
+        .SetHandlerLifetime(TimeSpan.FromMinutes(10));
+
+        // Configure named HttpClient for Home Portfolio Service
+        services.AddHttpClient(HomePortfolioServiceClientName, client =>
+        {
+            client.BaseAddress = new Uri(configuration["HomePortfolioService:BaseUrl"] ?? "http://localhost:3002");
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Add("User-Agent", "Goalkeeper-Template-Extractor/1.0");
+        })
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+        {
+            MaxConnectionsPerServer = 5,
+            UseCookies = false
+        })
+        .SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
         // Configure HttpClient factory with global pooling settings
         services.Configure<HttpClientFactoryOptions>(options =>

@@ -8,6 +8,7 @@ import { generateBestPortfolios, convertAIPortfoliosToCards, getLatestTechNews }
 import { PortfolioCardDto } from '@/lib/portfolio/api';
 import { TechNewsSummary } from '@/components/ai/TechNewsSummary';
 import PremiumGuard from '@/components/premium/PremiumGuard';
+import PortfolioDeployment from '@/components/deployment/PortfolioDeployment';
 import '@/components/home-page/style.css'; // Import home page styles for consistent portfolio card styling
 
 interface AIPageState {
@@ -17,6 +18,7 @@ interface AIPageState {
   hasGenerated: boolean;
   techNews?: { summary: string } | null;
   techLoading?: boolean;
+  showDeployment?: boolean;
 }
 
 function AIPageContent() {
@@ -26,17 +28,19 @@ function AIPageContent() {
     error: null,
     hasGenerated: false,
     techNews: null,
-    techLoading: false
+    techLoading: false,
+    showDeployment: false
   });
 
   const handleGeneratePortfolios = async () => {
-    // Clear any existing tech news content
+    // Clear any existing content
     setState(prev => ({ 
       ...prev, 
       loading: true, 
       error: null, 
       techNews: null,
-      hasGenerated: false 
+      hasGenerated: false,
+      showDeployment: false
     }));
 
     try {
@@ -97,13 +101,14 @@ function AIPageContent() {
   };
 
   const handleShowTechNews = async () => {
-    // Clear any existing portfolio content
+    // Clear any existing content
     setState(prev => ({ 
       ...prev, 
       techLoading: true, 
       portfolios: [],
       hasGenerated: false,
-      error: null
+      error: null,
+      showDeployment: false
     }));
     
     try {
@@ -136,6 +141,29 @@ function AIPageContent() {
     }
   };
 
+  const handleShowDeployment = () => {
+    // Clear any existing content and show deployment
+    setState(prev => ({ 
+      ...prev, 
+      portfolios: [],
+      hasGenerated: false,
+      techNews: null,
+      error: null,
+      showDeployment: true
+    }));
+  };
+
+  const handleDeploymentComplete = (deploymentUrl: string) => {
+    console.log('✅ Deployment completed:', deploymentUrl);
+  };
+
+  const handleDeploymentError = (error: string) => {
+    setState(prev => ({
+      ...prev,
+      error
+    }));
+  };
+
   // Determine what content to show
   const showContent = () => {
     if (state.loading) {
@@ -165,6 +193,8 @@ function AIPageContent() {
         </div>
       );
     }
+
+
 
     if (state.portfolios.length > 0) {
       return (
@@ -214,6 +244,30 @@ function AIPageContent() {
             {/* no timestamp */}
           </div>
                       <TechNewsSummary summary={state.techNews.summary} />
+        </div>
+      );
+    }
+
+    if (state.showDeployment) {
+      return (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Deploy Your Portfolio
+            </h2>
+            <p className="text-gray-600 mt-1">
+              Deploy your portfolio to Vercel with one click
+            </p>
+          </div>
+          
+          <div className="p-6">
+            <PortfolioDeployment
+              templateName="creative"
+              environment="Production"
+              onDeploymentComplete={handleDeploymentComplete}
+              onError={handleDeploymentError}
+            />
+          </div>
         </div>
       );
     }
@@ -273,6 +327,14 @@ function AIPageContent() {
                 Tech News
               </>
             )}
+          </Button>
+
+          <Button
+            onClick={handleShowDeployment}
+            className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-lg flex items-center gap-3 shadow-md hover:shadow-lg transition-all duration-200"
+            size="lg"
+          >
+            Deploy Portfolio
           </Button>
         </div>
 

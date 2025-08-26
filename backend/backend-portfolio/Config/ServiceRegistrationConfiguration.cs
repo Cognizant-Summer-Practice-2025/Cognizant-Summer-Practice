@@ -95,6 +95,11 @@ public static class ServiceRegistrationConfiguration
         services.AddScoped<ITechNewsSummaryService, TechNewsSummaryService>();
         services.AddScoped<IHealthCheckService, HealthCheckService>();
         services.AddScoped<IAirflowAuthorizationService, AirflowAuthorizationService>();
+        
+        // Deployment services
+        services.AddScoped<ITemplateExtractionService, TemplateExtractionService>();
+        services.AddScoped<IVercelDeploymentService, VercelDeploymentService>();
+        services.AddScoped<IPortfolioDeploymentService, PortfolioDeploymentService>();
 
         return services;
     }
