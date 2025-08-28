@@ -32,13 +32,14 @@ namespace backend_portfolio.Services
         {
             try
             {
-                var userServiceUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
-                                     ?? _configuration["UserServiceUrl"]
-                                     ?? "http://localhost:5200";
-                _logger.LogInformation("🔐 AuthService: Validating token with user service at {UserServiceUrl}", userServiceUrl);
+                var configuredBaseUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
+                                        ?? _configuration["ExternalServices:UserService:BaseUrl"]
+                                        ?? "http://localhost:5200";
+                _logger.LogInformation("🔐 AuthService: Validating token with user service at {UserServiceUrl}", configuredBaseUrl);
                 
                 // Call the user service to validate the token and get user info
-                var request = new HttpRequestMessage(HttpMethod.Get, $"{userServiceUrl}/api/oauth/me");
+                // Use relative URI when BaseAddress is set on the typed HttpClient
+                var request = new HttpRequestMessage(HttpMethod.Get, _httpClient.BaseAddress != null ? new Uri("/api/oauth/me", UriKind.Relative) : new Uri($"{configuredBaseUrl}/api/oauth/me", UriKind.Absolute));
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 _logger.LogInformation("🔐 AuthService: Sending validation request to user service with token length: {TokenLength}", token.Length);
 

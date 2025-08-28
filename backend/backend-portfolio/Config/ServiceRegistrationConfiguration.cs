@@ -106,7 +106,8 @@ public static class ServiceRegistrationConfiguration
     /// <returns>Configured service collection</returns>
     private static IServiceCollection AddAuthenticationServices(this IServiceCollection services)
     {
-        services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+        // Use typed client with named configuration for external user service
+        services.AddHttpClient<IUserAuthenticationService, UserAuthenticationService>(HttpClientConfiguration.ExternalUserServiceClientName);
         services.AddScoped<ISecurityHeadersService, SecurityHeadersService>();
         services.AddScoped<IAuthorizationPathService, AuthorizationPathService>();
         services.AddScoped<IAuthenticationStrategy, OAuth2AuthenticationStrategy>();

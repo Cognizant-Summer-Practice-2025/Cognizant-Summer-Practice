@@ -18,12 +18,20 @@ public static class HttpClientConfiguration
     public static IServiceCollection AddHttpClientConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         var httpClientSettings = GetHttpClientSettings(configuration);
+        var userServiceBaseUrl =
+            Environment.GetEnvironmentVariable("USER_SERVICE_URL")
+            ?? configuration["ExternalServices:UserService:BaseUrl"]
+            ?? "http://localhost:5200";
 
         // Configure named HttpClient for external user service
         services.AddHttpClient(ExternalUserServiceClientName, client =>
         {
             client.Timeout = httpClientSettings.Timeout;
             client.DefaultRequestHeaders.Add("User-Agent", httpClientSettings.UserAgent);
+            if (Uri.TryCreate(userServiceBaseUrl, UriKind.Absolute, out var baseUri))
+            {
+                client.BaseAddress = baseUri;
+            }
         })
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
         {
