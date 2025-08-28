@@ -74,10 +74,20 @@ public static class HttpClientConfiguration
     /// </summary>
     private static void ConfigureUserServiceClient(IServiceCollection services, HttpClientSettings settings)
     {
+        var userServiceBaseUrl =
+            Environment.GetEnvironmentVariable("USER_SERVICE_URL")
+            ?? Environment.GetEnvironmentVariable("AI_USER_SERVICE_URL")
+            ?? settings.UserServiceBaseUrl
+            ?? "http://localhost:5200";
+
         services.AddHttpClient(UserServiceClientName, client =>
         {
             client.Timeout = settings.UserServiceTimeout;
             client.DefaultRequestHeaders.Add("User-Agent", settings.UserAgent);
+            if (Uri.TryCreate(userServiceBaseUrl, UriKind.Absolute, out var baseUri))
+            {
+                client.BaseAddress = baseUri;
+            }
         })
         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
         {
@@ -150,5 +160,6 @@ public static class HttpClientConfiguration
         // User Service settings
         public TimeSpan UserServiceTimeout { get; set; } = TimeSpan.FromSeconds(10);
         public int UserServiceMaxConnections { get; set; } = 10;
+        public string? UserServiceBaseUrl { get; set; }
     }
 }
