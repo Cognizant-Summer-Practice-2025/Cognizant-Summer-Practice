@@ -78,7 +78,8 @@ public static class ServiceRegistrationConfiguration
     /// <returns>Configured service collection</returns>
     private static IServiceCollection AddAuthenticationServices(this IServiceCollection services)
     {
-        services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
+        // Register typed client for user auth service using the named HttpClient
+        services.AddHttpClient<IUserAuthenticationService, UserAuthenticationService>(HttpClientConfiguration.UserServiceClientName);
 
         return services;
     }

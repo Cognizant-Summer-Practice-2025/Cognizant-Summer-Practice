@@ -9,16 +9,16 @@ namespace BackendMessages.Services
     /// </summary>
     public class UserAuthenticationService : IUserAuthenticationService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<UserAuthenticationService> _logger;
 
         public UserAuthenticationService(
-            IHttpClientFactory httpClientFactory, 
+            HttpClient httpClient, 
             IConfiguration configuration,
             ILogger<UserAuthenticationService> logger)
         {
-            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -32,14 +32,16 @@ namespace BackendMessages.Services
         {
             try
             {
-                var userServiceUrl = _configuration["UserServiceUrl"] ?? "http://localhost:5200";
+                var configuredBaseUrl = Environment.GetEnvironmentVariable("USER_SERVICE_URL")
+                                        ?? _configuration["UserService:BaseUrl"]
+                                        ?? _configuration["UserServiceUrl"]
+                                        ?? "http://localhost:5200";
                 
                 // Call the user service to validate the token and get user info
-                using var httpClient = _httpClientFactory.CreateClient("UserService");
-                var request = new HttpRequestMessage(HttpMethod.Get, $"{userServiceUrl}/api/oauth/me");
+                var request = new HttpRequestMessage(HttpMethod.Get, _httpClient.BaseAddress != null ? new Uri("/api/oauth/me", UriKind.Relative) : new Uri($"{configuredBaseUrl}/api/oauth/me", UriKind.Absolute));
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 
-                var response = await httpClient.SendAsync(request);
+                var response = await _httpClient.SendAsync(request);
                 
                 if (!response.IsSuccessStatusCode)
                 {
