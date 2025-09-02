@@ -91,21 +91,23 @@
 - [10.1 Environment Configuration](#101-environment-configuration)
 - [10.2 Docker Support](#102-docker-support)
 
-### [11. API Endpoints Summary](#11-api-endpoints-summary)
+### [11. Stripe Payments & Subscriptions](#11-stripe-payments--subscriptions)
+
+### [12. API Endpoints Summary](#12-api-endpoints-summary)
 - [11.1 User Management](#111-user-management)
 - [11.2 OAuth Operations](#112-oauth-operations)
 - [11.3 Bookmark Management](#113-bookmark-management)
 - [11.4 User Reporting](#114-user-reporting)
 
-### [12. Future Enhancements](#12-future-enhancements)
+### [13. Future Enhancements](#13-future-enhancements)
 - [12.1 Planned Features](#121-planned-features)
 - [12.2 Scalability Improvements](#122-scalability-improvements)
 
-### [13. Contributing](#13-contributing)
+### [14. Contributing](#14-contributing)
 - [13.1 Development Guidelines](#131-development-guidelines)
 - [13.2 Code Review Checklist](#132-code-review-checklist)
 
-### [14. Support](#14-support)
+### [15. Support](#15-support)
 
 ---
 
@@ -1086,6 +1088,31 @@ The system uses JSON configuration files to manage environment-specific settings
 - **Database**: PostgreSQL container with initialization scripts
 - **Service**: .NET 9.0 container with optimized runtime
 - **Environment Variables**: Secure credential management
+
+## Stripe Payments & Subscriptions
+
+### Overview
+This service implements Stripe-based premium subscriptions using `StripeService` and a `PremiumSubscription` repository for persistence.
+
+### Architecture
+- Checkout session creation via `POST /api/PremiumSubscription/create-checkout-session`
+- Stripe Checkout redirects user, then sends webhooks to `POST /api/PremiumSubscription/webhook`
+- Webhooks handle: `checkout.session.completed`, `customer.subscription.created|updated|deleted`
+- Subscription state persisted in `PremiumSubscription` with period tracking
+
+### Endpoints
+- `GET /api/PremiumSubscription/status` — returns `{ IsPremium: boolean }`
+- `POST /api/PremiumSubscription/create-checkout-session` — returns `{ CheckoutUrl }`
+- `POST /api/PremiumSubscription/webhook` — Stripe webhook receiver (unauthenticated)
+- `POST /api/PremiumSubscription/cancel` — cancels at period end
+
+### Environment Variables
+- `STRIPE_SECRET_KEY`: Stripe API secret key
+- `STRIPE_PRICE_ID`: Price ID for the subscription product
+- `STRIPE_WEBHOOK_SECRET`: Webhook signing secret
+
+### Data Model Summary
+`PremiumSubscription` stores: `UserId`, `StripeSubscriptionId`, `StripeCustomerId`, `Status`, `CurrentPeriodStart`, `CurrentPeriodEnd`, `CancelAtPeriodEnd`.
 
 ## API Endpoints Summary
 

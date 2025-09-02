@@ -66,6 +66,7 @@
 - [7.1 Backend User Service](#71-backend-user-service)
 - [7.2 Cross-Service Authentication](#72-cross-service-authentication)
 - [7.3 API Client Management](#73-api-client-management)
+ - [7.4 Payments & Subscriptions (Stripe)](#74-payments--subscriptions-stripe)
 
 ### [8. Performance Optimizations](#8-performance-optimizations)
 - [8.1 Next.js Optimizations](#81-nextjs-optimizations)
@@ -1440,6 +1441,13 @@ Seamless authentication sharing across multiple frontend services.
 - **Audit Logging**: Authentication event logging
 
 ### 7.3 API Client Management
+### 7.4 Payments & Subscriptions (Stripe)
+
+- The frontend triggers premium purchase via `POST /api/PremiumSubscription/create-checkout-session` on `backend-user` and redirects the user to the returned `CheckoutUrl`.
+- On success, the user is redirected back to the provided `successUrl`; status is reflected via `GET /api/PremiumSubscription/status`.
+- Cancellation is initiated with `POST /api/PremiumSubscription/cancel`.
+- No Stripe keys are stored client-side; all secrets are kept server-side per security best practices.
+
 
 Comprehensive API client management for external service communication.
 

@@ -1,4 +1,4 @@
-# 🚀 GoalKeeper - Professional Portfolio Management Platform
+# GoalKeeper - Professional Portfolio Management Platform
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=.net&logoColor=white)](https://dotnet.microsoft.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -11,31 +11,32 @@
 
 ---
 
-## 📋 Table of Contents
 
-### [1. 🎯 Project Overview](#1-project-overview)
-### [2. 🏗️ System Architecture](#2-system-architecture)
-### [3. 🚀 Key Features](#3-key-features)
-### [4. 🛠️ Technology Stack](#4-technology-stack)
-### [5. 📁 Project Structure](#5-project-structure)
-### [6. 🔧 Services Overview](#6-services-overview)
-- [6.1 Backend Services](#61-backend-services)
-- [6.2 Frontend Services](#62-frontend-services)
-### [7. 🚀 Quick Start](#7-quick-start)
-### [8. 🌐 Live Demo](#8-live-demo)
-### [9. 📚 Documentation](#9-documentation)
-### [10. 🔒 Security Features](#10-security-features)
-### [11. 📱 Mobile Responsiveness](#11-mobile-responsiveness)
-### [12. 🤖 AI Integration](#12-ai-integration)
-### [13. 📊 Performance & Scalability](#13-performance--scalability)
-### [14. 🧪 Testing Strategy](#14-testing-strategy)
-### [15. 🚢 Deployment](#15-deployment)
-### [16. 🤝 Contributing](#16-contributing)
-### [17. 📄 License](#17-license)
+
+## Table of Contents
+
+### [1. Overview](#1-overview)
+### [2. System Architecture](#2-system-architecture)
+### [3. Key Features](#3-key-features)
+### [4. Technology Stack](#4-technology-stack)
+### [5. Project Structure](#5-project-structure)
+### [6. Services Overview](#6-services-overview)
+	- [6.1 Backend Services](#61-backend-services)
+	- [6.2 Frontend Services](#62-frontend-services)
+### [7. Quick Start](#7-quick-start)
+### [9. Documentation](#9-documentation)
+### [10. Security Features](#10-security-features)
+### [11. Mobile Responsiveness](#11-mobile-responsiveness)
+### [12. AI Integration](#12-ai-integration)
+### [13. Performance & Scalability](#13-performance--scalability)
+### [14. Testing Strategy](#14-testing-strategy)
+### [15. Deployment](#15-deployment)
+### [16. Contributing](#16-contributing)
+### [17. License](#17-license)
 
 ---
 
-## 1. 🎯 Project Overview {#1-project-overview}
+## 1. Overview
 
 **GoalKeeper** is a comprehensive, enterprise-grade portfolio management platform that enables professionals to showcase their skills, projects, and achievements through customizable portfolios. Built with a modern microservices architecture, the platform provides a seamless experience for portfolio creation, discovery, and professional networking.
 
@@ -52,7 +53,13 @@ Transform how professionals present themselves online by providing a sophisticat
 
 ---
 
-## 2. 🏗️ System Architecture {#2-system-architecture}
+## 🎥 Live Presentation
+
+View the live presentation here: https://s.go.ro/anrbg2aj
+
+---
+
+## 2. System Architecture
 
 ### **🏛️ Microservices Architecture**
 The platform is built using a sophisticated microservices architecture that provides:
@@ -75,7 +82,7 @@ The platform is built using a sophisticated microservices architecture that prov
 
 ---
 
-## 3. 🚀 Key Features {#3-key-features}
+## 3. Key Features
 
 ### **📝 Portfolio Management**
 - ✅ **Personal Blog-Portfolio Creation**: Each user can create and manage their own personal blog to showcase projects, skills, and achievements
@@ -115,7 +122,7 @@ The platform is built using a sophisticated microservices architecture that prov
 
 ---
 
-## 4. 🛠️ Technology Stack {#4-technology-stack}
+## 4. Technology Stack
 
 ### **🔧 Backend Technologies**
 - **Framework**: .NET 9.0 with ASP.NET Core
@@ -140,9 +147,18 @@ The platform is built using a sophisticated microservices architecture that prov
 - **Monitoring**: Built-in health checks and logging
 - **CI/CD**: Automated deployment pipelines
 
+### **💳 Payments & Subscriptions (Stripe)**
+- **Service Ownership**: `backend/backend-user` manages premium subscriptions via `StripeService`
+- **Checkout Flow**: Authenticated client calls `POST /api/PremiumSubscription/create-checkout-session` → receives `CheckoutUrl` → redirects to Stripe Checkout
+- **Webhooks**: Stripe sends events to `POST /api/PremiumSubscription/webhook` to activate, update, or cancel subscriptions
+- **Subscription Status**: Clients query `GET /api/PremiumSubscription/status` for current premium state
+- **Cancellation**: `POST /api/PremiumSubscription/cancel` schedules cancellation at period end
+- **Data Model**: `PremiumSubscription` persisted with fields for `StripeSubscriptionId`, `StripeCustomerId`, `Status`, `CurrentPeriodStart`, `CurrentPeriodEnd`, `CancelAtPeriodEnd`
+- **Env Vars**: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`
+
 ---
 
-## 5. 📁 Project Structure {#5-project-structure}
+## 5. Project Structure
 
 ```
 Cognizant-Summer-Practice/
@@ -166,55 +182,55 @@ Cognizant-Summer-Practice/
 
 ---
 
-## 6. 🔧 Services Overview {#6-services-overview}
+## 6. Services Overview
 
-### 6.1 Backend Services {#61-backend-services}
+### 6.1 Backend Services
 
 #### **🔐 Backend User Service**
 - **Purpose**: Comprehensive user management, authentication, and OAuth2 integration
 - **Key Features**: Multi-provider OAuth2, JWT token management, user lifecycle management
-- **Documentation**: [`backend/backend-user/README.md`](backend/backend-user/README.md)
+- **Documentation**: [backend/backend-user/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/backend/backend-user/README.md)
 
 #### **📁 Backend Portfolio Service**
 - **Purpose**: Portfolio management, content creation, and showcase functionality
 - **Key Features**: CQRS architecture, template system, image management, Redis caching
-- **Documentation**: [`backend/backend-portfolio/README.md`](backend/backend-portfolio/README.md)
+- **Documentation**: [backend/backend-portfolio/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/backend/backend-portfolio/README.md)
 
 #### **💬 Backend Messages Service**
 - **Purpose**: Real-time messaging, conversation management, and communication features
 - **Key Features**: SignalR integration, conversation threading, message reporting, soft delete pattern
-- **Documentation**: [`backend/backend-messages/README.md`](backend/backend-messages/README.md)
+- **Documentation**: [backend/backend-messages/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/backend/backend-messages/README.md)
 
 #### **🤖 Backend AI Service**
 - **Purpose**: AI-powered features, portfolio ranking, and intelligent content analysis
 - **Key Features**: OpenRouter integration, portfolio ranking algorithms, strategy patterns
-- **Documentation**: [`backend/backend-AI/README.md`](backend/backend-AI/README.md)
+- **Documentation**: [backend/backend-AI/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/backend/backend-AI/README.md)
 
-### 6.2 Frontend Services {#62-frontend-services}
+### 6.2 Frontend Services
 
 #### **🔐 Frontend Auth User Service**
 - **Purpose**: Comprehensive user authentication, OAuth2 integration, and user management
 - **Key Features**: NextAuth.js integration, client-side encryption, cross-service authentication
-- **Documentation**: [`frontend/auth-user-service/README.md`](frontend/auth-user-service/README.md)
+- **Documentation**: [frontend/auth-user-service/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/frontend/auth-user-service/README.md)
 
 #### **🏠 Frontend Home Portfolio Service**
 - **Purpose**: Portfolio discovery, filtering, and showcase functionality
 - **Key Features**: Advanced filtering, intelligent caching, performance optimization, responsive design
-- **Documentation**: [`frontend/home-portfolio-service/README.md`](frontend/home-portfolio-service/README.md)
+- **Documentation**: [frontend/home-portfolio-service/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/frontend/home-portfolio-service/README.md)
 
 #### **💬 Frontend Messages Service**
 - **Purpose**: Real-time messaging, conversation management, and communication features
 - **Key Features**: SignalR WebSocket support, message encryption, conversation management
-- **Documentation**: [`frontend/messages-service/README.md`](frontend/messages-service/README.md)
+- **Documentation**: [frontend/messages-service/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/frontend/messages-service/README.md)
 
 #### **👨‍💼 Frontend Admin Service**
 - **Purpose**: Comprehensive administrative dashboard and platform management
 - **Key Features**: Real-time analytics, user management, portfolio oversight, reporting workflows
-- **Documentation**: [`frontend/admin-service/README.md`](frontend/admin-service/README.md)
+- **Documentation**: [frontend/admin-service/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/frontend/admin-service/README.md)
 
 ---
 
-## 7. 🚀 Quick Start {#7-quick-start}
+## 7. Quick Start
 
 ### **Prerequisites**
 - Docker and Docker Compose
@@ -267,22 +283,9 @@ The platform uses comprehensive environment configuration for:
 
 ---
 
-## 8. 🌐 Live Demo {#8-live-demo}
+ 
 
-### **Production Services**
-- **Authentication Service**: [https://auth-user-service.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://auth-user-service.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-- **Portfolio Discovery**: [https://home-portfolio-service.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://home-portfolio-service.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-- **Messaging Service**: [https://messages-service.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://messages-service.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-- **Admin Dashboard**: [https://admin-service.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://admin-service.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-
-### **Backend APIs**
-- **User Service API**: [https://backend-user.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://backend-user.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-- **Portfolio Service API**: [https://backend-portfolio.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://backend-portfolio.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-- **Messages Service API**: [https://backend-messages.kindmoss-e060904c.westeurope.azurecontainerapps.io](https://backend-messages.kindmoss-e060904c.westeurope.azurecontainerapps.io)
-
----
-
-## 9. 📚 Documentation {#9-documentation}
+## 9. Documentation
 
 ### **Comprehensive Service Documentation**
 Each service includes detailed documentation covering:
@@ -293,13 +296,13 @@ Each service includes detailed documentation covering:
 - **Testing Strategy**: Comprehensive testing approach and examples
 
 ### **Documentation Links**
-- **Backend Overview**: [`backend/README.md`](backend/README.md)
-- **Frontend Overview**: [`frontend/README.md`](frontend/README.md)
+- **Backend Overview**: [backend/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/backend/README.md)
+- **Frontend Overview**: [frontend/README.md](https://github.com/Cognizant-Summer-Practice-2025/Cognizant-Summer-Practice/blob/master/frontend/README.md)
 - **Individual Service READMEs**: Available in each service directory
 
 ---
 
-## 10. 🔒 Security Features {#10-security-features}
+## 10. Security Features
 
 ### **Authentication & Authorization**
 - **OAuth2 Integration**: Multi-provider authentication with automatic token refresh
@@ -321,7 +324,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 11. 📱 Mobile Responsiveness {#11-mobile-responsiveness}
+## 11. Mobile Responsiveness
 
 ### **Mobile-First Design**
 - **Responsive Layout**: All services designed with mobile-first approach
@@ -337,7 +340,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 12. 🤖 AI Integration {#12-ai-integration}
+## 12. AI Integration
 
 ### **AI-Powered Features**
 - **Portfolio Ranking**: Intelligent algorithms for portfolio evaluation and ranking
@@ -353,7 +356,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 13. 📊 Performance & Scalability {#13-performance--scalability}
+## 13. Performance & Scalability
 
 ### **Performance Optimization**
 - **Multi-Level Caching**: Redis integration with intelligent cache invalidation
@@ -375,7 +378,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 14. 🧪 Testing Strategy {#14-testing-strategy}
+## 14. Testing Strategy
 
 ### **Comprehensive Testing Coverage**
 - **Unit Testing**: Individual component and service testing
@@ -391,7 +394,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 15. 🚢 Deployment {#15-deployment}
+## 15. Deployment
 
 ### **Containerization**
 - **Docker Support**: All services include Dockerfile and container configuration
@@ -407,7 +410,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 16. 🤝 Contributing {#16-contributing}
+## 16. Contributing
 
 ### **How to Contribute**
 1. **Fork the repository** and create a feature branch
@@ -430,7 +433,7 @@ Each service includes detailed documentation covering:
 
 ---
 
-## 17. 📄 License {#17-license}
+## 17. License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
